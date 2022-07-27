@@ -1,5 +1,4 @@
 import type { Feedback } from "./types";
-import { ref } from "vue";
 import { ServiceResult } from "@/services";
 import { fetchLoggedIn } from "@/services";
 
@@ -17,7 +16,7 @@ export function useFeedbackService() {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(MapModel(data)),
+      body: JSON.stringify(mapModel(data)),
     }).then((r) => {
       if (!r.ok) {
         throw new Error();
@@ -37,13 +36,19 @@ export function useFeedbackService() {
   };
 }
 
-function MapModel(feedbackModel: Feedback) {
-  if (!feedbackModel) {
-    throw new Error("Missing pramater feedbackModel");
-  }
+function mapModel(feedbackModel: Feedback) {
+  const fields = [
+    ["De tekst waar het om gaat", feedbackModel.content],
+    ["Feedback", feedbackModel.opmerking],
+    ["Aanleiding", feedbackModel.aanleiding],
+    ["Contactgegevens", feedbackModel.contactgegevens],
+  ];
+
+  const description = fields.map((x) => x.join(":\r\n")).join("\r\n\r\n");
+
   return {
     topic: feedbackModel.uri,
     name: feedbackModel.naam,
-    description: `Content\r\n${feedbackModel.content}\r\n\r\nOpmerking\r\n${feedbackModel.opmerking}\r\n\r\nAanleiding\r\n${feedbackModel.aanleiding}\r\n\r\nContctgegevens\r\n${feedbackModel.contactgegevens}`,
+    description,
   };
 }
