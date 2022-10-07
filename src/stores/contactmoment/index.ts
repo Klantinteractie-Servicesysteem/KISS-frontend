@@ -65,6 +65,7 @@ export interface ContactmomentState {
   vragen: Vraag[];
   huidigeVraag: Vraag;
   session: Session;
+  route: string;
 }
 
 function initContactmoment(): ContactmomentState {
@@ -73,6 +74,7 @@ function initContactmoment(): ContactmomentState {
     vragen: [vraag],
     huidigeVraag: vraag,
     session: createSession(),
+    route: "",
   };
 }
 

@@ -42,8 +42,10 @@ import PromptModal from "@/components/PromptModal.vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { onClickOutside, useConfirmDialog } from "@vueuse/core";
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { getKlantInfo } from "./helpers";
 
+const router = useRouter();
 const contactmomentStore = useContactmomentStore();
 const moments = computed(() =>
   contactmomentStore.contactmomenten.map((moment) => {
@@ -51,15 +53,28 @@ const moments = computed(() =>
       description: getKlantInfo(moment),
       isCurrent: moment === contactmomentStore.huidigContactmoment,
       async enable() {
-        if (contactmomentStore.wouldLoseProgress) {
-          const { isCanceled } = await dialog.reveal();
-          if (isCanceled) return;
+        await ensureConfirmation();
+        if (contactmomentStore.huidigContactmoment) {
+          contactmomentStore.huidigContactmoment.route =
+            router.currentRoute.value.fullPath;
         }
         contactmomentStore.switchContactmoment(moment);
+        if (moment.route) {
+          router.push(moment.route);
+        }
       },
     };
   })
 );
+
+const ensureConfirmation = async () => {
+  if (contactmomentStore.wouldLoseProgress) {
+    const { isCanceled } = await dialog.reveal();
+    if (isCanceled) {
+      throw new Error();
+    }
+  }
+};
 
 const detailsEl = ref();
 
