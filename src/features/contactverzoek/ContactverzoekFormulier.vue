@@ -27,6 +27,7 @@ erbij voor het vrij invullen.
       <medewerker-search
         class="utrecht-textbox utrecht-textbox--html-input"
         v-model="formData.medewerker"
+        @update:model-value="setFormInProgress"
         required
       >
         <template #label
@@ -281,15 +282,6 @@ watch(
   }
 );
 
-watch(
-  () => formData.value.medewerker,
-  (a) => {
-    if (a) {
-      emitStarted();
-    }
-  }
-);
-
 async function submit() {
   try {
     const {
@@ -365,9 +357,9 @@ const wisGeselecteerdeKlant = () => {
 };
 
 const setFormInProgress = (e: any) => {
-  if (e.target.value) {
-    emitStarted();
-  }
+  if (typeof e === "string" && !e) return;
+  if (typeof e === "object" && !e?.target?.value) return;
+  emitStarted();
 };
 </script>
 
