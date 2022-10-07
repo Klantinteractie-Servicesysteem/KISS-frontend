@@ -52,6 +52,9 @@ async function startNieuweVraag() {
     await waitForConfirmation();
   }
   contactmomentStore.startNieuweVraag();
+  setTimeout(() => {
+    document.getElementById("cm-notitieblok")?.focus();
+  });
 }
 
 async function waitForConfirmation() {

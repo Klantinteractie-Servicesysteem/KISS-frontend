@@ -42,6 +42,9 @@ const onStartContactMoment = async () => {
   }
   contactmomentStore.start();
   router.push("/klanten");
+  setTimeout(() => {
+    document.getElementById("cm-notitieblok")?.focus();
+  });
 };
 
 async function waitForConfirmation() {

@@ -34,7 +34,7 @@
             >
             <textarea
               aria-labelledby="notitieblok"
-              v-focus
+              id="cm-notitieblok"
               class="utrecht-textarea"
               v-model="
                 contactmomentStore.huidigContactmoment.huidigeVraag.notitie
