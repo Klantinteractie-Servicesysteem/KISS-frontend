@@ -21,6 +21,9 @@
               <router-link :to="{ name: 'klanten' }">Personen</router-link>
             </li>
             <li>
+              <router-link :to="{ name: 'bedrijven' }">Bedrijven</router-link>
+            </li>
+            <li>
               <router-link :to="{ name: 'zaken' }">Zaken</router-link>
             </li>
           </ul>
