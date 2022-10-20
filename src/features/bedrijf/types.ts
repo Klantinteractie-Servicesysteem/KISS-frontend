@@ -1,17 +1,7 @@
 import type { ServiceData } from "@/services";
 
-export interface BedrijfKlant {
-  _bedrijfType: "klant";
-  id: string;
-  klantnummer: string;
-  bedrijfsnaam: string;
-  telefoonnummers: { telefoonnummer: string }[];
-  emails: { email: string }[];
-  vestigingsnummer: string;
-}
-
 export interface BedrijfHandelsregister {
-  _bedrijfType: "handelsregister";
+  _typeOfKlant: "bedrijf";
   kvknummer: string;
   vestigingsnummer: string;
   postcode: string;
@@ -32,3 +22,26 @@ export interface EnrichedBedrijf {
     title: string;
   } | null>;
 }
+
+import type { PostcodeHuisnummer } from "@/helpers/validation";
+
+export type SearchCategoryTypes = {
+  handelsnaam: string;
+  kvkNummer: string;
+  postcodeHuisnummer: PostcodeHuisnummer;
+  emailadres: string;
+  telefoonnummer: string;
+};
+
+export type SearchCategories = keyof SearchCategoryTypes;
+
+export type BedrijfQueryDictionary = {
+  [K in SearchCategories]: (
+    search: SearchCategoryTypes[K]
+  ) => readonly [string, string][];
+};
+
+export type BedrijfQuery<K extends SearchCategories = SearchCategories> = {
+  field: K;
+  value: SearchCategoryTypes[K];
+};

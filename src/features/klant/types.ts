@@ -1,21 +1,10 @@
 import type { ServiceData } from "@/services";
+import type { Klant } from "../shared/types";
 
 export type UpdateContactgegevensParams = Pick<
   Klant,
   "id" | "telefoonnummers" | "emails"
 >;
-
-export interface Klant {
-  _typeOfKlant: "klant";
-  id: string;
-  klantnummer: string;
-  voornaam: string;
-  voorvoegselAchternaam?: string;
-  achternaam: string;
-  telefoonnummers: { telefoonnummer: string }[];
-  emails: { email: string }[];
-  bsn?: string;
-}
 
 export interface Persoon {
   _typeOfKlant: "persoon";

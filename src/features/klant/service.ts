@@ -10,10 +10,10 @@ import {
 } from "@/services";
 import { mutate } from "swrv";
 import type { Ref } from "vue";
-import { KlantType } from "../shared/types";
+import { KlantType, type Klant } from "../shared/types";
 import { getKlantIdUrl } from "../shared/urls";
 
-import type { UpdateContactgegevensParams, Klant } from "./types";
+import type { UpdateContactgegevensParams } from "./types";
 
 type QueryParam = [string, string][];
 

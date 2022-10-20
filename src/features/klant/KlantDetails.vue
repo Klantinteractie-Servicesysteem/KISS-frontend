@@ -124,7 +124,6 @@ import {
   UtrechtHeading,
   UtrechtButton,
 } from "@utrecht/web-component-library-vue";
-import type { Klant } from "./types";
 import { useUpdateContactGegevens } from "./service";
 import SimpleSpinner from "../../components/SimpleSpinner.vue";
 import { computed } from "vue";
@@ -134,6 +133,7 @@ import {
   NonBlockingForm,
 } from "@/components/non-blocking-forms";
 import { customPhoneValidator } from "@/helpers/validation";
+import type { Klant } from "../shared/types";
 
 const props = defineProps({
   klant: {

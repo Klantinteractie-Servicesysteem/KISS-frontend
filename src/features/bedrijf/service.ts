@@ -1,4 +1,4 @@
-import { KlantType } from "@/features/shared/types";
+import { KlantType, type Klant } from "@/features/shared/types";
 import { getKlantIdUrl } from "@/features/shared/urls";
 import {
   enforceOneOrZero,
@@ -11,14 +11,12 @@ import {
   type ServiceData,
 } from "@/services";
 import { mutate } from "swrv";
-import type { BedrijfHandelsregister, BedrijfKlant } from "../types";
 import type {
   SearchCategories,
   BedrijfQuery,
   BedrijfQueryDictionary,
+  BedrijfHandelsregister,
 } from "./types";
-
-export * from "./types";
 
 export const bedrijfQuery = <K extends SearchCategories>(
   query: BedrijfQuery<K>
@@ -73,7 +71,7 @@ function mapHandelsRegister(json: any): BedrijfHandelsregister {
   const { straatHuisnummer, postcode } = bezoekadres ?? {};
 
   return {
-    _bedrijfType: "handelsregister",
+    _typeOfKlant: "bedrijf",
     kvknummer,
     vestigingsnummer,
     postcode,
@@ -83,13 +81,13 @@ function mapHandelsRegister(json: any): BedrijfHandelsregister {
   };
 }
 
-function mapKlantRegister(json: any): BedrijfKlant {
+function mapKlantRegister(json: any): Klant {
   const { klantnummer, id, embedded, bedrijfsnaam } = json ?? {};
   const { subjectIdentificatie, emails, telefoonnummers } = embedded ?? {};
   const { vestigingsnummer } = subjectIdentificatie ?? {};
 
   return {
-    _bedrijfType: "klant",
+    _typeOfKlant: "klant",
     id,
     emails: emails ?? [],
     telefoonnummers: telefoonnummers ?? [],
@@ -129,7 +127,7 @@ export function useSearchBedrijven<K extends SearchCategories>(
 ) {
   const fetcher = (
     url: string
-  ): Promise<Paginated<BedrijfHandelsregister | BedrijfKlant>> => {
+  ): Promise<Paginated<BedrijfHandelsregister | Klant>> => {
     return url.startsWith(handelsRegisterBaseUrl)
       ? searchBedrijvenInHandelsRegister(url)
       : searchBedrijvenInKlantRegister(url);
@@ -153,7 +151,10 @@ export const useBedrijfHandelsregisterByVestigingsnummer = (
     return url.toString();
   };
 
-  const getUniqueId = () => getUrl() + "_single";
+  const getUniqueId = () => {
+    const url = getUrl();
+    return url && url + "_single";
+  };
 
   const fetcher = (url: string) =>
     searchBedrijvenInHandelsRegister(url).then(enforceOneOrZero);
@@ -180,14 +181,17 @@ export const useBedrijfKlantByVestigingsnummer = (
 ) => {
   const getUrl = () => getKlantByVestigingsnummerUrl(getVestigingsnummer());
 
-  const getUniqueId = () => getUrl() + "_single";
+  const getUniqueId = () => {
+    const url = getUrl();
+    return url && url + "_single";
+  };
 
   const fetcher = (url: string) =>
     searchBedrijvenInKlantRegister(url).then(enforceOneOrZero);
 
   return ServiceResult.fromFetcher(getUrl, fetcher, {
     getUniqueId,
-  }) as ServiceData<BedrijfKlant | null>;
+  }) as ServiceData<Klant | null>;
 };
 
 export async function ensureKlantForVestigingsnummer(vestigingsnummer: string) {

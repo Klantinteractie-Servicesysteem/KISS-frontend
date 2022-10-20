@@ -3,9 +3,10 @@
 import { mapServiceData, ServiceResult, type ServiceData } from "@/services";
 import { computed, reactive } from "vue";
 import { ensureKlantForBsn } from "../service";
-import type { EnrichedPersoon, Klant, Persoon } from "../types";
+import type { EnrichedPersoon, Persoon } from "../types";
 import { useRouter } from "vue-router";
 import { useEnrichedPersoon } from "./persoon-enricher";
+import type { Klant } from "@/features/shared/types";
 
 const props = defineProps<{ record: Klant | Persoon }>();
 

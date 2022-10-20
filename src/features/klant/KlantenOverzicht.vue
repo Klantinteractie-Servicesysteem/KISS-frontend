@@ -26,7 +26,8 @@
 
 <script lang="ts" setup>
 import KlantenOverzichtRow from "./KlantenOverzichtRow.vue";
-import type { Klant, Persoon } from "./types";
+import type { Persoon } from "./types";
 import PersonenEnrichContext from "./persoon-enricher/PersonenEnrichContext.vue";
+import type { Klant } from "../shared/types";
 defineProps<{ records: Klant[] | Persoon[] }>();
 </script>

@@ -17,9 +17,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import type { Klant, Persoon } from "../types";
+import type { Persoon } from "../types";
 import PersoonEnrichContext from "./PersoonEnrichContext.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import type { Klant } from "@/features/shared/types";
 
 defineProps<{ records: Klant[] | Persoon[] }>();
 

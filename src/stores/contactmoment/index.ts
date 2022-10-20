@@ -1,4 +1,3 @@
-import type { Klant } from "@/features/klant/types";
 import type {
   Medewerker,
   Website,
@@ -6,6 +5,7 @@ import type {
   Nieuwsbericht,
   Werkinstructie,
 } from "@/features/search/types";
+import type { Klant } from "@/features/shared/types";
 import type { ZaakDetails } from "@/features/zaaksysteem/types";
 import { getFormattedUtcDate } from "@/services";
 import { defineStore } from "pinia";
