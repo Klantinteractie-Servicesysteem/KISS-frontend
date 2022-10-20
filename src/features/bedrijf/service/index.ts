@@ -1,12 +1,14 @@
 import { KlantType } from "@/features/shared/types";
 import {
+  enforceOneOrZero,
   fetchLoggedIn,
   parseJson,
   parsePagination,
   ServiceResult,
   throwIfNotOk,
+  type ServiceData,
 } from "@/services";
-import type { BedrijfHandelsregister } from "../types";
+import type { BedrijfHandelsregister, BedrijfKlant } from "../types";
 import type {
   SearchCategories,
   BedrijfQuery,
@@ -68,6 +70,7 @@ function mapHandelsRegister(json: any): BedrijfHandelsregister {
   const { straatHuisnummer, postcode } = bezoekadres ?? {};
 
   return {
+    _bedrijfType: "handelsregister",
     kvknummer,
     vestigingsnummer,
     postcode,
@@ -77,12 +80,27 @@ function mapHandelsRegister(json: any): BedrijfHandelsregister {
   };
 }
 
-function mapKlantRegister(json: any): any {}
+function mapKlantRegister(json: any): BedrijfKlant {
+  const { klantnummer, id, embedded, bedrijfsnaam } = json ?? {};
+  const { subjectIdentificatie, emails, telefoonnummers } = embedded ?? {};
+  const { vestigingsnummer } = subjectIdentificatie ?? {};
+
+  return {
+    _bedrijfType: "klant",
+    id,
+    emails: emails ?? [],
+    telefoonnummers: telefoonnummers ?? [],
+    vestigingsnummer,
+    klantnummer,
+    bedrijfsnaam,
+  };
+}
 
 function searchBedrijven(url: string) {
-  const mapper = url.startsWith(handelsRegisterBaseUrl)
-    ? mapHandelsRegister
-    : mapKlantRegister;
+  const mapper: (json: any) => BedrijfKlant | BedrijfHandelsregister =
+    url.startsWith(handelsRegisterBaseUrl)
+      ? mapHandelsRegister
+      : mapKlantRegister;
 
   return fetchLoggedIn(url)
     .then(throwIfNotOk)
@@ -95,6 +113,9 @@ type SearchBedrijfArguments<K extends SearchCategories> = {
   page: number | undefined;
 };
 
+const searchSingleBedrijf = (url: string) =>
+  searchBedrijven(url).then(enforceOneOrZero);
+
 export const useSearchBedrijven = <K extends SearchCategories>(
   getArgs: () => SearchBedrijfArguments<K>
 ) => {
@@ -102,4 +123,46 @@ export const useSearchBedrijven = <K extends SearchCategories>(
     () => getSearchBedrijvenUrl(getArgs()),
     searchBedrijven
   );
+};
+
+export const useBedrijfHandelsregisterByVestigingsnummer = (
+  getVestigingsnummer: () => string
+) => {
+  const getUrl = () => {
+    const vestigingsnummer = getVestigingsnummer();
+    if (!vestigingsnummer) return "";
+    const url = new URL(handelsRegisterBaseUrl);
+    url.searchParams.set("extend[]", "all");
+    url.searchParams.set("vestigingsnummer", vestigingsnummer);
+    return url.toString();
+  };
+
+  const getUniqueId = () => getUrl() + "_single";
+
+  return ServiceResult.fromFetcher(getUrl, searchSingleBedrijf, {
+    getUniqueId,
+  }) as ServiceData<BedrijfHandelsregister | null>;
+};
+
+export const useBedrijfKlantByVestigingsnummer = (
+  getVestigingsnummer: () => string
+) => {
+  const getUrl = () => {
+    const vestigingsnummer = getVestigingsnummer();
+    if (!vestigingsnummer) return "";
+    const url = new URL(klantRegisterBaseUrl);
+    url.searchParams.set("extend[]", "all");
+    url.searchParams.set(
+      "subjectIdentificatie.vestigingsnummer",
+      vestigingsnummer
+    );
+    url.searchParams.set("subjectType", KlantType.Bedrijf);
+    return url.toString();
+  };
+
+  const getUniqueId = () => getUrl() + "_single";
+
+  return ServiceResult.fromFetcher(getUrl, searchSingleBedrijf, {
+    getUniqueId,
+  }) as ServiceData<BedrijfKlant | null>;
 };

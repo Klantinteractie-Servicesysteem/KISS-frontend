@@ -9,10 +9,10 @@
     </fieldset>
     <fieldset class="search-bar">
       <label>
-        <span>Zoek naar een persoon</span>
+        <span>Zoek naar een bedrijf</span>
         <input
           type="search"
-          placeholder="Zoek naar een persoon"
+          placeholder="Zoek naar een bedrijf"
           ref="inputRef"
           v-model="state.currentSearch"
           @search="handleSearch"
@@ -27,11 +27,11 @@
   <section class="search-section">
     <simple-spinner v-if="bedrijven.loading" />
     <template v-if="bedrijven.success">
-      <!-- <klanten-overzicht :records="bedrijven.data.page">
+      <bedrijven-overzicht :records="bedrijven.data.page">
         <template #caption>
           <SearchResultsCaption :results="bedrijven.data" />
         </template>
-      </klanten-overzicht> -->
+      </bedrijven-overzicht>
       <pagination
         class="pagination"
         :pagination="bedrijven.data"
@@ -60,6 +60,7 @@ import {
 import SimpleSpinner from "../../components/SimpleSpinner.vue";
 import Pagination from "../../nl-design-system/components/Pagination.vue";
 import ApplicationMessage from "../../components/ApplicationMessage.vue";
+import BedrijvenOverzicht from "./BedrijvenOverzicht.vue";
 
 const labels: { [key in SearchCategories]: string } = {
   handelsnaam: "Bedrijfsnaam",
