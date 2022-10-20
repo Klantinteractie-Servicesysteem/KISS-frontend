@@ -1,4 +1,5 @@
 import { KlantType } from "@/features/shared/types";
+import { getKlantIdUrl } from "@/features/shared/urls";
 import {
   enforceOneOrZero,
   fetchLoggedIn,
@@ -6,8 +7,10 @@ import {
   parsePagination,
   ServiceResult,
   throwIfNotOk,
+  type Paginated,
   type ServiceData,
 } from "@/services";
+import { mutate } from "swrv";
 import type { BedrijfHandelsregister, BedrijfKlant } from "../types";
 import type {
   SearchCategories,
@@ -96,16 +99,24 @@ function mapKlantRegister(json: any): BedrijfKlant {
   };
 }
 
-function searchBedrijven(url: string) {
-  const mapper: (json: any) => BedrijfKlant | BedrijfHandelsregister =
-    url.startsWith(handelsRegisterBaseUrl)
-      ? mapHandelsRegister
-      : mapKlantRegister;
-
+function searchBedrijvenInKlantRegister(url: string) {
   return fetchLoggedIn(url)
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((json) => parsePagination(json, mapper));
+    .then((json) => parsePagination(json, mapKlantRegister))
+    .then((paginated) => {
+      paginated.page.forEach((klant) => {
+        mutate(getKlantIdUrl(klant.id), klant);
+      });
+      return paginated;
+    });
+}
+
+function searchBedrijvenInHandelsRegister(url: string) {
+  return fetchLoggedIn(url)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((json) => parsePagination(json, mapHandelsRegister));
 }
 
 type SearchBedrijfArguments<K extends SearchCategories> = {
@@ -113,17 +124,22 @@ type SearchBedrijfArguments<K extends SearchCategories> = {
   page: number | undefined;
 };
 
-const searchSingleBedrijf = (url: string) =>
-  searchBedrijven(url).then(enforceOneOrZero);
-
-export const useSearchBedrijven = <K extends SearchCategories>(
+export function useSearchBedrijven<K extends SearchCategories>(
   getArgs: () => SearchBedrijfArguments<K>
-) => {
+) {
+  const fetcher = (
+    url: string
+  ): Promise<Paginated<BedrijfHandelsregister | BedrijfKlant>> => {
+    return url.startsWith(handelsRegisterBaseUrl)
+      ? searchBedrijvenInHandelsRegister(url)
+      : searchBedrijvenInKlantRegister(url);
+  };
+
   return ServiceResult.fromFetcher(
     () => getSearchBedrijvenUrl(getArgs()),
-    searchBedrijven
+    fetcher
   );
-};
+}
 
 export const useBedrijfHandelsregisterByVestigingsnummer = (
   getVestigingsnummer: () => string
@@ -139,9 +155,12 @@ export const useBedrijfHandelsregisterByVestigingsnummer = (
 
   const getUniqueId = () => getUrl() + "_single";
 
-  return ServiceResult.fromFetcher(getUrl, searchSingleBedrijf, {
+  const fetcher = (url: string) =>
+    searchBedrijvenInHandelsRegister(url).then(enforceOneOrZero);
+
+  return ServiceResult.fromFetcher(getUrl, fetcher, {
     getUniqueId,
-  }) as ServiceData<BedrijfHandelsregister | null>;
+  });
 };
 
 export const useBedrijfKlantByVestigingsnummer = (
@@ -162,7 +181,10 @@ export const useBedrijfKlantByVestigingsnummer = (
 
   const getUniqueId = () => getUrl() + "_single";
 
-  return ServiceResult.fromFetcher(getUrl, searchSingleBedrijf, {
+  const fetcher = (url: string) =>
+    searchBedrijvenInKlantRegister(url).then(enforceOneOrZero);
+
+  return ServiceResult.fromFetcher(getUrl, fetcher, {
     getUniqueId,
   }) as ServiceData<BedrijfKlant | null>;
 };

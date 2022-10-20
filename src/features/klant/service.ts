@@ -11,6 +11,7 @@ import {
 import { mutate } from "swrv";
 import type { Ref } from "vue";
 import { KlantType } from "../shared/types";
+import { getKlantIdUrl } from "../shared/urls";
 
 import type { UpdateContactgegevensParams, Klant } from "./types";
 
@@ -117,13 +118,6 @@ function searchKlanten(url: string): Promise<Paginated<Klant>> {
       });
       return p;
     });
-}
-
-function getKlantIdUrl(id?: string) {
-  if (!id) return "";
-  const url = new URL(`${klantRootUrl}/${id}`);
-  setExtend(url);
-  return url.toString();
 }
 
 function getKlantBsnUrl(bsn?: string) {
