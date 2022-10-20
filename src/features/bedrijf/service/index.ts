@@ -163,21 +163,22 @@ export const useBedrijfHandelsregisterByVestigingsnummer = (
   });
 };
 
+const getKlantByVestigingsnummerUrl = (vestigingsnummer: string) => {
+  if (!vestigingsnummer) return "";
+  const url = new URL(klantRegisterBaseUrl);
+  url.searchParams.set("extend[]", "all");
+  url.searchParams.set(
+    "subjectIdentificatie.vestigingsnummer",
+    vestigingsnummer
+  );
+  url.searchParams.set("subjectType", KlantType.Bedrijf);
+  return url.toString();
+};
+
 export const useBedrijfKlantByVestigingsnummer = (
   getVestigingsnummer: () => string
 ) => {
-  const getUrl = () => {
-    const vestigingsnummer = getVestigingsnummer();
-    if (!vestigingsnummer) return "";
-    const url = new URL(klantRegisterBaseUrl);
-    url.searchParams.set("extend[]", "all");
-    url.searchParams.set(
-      "subjectIdentificatie.vestigingsnummer",
-      vestigingsnummer
-    );
-    url.searchParams.set("subjectType", KlantType.Bedrijf);
-    return url.toString();
-  };
+  const getUrl = () => getKlantByVestigingsnummerUrl(getVestigingsnummer());
 
   const getUniqueId = () => getUrl() + "_single";
 
@@ -188,3 +189,43 @@ export const useBedrijfKlantByVestigingsnummer = (
     getUniqueId,
   }) as ServiceData<BedrijfKlant | null>;
 };
+
+export async function ensureKlantForVestigingsnummer(vestigingsnummer: string) {
+  const url = getKlantByVestigingsnummerUrl(vestigingsnummer);
+  const uniqueId = url && url + "_single";
+
+  if (!url || !uniqueId) throw new Error();
+
+  const first = await searchBedrijvenInKlantRegister(url).then(
+    enforceOneOrZero
+  );
+
+  if (first) {
+    mutate(uniqueId, first);
+    const idUrl = getKlantIdUrl(first.id);
+    mutate(idUrl, first);
+    return first;
+  }
+
+  const response = await fetchLoggedIn(klantRegisterBaseUrl, {
+    method: "POST",
+    body: JSON.stringify({
+      bronorganisatie: window.organisatieIds[0],
+      // TODO: WAT MOET HIER IN KOMEN?
+      klantnummer: "123",
+      subjectIdentificatie: { vestigingsnummer },
+      subjectType: KlantType.Bedrijf,
+    }),
+  });
+
+  if (!response.ok) throw new Error();
+
+  const json = await response.json();
+  const newKlant = mapKlantRegister(json);
+  const idUrl = getKlantIdUrl(newKlant.id);
+
+  mutate(idUrl, newKlant);
+  mutate(uniqueId, newKlant);
+
+  return newKlant;
+}

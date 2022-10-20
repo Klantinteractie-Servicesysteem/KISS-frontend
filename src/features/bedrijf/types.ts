@@ -26,4 +26,9 @@ export interface EnrichedBedrijf {
   postcodeHuisnummer: ServiceData<string>;
   email: ServiceData<string>;
   telefoonnummer: ServiceData<string>;
+  create: () => Promise<void>;
+  detailLink: ServiceData<{
+    to: string;
+    title: string;
+  } | null>;
 }

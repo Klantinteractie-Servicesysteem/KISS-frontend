@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { mapServiceData, ServiceResult } from "@/services";
 import { computed, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { ensureKlantForVestigingsnummer } from "../service";
 import type {
   BedrijfHandelsregister,
   BedrijfKlant,
@@ -10,7 +12,7 @@ import type {
 import { useEnrichedBedrijf } from "./bedrijf-enricher";
 
 const props = defineProps<{ record: BedrijfHandelsregister | BedrijfKlant }>();
-const [_, klantData, handelsregisterData] = useEnrichedBedrijf(
+const [vestigingsnummer, klantData, handelsregisterData] = useEnrichedBedrijf(
   () => props.record
 );
 
@@ -39,6 +41,31 @@ const telefoonnummer = computed(() => {
   return klantTelefoon;
 });
 
+const getKlantUrl = (klant: BedrijfKlant) => `/klanten/${klant.id}`;
+
+function mapLink(klant: BedrijfKlant | null, naam: string | null) {
+  return (
+    klant && {
+      to: getKlantUrl(klant),
+      title: `Details ${naam}`,
+    }
+  );
+}
+
+const detailLink = computed(() => {
+  const n = klantData.success ? klantData.data?.bedrijfsnaam : null;
+  return mapServiceData(klantData, (k) => mapLink(k, n ?? null));
+});
+
+const router = useRouter();
+
+const create = async () => {
+  if (!vestigingsnummer.value) throw new Error();
+  const newKlant = await ensureKlantForVestigingsnummer(vestigingsnummer.value);
+  const url = getKlantUrl(newKlant);
+  router.push(url);
+};
+
 const result: EnrichedBedrijf = reactive({
   bedrijfsnaam: mapServiceData(klantData, (k) => k?.bedrijfsnaam ?? ""),
   kvknummer: mapServiceData(handelsregisterData, (h) => h?.kvknummer ?? ""),
@@ -47,5 +74,7 @@ const result: EnrichedBedrijf = reactive({
   ),
   email,
   telefoonnummer,
+  detailLink,
+  create,
 });
 </script>

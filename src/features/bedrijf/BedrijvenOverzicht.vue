@@ -9,6 +9,7 @@
           <th class="wrap">Postcode + Huisnummer</th>
           <th>E-mailadres</th>
           <th>Tel. nummer</th>
+          <th class="row-link-header">Details</th>
         </tr>
       </thead>
       <tbody>

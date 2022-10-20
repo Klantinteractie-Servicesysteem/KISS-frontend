@@ -28,6 +28,21 @@
       <div class="skeleton" v-if="result.email.loading" />
       <template v-if="result.email.success">{{ result.email.data }}</template>
     </td>
+    <td>
+      <div class="skeleton" v-if="result.detailLink.loading" />
+      <template v-if="result.detailLink.success">
+        <router-link
+          v-if="result.detailLink.data"
+          v-bind="result.detailLink.data"
+        />
+        <button
+          type="button"
+          title="Aanmaken"
+          v-else
+          @click="result.create()"
+        />
+      </template>
+    </td>
   </tr>
 </template>
 <script lang="ts" setup>
