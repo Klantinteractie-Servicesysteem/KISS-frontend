@@ -27,3 +27,8 @@ export interface ContactmomentContactverzoek {
   medewerker: string;
   completed?: Date;
 }
+
+export enum KlantType {
+  Persoon = "natuurlijk_persoon",
+  Bedrijf = "vestiging",
+}

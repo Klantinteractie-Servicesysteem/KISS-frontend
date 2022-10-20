@@ -30,11 +30,6 @@ export interface Persoon {
   geboorteland: string;
 }
 
-export enum KlantType {
-  Persoon = "natuurlijk_persoon",
-  Bedrijf = "vestiging",
-}
-
 export interface EnrichedPersoon {
   naam: ServiceData<string | null>;
   bsn: string | undefined;

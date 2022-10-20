@@ -5,7 +5,7 @@ import {
   parseJson,
   parsePagination,
 } from "@/services";
-import { KlantType } from "./types";
+import { KlantType } from "../shared/types";
 
 const klantRootUrl = `${window.gatewayBaseUri}/api/klanten`;
 

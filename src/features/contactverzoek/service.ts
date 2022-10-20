@@ -1,7 +1,7 @@
 import { fetchLoggedIn, getFormattedUtcDate, throwIfNotOk } from "@/services";
 import type { NieuweKlant } from "@/stores/contactmoment";
 // creating a klant will be done differently in the future. for now, jus reuse the type from the klant feature
-import { KlantType } from "../klant/types";
+import { KlantType } from "../shared/types";
 
 export interface Contactverzoek {
   bronorganisatie: string; //verplicht in de api
