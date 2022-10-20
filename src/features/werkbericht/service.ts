@@ -46,7 +46,7 @@ function parseWerkbericht(
 ): Werkbericht {
   if (
     typeof jsonObject?.embedded?.title?.rendered !== "string" ||
-    typeof jsonObject?.embedded?.content?.rendered !== "string" ||
+    typeof jsonObject?.embedded?.acf?.publication_content !== "string" ||
     typeof jsonObject?.date !== "string"
   ) {
     throw new Error(
@@ -55,15 +55,10 @@ function parseWerkbericht(
     );
   }
 
-  const berichtTypeIds = jsonObject?.["openpub-type"];
-  const typeNames = Array.isArray(berichtTypeIds)
-    ? berichtTypeIds.map(
-        (x) =>
-          (typeof x === "number" && getBerichtTypeNameById(x)) || "onbekend"
-      )
-    : ["onbekend"];
+  const berichtTypeId = jsonObject?.embedded?.acf?.publication_type;
+  const berichtTypeName = getBerichtTypeNameById(berichtTypeId) ?? "onbekend";
 
-  const skillIds = jsonObject?.["openpub_skill"];
+  const skillIds = jsonObject?.embedded?.acf?.publication_skill;
   const skillNames = Array.isArray(skillIds)
     ? skillIds.map(
         (x) => (typeof x === "number" && getSkillNameById(x)) || "onbekend"
@@ -91,9 +86,9 @@ function parseWerkbericht(
     id: jsonObject.id,
     read: !!dateRead,
     title: jsonObject.embedded.title.rendered,
-    content: jsonObject.embedded.content.rendered,
+    content: jsonObject.embedded.acf.publication_content,
     date: dateLatest,
-    types: typeNames,
+    type: berichtTypeName,
     skills: skillNames,
     url: jsonObject["x-commongateway-metadata"]?.self,
   };
@@ -129,7 +124,7 @@ function fetchLookupList(urlStr: string): Promise<LookupList<number, string>> {
  * Returns a reactive ServiceData object promising a LookupList of berichttypes
  */
 export function useBerichtTypes(): ServiceData<LookupList<number, string>> {
-  const url = window.gatewayBaseUri + "/api/openpub/openpub-type";
+  const url = window.gatewayBaseUri + "/api/openpub/openpub_type";
   return ServiceResult.fromFetcher(url, fetchLookupList);
 }
 
@@ -171,9 +166,10 @@ export function useWerkberichten(
     params.push(["order[modified]", "desc"]);
     params.push(["extend[]", "x-commongateway-metadata.dateModified"]);
     params.push(["extend[]", "x-commongateway-metadata.self"]);
+    params.push(["extend[]", "acf"]);
 
     if (typeId) {
-      params.push(["openpub-type", typeId.toString()]);
+      params.push(["acf.publication_type", typeId.toString()]);
     }
 
     if (search) {
@@ -186,7 +182,7 @@ export function useWerkberichten(
 
     if (skillIds?.length) {
       skillIds.forEach((skillId) => {
-        params.push(["openpub_skill[]", skillId.toString()]);
+        params.push(["acf.publication_skill[]", skillId.toString()]);
       });
     }
     return `${BERICHTEN_BASE_URI}?${new URLSearchParams(params)}`;

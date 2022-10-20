@@ -1,7 +1,7 @@
 <template>
   <article :class="{ read: read }">
-    <small v-if="showType && bericht.types.length">
-      {{ bericht.types.join(", ") }}
+    <small v-if="showType && bericht.type">
+      {{ bericht.type }}
     </small>
 
     <div class="heading-container">
@@ -158,7 +158,7 @@ function processHtml(html: string) {
 const sanitized = computed(() => processHtml(props.bericht.content));
 
 const handleToggleBerichtInContactmoment = (): void => {
-  const type = props.bericht.types[0];
+  const type = props.bericht.type;
   const bericht = { url: props.bericht.url, title: props.bericht.title };
 
   type === "nieuws" && contactmomentStore.toggleNieuwsbericht(bericht);
@@ -259,6 +259,10 @@ article {
     & > *:not(.heading-container) {
       display: none;
     }
+  }
+
+  .correct-header div {
+    white-space: break-spaces;
   }
 }
 </style>
