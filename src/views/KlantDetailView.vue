@@ -29,6 +29,19 @@
       messageType="error"
     />
 
+    <simple-spinner v-if="bedrijf.loading" />
+
+    <handelsregister-gegevens
+      v-if="bedrijf.success && bedrijf.data"
+      :bedrijf="bedrijf.data"
+    />
+
+    <application-message
+      v-if="bedrijf.error"
+      message="Er ging iets mis bij het ophalen van de Handelsregister gegevens"
+      messageType="error"
+    />
+
     <utrecht-heading :level="2" model-value
       >Openstaande contactverzoeken</utrecht-heading
     >
@@ -94,6 +107,10 @@ import { useZakenByBsn } from "@/features/zaaksysteem";
 import ZakenOverzicht from "../features/zaaksysteem/ZakenOverzicht.vue";
 import KlantBrpGegevens from "../features/klant/brp/KlantBrpGegevens.vue";
 import { usePersoonByBsn } from "@/features/klant/brp/service";
+import {
+  useBedrijfHandelsregisterByVestigingsnummer,
+  HandelsregisterGegevens,
+} from "@/features/bedrijf";
 
 const props = defineProps<{ klantId: string }>();
 const klantId = computed(() => props.klantId);
@@ -130,6 +147,13 @@ const klantBsn = computed(getBsn);
 
 const zaken = useZakenByBsn(klantBsn);
 const persoon = usePersoonByBsn(getBsn);
+
+const getVestigingsnummer = () =>
+  !klant.success || !klant.data.vestigingsnummer
+    ? ""
+    : klant.data.vestigingsnummer;
+const bedrijf =
+  useBedrijfHandelsregisterByVestigingsnummer(getVestigingsnummer);
 </script>
 
 <style scoped lang="scss">
