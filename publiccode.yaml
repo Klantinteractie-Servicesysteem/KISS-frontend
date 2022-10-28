@@ -1,0 +1,12 @@
+name: "Klantinteractie-Servicesysteem"
+
+description:
+  shortDescription:
+    "KISS (Klantinteractie-Servicesysteem) is een opensource oplossing voor klantcontact centra die data uit meerdere bronnen ontsluit in één interface"
+
+  longDescription:
+    "KISS (Klantinteractie-Servicesysteem) is een opensource oplossing voor klantcontact centra die data uit meerdere bronnen ontsluit in één interface"
+
+nl:
+  commonground:
+    layerType: "interface"
