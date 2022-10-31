@@ -1,18 +1,46 @@
 name: "Klantinteractie-Servicesysteem"
+
+publiccodeYmlVersion: 1.0
 url: "https://github.com/Klantinteractie-Servicesysteem"
-platforms: "web"
+
+inputTypes: 
+  - application/json
+  - application/ld+json
+  - application/hal+json
+
+outputTypes:
+  - application/json
+  - application/ld+json
+  - application/hal+json
+
+platforms: 
+ - "web"
+
 categories: 
  - "appointment-scheduling"
  - "applicant-tracking"
+ 
 roadmap: "https://github.com/orgs/Klantinteractie-Servicesysteem/projects/1/views/1"
+
 softwareType: "standalone/web"
+
 intendedAudience:
   scope: "government"
+  
 description:
+ nl:
+  localisedName: "Klantinteractie-Servicesysteem"
   shortDescription: "KISS (Klantinteractie-Servicesysteem) is een opensource oplossing voor klantcontact centra die data uit meerdere bronnen ontsluit in één interface"
   longDescription: "KISS (Klantinteractie-Servicesysteem) is een opensource oplossing voor klantcontact centra die data uit meerdere bronnen ontsluit in één interface"
+
 maintenance: 
   type: "internal"
+
 nl: 
  commonground:
   layertype: "interface"
+
+dependsOn:
+  open:
+    - name: common-gateway
+      versionMin: 1.0.0
