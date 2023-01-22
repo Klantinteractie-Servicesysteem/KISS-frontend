@@ -89,7 +89,7 @@ function parseWerkbericht(
     date: dateLatest,
     type: berichtTypeName,
     skills: skillNames,
-    url: jsonObject["_self"]?.self,
+    url: `/api/kiss_openpub_pub/${jsonObject.id}`, //jsonObject["_self"]?.self,
     featured: jsonObject.embedded.acf.publicationFeatured,
   };
 }
