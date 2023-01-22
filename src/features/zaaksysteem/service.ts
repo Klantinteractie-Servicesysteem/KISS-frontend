@@ -66,7 +66,7 @@ const mapZaakDetails = (zaak: any) => {
     streefDatum: streefDatum,
     indienDatum: zaak.publicatiedatum && new Date(zaak.publicatiedatum),
     registratieDatum: zaak.registratiedatum && new Date(zaak.registratiedatum),
-    self: zaak["_self"].self,
+    self: `/api/zaken/${zaak.id}`, //zaak["_self"].self,
     documenten: mapDocumenten(zaak?.embedded?.zaakinformatieobjecten),
     omschrijving: zaak.omschrijving,
   } as ZaakDetails;
