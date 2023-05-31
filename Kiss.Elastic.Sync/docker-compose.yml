@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  kiss.elastic.sync:
+    env_file:
+      - .env.local
+    image: ${DOCKER_REGISTRY-}kisselasticsync
+    build:
+      context: .
+      dockerfile: src/Kiss.Elastic.Sync/Dockerfile
