@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /.env.local
+/src/Kiss.Elastic.Sync/Properties/launchSettings.json
