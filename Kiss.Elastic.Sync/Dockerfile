@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Kiss.ElasticPoller/Kiss.ElasticPoller.csproj", "Kiss.ElasticPoller/"]
-RUN dotnet restore "Kiss.ElasticPoller/Kiss.ElasticPoller.csproj"
+COPY ["Kiss.ElasticPoller/Kiss.Elastic.Sync.csproj", "Kiss.Elastic.Sync/"]
+RUN dotnet restore "Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj"
 COPY . .
-WORKDIR "/src/Kiss.ElasticPoller"
-RUN dotnet build "Kiss.ElasticPoller.csproj" -c Release -o /app/build
+WORKDIR "/src/Kiss.Elastic.Sync"
+RUN dotnet build "Kiss.Elastic.Sync.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Kiss.ElasticPoller.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Kiss.Elastic.Sync.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Kiss.ElasticPoller.dll"]
+ENTRYPOINT ["dotnet", "Kiss.Elastic.Sync.dll"]
