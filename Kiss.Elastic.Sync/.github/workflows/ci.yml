@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }} # This will use the format ghcr.io/owner/repo
+  IMAGE_NAME: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync # lowercase
   
 jobs:
   build:
