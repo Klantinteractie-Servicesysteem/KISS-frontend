@@ -1,0 +1,43 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }} # This will use the format ghcr.io/owner/repo
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set tag
+      id: vars
+      run: |
+        # Strip git ref prefix from version
+        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+        # Strip "v" prefix from tag name (if present at all)
+        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+        # Use Docker `latest` tag convention
+        [ "$VERSION" == "main" ] && VERSION=latest
+
+        echo ::set-output name=tag::${VERSION}
+          
+    - name: Build the Docker image
+      env:
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: docker build . --file src/Kiss.Elastic.Sync/Dockerfile --tag $IMAGE_NAME:$(date +%s)
+      
+    - name: Log into registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Push the Docker image
+      env:
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: docker push $IMAGE_NAME:$RELEASE_VERSION
