@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Kiss.ElasticPoller/Kiss.Elastic.Sync.csproj", "Kiss.Elastic.Sync/"]
+COPY ["Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj", "Kiss.Elastic.Sync/"]
 RUN dotnet restore "Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj"
 COPY . .
 WORKDIR "/src/Kiss.Elastic.Sync"
