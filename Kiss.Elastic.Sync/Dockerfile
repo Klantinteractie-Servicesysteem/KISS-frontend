@@ -3,10 +3,10 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj", "Kiss.Elastic.Sync/"]
-RUN dotnet restore "Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj"
+COPY ["src/Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj", "src/Kiss.Elastic.Sync/"]
+RUN dotnet restore "src/Kiss.Elastic.Sync/Kiss.Elastic.Sync.csproj"
 COPY . .
-WORKDIR "/src/Kiss.Elastic.Sync"
+WORKDIR "/src/src/Kiss.Elastic.Sync"
 RUN dotnet build "Kiss.Elastic.Sync.csproj" -c Release -o /app/build
 
 FROM build AS publish
