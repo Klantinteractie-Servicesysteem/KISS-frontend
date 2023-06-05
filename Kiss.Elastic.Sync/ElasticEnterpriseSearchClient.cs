@@ -11,15 +11,12 @@ namespace Kiss.Elastic.Sync
 
 		public ElasticEnterpriseSearchClient(Uri baseUri, string apiKey)
 		{
-#if DEBUG
 			var handler = new HttpClientHandler
 			{
 				ServerCertificateCustomValidationCallback = (_, _, _, _) => true
 			};
+
 			_httpClient = new HttpClient(handler);
-#else
-            _httpClient = new HttpClient();
-#endif
 			_httpClient.BaseAddress = baseUri;
 			_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 		}
