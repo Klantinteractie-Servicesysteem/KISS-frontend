@@ -2,7 +2,7 @@
 
 namespace Kiss.Elastic.Sync
 {
-	public readonly record struct KissEnvelope(in JsonElement Object, in JsonElement Title, in JsonElement ObjectMeta, in string Id)
+	public readonly record struct KissEnvelope(in JsonElement Object, in string? Title, in string? ObjectMeta, in string Id)
 	{
 		public void WriteTo(Utf8JsonWriter jsonWriter, string bron)
 		{
@@ -10,17 +10,9 @@ namespace Kiss.Elastic.Sync
 
 			jsonWriter.WriteString("id", Id);
 
-			if (Title.ValueKind == JsonValueKind.String)
-			{
-				jsonWriter.WritePropertyName("title");
-				Title.WriteTo(jsonWriter);
-			}
+			jsonWriter.WriteString("title", Title);
 
-			if (ObjectMeta.ValueKind == JsonValueKind.String)
-			{
-				jsonWriter.WritePropertyName("object_meta");
-				ObjectMeta.WriteTo(jsonWriter);
-			}
+			jsonWriter.WriteString("object_meta", ObjectMeta);
 
 			jsonWriter.WriteString("object_bron", bron);
 
