@@ -110,18 +110,6 @@ namespace Kiss.Elastic.Sync.Sources
 						continue;
 					}
 
-					static IEnumerable<string> GetStringValues(JsonElement element, string[] propNames)
-					{
-						if (element.ValueKind != JsonValueKind.Object) yield break;
-						foreach (var item in propNames)
-						{
-							if (element.TryGetProperty(item, out var value) && value.ValueKind == JsonValueKind.String)
-							{
-								var str = value.GetString();
-								if (!string.IsNullOrWhiteSpace(str)) yield return str;
-							}
-						}
-					}
 					data.TryGetProperty("contact", out var contact);
 					var title = string.Join(' ', GetStringValues(contact, s_nameProps));
 					var objectMeta = string.Join(' ', GetStringValues(data, s_metaProps));
@@ -135,6 +123,19 @@ namespace Kiss.Elastic.Sync.Sources
 				await foreach (var el in GetMedewerkers(next, token))
 				{
 					yield return el;
+				}
+			}
+		}
+
+		private static IEnumerable<string> GetStringValues(JsonElement element, string[] propNames)
+		{
+			if (element.ValueKind != JsonValueKind.Object) yield break;
+			foreach (var item in propNames)
+			{
+				if (element.TryGetProperty(item, out var value) && value.ValueKind == JsonValueKind.String)
+				{
+					var str = value.GetString();
+					if (!string.IsNullOrWhiteSpace(str)) yield return str;
 				}
 			}
 		}
