@@ -8,9 +8,11 @@ namespace Kiss.Elastic.Sync
 		const int MaxDocuments = 100;
 
 		private readonly HttpClient _httpClient;
+		private readonly string _engine;
 
-		public ElasticEnterpriseSearchClient(Uri baseUri, string apiKey)
+		public ElasticEnterpriseSearchClient(Uri baseUri, string apiKey, string engine)
 		{
+			// necessary because enterprise search has a local cert in our cluster
 			var handler = new HttpClientHandler
 			{
 				ServerCertificateCustomValidationCallback = (_, _, _, _) => true
@@ -19,13 +21,28 @@ namespace Kiss.Elastic.Sync
 			_httpClient = new HttpClient(handler);
 			_httpClient.BaseAddress = baseUri;
 			_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+			_engine = engine;
 		}
 
-		public async Task IndexDocumentsAsync(IAsyncEnumerable<KissEnvelope> documents, string engine, string bron, CancellationToken token)
+		public static ElasticEnterpriseSearchClient Create()
+		{
+			var elasticBaseUrl = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_BASE_URL");
+			var elasticApiKey = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_PRIVATE_API_KEY");
+			var elasticEngine = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_ENGINE");
+
+			if (!Uri.TryCreate(elasticBaseUrl, UriKind.Absolute, out var elasticBaseUri))
+			{
+				throw new Exception("elastic base url is niet valide: " + elasticBaseUrl);
+			}
+
+			return new ElasticEnterpriseSearchClient(elasticBaseUri, elasticApiKey, elasticEngine);
+		}
+
+		public async Task IndexDocumentsAsync(IAsyncEnumerable<KissEnvelope> documents, string bron, CancellationToken token)
 		{
 			await using var standardOutput = Console.OpenStandardOutput();
 			await using var standardError = Console.OpenStandardError();
-			var url = $"/api/as/v1/engines/{engine}/documents";
+			var url = $"/api/as/v1/engines/{_engine}/documents";
 			await using var enumerator = documents.GetAsyncEnumerator(token);
 			var hasData = await enumerator.MoveNextAsync();
 
@@ -74,6 +91,9 @@ namespace Kiss.Elastic.Sync
 					? standardOutput
 					: standardError;
 				await responseStream.CopyToAsync(outputStream, token);
+				const byte NewLine = (byte)'\n';
+				outputStream.WriteByte(NewLine);
+				await outputStream.FlushAsync(token);
 				response.EnsureSuccessStatusCode();
 			}
 		}

@@ -23,8 +23,6 @@ namespace Kiss.Elastic.Sync.Sources
 			_objectTypesToken = objectTypesToken;
 		}
 
-		public string Type => "Smoelenboek";
-
 		public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
 		{
 			var type = await GetMedewerkerObjectType(token);
