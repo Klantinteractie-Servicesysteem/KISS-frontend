@@ -56,9 +56,9 @@ namespace Kiss.Elastic.Sync.Sources
                         {
                             title = titleProp.GetString();
                         }
-						if(vertaling.TryGetProperty("specifiekeTekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.Object)
+						if(vertaling.TryGetProperty("specifiekeTekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.String)
                         {
-                            objectMeta = objectMetaProp.ToString();
+                            objectMeta = objectMetaProp.GetString();
                         }
 					}
 
