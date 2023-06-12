@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.Extensions;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Web;
 
 namespace Kiss.Elastic.Sync.Sources
 {
@@ -28,13 +29,13 @@ namespace Kiss.Elastic.Sync.Sources
 			var type = await GetMedewerkerObjectType(token);
 			
 			if (string.IsNullOrWhiteSpace(type)) throw new Exception("Kan objecttype 'Medewerker' niet vinden");
-			
-			var query = new QueryBuilder
-			{
-				{ "type", type }
-			};
-			
-			var url = $"{_objectenBaseUri}api/v2/objects{query.ToQueryString()}";
+
+			var uriBuilder = new UriBuilder(_objectenBaseUri);
+			uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/api/v2/objects";
+			var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+			query["type"] = type;
+			uriBuilder.Query = query.ToString();
+			var url = uriBuilder.ToString();
 			
 			await foreach (var item in GetMedewerkers(url, token))
 			{
