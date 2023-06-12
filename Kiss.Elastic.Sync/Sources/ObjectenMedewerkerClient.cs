@@ -68,7 +68,7 @@ namespace Kiss.Elastic.Sync.Sources
 
 				foreach (var objectType in pagination.Records)
 				{
-					if (objectType.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String && name.ValueEquals("Medewerker") &&
+					if (objectType.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String && (name.ValueEquals("Medewerker") || name.ValueEquals("medewerker")) &&
 						objectType.TryGetProperty("url", out var objectUrl) && objectUrl.ValueKind == JsonValueKind.String)
 					{
 						result = objectUrl.GetString();
