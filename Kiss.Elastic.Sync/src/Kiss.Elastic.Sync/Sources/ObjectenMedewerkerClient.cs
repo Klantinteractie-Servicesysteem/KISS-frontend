@@ -28,12 +28,16 @@ namespace Kiss.Elastic.Sync.Sources
 		public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
 		{
 			var type = await GetMedewerkerObjectType(token);
+			
 			if (string.IsNullOrWhiteSpace(type)) throw new Exception("Kan objecttype 'Medewerker' niet vinden");
+			
 			var query = new QueryBuilder
 			{
 				{ "type", type }
 			};
+			
 			var url = $"{_objectenBaseUri}api/v2/objects{query.ToQueryString()}";
+			
 			await foreach (var item in GetMedewerkers(url, token))
 			{
 				yield return item;
