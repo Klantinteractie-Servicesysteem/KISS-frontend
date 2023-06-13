@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Web;
 
@@ -26,72 +25,39 @@ namespace Kiss.Elastic.Sync.Sources
 
 		public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
 		{
-			var type = await GetMedewerkerObjectType(token);
-			
-			if (string.IsNullOrWhiteSpace(type)) throw new Exception("Kan objecttype 'Medewerker' niet vinden");
+			var typeCount = 0;
 
-			var uriBuilder = new UriBuilder(_objectenBaseUri);
-			uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/api/v2/objects";
-			var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-			query["type"] = type;
-			uriBuilder.Query = query.ToString();
-			var url = uriBuilder.ToString();
-			
-			await foreach (var item in GetMedewerkers(url, token))
+			await foreach (var type in GetMedewerkerObjectTypes(token))
 			{
-				yield return item;
+				typeCount++;
+				var uriBuilder = new UriBuilder(_objectenBaseUri);
+				uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/api/v2/objects";
+				var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+				query["type"] = type;
+				uriBuilder.Query = query.ToString();
+				var url = uriBuilder.ToString();
+
+				await foreach (var item in GetMedewerkers(url, token))
+				{
+					yield return item;
+				}
+			}
+
+			if (typeCount == 0)
+			{
+				throw new Exception("Kan objecttype 'Medewerker' niet vinden");
 			}
 		}
 
-		private Task<string?> GetMedewerkerObjectType(CancellationToken token) => GetMedewerkerObjectType(_objectTypesBaseUri + "api/v2/objecttypes", token);
+		private IAsyncEnumerable<string> GetMedewerkerObjectTypes(CancellationToken token) => GetMedewerkerObjectTypes(_objectTypesBaseUri + "api/v2/objecttypes", token);
 
-		private async Task<string?> GetMedewerkerObjectType(string url, CancellationToken token)
+		private async IAsyncEnumerable<string> GetMedewerkerObjectTypes(string url, [EnumeratorCancellation] CancellationToken token)
 		{
 			string? next = null;
-			string? result = null;
 
 			using (var message = new HttpRequestMessage(HttpMethod.Get, url))
 			{
 				message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", _objectTypesToken);
-				using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
-				if(!response.IsSuccessStatusCode)
-				{
-					var str = await response.Content.ReadAsStringAsync(token);
-				}
-				response.EnsureSuccessStatusCode();
-				await using var stream = await response.Content.ReadAsStreamAsync(token);
-				using var jsonDoc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
-
-				if (!jsonDoc.TryParseZgwPagination(out var pagination))
-				{
-					return result;
-				}
-
-				next = pagination.Next;
-
-				foreach (var objectType in pagination.Records)
-				{
-					if (objectType.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String && (name.ValueEquals("Medewerker") || name.ValueEquals("medewerker")) &&
-						objectType.TryGetProperty("url", out var objectUrl) && objectUrl.ValueKind == JsonValueKind.String)
-					{
-						result = objectUrl.GetString();
-						break;
-					}
-				}
-			};
-
-			if (string.IsNullOrWhiteSpace(result) && !string.IsNullOrWhiteSpace(next)) return await GetMedewerkerObjectType(next, token);
-
-			return result;
-		}
-
-		private async IAsyncEnumerable<KissEnvelope> GetMedewerkers(string url, [EnumeratorCancellation] CancellationToken token)
-		{
-			string? next;
-
-			using (var message = new HttpRequestMessage(HttpMethod.Get, url))
-			{
-				message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", _objectenToken);
 				using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
 				response.EnsureSuccessStatusCode();
 				await using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -104,20 +70,71 @@ namespace Kiss.Elastic.Sync.Sources
 
 				next = pagination.Next;
 
-				foreach (var medewerker in pagination.Records)
+				foreach (var objectType in pagination.Records)
 				{
-					if (!medewerker.TryGetProperty("record", out var record) || record.ValueKind != JsonValueKind.Object ||
-						!record.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
-						!data.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+					if (objectType.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String && (name.ValueEquals("Medewerker") || name.ValueEquals("medewerker")) &&
+						objectType.TryGetProperty("url", out var objectUrl) && objectUrl.ValueKind == JsonValueKind.String)
 					{
-						continue;
+						var result = objectUrl.GetString();
+						if (!string.IsNullOrWhiteSpace(result))
+						{
+							yield return result;
+						}
+					}
+				}
+			};
+
+			if (!string.IsNullOrWhiteSpace(next))
+			{
+				await foreach (var item in GetMedewerkerObjectTypes(next, token))
+				{
+					yield return item;
+				}
+			}
+		}
+
+		private async IAsyncEnumerable<KissEnvelope> GetMedewerkers(string url, [EnumeratorCancellation] CancellationToken token)
+		{
+			string? next = null;
+
+			using (var message = new HttpRequestMessage(HttpMethod.Get, url))
+			{
+				message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", _objectenToken);
+				using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
+
+				if (response.IsSuccessStatusCode)
+				{
+					await using var stream = await response.Content.ReadAsStreamAsync(token);
+					using var jsonDoc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
+
+					if (!jsonDoc.TryParseZgwPagination(out var pagination))
+					{
+						yield break;
 					}
 
-					data.TryGetProperty("contact", out var contact);
-					var title = string.Join(' ', GetStringValues(contact, s_nameProps));
-					var objectMeta = string.Join(' ', GetStringValues(data, s_metaProps));
+					next = pagination.Next;
 
-					yield return new KissEnvelope(data, title, objectMeta, $"kennisartikel_{idProp.GetString()}");
+					foreach (var medewerker in pagination.Records)
+					{
+						if (!medewerker.TryGetProperty("record", out var record) || record.ValueKind != JsonValueKind.Object ||
+							!record.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
+							!data.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+						{
+							continue;
+						}
+
+						data.TryGetProperty("contact", out var contact);
+						var title = string.Join(' ', GetStringValues(contact, s_nameProps));
+						var objectMeta = string.Join(' ', GetStringValues(data, s_metaProps));
+
+						yield return new KissEnvelope(data, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
+					}
+				}
+
+				// 400 probably means there is something wrong with the objecttype. ignore it.
+				if (response.StatusCode != System.Net.HttpStatusCode.BadRequest)
+				{
+					response.EnsureSuccessStatusCode();
 				}
 			}
 
