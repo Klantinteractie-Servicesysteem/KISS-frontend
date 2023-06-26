@@ -1,10 +1,12 @@
 {
   "extends": [
     "stylelint-config-standard-scss",
-    "stylelint-config-recommended-vue"
+    "stylelint-config-standard-vue/scss"
   ],
   "rules": {
     "at-rule-no-unknown": null,
-    "scss/at-rule-no-unknown": true
+    "scss/at-rule-no-unknown": true,
+    "selector-class-pattern": null,
+    "no-descending-specificity": null
   }
 }
