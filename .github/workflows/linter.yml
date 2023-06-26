@@ -43,10 +43,6 @@ jobs:
       ##########################
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          # Full git history is needed to get a proper
-          # list of changed files within `super-linter`
-          fetch-depth: 0
           
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -66,7 +62,7 @@ jobs:
 
       # Run code analysis for all projects/solutions, such that code analysis violations break the build.
       - name: Run .NET Code Analysis
-        uses: dotnet/code-analysis@v1
+        uses: dotnet/code-analysis@main
         id: code-analysis
         with:
           build-breaking: true
