@@ -22,7 +22,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
         {
             var dbQuery = _db.KlantContactmomenten.Where(x => x.Klant == model.Klant);
             var count = await dbQuery.CountAsync(token);
-            const int PageSize = 15;
+            const int PageSize = 500;
             var page = model.Page.HasValue
                 ? Math.Max(1, model.Page.Value)
                 : 1;
@@ -34,7 +34,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
 
             string? next = null;
 
-            if (skip + results.Count > count)
+            if (skip + results.Count < count)
             {
                 queryString["page"] = (page + 1).ToString();
                 next = new UriBuilder(currentUri)
