@@ -55,10 +55,14 @@ jobs:
       ################################
       # Run Linter against code base #
       ################################
-      - name: Setup .NET Core
+      - name: Setup .NET Core 6
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.x.x'
+      - name: Setup .NET Core 3
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.x.x'
       # Run NuGet restore for the solution at repo root
       - name: Run NuGet restore
         run: dotnet restore
@@ -66,6 +70,6 @@ jobs:
       # Run code analysis for all projects/solutions, such that code analysis violations break the build.
       - name: Run .NET Code Analysis
         uses: dotnet/code-analysis@main
-        id: code-analysis
         with:
+          projects: Kiss.Bff\Kiss.Bff.csproj
           build-breaking: true
