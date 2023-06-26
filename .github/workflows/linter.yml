@@ -65,7 +65,7 @@ jobs:
           dotnet-version: '3.x.x'
       # Run NuGet restore for the solution at repo root
       - name: Run NuGet restore
-        run: dotnet restore
+        run: dotnet restore ./Kiss.Bff/Kiss.Bff.csproj
 
       # Run code analysis for all projects/solutions, such that code analysis violations break the build.
       - name: Run .NET Code Analysis
