@@ -244,6 +244,7 @@ function scrollIntoView() {
   transform: translateX(100%);
   z-index: 2;
 }
+
 ul {
   position: absolute;
   border-radius: 0;
@@ -254,6 +255,7 @@ ul {
   z-index: 1;
   inset-block-end: 0;
 }
+
 li {
   max-width: 100%;
   overflow-x: hidden;
@@ -262,10 +264,12 @@ li {
 li.active {
   background-color: var(--color-secondary);
 }
+
 article > p,
 article > header {
   font-size: 0.875rem;
 }
+
 article > header {
   font-weight: bold;
 }

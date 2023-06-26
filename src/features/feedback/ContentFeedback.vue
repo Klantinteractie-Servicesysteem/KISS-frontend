@@ -66,9 +66,11 @@ section {
   border-radius: var(--radius-default);
   padding: var(--spacing-large);
 }
+
 utrecht-heading {
   margin-bottom: var(--spacing-large);
 }
+
 menu {
   list-style: none;
 }

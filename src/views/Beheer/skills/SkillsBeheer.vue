@@ -111,5 +111,3 @@ onMounted(() => {
   load();
 });
 </script>
-
-<style scoped lang="scss"></style>

@@ -786,7 +786,7 @@ const afdelingen = useAfdelingen();
 .afhandeling {
   max-width: var(--section-width-large);
 
-  //content stacked
+  // content stacked
   display: flex;
   flex-direction: column;
 }

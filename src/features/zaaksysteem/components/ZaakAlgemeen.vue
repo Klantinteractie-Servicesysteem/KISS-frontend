@@ -99,6 +99,7 @@ li {
     flex: 1;
     max-width: 175px;
   }
+
   & > .value {
     flex: 1;
   }

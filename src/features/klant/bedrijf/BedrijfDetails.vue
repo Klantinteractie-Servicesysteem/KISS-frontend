@@ -160,6 +160,7 @@ const showForm = computed(() => !submitter.loading && editing.value);
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   .heading {
     display: flex;
     align-items: center;

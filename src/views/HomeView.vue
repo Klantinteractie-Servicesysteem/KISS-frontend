@@ -12,11 +12,11 @@
           @submit="handleSubmit"
           class="search-bar"
         >
-          <label for="werkberichtTypeInput">
+          <label for="werkbericht-type-input">
             Naar welk type bericht ben je op zoek?
             <select
               name="type"
-              id="werkberichtTypeInput"
+              id="werkbericht-type-input"
               v-model="state.typeField"
             >
               <option :value="undefined">Alle</option>
@@ -207,7 +207,7 @@ header {
   align-items: center;
 }
 
-#werkberichtTypeInput {
+#werkbericht-type-input {
   background-color: var(--color-secondary);
   border-inline-end: var(--border-style);
 }

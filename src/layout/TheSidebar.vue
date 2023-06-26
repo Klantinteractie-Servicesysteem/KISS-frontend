@@ -121,7 +121,7 @@ aside {
 
   textarea.utrecht-textarea {
     margin-block-start: var(--spacing-default);
-    padding: 0px;
+    padding: 0;
     border: none;
     outline: none;
     flex: 1;
