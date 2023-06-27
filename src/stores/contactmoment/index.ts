@@ -6,7 +6,6 @@ import type {
   Werkinstructie,
 } from "@/features/search/types";
 import type { ZaakDetails } from "@/features/zaaksysteem/types";
-import { getFormattedUtcDate } from "@/services";
 import { defineStore } from "pinia";
 import { createSession, type Session } from "../switchable-store";
 export * from "./types";

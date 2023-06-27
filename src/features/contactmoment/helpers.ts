@@ -2,7 +2,6 @@ import type {
   ContactmomentKlant,
   ContactmomentState,
 } from "@/stores/contactmoment";
-import type { Klant } from "../klant/types";
 
 export function getKlantInfo(contactmoment: ContactmomentState) {
   const klanten = contactmoment.vragen

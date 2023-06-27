@@ -48,13 +48,6 @@ const onStartContactMoment = async () => {
     document.getElementById("cm-notitieblok")?.focus();
   });
 };
-
-async function waitForConfirmation() {
-  const { isCanceled } = await beforeStopDialog.reveal();
-  if (isCanceled) {
-    throw new Error("canceled");
-  }
-}
 </script>
 
 <style scoped lang="scss">

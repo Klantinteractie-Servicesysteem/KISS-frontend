@@ -23,7 +23,6 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { handleLogin } from "@/services";
 import { loginUrl, redirectUrl, sessionStorageKey } from "./config";
 import { useUserStore, type User } from "@/stores/user";
-import { toast } from "@/stores/toast";
 import { logoutUrl } from "./config";
 
 let newTab: Window | null = null;
