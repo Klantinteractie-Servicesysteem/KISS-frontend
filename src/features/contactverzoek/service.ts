@@ -1,8 +1,8 @@
 import {
   fetchLoggedIn,
   getFormattedUtcDate,
-  parseJson,
-  parsePagination,
+  // parseJson,
+  // parsePagination,
   ServiceResult,
   throwIfNotOk,
 } from "@/services";
@@ -61,29 +61,29 @@ export function createKlant(klant: NieuweKlant) {
     .then((r) => r.json());
 }
 
-interface Afdeling {
-  id: string;
-  name: string;
-}
+// interface Afdeling {
+//   id: string;
+//   name: string;
+// }
 
 export function useAfdelingen() {
   const url = "not implemented";
 
-  const mapOrganisatie = (x: unknown): Afdeling => x as any;
+  // const mapOrganisatie = (x: unknown): Afdeling => x as any;
 
-  const fetcher = (url: string, page = 1, limit = 100): Promise<Afdeling[]> =>
-    fetchLoggedIn(`${url}?_limit=${limit}&_page=${page}`)
-      .then(throwIfNotOk)
-      .then(parseJson)
-      .then((json) => parsePagination(json, mapOrganisatie))
-      .then(async (current) => {
-        //paginering model is gewijzigt daarom, vooruitlopend op de refactoring van dit deel, deze temp fix
-        return current.page;
-        // if (current.totalPages <= current.pageNumber) return current.page;
-        // const nextPage = await fetcher(url, page + 1);
-        // return [...current.page, ...nextPage];
-      })
-      .then((all) => all.sort((a, b) => a.name.localeCompare(b.name)));
+  // const fetcher = (url: string, page = 1, limit = 100): Promise<Afdeling[]> =>
+  //   fetchLoggedIn(`${url}?_limit=${limit}&_page=${page}`)
+  //     .then(throwIfNotOk)
+  //     .then(parseJson)
+  //     .then((json) => parsePagination(json, mapOrganisatie))
+  //     .then(async (current) => {
+  //       //paginering model is gewijzigt daarom, vooruitlopend op de refactoring van dit deel, deze temp fix
+  //       return current.page;
+  //       // if (current.totalPages <= current.pageNumber) return current.page;
+  //       // const nextPage = await fetcher(url, page + 1);
+  //       // return [...current.page, ...nextPage];
+  //     })
+  //     .then((all) => all.sort((a, b) => a.name.localeCompare(b.name)));
 
   return ServiceResult.fromFetcher(url, () =>
     Promise.reject("not implemented")

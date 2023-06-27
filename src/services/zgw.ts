@@ -1,5 +1,3 @@
-import type { Paginated } from "./pagination";
-
 export interface PaginatedResult<T> {
   next: string | null;
   previous: string | null;

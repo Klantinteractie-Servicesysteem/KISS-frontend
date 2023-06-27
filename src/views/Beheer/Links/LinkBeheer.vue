@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import {
   Heading as UtrechtHeading,
   Button as UtrechtButton,

@@ -16,7 +16,7 @@ import type {
   ContactverzoekDetail,
   ZaakContactmoment,
   ObjectContactmoment,
-  KlantContactmoment,
+  // KlantContactmoment,
 } from "./types";
 import type { ContactmomentViewModel } from "../shared/types";
 import { toRelativeProxyUrl } from "@/helpers/url";
@@ -181,8 +181,8 @@ const fetchContactmomenten = (u: string) =>
     );
 
 export function useContactmomentenByKlantId(
-  id: Ref<string>,
-  page: Ref<number>
+  id: Ref<string>
+  // page: Ref<number>
 ) {
   function getUrl() {
     const searchParams = new URLSearchParams();

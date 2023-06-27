@@ -111,12 +111,11 @@ import {
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ContactverzoekenOverzicht from "@/features/contactmoment/ContactverzoekenOverzicht.vue";
-import Pagination from "@/nl-design-system/components/Pagination.vue";
+// import Pagination from "@/nl-design-system/components/Pagination.vue";
 import { useContactmomentenByKlantId } from "@/features/contactmoment/service";
 import { useZakenByBsn } from "@/features/zaaksysteem";
 import ZakenOverzicht from "@/features/zaaksysteem/ZakenOverzicht.vue";
 import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
-import type { ContactmomentViewModel } from "@/features/shared/types";
 
 const props = defineProps<{ persoonId: string }>();
 const klantId = computed(() => props.persoonId);
@@ -143,15 +142,15 @@ const contactverzoeken = useContactverzoekenByKlantId(
   contactverzoekenPage
 );
 
-const contactmomentenPage = ref(1);
+// const contactmomentenPage = ref(1);
 const contactmomenten = useContactmomentenByKlantId(
-  klantUrl,
-  contactmomentenPage
+  klantUrl
+  // contactmomentenPage
 );
 
-const onContactmomentenNavigate = (page: number) => {
-  contactmomentenPage.value = page;
-};
+// const onContactmomentenNavigate = (page: number) => {
+//   contactmomentenPage.value = page;
+// };
 
 const getBsn = () => (!klant.success || !klant.data.bsn ? "" : klant.data.bsn);
 const klantBsn = computed(getBsn);

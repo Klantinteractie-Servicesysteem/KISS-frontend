@@ -69,7 +69,6 @@
 <script lang="ts" setup>
 import { formatDateOnly, formatTimeOnly } from "@/helpers/date";
 import type { ContactmomentViewModel } from "../shared/types";
-import { ref } from "vue";
 
 defineProps<{
   contactmomenten: ContactmomentViewModel[];

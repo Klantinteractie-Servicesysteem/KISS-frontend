@@ -78,7 +78,7 @@ const props = defineProps<{
   contactverzoeken: ContactverzoekDetail[];
 }>();
 
-const activeContactverzoeken = ref(props.contactverzoeken.map((_) => false));
+const activeContactverzoeken = ref(props.contactverzoeken.map(() => false));
 
 const toggleItemContent = (idx: number) => {
   activeContactverzoeken.value[idx] = !activeContactverzoeken.value[idx];

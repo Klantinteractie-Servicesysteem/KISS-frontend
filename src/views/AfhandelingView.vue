@@ -460,7 +460,6 @@ import {
 import { useOrganisatieIds, useUserStore } from "@/stores/user";
 import { useConfirmDialog } from "@vueuse/core";
 import PromptModal from "@/components/PromptModal.vue";
-import { fetchLoggedIn, getFormattedUtcDate } from "@/services";
 import { nanoid } from "nanoid";
 import MedewerkerSearch from "../features/search/MedewerkerSearch.vue";
 import { saveContactverzoek, useAfdelingen } from "@/features/contactverzoek";
