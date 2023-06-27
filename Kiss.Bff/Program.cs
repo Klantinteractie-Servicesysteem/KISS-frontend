@@ -74,6 +74,8 @@ try
 
     builder.Services.AddHttpClient("default").AddHttpMessageHandler(s => new KissDelegatingHandler(s.GetRequiredService<IHttpContextAccessor>(), s.GetRequiredService<IServiceScopeFactory>()));
 
+    builder.Services.AddHealthChecks();
+
     builder.Host.UseSerilog((ctx, services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext());
@@ -95,6 +97,7 @@ try
     app.MapKissAuthEndpoints();
     app.MapControllers();
     app.MapKissProxy();
+    app.MapHealthChecks("/healthz");
     app.MapFallbackToIndexHtml();
 
     using (var scope = app.Services.CreateScope())

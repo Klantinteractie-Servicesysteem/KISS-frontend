@@ -6,6 +6,13 @@ import { createRequire } from "node:module";
 import ckeditor5 from "@ckeditor/vite-plugin-ckeditor5";
 const require = createRequire(import.meta.url);
 
+const proxyCalls = [
+  "/api",
+  "/signin-oidc",
+  "/signout-callback-oidc",
+  "/healthz",
+];
+
 const getProxy = (
   env: Record<string, string>
 ): Record<string, ProxyOptions> | undefined => {
@@ -18,11 +25,7 @@ const getProxy = (
       "x-forwarded-proto": "https",
     },
   };
-  return {
-    "/api": redirectOpts,
-    "/signin-oidc": redirectOpts,
-    "/signout-callback-oidc": redirectOpts,
-  };
+  return Object.fromEntries(proxyCalls.map((key) => [key, redirectOpts]));
 };
 
 // https://vitejs.dev/config/
