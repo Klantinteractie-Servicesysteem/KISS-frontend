@@ -64,6 +64,6 @@
     "vue-tsc": "^0.34.7"
   },
   "overrides": {
-    "semver": "^7.5.2"
+    "semver": "^7.5.3"
   }
 }
