@@ -29,17 +29,23 @@ RUN dotnet restore "Kiss.Bff.Test/Kiss.Bff.Test.csproj"
 COPY Kiss.Bff.Test Kiss.Bff.Test
 WORKDIR "/src/Kiss.Bff.Test"
 RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
-ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n
+RUN dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n
 
-FROM node:18 AS npmtest
+FROM node:18-alpine AS frontend
 WORKDIR /app
 COPY package*.json .
 RUN npm ci
 COPY . .
-ENTRYPOINT npm run test:unitci -- --reporter junit --outputFile /testresults/vitest-junit.xml
 
-FROM npmtest as frontend
+FROM frontend as frontendtest
+RUN npm run test:unitci -- --reporter junit --outputFile /testresults/vitest-junit.xml
+
+FROM frontend as frontendbuild
 RUN npm run build --if-present
+
+FROM scratch as test
+COPY --from=dotnettest /testresults/*.trx .
+COPY --from=frontendtest /testresults/*.xml .
 
 FROM build AS publish
 WORKDIR "/src/Kiss.Bff"
@@ -50,6 +56,6 @@ WORKDIR /app
 COPY --from=publish /custom-certs /usr/local/share/ca-certificates
 RUN update-ca-certificates
 COPY --from=publish /app/publish .
-COPY --from=frontend /app/dist ./wwwroot
+COPY --from=frontendbuild /app/dist ./wwwroot
 USER kiss:kiss
 ENTRYPOINT ["dotnet", "Kiss.Bff.dll"]

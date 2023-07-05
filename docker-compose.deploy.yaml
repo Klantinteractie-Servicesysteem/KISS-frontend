@@ -1,8 +1,17 @@
 version: "3.4"
 
 services:
-  frontend:
-    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}:${APP_BUILD}
+  web:
+    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}:latest
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
+      target: final
+  test:
+    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}:test
+    build:
+      context: .
+      dockerfile: Kiss.Bff/Dockerfile
+      target: test
+      x-bake:
+        output: testresults
