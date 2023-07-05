@@ -85,6 +85,7 @@ jobs:
           tags: ${{ env.FULL_CONTAINER_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: BUILDKIT_PROGRESS=plain
 
       - name: Build test exporter
         uses: docker/build-push-action@v4
