@@ -59,11 +59,6 @@ jobs:
           NAME=${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:${{ env.APP_BUILD}}
           echo "FULL_CONTAINER_TAG=$NAME" >> $GITHUB_ENV
 
-      - name: Setting TEST_CONTAINER_TAG
-        run: |
-          NAME=${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}_test:${{ env.APP_BUILD}}
-          echo "TEST_CONTAINER_TAG=$NAME" >> $GITHUB_ENV
-
       # - name: Build Docker image
       #   run: docker-compose -f docker-compose.deploy.yaml build --build-arg APP_ENV=$APP_ENV --build-arg APP_BUILD=$APP_BUILD
 
@@ -85,37 +80,24 @@ jobs:
           tags: ${{ env.FULL_CONTAINER_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: BUILDKIT_PROGRESS=plain
 
-      - name: Build test exporter
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          load: true
-          target: testresults
-          file: Kiss.Bff/Dockerfile
-          push: false
-          tags: ${{ env.TEST_CONTAINER_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Run tests
+        run: docker-compose -f docker-compose.citest.yaml up --build
 
-      - name: Export tests
-        run: docker-compose -f docker-compose.citest.yaml run testresults
-
-      - name: dotnet test report
-        uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
-        with:
-          name: dotnet tests # Name of the check run which will be created
-          path: testresults/*.trx # Path to test results
-          reporter: dotnet-trx # Format of test results
-      - name: npm test report
-        uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
-        with:
-          name: npm tests # Name of the check run which will be created
-          path: testresults/*.xml # Path to test results
-          reporter: jest-junit # Format of test results
+      # - name: dotnet test report
+      #   uses: dorny/test-reporter@v1
+      #   if: success() || failure() # run this step even if previous step failed
+      #   with:
+      #     name: dotnet tests # Name of the check run which will be created
+      #     path: testresults/*.trx # Path to test results
+      #     reporter: dotnet-trx # Format of test results
+      # - name: npm test report
+      #   uses: dorny/test-reporter@v1
+      #   if: success() || failure() # run this step even if previous step failed
+      #   with:
+      #     name: npm tests # Name of the check run which will be created
+      #     path: testresults/*.xml # Path to test results
+      #     reporter: jest-junit # Format of test results
 
       - name: Run Docker image
         run: docker-compose -f docker-compose.deploy.yaml up -d

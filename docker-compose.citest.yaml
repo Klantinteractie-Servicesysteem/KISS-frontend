@@ -1,11 +1,17 @@
 version: "3.4"
 
 services:
-  testresults:
-    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}_test:${APP_BUILD}
+  npmtest:
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
-      target: testresults
+      target: npmtest
     volumes:
-      - ./testresults:/out
+      - ./testresults:/results
+  dotnettest:
+    build:
+      context: .
+      dockerfile: Kiss.Bff/Dockerfile
+      target: dotnettest
+    volumes:
+      - ./testresults:/results

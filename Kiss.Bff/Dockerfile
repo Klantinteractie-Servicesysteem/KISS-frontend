@@ -35,7 +35,8 @@ FROM build as dotnettest
 WORKDIR /src
 COPY Kiss.Bff.Test Kiss.Bff.Test
 WORKDIR "/src/Kiss.Bff.Test"
-RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore && dotnet test -c Release --no-build --logger trx
+RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
+ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /results
 
 FROM node:18-alpine AS npmci
 WORKDIR /app
@@ -49,12 +50,7 @@ FROM npm as frontend
 RUN npm run build --if-present
 
 FROM npm as npmtest
-RUN npm run test:unitci
-
-FROM alpine as testresults
-COPY --from=dotnettest /src/Kiss.Bff.Test/TestResults/*.trx results/
-COPY --from=npmtest /app/TestResult/*.xml results/
-CMD cp -r results/* out
+ENTRYPOINT npm run test:unitci
 
 FROM build AS publish
 WORKDIR "/src/Kiss.Bff"

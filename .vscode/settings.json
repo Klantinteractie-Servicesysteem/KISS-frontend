@@ -13,4 +13,7 @@
     "scss",
     "vue"
   ],
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  },
 }

@@ -6,7 +6,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 5050",
     "test:unit": "vitest --environment jsdom",
-    "test:unitci": "vitest run --environment jsdom --reporter junit --outputFile TestResult/vitest-junit.xml",
+    "test:unitci": "vitest run --environment jsdom --reporter junit --outputFile /output/vitest-junit.xml",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "npm run lint:es && npm run lint:style -- -f github",
     "lint:es": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore",
