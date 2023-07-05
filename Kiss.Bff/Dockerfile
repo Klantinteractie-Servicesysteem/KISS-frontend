@@ -50,7 +50,7 @@ FROM npm as frontend
 RUN npm run build --if-present
 
 FROM npm as npmtest
-ENTRYPOINT npm run test:unitci --reporter junit --outputFile /testresults/vitest-junit.xml
+ENTRYPOINT npm run test:unitci -- --reporter junit --outputFile /testresults/vitest-junit.xml
 
 FROM build AS publish
 WORKDIR "/src/Kiss.Bff"
