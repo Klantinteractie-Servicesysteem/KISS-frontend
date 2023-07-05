@@ -81,8 +81,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+            -
+      - name: Build and push
+        uses: docker/bake-action@v3
+        with:
+          files: docker-compose.citest.yaml
+
       - name: Run tests
-        run: docker-compose -f docker-compose.citest.yaml up --build
+        run: docker-compose -f docker-compose.citest.yaml up
 
       # - name: dotnet test report
       #   uses: dorny/test-reporter@v1
