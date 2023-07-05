@@ -90,7 +90,7 @@ jobs:
           load: false
           context: .
           file: Kiss.Bff/Dockerfile
-          target: final
+          target: test
           outputs: testresults
 
       - name: dotnet test report
