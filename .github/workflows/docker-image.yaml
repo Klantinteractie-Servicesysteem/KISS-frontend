@@ -81,7 +81,7 @@ jobs:
           file: Kiss.Bff/Dockerfile
           push: false
           tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_npmtest
-          target: npmtests
+          target: npmtest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -93,7 +93,7 @@ jobs:
           file: Kiss.Bff/Dockerfile
           push: false
           tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_dotnettest
-          target: dotnettests
+          target: dotnettest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
