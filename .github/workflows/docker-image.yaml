@@ -86,6 +86,8 @@ jobs:
         uses: docker/bake-action@v3
         with:
           files: docker-compose.citest.yaml
+          load: true
+          push: false
 
       - name: Run tests
         run: docker-compose -f docker-compose.citest.yaml up
