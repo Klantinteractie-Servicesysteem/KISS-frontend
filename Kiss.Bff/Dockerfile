@@ -48,8 +48,8 @@ RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=fa
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /custom-certs /usr/local/share/ca-certificates
+RUN update-ca-certificates
 COPY --from=publish /app/publish .
 COPY --from=frontend /app/dist ./wwwroot
-RUN update-ca-certificates
 USER kiss:kiss
 ENTRYPOINT ["dotnet", "Kiss.Bff.dll"]
