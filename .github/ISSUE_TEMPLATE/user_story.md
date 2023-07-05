@@ -1,28 +1,23 @@
 ---
 name: User story
 about: Voeg een user story toe
-title: 'Als'
 labels: 'user story'
 assignees: ''
-
 ---
-...zodat 
-
-### Story
-
-### toelichting
-
-**Projectcode**: 
-
-### Acceptatiecriteria
-- [ ]
-
-### Functionele teststappen
-
-### Taken 
-- [ ] Test invullen
-- [ ] 
+### Description
 
 
-### Discussie
-- [ ] type hekje om te linken
+### Estimate
+
+
+### Acceptance criteria
+
+
+### Specific details
+
+
+### Test plan
+
+
+### Delivery notes
+

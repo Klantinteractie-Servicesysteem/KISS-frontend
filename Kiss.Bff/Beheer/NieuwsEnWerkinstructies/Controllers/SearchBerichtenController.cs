@@ -82,7 +82,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Controllers
 
     public record BerichtFilterModel(string? Type, string? Search, int[]? SkillIds, int? Page, int? PageSize);
 
-    internal class SearchBerichtenResponseModel
+    public class SearchBerichtenResponseModel
     {
         public int Id { get; set; }
         public string Inhoud { get; }
@@ -110,7 +110,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Controllers
         }
     }
 
-    internal class SearchBerichtenSkillModel
+    public class SearchBerichtenSkillModel
     {
         public int Id { get; }
         public string Naam { get; }

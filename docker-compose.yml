@@ -9,6 +9,7 @@ services:
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
+
   postgres-db:
     env_file:
       - .env

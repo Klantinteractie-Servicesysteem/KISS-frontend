@@ -1,0 +1,11 @@
+version: "3.4"
+
+services:
+  testresults:
+    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}_test:${APP_BUILD}
+    build:
+      context: .
+      dockerfile: Kiss.Bff/Dockerfile
+      target: testresults
+    volumes:
+      - ./testresults:/out

@@ -7,7 +7,7 @@ namespace Kiss.Bff.Beheer.Verwerking
     {
         public static IServiceCollection AddVerwerkingMiddleware(this IServiceCollection services) => services.AddScoped<IKissHttpClientMiddleware, VerwerkingsHttpClientMiddleware>();
 
-        private class VerwerkingsHttpClientMiddleware : IKissHttpClientMiddleware
+        public class VerwerkingsHttpClientMiddleware : IKissHttpClientMiddleware
         {
             private readonly BeheerDbContext _db;
             private readonly ClaimsPrincipal _user;

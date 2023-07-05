@@ -2,7 +2,9 @@
 **/.dockerignore
 **/.env
 **/.git
+**/.github
 **/.gitignore
+**/dist
 **/.project
 **/.settings
 **/.toolstarget
@@ -21,5 +23,6 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+
 LICENSE
 README.md
