@@ -254,6 +254,7 @@ const handleSearch = () => {
 input[type="search"] {
   width: var(--section-width);
 }
+
 .search-bar {
   margin-bottom: var(--spacing-large);
   width: min(100%, 20rem);

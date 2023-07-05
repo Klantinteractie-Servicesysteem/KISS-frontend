@@ -178,6 +178,7 @@ const submit = async () => {
   display: flex;
   justify-content: flex-end;
 }
+
 .warning {
   max-width: 450px;
   color: var(--color-error);

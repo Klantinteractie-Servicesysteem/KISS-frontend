@@ -100,7 +100,9 @@ watch(
 [role="tab"] {
   text-decoration: none;
   color: inherit;
+
   --tab-spacing: var(--spacing-default);
+
   padding-inline: var(--spacing-large);
   padding-block: var(--spacing-default);
 }

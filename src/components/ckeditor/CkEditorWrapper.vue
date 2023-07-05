@@ -44,9 +44,11 @@ const editableElement = computed(() => {
 .wrapper {
   display: grid;
   grid-template-areas: "stacked";
+
   :deep(> *) {
     grid-area: stacked;
   }
+
   > textarea {
     opacity: 0;
   }

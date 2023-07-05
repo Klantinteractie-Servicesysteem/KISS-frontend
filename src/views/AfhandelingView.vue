@@ -497,8 +497,8 @@ const zakenToevoegenAanContactmoment = async (
   for (const { zaak, shouldStore } of vraag.zaken) {
     if (shouldStore) {
       try {
-        //dit is voorlopige, hopelijk tijdelijke, code om uit te proberen of dit een nuttige manier is om met de instabiliteit van openzaak en openklant om te gaan
-        //derhalve bewust nog niet geoptimaliseerd
+        // dit is voorlopige, hopelijk tijdelijke, code om uit te proberen of dit een nuttige manier is om met de instabiliteit van openzaak en openklant om te gaan
+        // derhalve bewust nog niet geoptimaliseerd
         try {
           await koppelZaakContactmoment({
             contactmoment: contactmomentId,
@@ -533,9 +533,9 @@ const zakenToevoegenAanContactmoment = async (
           }
         }
 
-        //de tweede call gaat vaak mis, maar geeft dan bijna altijd ten onterechte een error response.
-        //de data is dan wel correct opgeslagen
-        //wellicht een timing issue. voor de zekerheid even wachten
+        // de tweede call gaat vaak mis, maar geeft dan bijna altijd ten onterechte een error response.
+        // de data is dan wel correct opgeslagen
+        // wellicht een timing issue. voor de zekerheid even wachten
 
         try {
           setTimeout(
@@ -551,8 +551,8 @@ const zakenToevoegenAanContactmoment = async (
           console.log("koppelZaakContactmoment in openklant", e);
         }
       } catch (e) {
-        //zaken toevoegen aan een contactmoment en anedrsom retourneert soms een error terwijl de data meetal wel correct opgelsagen is.
-        //toch maar verder gaan dus
+        // zaken toevoegen aan een contactmoment en anedrsom retourneert soms een error terwijl de data meetal wel correct opgelsagen is.
+        // toch maar verder gaan dus
         console.error(e);
       }
     }
@@ -580,13 +580,13 @@ const koppelContactverzoek = (
 const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const contactmoment: Contactmoment = {
     bronorganisatie: organisatieIds.value[0] || "",
-    registratiedatum: new Date().toISOString(), //"2023-06-07UTC15:15:48" "YYYY-MM-DDThh:mm[:ss[.uuuuuu]][+HH:MM|-HH:MM|Z]"getFormattedUtcDate(), //todo check of dit nog het juiste format is. lijkt iso te moeten zijn
+    registratiedatum: new Date().toISOString(), // "2023-06-07UTC15:15:48" "YYYY-MM-DDThh:mm[:ss[.uuuuuu]][+HH:MM|-HH:MM|Z]"getFormattedUtcDate(), // todo check of dit nog het juiste format is. lijkt iso te moeten zijn
     kanaal: vraag.kanaal,
     tekst: vraag.notitie,
     onderwerpLinks: [],
     initiatiefnemer: "klant", //enum "gemeente" of "klant"
 
-    //overige velden zijn waarschijnlijk obsolete. nog even laten staan. misschien nog deels breuikbaar voor bv contactverzoek
+    // overige velden zijn waarschijnlijk obsolete. nog even laten staan. misschien nog deels breuikbaar voor bv contactverzoek
     gespreksId,
     vorigContactmoment: undefined,
     voorkeurskanaal: "",
@@ -666,7 +666,7 @@ async function submit() {
       await saveVraag(vraag, gespreksId);
     }
 
-    //klaar
+    // klaar
     contactmomentStore.stop();
     toast({ text: "Het contactmoment is opgeslagen" });
     navigateToPersonen();
@@ -725,7 +725,7 @@ const addNieuwsberichtToContactmoment = (
   vraag.nieuwsberichten.forEach((nieuwsbericht) => {
     if (!nieuwsbericht.shouldStore) return;
 
-    //make absolute if not already
+    // make absolute if not already
     const absoluteUrl = new URL(
       nieuwsbericht.nieuwsbericht.url,
       window.location.origin
@@ -744,7 +744,7 @@ const addWerkinstructiesToContactmoment = (
   vraag.werkinstructies.forEach((werkinstructie) => {
     if (!werkinstructie.shouldStore) return;
 
-    //make absolute if not already
+    // make absolute if not already
     const absoluteUrl = new URL(
       werkinstructie.werkinstructie.url,
       window.location.origin
@@ -785,7 +785,7 @@ const afdelingen = useAfdelingen();
 .afhandeling {
   max-width: var(--section-width-large);
 
-  //content stacked
+  // content stacked
   display: flex;
   flex-direction: column;
 }

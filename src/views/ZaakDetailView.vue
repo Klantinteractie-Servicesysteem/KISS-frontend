@@ -105,6 +105,7 @@ const onNotitieUpdate = () => zaak.refresh();
 <style lang="scss" scoped>
 .contactmomenten {
   padding: var(--spacing-large);
+
   > :first-child {
     margin-block-end: var(--spacing-large);
   }

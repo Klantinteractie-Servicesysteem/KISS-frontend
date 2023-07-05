@@ -164,12 +164,15 @@ table {
   border-collapse: separate;
   border-spacing: var(--spacing-small);
 }
+
 table td {
   font-size: 0;
 }
+
 .groen {
   background-color: green;
 }
+
 .rood {
   background-color: red;
 }

@@ -97,17 +97,12 @@ ul {
   padding: 0;
 }
 
-.header-row {
-  background: var(--color-tertiary);
-  color: var(--color-white);
-}
-
 summary,
 ul {
   list-style: none;
 }
 
-li:not(:first-child):not(:last-child) {
+li:not(:first-child, :last-child) {
   border-bottom: 2px solid var(--color-tertiary);
 }
 
@@ -159,6 +154,8 @@ details {
 .header-row {
   padding-block-start: var(--spacing-default);
   padding-block-end: var(--spacing-default);
+  background: var(--color-tertiary);
+  color: var(--color-white);
 }
 
 details[open],

@@ -352,9 +352,11 @@ form {
 
   :deep([role="combobox"]) {
     outline: none;
+
     &[aria-expanded="true"] {
       border-end-start-radius: 0;
       border-block-end-color: white;
+
       &::after {
         content: "";
         inline-size: 100%;
@@ -406,7 +408,6 @@ fieldset {
   padding-block-end: var(--spacing-default);
   background-color: var(--color-secondary);
   gap: var(--spacing-default);
-  //
   position: relative;
 
   > ul li {
@@ -420,8 +421,9 @@ fieldset {
     pointer-events: none;
     user-select: none;
     overflow: hidden;
+
     > * {
-      opacity: 50%;
+      opacity: 0.5;
     }
   }
 }
@@ -468,7 +470,7 @@ nav ul {
     justify-items: start;
     padding-inline-end: var(--spacing-default);
 
-    &:after {
+    &::after {
       transform: rotate(-90deg);
       margin-inline-start: auto;
     }

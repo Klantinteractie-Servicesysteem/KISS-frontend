@@ -35,6 +35,7 @@ nav {
   display: flex;
   gap: var(--spacing-default);
 }
+
 main {
   max-width: var(--section-width-large);
 }

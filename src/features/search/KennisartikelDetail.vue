@@ -167,6 +167,7 @@ article {
   .heading {
     width: 100%;
   }
+
   > section {
     flex: 1;
     display: none;

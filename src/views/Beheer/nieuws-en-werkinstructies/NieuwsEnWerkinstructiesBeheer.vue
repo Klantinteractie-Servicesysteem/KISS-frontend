@@ -153,15 +153,18 @@ onMounted(() => {
 <style scoped lang="scss">
 .actions {
   vertical-align: middle;
+
   ul {
     display: flex;
     gap: var(--spacing-small);
   }
+
   li {
     display: flex;
     align-items: stretch;
     width: fit-content;
   }
+
   a {
     display: flex;
     inline-size: 2rem;

@@ -83,18 +83,21 @@ menu {
   gap: var(--spacing-default);
   justify-content: flex-end;
 }
+
 form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-large);
 }
+
 dialog {
   border-radius: var(--radius-default);
   padding: var(--spacing-large);
   border: 1px solid var(--color-primary);
   min-width: 50%;
 }
+
 ::backdrop {
-  background-color: rgba(102, 102, 102, 0.8);
+  background-color: rgb(102 102 102 / 80%);
 }
 </style>

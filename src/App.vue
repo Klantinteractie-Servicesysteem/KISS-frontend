@@ -34,8 +34,8 @@ const route = useRoute();
 <style lang="scss">
 /* Design Tokens */
 @import "@utrecht/component-library-css";
-@import "@/assets/design-tokens.scss";
+@import "@/assets/design-tokens";
 @import "@/assets/fonts/fonts.css";
 @import "@/assets/reset.css";
-@import "@/assets/main.scss";
+@import "@/assets/main";
 </style>

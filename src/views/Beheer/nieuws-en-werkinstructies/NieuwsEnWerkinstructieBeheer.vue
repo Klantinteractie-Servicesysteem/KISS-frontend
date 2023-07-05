@@ -298,6 +298,7 @@ menu {
 form {
   margin-top: var(--spacing-default);
 }
+
 label > span {
   display: block;
 }

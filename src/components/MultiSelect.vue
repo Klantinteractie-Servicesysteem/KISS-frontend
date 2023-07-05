@@ -54,10 +54,8 @@ onClickOutside(detailsEl, () => {
 
 <style scoped lang="scss">
 summary {
-  width: fit-content;
   display: flex;
   justify-content: space-between;
-
   border-radius: var(--radius-large);
   margin-inline-start: auto;
   font-weight: 500;
@@ -76,6 +74,7 @@ details {
   --border-width: 2px;
   --border-style: var(--color-primary) var(--border-width) solid;
   --padding-inline: 1.5rem;
+
   position: relative;
   min-width: 20rem;
   z-index: 1;

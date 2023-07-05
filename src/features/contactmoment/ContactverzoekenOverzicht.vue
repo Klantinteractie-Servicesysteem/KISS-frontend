@@ -106,7 +106,7 @@ const toggleItemContent = (idx: number) => {
   border-bottom: 1px solid var(--color-tertiary);
 
   &:focus-visible {
-    outline: auto currentColor;
+    outline: auto currentcolor;
   }
 
   &.is-active {

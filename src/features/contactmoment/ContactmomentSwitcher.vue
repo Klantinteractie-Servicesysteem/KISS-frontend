@@ -87,6 +87,7 @@ onClickOutside(detailsEl, closeDetails);
 summary {
   display: flex;
   justify-content: center;
+
   --utrecht-button-secondary-action-color: var(--color-white);
   --utrecht-button-secondary-action-border-color: var(--color-white);
 }
