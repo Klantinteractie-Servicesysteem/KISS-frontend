@@ -73,7 +73,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
         if: github.event_name != 'pull_request'
 
-      - name: Build and push
+      - name: Build containers
         uses: docker/bake-action@v3
         with:
           push: false
