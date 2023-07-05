@@ -181,7 +181,7 @@ watch(
   justify-content: var(--denhaag-pagination-align);
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .denhaag-pagination,
   .denhaag-pagination--start {
     --denhaag-pagination-align: flex-start;
@@ -254,13 +254,23 @@ watch(
   margin-inline-start: var(--denhaag-pagination-margin-inline, 10px);
 }
 
-.denhaag-pagination__link:not(:first-child):not(:last-child):not(.denhaag-pagination__link--current):not([rel]) {
+.denhaag-pagination__link:not(
+    :first-child,
+    :last-child,
+    .denhaag-pagination__link--current,
+    [rel]
+  ) {
   overflow: hidden;
   pointer-events: none;
   text-indent: calc(var(--denhaag-pagination-size) * 2);
 }
 
-.denhaag-pagination__link:not(:first-child):not(:last-child):not(.denhaag-pagination__link--current):not([rel])::before {
+.denhaag-pagination__link:not(
+    :first-child,
+    :last-child,
+    .denhaag-pagination__link--current,
+    [rel]
+  )::before {
   content: "...";
   left: calc(50% - 7px);
   line-height: 0;
