@@ -82,7 +82,17 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-            test.output=testresults
+
+      - name: copy testresults
+        uses: docker/build-push-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          push: false
+          load: false
+          context: .
+          file: Kiss.Bff/Dockerfile
+          target: final
+          outputs: testresults
 
       - name: dotnet test report
         uses: dorny/test-reporter@v1
