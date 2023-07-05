@@ -1,8 +1,14 @@
 version: "3.4"
 
 services:
+  web:
+    image: ${CONTAINER_PROJECT_NAME}:latest
+    build:
+      context: .
+      dockerfile: Kiss.Bff/Dockerfile
+      target: final
   npmtest:
-    image: ${CONTAINER_PROJECT_NAME}:${RELEASE}_npmtest
+    image: ${CONTAINER_PROJECT_NAME}:npmtest
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
@@ -10,7 +16,7 @@ services:
     volumes:
       - ./testresults:/testresults
   dotnettest:
-    image: ${CONTAINER_PROJECT_NAME}:${RELEASE}_dotnettest
+    image: ${CONTAINER_PROJECT_NAME}:dotnettest
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile

@@ -73,56 +73,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
         if: github.event_name != 'pull_request'
 
-      - name: Build npmtests
-        uses: docker/build-push-action@v4
+      - name: Build and push
+        uses: docker/bake-action@v3
         with:
-          context: .
-          load: true
-          file: Kiss.Bff/Dockerfile
           push: false
-          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_npmtest
-          target: npmtest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build dotnettests
-        uses: docker/build-push-action@v4
-        with:
-          context: .
           load: true
-          file: Kiss.Bff/Dockerfile
-          push: false
-          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_dotnettest
-          target: dotnettest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
 
       - name: Run tests
-        run: docker-compose -f docker-compose.citest.yaml up
+        run: docker-compose -f docker-compose.citest.yaml up --scale web=0 --remove-orphans
 
-      - name: Build container
-        uses: docker/build-push-action@v4
-        if: github.event_name != 'pull_request'
-        with:
-          context: .
-          file: Kiss.Bff/Dockerfile
-          push: true
-          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
-          target: final
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build container
-        if: github.event_name == 'pull_request'
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: Kiss.Bff/Dockerfile
-          push: false
-          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
-          target: final
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Chores
+        run: docker-compose -f docker-compose.citest.yaml down -v --remove-orphans
 
       - name: dotnet test report
         uses: dorny/test-reporter@v1
@@ -139,5 +103,14 @@ jobs:
           path: testresults/*.xml # Path to test results
           reporter: jest-junit # Format of test results
 
-      - name: Chores
-        run: docker-compose -f docker-compose.citest.yaml down -v
+      - name: push image
+        uses: docker/build-push-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          context: .
+          file: Kiss.Bff/Dockerfile
+          push: true
+          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
+          target: final
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
