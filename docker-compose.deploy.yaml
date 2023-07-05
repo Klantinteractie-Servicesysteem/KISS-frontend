@@ -13,5 +13,3 @@ services:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
       target: test
-      x-bake:
-        output: testresults
