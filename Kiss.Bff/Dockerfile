@@ -36,7 +36,7 @@ WORKDIR /src
 COPY Kiss.Bff.Test Kiss.Bff.Test
 WORKDIR "/src/Kiss.Bff.Test"
 RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
-ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /results
+ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /testresults
 
 FROM node:18-alpine AS npmci
 WORKDIR /app
@@ -50,7 +50,7 @@ FROM npm as frontend
 RUN npm run build --if-present
 
 FROM npm as npmtest
-ENTRYPOINT npm run test:unitci
+ENTRYPOINT npm run test:unitci --reporter junit --outputFile /testresults/vitest-junit.xml
 
 FROM build AS publish
 WORKDIR "/src/Kiss.Bff"
