@@ -1,6 +1,6 @@
 export const berichtTypes = ["Werkinstructie", "Nieuws"] as const;
 
-export type Berichttype = typeof berichtTypes[number];
+export type Berichttype = (typeof berichtTypes)[number];
 
 export interface Werkbericht {
   id: string;

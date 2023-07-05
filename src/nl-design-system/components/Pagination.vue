@@ -254,13 +254,23 @@ watch(
   margin-inline-start: var(--denhaag-pagination-margin-inline, 10px);
 }
 
-.denhaag-pagination__link:not(:first-child, :last-child, .denhaag-pagination__link--current, [rel]) {
+.denhaag-pagination__link:not(
+    :first-child,
+    :last-child,
+    .denhaag-pagination__link--current,
+    [rel]
+  ) {
   overflow: hidden;
   pointer-events: none;
   text-indent: calc(var(--denhaag-pagination-size) * 2);
 }
 
-.denhaag-pagination__link:not(:first-child, :last-child, .denhaag-pagination__link--current, [rel])::before {
+.denhaag-pagination__link:not(
+    :first-child,
+    :last-child,
+    .denhaag-pagination__link--current,
+    [rel]
+  )::before {
   content: "...";
   left: calc(50% - 7px);
   line-height: 0;
