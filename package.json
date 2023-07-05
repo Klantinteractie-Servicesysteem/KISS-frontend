@@ -7,7 +7,7 @@
     "preview": "vite preview --port 5050",
     "test:unit": "vitest --environment jsdom",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
-    "lint": "npm run lint:es && npm run lint:style",
+    "lint": "npm run lint:es && npm run lint:style -- -f github",
     "lint:es": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore",
     "lint:fix": "npm run lint:format && npm run lint:es -- --fix && npm run lint:style -- --fix",
     "lint:format": "prettier --write --ignore-path .gitignore **/*.{scss,vue,css,ts,js,cjs,mjs}",
