@@ -54,11 +54,6 @@ jobs:
           NAME=$(grep CONTAINER_REGISTRY_BASE= .env | cut -d '=' -f2)
           echo "CONTAINER_REGISTRY_BASE=$NAME" >> $GITHUB_ENV
 
-      - name: Setting FULL_CONTAINER_TAG
-        run: |
-          NAME=${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:${{ env.APP_BUILD}}
-          echo "FULL_CONTAINER_TAG=$NAME" >> $GITHUB_ENV
-
       # - name: Build Docker image
       #   run: docker-compose -f docker-compose.deploy.yaml build --build-arg APP_ENV=$APP_ENV --build-arg APP_BUILD=$APP_BUILD
 
@@ -70,81 +65,79 @@ jobs:
         with:
           dotnet-version: "6.x.x"
 
-      - name: Build container
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event_name != 'pull_request'
+
+      - name: Build npmtests
         uses: docker/build-push-action@v4
         with:
           context: .
           load: true
           file: Kiss.Bff/Dockerfile
           push: false
-          tags: ${{ env.FULL_CONTAINER_TAG }}
+          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_npmtest
+          target: npmtests
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push
-        uses: docker/bake-action@v3
+      - name: Build dotnettests
+        uses: docker/build-push-action@v4
         with:
-          files: docker-compose.citest.yaml
+          context: .
           load: true
+          file: Kiss.Bff/Dockerfile
           push: false
+          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}}_dotnettest
+          target: dotnettests
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run tests
         run: docker-compose -f docker-compose.citest.yaml up
 
-      # - name: dotnet test report
-      #   uses: dorny/test-reporter@v1
-      #   if: success() || failure() # run this step even if previous step failed
-      #   with:
-      #     name: dotnet tests # Name of the check run which will be created
-      #     path: testresults/*.trx # Path to test results
-      #     reporter: dotnet-trx # Format of test results
-      # - name: npm test report
-      #   uses: dorny/test-reporter@v1
-      #   if: success() || failure() # run this step even if previous step failed
-      #   with:
-      #     name: npm tests # Name of the check run which will be created
-      #     path: testresults/*.xml # Path to test results
-      #     reporter: jest-junit # Format of test results
-
-      - name: Run Docker image
-        run: docker-compose -f docker-compose.deploy.yaml up -d
-      - name: Pause for the container to come up
-        run: sleep 10
-
-      - name: Show docker logs
-        run: docker-compose -f docker-compose.deploy.yaml logs
-
-      - name: Add docker tags
+      - name: Build container
+        uses: docker/build-push-action@v4
         if: github.event_name != 'pull_request'
-        run: |
-          images=$(docker-compose -f docker-compose.deploy.yaml images -q | xargs docker inspect --format='{{ index .RepoTags 0}}' | cut -d':' -f1 | grep $CONTAINER_PROJECT_NAME)
-          for image in $images
-          do
-            docker tag "${image}":latest "${image}":$RELEASE
-            docker tag "${image}":latest "${image}":"${APP_BUILD}"
-          done
-          echo 'IMAGES=$images' >> $GITHUB_ENV
+        with:
+          context: .
+          file: Kiss.Bff/Dockerfile
+          push: true
+          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
+          target: final
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Login to Container Registry
-        id: containerregistry-login
-        if: github.event_name != 'pull_request'
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $(cut -d'/' -f1 <<< $GITHUB_REPOSITORY) --password-stdin
+      - name: Build container
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Kiss.Bff/Dockerfile
+          push: false
+          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
+          target: final
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Push docker images
-        if: github.event_name != 'pull_request'
-        run: docker-compose -f docker-compose.deploy.yaml push
-
-      - name: Push versioned containers to Container Registry
-        id: version-push
-        if: github.event_name != 'pull_request'
-        run: |
-          images=$(docker-compose -f docker-compose.deploy.yaml images -q | xargs docker inspect --format='{{ index .RepoTags 0}}' | cut -d':' -f1 | grep $CONTAINER_PROJECT_NAME)
-          for image in $images
-          do
-            docker push "${image}":$RELEASE
-            docker push "${image}":"${APP_BUILD}"
-          done
+      - name: dotnet test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: dotnet tests # Name of the check run which will be created
+          path: testresults/*.trx # Path to test results
+          reporter: dotnet-trx # Format of test results
+      - name: npm test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: npm tests # Name of the check run which will be created
+          path: testresults/*.xml # Path to test results
+          reporter: jest-junit # Format of test results
 
       - name: Chores
-        run: docker-compose -f docker-compose.deploy.yaml down -v && docker-compose -f docker-compose.citest.yaml down -v
+        run: docker-compose -f docker-compose.citest.yaml down -v

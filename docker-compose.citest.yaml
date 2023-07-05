@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   npmtest:
-    image: npmtest:${RELEASE}
+    image: ${CONTAINER_PROJECT_NAME }}:${RELEASE}_npmtest
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
@@ -10,7 +10,7 @@ services:
     volumes:
       - ./testresults:/results
   dotnettest:
-    image: dotnettest:${RELEASE}
+    image: ${CONTAINER_PROJECT_NAME }:${RELEASE}_dotnettest
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
