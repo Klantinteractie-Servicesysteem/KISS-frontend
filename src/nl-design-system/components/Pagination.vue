@@ -254,23 +254,13 @@ watch(
   margin-inline-start: var(--denhaag-pagination-margin-inline, 10px);
 }
 
-.denhaag-pagination__link:not(
-    :first-child,
-    :last-child,
-    .denhaag-pagination__link--current,
-    [rel]
-  ) {
+.denhaag-pagination__link:not(:first-child, :last-child, .denhaag-pagination__link--current, [rel]) {
   overflow: hidden;
   pointer-events: none;
   text-indent: calc(var(--denhaag-pagination-size) * 2);
 }
 
-.denhaag-pagination__link:not(
-    :first-child,
-    :last-child,
-    .denhaag-pagination__link--current,
-    [rel]
-  )::before {
+.denhaag-pagination__link:not(:first-child, :last-child, .denhaag-pagination__link--current, [rel])::before {
   content: "...";
   left: calc(50% - 7px);
   line-height: 0;
@@ -278,7 +268,9 @@ watch(
   text-indent: 0;
   vertical-align: baseline;
 }
-
+.denhaag-pagination .denhaag-icon {
+  font-size: inherit;
+}
 .denhaag-pagination__link--current {
   --denhaag-pagination-color: var(--denhaag-pagination-link-current-color);
   --denhaag-pagination-font-weight: var(
@@ -294,9 +286,5 @@ watch(
   --denhaag-pagination-background-color: var(
     --denhaag-pagination-link-current-disabled-background-color
   );
-}
-
-.denhaag-pagination .denhaag-icon {
-  font-size: inherit;
 }
 </style>
