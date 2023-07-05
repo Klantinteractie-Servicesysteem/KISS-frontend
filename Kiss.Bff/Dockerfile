@@ -43,13 +43,13 @@ RUN npm run build --if-present
 
 FROM build AS publish
 WORKDIR "/src/Kiss.Bff"
-COPY --from=frontend /app/dist ./wwwroot
 RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
+COPY --from=publish /custom-certs /usr/local/share/ca-certificates
 COPY --from=publish /app/publish .
-COPY --from=certs /custom-certs /usr/local/share/ca-certificates
+COPY --from=frontend /app/dist ./wwwroot
 RUN update-ca-certificates
 USER kiss:kiss
 ENTRYPOINT ["dotnet", "Kiss.Bff.dll"]
