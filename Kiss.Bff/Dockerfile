@@ -36,7 +36,7 @@ WORKDIR /src
 COPY Kiss.Bff.Test Kiss.Bff.Test
 WORKDIR "/src/Kiss.Bff.Test"
 RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
-ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /testresults
+ENTRYPOINT dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n
 
 FROM node:18-alpine AS npmci
 WORKDIR /app
