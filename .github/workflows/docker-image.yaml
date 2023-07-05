@@ -111,7 +111,5 @@ jobs:
           context: .
           file: Kiss.Bff/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_PROJECT_NAME }}:latest
+          tags: ${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:latest
           target: final
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
