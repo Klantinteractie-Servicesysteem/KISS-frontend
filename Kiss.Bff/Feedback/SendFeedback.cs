@@ -42,7 +42,7 @@ namespace Kiss.Bff.Feedback
             return Ok();
         }
 
-        public string BuildEmailBody(string userName, FeedbackModel model)
+        public static string BuildEmailBody(string userName, FeedbackModel model)
         {
             var stringBuilder = new StringBuilder(@"
                 <!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.0 Transitional//EN"" ""https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">

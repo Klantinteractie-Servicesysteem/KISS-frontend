@@ -1,7 +1,5 @@
 ﻿using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text.Json.Nodes;
-using IdentityModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
@@ -10,6 +8,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
     [ApiController]
     public class PostContactmomentenCustomProxy : ControllerBase
     {
+        private const int IdentificatieMaxLength = 24;
         private readonly HttpClient _defaultClient;
         private readonly ZgwTokenProvider _tokenProvider;
         private readonly string _destination;
@@ -27,23 +26,26 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
         [HttpPost]
         public async Task Post([FromBody] JsonObject parsedModel, CancellationToken token)
         {
-            var userId = Request.HttpContext.User?.FindFirstValue(JwtClaimTypes.PreferredUserName);
+            var email = Request.HttpContext.User?.GetEmail();
             var userRepresentation = Request.HttpContext.User?.Identity?.Name;
-
+            // identificatie mag maximaal 24 tekens zijn
+            var identificatie = email != null && email.Length > IdentificatieMaxLength
+                ? email[..IdentificatieMaxLength]
+                : email;
             if (parsedModel != null)
             {
                 //claims zijn niet standaard. configuratie mogelijkheid vereist voor juiste vulling 
                 parsedModel["medewerkerIdentificatie"] = new JsonObject
                 {
                     ["achternaam"] = userRepresentation,
-                    ["identificatie"] = userId,
+                    ["identificatie"] = identificatie,
                     ["voorletters"] = "",
                     ["voorvoegselAchternaam"] = "",
 
                 };
             }
 
-            var accessToken = _tokenProvider.GenerateToken(userId, userRepresentation);
+            var accessToken = _tokenProvider.GenerateToken(email, userRepresentation);
 
             var url = _destination.TrimEnd('/') + "/contactmomenten/api/v1/contactmomenten";
 
