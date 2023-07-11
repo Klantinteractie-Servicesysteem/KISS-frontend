@@ -19,9 +19,9 @@ namespace Kiss.Elastic.Sync.Objecten
 
         public void Dispose() => _httpClient.Dispose();
 
-        public IAsyncEnumerable<string> GetObjectTypes(string name, CancellationToken token) => GetObjectTypes(name, "api/v2/objecttypes", token);
+        public IAsyncEnumerable<string> GetObjectTypeUrls(string name, CancellationToken token) => GetObjectTypeUrls(name, "api/v2/objecttypes", token);
 
-        private async IAsyncEnumerable<string> GetObjectTypes(string name, string url, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<string> GetObjectTypeUrls(string name, string url, [EnumeratorCancellation] CancellationToken token)
         {
             string? next = null;
 
@@ -55,7 +55,7 @@ namespace Kiss.Elastic.Sync.Objecten
 
             if (!string.IsNullOrWhiteSpace(next))
             {
-                await foreach (var item in GetObjectTypes(name, next, token))
+                await foreach (var item in GetObjectTypeUrls(name, next, token))
                 {
                     yield return item;
                 }

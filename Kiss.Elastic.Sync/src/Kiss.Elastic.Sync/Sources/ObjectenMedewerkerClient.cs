@@ -19,9 +19,7 @@ namespace Kiss.Elastic.Sync.Sources
 
         public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            var typeCount = 0;
-
-            await foreach (var type in _objectTypesClient.GetObjectTypes("medewerker", token))
+            await foreach (var type in _objectTypesClient.GetObjectTypeUrls("Medewerker", token))
             {
                 await foreach (var item in _objectenClient.GetObjecten(type, token))
                 {
@@ -34,11 +32,6 @@ namespace Kiss.Elastic.Sync.Sources
 
                     yield return new KissEnvelope(item, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
                 }
-            }
-
-            if (typeCount == 0)
-            {
-                throw new Exception("Kan objecttype 'Medewerker' niet vinden");
             }
         }
 
