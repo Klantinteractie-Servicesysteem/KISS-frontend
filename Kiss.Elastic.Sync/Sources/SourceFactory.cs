@@ -1,4 +1,6 @@
-﻿namespace Kiss.Elastic.Sync.Sources
+﻿using Kiss.Elastic.Sync.Objecten;
+
+namespace Kiss.Elastic.Sync.Sources
 {
 	public static class SourceFactory
 	{
@@ -29,21 +31,35 @@
 		}
 
 		private static ObjectenMedewerkerClient GetMedewerkerClient()
-		{
-			var objectenBaseUrl = Helpers.GetEnvironmentVariable("OBJECTEN_BASE_URL");
-			var objectTypesBaseUrl = Helpers.GetEnvironmentVariable("OBJECTTYPES_BASE_URL");
-			var objectenToken = Helpers.GetEnvironmentVariable("OBJECTEN_TOKEN");
-			var objectTypesToken = Helpers.GetEnvironmentVariable("OBJECTTYPES_TOKEN");
+        {
+            var types = GetObjectTypesClient();
+            var objecten = GetObjectenClient();
+            return new ObjectenMedewerkerClient(objecten, types);
+        }
 
-			if (!Uri.TryCreate(objectenBaseUrl, UriKind.Absolute, out var objectenBaseUri))
-			{
-				throw new Exception("objecten base url is niet valide: " + objectenBaseUrl);
-			}
-			if (!Uri.TryCreate(objectTypesBaseUrl, UriKind.Absolute, out var objectTypesBaseUri))
-			{
-				throw new Exception("objecttypes base url is niet valide: " + objectTypesBaseUrl);
-			}
-			return new ObjectenMedewerkerClient(objectenBaseUri, objectenToken, objectTypesBaseUri, objectTypesToken);
-		}
+        private static ObjectTypesClient GetObjectTypesClient()
+        {
+            var objectTypesBaseUrl = Helpers.GetEnvironmentVariable("OBJECTTYPES_BASE_URL");
+            var objectTypesToken = Helpers.GetEnvironmentVariable("OBJECTTYPES_TOKEN");
+
+            if (!Uri.TryCreate(objectTypesBaseUrl, UriKind.Absolute, out var objectTypesBaseUri))
+            {
+                throw new Exception("objecttypes base url is niet valide: " + objectTypesBaseUrl);
+            }
+            return new ObjectTypesClient(objectTypesBaseUri, objectTypesToken);
+        }
+
+        private static ObjectenClient GetObjectenClient()
+        {
+			var objectenBaseUrl = Helpers.GetEnvironmentVariable("OBJECTEN_BASE_URL");
+            var objectenToken = Helpers.GetEnvironmentVariable("OBJECTEN_TOKEN");
+
+            if (!Uri.TryCreate(objectenBaseUrl, UriKind.Absolute, out var objectenBaseUri))
+            {
+                throw new Exception("objecten base url is niet valide: " + objectenBaseUrl);
+            }
+
+            return new ObjectenClient(objectenBaseUri, objectenToken);
+        }
 	}
 }
