@@ -45,11 +45,11 @@ namespace Kiss.Elastic.Sync.Sources
 
                     next = pagination.Next;
 
-                    foreach (var medewerker in pagination.Records)
+                    foreach (var item in pagination.Records)
                     {
-                        if (!medewerker.TryGetProperty("record", out var record) || record.ValueKind != JsonValueKind.Object ||
+                        if (!item.TryGetProperty("record", out var record) || record.ValueKind != JsonValueKind.Object ||
                             !record.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
-                            !medewerker.TryGetProperty("uuid", out var uuid))
+                            !item.TryGetProperty("uuid", out var uuid))
                         {
                             continue;
                         }
