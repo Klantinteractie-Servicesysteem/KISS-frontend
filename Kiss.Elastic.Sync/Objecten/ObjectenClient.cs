@@ -4,6 +4,8 @@ using System.Web;
 
 namespace Kiss.Elastic.Sync.Sources
 {
+    public readonly record struct OverigObject(in JsonElement Id, in JsonElement Data);
+
     public sealed class ObjectenClient
     {
         private readonly HttpClient _httpClient;
@@ -17,13 +19,13 @@ namespace Kiss.Elastic.Sync.Sources
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", objectenToken);
         }
 
-        public IAsyncEnumerable<JsonElement> GetObjecten(string type, CancellationToken token)
+        public IAsyncEnumerable<OverigObject> GetObjecten(string type, CancellationToken token)
         {
             var url = $"/api/v2/objects?type={HttpUtility.UrlEncode(type)}";
             return GetObjectenInternal(url, token);
         }
 
-        private async IAsyncEnumerable<JsonElement> GetObjectenInternal(string url, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<OverigObject> GetObjectenInternal(string url, [EnumeratorCancellation] CancellationToken token)
         {
             string? next = null;
 
@@ -46,12 +48,13 @@ namespace Kiss.Elastic.Sync.Sources
                     foreach (var medewerker in pagination.Records)
                     {
                         if (!medewerker.TryGetProperty("record", out var record) || record.ValueKind != JsonValueKind.Object ||
-                            !record.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object)
+                            !record.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
+                            !medewerker.TryGetProperty("uuid", out var uuid))
                         {
                             continue;
                         }
 
-                        yield return data;
+                        yield return new(uuid, data);
                     }
                 }
 

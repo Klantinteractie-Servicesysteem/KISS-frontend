@@ -23,14 +23,15 @@ namespace Kiss.Elastic.Sync.Sources
             {
                 await foreach (var item in _objectenClient.GetObjecten(type, token))
                 {
-                    if (!item.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    var data = item.Data;
+                    if (!data.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String)
                         continue;
 
-                    item.TryGetProperty("contact", out var contact);
+                    data.TryGetProperty("contact", out var contact);
                     var title = string.Join(' ', GetStringValues(contact, s_nameProps));
-                    var objectMeta = string.Join(' ', GetStringValues(item, s_metaProps));
+                    var objectMeta = string.Join(' ', GetStringValues(data, s_metaProps));
 
-                    yield return new KissEnvelope(item, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
+                    yield return new KissEnvelope(data, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
                 }
             }
         }

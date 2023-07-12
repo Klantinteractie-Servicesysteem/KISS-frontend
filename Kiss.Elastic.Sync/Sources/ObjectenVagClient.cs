@@ -27,14 +27,11 @@ namespace Kiss.Elastic.Sync.Sources
             {
                 await foreach (var item in _objectenClient.GetObjecten(typeUrl, token))
                 {
-                    if (!item.TryGetProperty("identifier", out var idProp) || idProp.ValueKind != JsonValueKind.String)
-                        continue;
-
-                    var id = $"vag_{idProp.GetString()}";
-                    var title = item.TryGetProperty("title", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
+                    var id = $"vag_{item.Id.GetString()}";
+                    var title = item.Data.TryGetProperty("vraag", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
                         ? titleProp.GetString()
                         : "";
-                    yield return new KissEnvelope(item, title, "", id);
+                    yield return new KissEnvelope(item.Data, title, null, id);
                 }
             }
         }
