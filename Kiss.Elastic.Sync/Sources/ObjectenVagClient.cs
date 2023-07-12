@@ -23,7 +23,7 @@ namespace Kiss.Elastic.Sync.Sources
 
         public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            await foreach (var typeUrl in _objectTypesClient.GetObjectTypeUrls("vac", token))
+            await foreach (var typeUrl in _objectTypesClient.GetObjectTypeUrls("VAC", token))
             {
                 await foreach (var item in _objectenClient.GetObjecten(typeUrl, token))
                 {
