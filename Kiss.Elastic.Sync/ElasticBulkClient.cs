@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Kiss.Elastic.Sync
 {
@@ -108,12 +109,91 @@ namespace Kiss.Elastic.Sync
 
             if (existsResponse.IsSuccessStatusCode) return true;
 
-            using var putRequest = new HttpRequestMessage(HttpMethod.Put, indexName);
-            using var putResponse = await _httpClient.SendAsync(putRequest, HttpCompletionOption.ResponseHeadersRead, token);
+            using var putResponse = await _httpClient.PutAsJsonAsync(indexName, new JsonObject 
+            {
+                //["settings"] = new JsonObject
+                //{
+                //    ["analysis"] = new JsonObject
+                //    {
+                //        ["analyzer"] = new JsonObject
+                //        {
+                //            ["autocomplete"] = new JsonObject
+                //            {
+                //                ["type"] = "custom",
+                //                ["tokenizer"] = "standard",
+                //                ["filter"] = new JsonArray("lowercase")
+                //            }
+                //        }
+                //    }
+                //},
+                ["mappings"] = new JsonObject
+                {
+                    ["dynamic_templates"] = new JsonArray(new JsonObject
+                    {
+                        ["strings"] = new JsonObject
+                        {
+                            ["match_mapping_type"] = "string",
+                            ["mapping"] = new JsonObject
+                            {
+                                ["type"] = "text",
+                                ["copy_to"] = "_completion_all",
+                                ["fields"] = new JsonObject
+                                {
+                                    ["keyword"] = new JsonObject
+                                    {
+                                        ["type"] = "keyword",
+                                        ["ignore_above"] = 256
+                                    }
+                                }
+							}
+                        }
+                    }),
+                    ["properties"] = new JsonObject
+                    {
+                        ["_completion_all"] = new JsonObject
+						{
+							["type"] = "completion",
+                            //["analyzer"] = "autocomplete",
+                            //["search_analyzer"] = "standard"
+						}
+					}
+                }
+            }, token);
 
 			await LogResponse(putResponse, token);
 			
             return putResponse.IsSuccessStatusCode;
+        }
+
+        private JsonNode? GetProperties(JsonElement jsonElement, bool isRoot = false)
+        {
+			var result = JsonObject.Create(jsonElement);
+
+            if (result == null) return null;
+
+			if (jsonElement.TryGetProperty("properties", out var properties))
+            {
+                if(isRoot)
+                {
+                    if (properties.TryGetProperty("_completion_all", out _)) return result;
+                    result["properties"]!["_completion_all"] = new JsonObject
+                    {
+                        ["type"] = "completion"
+                    };
+				}
+                foreach (var property in properties.EnumerateObject())
+                {
+                    var val = GetProperties(property.Value);
+					result["properties"]![property.Name] = val;
+				}
+            }
+
+            else if (jsonElement.TryGetProperty("type", out var type) && type.ValueEquals("text"))
+            {
+                result["copy_to"] = "_completion_all";
+            }
+
+            return result;
         }
 
         private class PushStreamContent : HttpContent
