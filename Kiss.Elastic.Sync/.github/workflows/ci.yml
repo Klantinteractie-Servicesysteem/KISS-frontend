@@ -73,6 +73,6 @@ jobs:
       with:
         push: true
         file: src/Kiss.Elastic.Sync/Dockerfile
-        tags: ${{env.IMAGE_NAME}}:${{ env.RELEASE }},${{env.IMAGE_NAME}}:latest
+        tags: latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
