@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kiss-elastic-sync-job-vac
+spec:
+  schedule: "*/59 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kiss-elastic-sync
+            image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
+            imagePullPolicy: Always
+            args:
+            - vac
+            envFrom:
+            - secretRef:
+                name: kiss-elastic-env
+          restartPolicy: Never
