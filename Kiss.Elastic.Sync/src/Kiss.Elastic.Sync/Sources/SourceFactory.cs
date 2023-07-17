@@ -8,9 +8,9 @@ namespace Kiss.Elastic.Sync.Sources
 		{
 			switch (source?.ToLowerInvariant())
 			{
-                case "vag":
-                    outputSource = "VAG";
-                    return GetVagClient();
+                case "VAC":
+                    outputSource = "VAC";
+                    return GetVacClient();
 				case "smoelenboek":
 					outputSource = "Smoelenboek";
 					return GetMedewerkerClient();
@@ -57,7 +57,7 @@ namespace Kiss.Elastic.Sync.Sources
             return new ObjectenMedewerkerClient(objecten, types);
         }
 
-        private static ObjectenVagClient GetVagClient()
+        private static ObjectenVacClient GetVacClient()
         {
             var objectenBaseUrl = Helpers.GetEnvironmentVariable("VAC_OBJECTEN_BASE_URL");
             var objectenToken = Helpers.GetEnvironmentVariable("VAC_OBJECTEN_TOKEN");
@@ -78,7 +78,7 @@ namespace Kiss.Elastic.Sync.Sources
             var objecten = new ObjectenClient(objectenBaseUri, objectenToken);
             var types = new ObjectTypesClient(objectTypesBaseUri, objectTypesToken);
 
-            return new ObjectenVagClient(objecten, types);
+            return new ObjectenVacClient(objecten, types);
         }
 	}
 }
