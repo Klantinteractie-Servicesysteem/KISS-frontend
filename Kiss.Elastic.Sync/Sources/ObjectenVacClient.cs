@@ -4,12 +4,12 @@ using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
 {
-    internal sealed class ObjectenVagClient : IKissSourceClient
+    internal sealed class ObjectenVacClient : IKissSourceClient
     {
         private readonly ObjectenClient _objectenClient;
         private readonly ObjectTypesClient _objectTypesClient;
 
-        public ObjectenVagClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
+        public ObjectenVacClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
         {
             _objectenClient = objectenClient;
             _objectTypesClient = objectTypesClient;
@@ -27,7 +27,7 @@ namespace Kiss.Elastic.Sync.Sources
             {
                 await foreach (var item in _objectenClient.GetObjecten(typeUrl, token))
                 {
-                    var id = $"vag_{item.Id.GetString()}";
+                    var id = $"vac_{item.Id.GetString()}";
                     var title = item.Data.TryGetProperty("vraag", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
                         ? titleProp.GetString()
                         : "";
