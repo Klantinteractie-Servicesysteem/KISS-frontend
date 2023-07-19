@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Kiss.Elastic.Sync.Mapping;
 using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
@@ -14,6 +15,17 @@ namespace Kiss.Elastic.Sync.Sources
             _objectenClient = objectenClient;
             _objectTypesClient = objectTypesClient;
         }
+
+        public string Source => "VAC";
+
+        public CompletionMapping Mapping { get; } = new()
+        {
+            ["vraag"] = true,
+            ["trefwoorden"] = new()
+            {
+                ["trefwoord"] = true
+            }
+        };
 
         public void Dispose()
         {

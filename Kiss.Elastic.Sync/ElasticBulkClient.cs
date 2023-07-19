@@ -1,9 +1,8 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kiss.Elastic.Sync.Mapping;
 
 namespace Kiss.Elastic.Sync
 {
@@ -13,23 +12,21 @@ namespace Kiss.Elastic.Sync
 
         public ElasticBulkClient(Uri baseUri, string username, string password)
         {
-            _httpClient = new HttpClient();
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.ServerCertificateCustomValidationCallback =
+                (httpRequestMessage, cert, cetChain, policyErrors) =>
+                {
+                    return true;
+                };
+            _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = baseUri;
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", EncodeCredential(username, password));
-        }
-
-        public static string EncodeCredential(string userName, string password)
-        {
-            if (string.IsNullOrWhiteSpace(userName)) throw new ArgumentNullException(nameof(userName));
-            password ??= "";
-
-            var encoding = Encoding.UTF8;
-            var credential = $"{userName}:{password}";
-
-            return Convert.ToBase64String(encoding.GetBytes(credential));
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Helpers.EncodeCredential(username, password));
         }
 
         public void Dispose() => _httpClient?.Dispose();
+
+
 
         public static ElasticBulkClient Create()
         {
@@ -45,10 +42,16 @@ namespace Kiss.Elastic.Sync
             return new ElasticBulkClient(elasticBaseUri, username, password);
         }
 
-        public async Task IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, CancellationToken token)
+        public async Task<string> IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, CompletionMapping mapping, CancellationToken token)
         {
-            var indexName = bron.ToLowerInvariant();
-            if (!await EnsureIndex(indexName, token)) return;
+            const string Prefix = "search-";
+            var indexName = string.Create(bron.Length + Prefix.Length, bron, (a,b) =>
+            {
+                Prefix.CopyTo(a);
+                b.AsSpan().ToLowerInvariant(a[Prefix.Length..]);
+            });
+
+            if (!await EnsureIndex(indexName, mapping, token)) return indexName;
             await using var enumerator = envelopes.GetAsyncEnumerator(token);
             var hasNext = await enumerator.MoveNextAsync();
             const long MaxLength = 50 * 1000 * 1000;
@@ -75,7 +78,7 @@ namespace Kiss.Elastic.Sync
                         stream.WriteByte(NewLine);
                         written++;
 
-                        enumerator.Current.WriteTo(writer, bron);
+                        enumerator.Current.Object.WriteTo(writer);
                         await writer.FlushAsync(token);
                         written += writer.BytesCommitted;
                         writer.Reset();
@@ -91,130 +94,39 @@ namespace Kiss.Elastic.Sync
                     Content = content,
                 };
                 using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-                await LogResponse(response, token);
-			}
+                await Helpers.LogResponse(response, token);
+            }
+
+            return indexName;
         }
 
-        private static async Task LogResponse(HttpResponseMessage response, CancellationToken token)
-        {
-			await using var responseStream = await response.Content.ReadAsStreamAsync(token);
-			await using var outStr = response.IsSuccessStatusCode ? Console.OpenStandardOutput() : Console.OpenStandardError();
-			await responseStream.CopyToAsync(outStr, token);
-		}
-
-        private async Task<bool> EnsureIndex(string indexName, CancellationToken token)
+        private async Task<bool> EnsureIndex(string indexName, CompletionMapping mapping, CancellationToken token)
         {
             using var existsRequest = new HttpRequestMessage(HttpMethod.Head, indexName);
             using var existsResponse = await _httpClient.SendAsync(existsRequest, HttpCompletionOption.ResponseHeadersRead, token);
 
             if (existsResponse.IsSuccessStatusCode) return true;
 
-            using var putResponse = await _httpClient.PutAsJsonAsync(indexName, new JsonObject 
-            {
-                //["settings"] = new JsonObject
-                //{
-                //    ["analysis"] = new JsonObject
-                //    {
-                //        ["analyzer"] = new JsonObject
-                //        {
-                //            ["autocomplete"] = new JsonObject
-                //            {
-                //                ["type"] = "custom",
-                //                ["tokenizer"] = "standard",
-                //                ["filter"] = new JsonArray("lowercase")
-                //            }
-                //        }
-                //    }
-                //},
-                ["mappings"] = new JsonObject
-                {
-                    ["dynamic_templates"] = new JsonArray(new JsonObject
-                    {
-                        ["strings"] = new JsonObject
-                        {
-                            ["match_mapping_type"] = "string",
-                            ["mapping"] = new JsonObject
-                            {
-                                ["type"] = "text",
-                                ["copy_to"] = "_completion_all",
-                                ["fields"] = new JsonObject
-                                {
-                                    ["keyword"] = new JsonObject
-                                    {
-                                        ["type"] = "keyword",
-                                        ["ignore_above"] = 256
-                                    }
-                                }
-							}
-                        }
-                    }),
-                    ["properties"] = new JsonObject
-                    {
-                        ["_completion_all"] = new JsonObject
-						{
-							["type"] = "completion",
-                            //["analyzer"] = "autocomplete",
-                            //["search_analyzer"] = "standard"
-						}
-					}
-                }
-            }, token);
+            using var bodyStream = Helpers.GetEmbedded("mapping.json") ?? Stream.Null;
+            var putBody = JsonNode.Parse(bodyStream);
+            var targetMappings = putBody?["mappings"]?["properties"];
+            var sourceMappings = mapping?.ToJsonObject()?["properties"]?.AsObject();
 
-			await LogResponse(putResponse, token);
-			
+            if (targetMappings != null && sourceMappings != null)
+            {
+                foreach (var (key, value) in sourceMappings)
+                {
+                    targetMappings[key] = value.Deserialize<JsonNode>();
+                }
+            }
+
+            using var putResponse = await _httpClient.PutAsJsonAsync(indexName, putBody, token);
+
+            await Helpers.LogResponse(putResponse, token);
+
             return putResponse.IsSuccessStatusCode;
         }
 
-        private JsonNode? GetProperties(JsonElement jsonElement, bool isRoot = false)
-        {
-			var result = JsonObject.Create(jsonElement);
-
-            if (result == null) return null;
-
-			if (jsonElement.TryGetProperty("properties", out var properties))
-            {
-                if(isRoot)
-                {
-                    if (properties.TryGetProperty("_completion_all", out _)) return result;
-                    result["properties"]!["_completion_all"] = new JsonObject
-                    {
-                        ["type"] = "completion"
-                    };
-				}
-                foreach (var property in properties.EnumerateObject())
-                {
-                    var val = GetProperties(property.Value);
-					result["properties"]![property.Name] = val;
-				}
-            }
-
-            else if (jsonElement.TryGetProperty("type", out var type) && type.ValueEquals("text"))
-            {
-                result["copy_to"] = "_completion_all";
-            }
-
-            return result;
-        }
-
-        private class PushStreamContent : HttpContent
-        {
-            private readonly Func<Stream, Task> _handler;
-
-            public PushStreamContent(Func<Stream, Task> handler)
-            {
-                _handler = handler;
-            }
-
-            protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
-            {
-                return _handler(stream);
-            }
-
-            protected override bool TryComputeLength(out long length)
-            {
-                length = -1;
-                return false;
-            }
-        }
+        
     }
 }

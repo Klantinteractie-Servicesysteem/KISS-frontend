@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Kiss.Elastic.Sync.Mapping;
 using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
@@ -10,6 +11,32 @@ namespace Kiss.Elastic.Sync.Sources
         private static readonly string[] s_metaProps = new[] { "function", "department", "skills" };
         private readonly ObjectenClient _objectenClient;
         private readonly ObjectTypesClient _objectTypesClient;
+
+        public string Source => "Smoelenboek";
+
+        public CompletionMapping Mapping { get; } = new()
+        {
+            ["department"] = true,
+            ["description"] = true,
+            ["function"] = true,
+            ["skills"] = true,
+            ["contact"] = new()
+            {
+                ["achternaam"] = true,
+                ["voornaam"] = true,
+                ["voorvoegselAchternaam"] = true,
+                ["identificatie"] = true,
+
+                ["emails"] = new()
+                {
+                    ["email"] = true
+                },
+                ["telefoonnummers"] = new()
+                {
+                    ["telefoonnummer"] = true
+                }
+            }
+        };
 
         public ObjectenMedewerkerClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
         {
