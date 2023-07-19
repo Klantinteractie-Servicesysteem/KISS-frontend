@@ -77,7 +77,7 @@ namespace Kiss.Elastic.Sync
                         stream.WriteByte(NewLine);
                         written++;
 
-                        enumerator.Current.Object.WriteTo(writer);
+                        enumerator.Current.WriteTo(writer, bron);
                         await writer.FlushAsync(token);
                         written += writer.BytesCommitted;
                         writer.Reset();
@@ -108,11 +108,18 @@ namespace Kiss.Elastic.Sync
 
             using var bodyStream = Helpers.GetEmbedded("mapping.json") ?? Stream.Null;
             var putBody = JsonNode.Parse(bodyStream);
-            var targetMappings = putBody?["mappings"]?["properties"];
+            var properties = putBody?["mappings"]?["properties"];
             var sourceMappings = mapping?.ToJsonObject()?["properties"]?.AsObject();
 
-            if (targetMappings != null && sourceMappings != null)
+            if (properties != null && sourceMappings != null)
             {
+                var targetMappings = new JsonObject();
+                properties["object"] = new JsonObject
+                {
+                    ["properties"] = targetMappings,
+                    ["type"] = "object"
+                };
+
                 foreach (var (key, value) in sourceMappings)
                 {
                     targetMappings[key] = value.Deserialize<JsonNode>();

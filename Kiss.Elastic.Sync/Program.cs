@@ -1,6 +1,12 @@
 ﻿using Kiss.Elastic.Sync;
 using Kiss.Elastic.Sync.Sources;
 
+#if DEBUG
+//if (!args.Any())
+//{
+//    args = new[] { "domain", "https://www.deventer.nl" };
+//}
+#endif
 using var cancelSource = new CancellationTokenSource();
 AppDomain.CurrentDomain.ProcessExit += (_, _) => cancelSource.CancelSafely();
 if (args.Length == 2 && args[0] == "domain")
