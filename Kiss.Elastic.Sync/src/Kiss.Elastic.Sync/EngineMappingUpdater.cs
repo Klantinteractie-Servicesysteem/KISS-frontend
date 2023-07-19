@@ -34,9 +34,9 @@ namespace Kiss.Elastic.Sync
 
         public void Dispose() => _httpClient.Dispose();
 
-        public async Task<bool> UpdateMappingForEngine(string engineName, CancellationToken token)
+        public async Task<bool> UpdateMappingForCrawlEngine(CancellationToken token)
         {
-            var indexName = ".ent-search-engine-documents-" + engineName;
+            var indexName = ".ent-search-engine-documents-" + Helpers.CrawlEngineName;
             using var existsResponse = await _httpClient.HeadAsync(indexName, token);
 
             if (!existsResponse.IsSuccessStatusCode) return false;
