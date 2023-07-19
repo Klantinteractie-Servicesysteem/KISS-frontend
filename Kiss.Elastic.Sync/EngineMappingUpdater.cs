@@ -37,18 +37,12 @@ namespace Kiss.Elastic.Sync
         public async Task<bool> UpdateMappingForEngine(string engineName, CancellationToken token)
         {
             var indexName = ".ent-search-engine-documents-" + engineName;
-            using var existsRequest = new HttpRequestMessage(HttpMethod.Head, indexName);
-            using var existsResponse = await _httpClient.SendAsync(existsRequest, HttpCompletionOption.ResponseHeadersRead, token);
+            using var existsResponse = await _httpClient.HeadAsync(indexName, token);
 
             if (!existsResponse.IsSuccessStatusCode) return false;
 
-            using var bodyRequest = new HttpRequestMessage(HttpMethod.Put, indexName + "/_mapping")
-            {
-                Content = new StreamContent(Helpers.GetEmbedded("engine.json"))
-            };
-            bodyRequest.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            using var putResponse = await _httpClient.SendAsync(bodyRequest, HttpCompletionOption.ResponseHeadersRead, token);
+            using var body = Helpers.GetEmbedded("engine.json");
+            using var putResponse = await _httpClient.SendJsonAsync(HttpMethod.Put, indexName + "/_mapping", body, token);
 
             await Helpers.LogResponse(putResponse, token);
 

@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kiss.Elastic.Sync.Mapping;
@@ -45,7 +44,7 @@ namespace Kiss.Elastic.Sync
         public async Task<string> IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, CompletionMapping mapping, CancellationToken token)
         {
             const string Prefix = "search-";
-            var indexName = string.Create(bron.Length + Prefix.Length, bron, (a,b) =>
+            var indexName = string.Create(bron.Length + Prefix.Length, bron, (a, b) =>
             {
                 Prefix.CopyTo(a);
                 b.AsSpan().ToLowerInvariant(a[Prefix.Length..]);
@@ -120,13 +119,11 @@ namespace Kiss.Elastic.Sync
                 }
             }
 
-            using var putResponse = await _httpClient.PutAsJsonAsync(indexName, putBody, token);
+            using var putResponse = await _httpClient.SendJsonAsync(HttpMethod.Put, indexName, putBody!, token);
 
             await Helpers.LogResponse(putResponse, token);
 
             return putResponse.IsSuccessStatusCode;
         }
-
-        
     }
 }

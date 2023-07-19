@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Kiss.Elastic.Sync
@@ -49,6 +48,31 @@ namespace Kiss.Elastic.Sync
             return assembly.GetManifestResourceStream(resourceName) ?? throw new NullReferenceException();
         }
 
-        private delegate void WriteTo(Utf8JsonWriter writer);
+        public static async Task<HttpResponseMessage> HeadAsync(this HttpClient client, string? url, CancellationToken token)
+        {
+            using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+            return await client.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, token);
+        }
+
+        public static async Task<HttpResponseMessage> SendJsonAsync(this HttpClient client, HttpMethod httpMethod, string? url, JsonNode node, CancellationToken token)
+        {
+            using var content = new StringContent(node.ToJsonString(), Encoding.UTF8, "application/json");
+            using var request = new HttpRequestMessage(httpMethod, url)
+            {
+                Content = content
+            };
+            return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+        }
+
+        public static async Task<HttpResponseMessage> SendJsonAsync(this HttpClient client, HttpMethod httpMethod, string? url, Stream json, CancellationToken token)
+        {
+            using var content = new StreamContent(json);
+            using var request = new HttpRequestMessage(httpMethod, url)
+            {
+                Content = content
+            };
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+        }
     }
 }
