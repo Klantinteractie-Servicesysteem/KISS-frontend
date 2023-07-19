@@ -8,7 +8,7 @@ namespace Kiss.Elastic.Sync.Sources
 		{
 			switch (source?.ToLowerInvariant())
 			{
-                case "VAC":
+                case "vac":
                     outputSource = "VAC";
                     return GetVacClient();
 				case "smoelenboek":
