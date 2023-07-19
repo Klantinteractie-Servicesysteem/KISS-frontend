@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Kiss.Elastic.Sync
@@ -57,17 +58,17 @@ namespace Kiss.Elastic.Sync
 
         public static async Task<HttpResponseMessage> SendJsonAsync(this HttpClient client, HttpMethod httpMethod, string? url, JsonNode node, CancellationToken token)
         {
-            using var content = new StringContent(node.ToJsonString(), Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(httpMethod, url)
-            {
-                Content = content
-            };
-            return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            using var stream = new MemoryStream();
+            using var writer = new Utf8JsonWriter(stream);
+            node.WriteTo(writer);
+            await writer.FlushAsync(token);
+            stream.Seek(0, SeekOrigin.Begin);
+            return await SendJsonAsync(client, httpMethod, url, stream, token);
         }
 
-        public static async Task<HttpResponseMessage> SendJsonAsync(this HttpClient client, HttpMethod httpMethod, string? url, Stream json, CancellationToken token)
+        public static async Task<HttpResponseMessage> SendJsonAsync(this HttpClient client, HttpMethod httpMethod, string? url, Stream jsonStream, CancellationToken token)
         {
-            using var content = new StreamContent(json);
+            using var content = new StreamContent(jsonStream);
             using var request = new HttpRequestMessage(httpMethod, url)
             {
                 Content = content
