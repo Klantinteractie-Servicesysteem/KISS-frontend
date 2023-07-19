@@ -1,16 +1,26 @@
 ﻿using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Kiss.Elastic.Sync.Mapping;
 
 namespace Kiss.Elastic.Sync.Sources
 {
-    public sealed class SdgProductClient: IKissSourceClient
+    public sealed class SdgProductClient : IKissSourceClient
     {
         private readonly HttpClient _httpClient;
 
-		public string Type => "Kennisartikel";
+        public string Source => "Kennisartikel";
 
-		public SdgProductClient(Uri baseUri, string apiKey)
+        public CompletionMapping Mapping { get; } = new()
+        {
+            ["vertalingen"] = new()
+            {
+                ["productTitelDecentraal"] = true,
+                ["specifiekeTekst"] = true,
+            }
+        };
+
+        public SdgProductClient(Uri baseUri, string apiKey)
         {
             _httpClient = new HttpClient
             {
@@ -32,39 +42,39 @@ namespace Kiss.Elastic.Sync.Sources
                 await using var stream = await response.Content.ReadAsStreamAsync(token);
                 using var jsonDoc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
 
-				if (!jsonDoc.TryParseZgwPagination(out var pagination))
-				{
+                if (!jsonDoc.TryParseZgwPagination(out var pagination))
+                {
                     yield break;
-				}
+                }
 
-				next = pagination.Next;
+                next = pagination.Next;
 
-				foreach (var sdgProduct in pagination.Records)
-				{
-					if (!sdgProduct.TryGetProperty("uuid", out var id))
-					{
-						continue;
-					}
+                foreach (var sdgProduct in pagination.Records)
+                {
+                    if (!sdgProduct.TryGetProperty("uuid", out var id))
+                    {
+                        continue;
+                    }
 
-					string? title = default;
-					string? objectMeta = default;
+                    string? title = default;
+                    string? objectMeta = default;
 
-					if (sdgProduct.TryGetProperty("vertalingen", out var vertalingenProp) && vertalingenProp.ValueKind == JsonValueKind.Array)
-					{
-						var vertaling = vertalingenProp[0];
-						if(vertaling.TryGetProperty("productTitelDecentraal", out var titleProp) && titleProp.ValueKind == JsonValueKind.String)
+                    if (sdgProduct.TryGetProperty("vertalingen", out var vertalingenProp) && vertalingenProp.ValueKind == JsonValueKind.Array)
+                    {
+                        var vertaling = vertalingenProp[0];
+                        if (vertaling.TryGetProperty("productTitelDecentraal", out var titleProp) && titleProp.ValueKind == JsonValueKind.String)
                         {
                             title = titleProp.GetString();
                         }
-						if(vertaling.TryGetProperty("specifiekeTekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.String)
+                        if (vertaling.TryGetProperty("specifiekeTekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.String)
                         {
                             objectMeta = objectMetaProp.GetString();
                         }
-					}
+                    }
 
-					yield return new KissEnvelope(sdgProduct, title, objectMeta, $"kennisartikel_{id.GetString()}");
-				}
-			}
+                    yield return new KissEnvelope(sdgProduct, title, objectMeta, $"kennisartikel_{id.GetString()}");
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(next))
             {
