@@ -52,8 +52,10 @@ namespace Kiss.Elastic.Sync
 
             var url = $"/api/as/v1/engines/{_metaEngine}/source_engines";
             var body = new JsonArray(engineName);
+            using var content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
+            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
 
-            using var postResponse = await _httpClient.PostAsJsonAsync(url, body, token);
+            using var postResponse = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
 
             await Helpers.LogResponse(postResponse, token);
 
@@ -73,7 +75,7 @@ namespace Kiss.Elastic.Sync
 
             var str = body.ToJsonString();
             using var content = new StringContent(str, Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, EnginesUrl)
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/as/v1/engines/")
             {
                 Content = content
             };
@@ -115,7 +117,7 @@ namespace Kiss.Elastic.Sync
 
         private async Task<bool> EngineExistsAsync(string engineName, CancellationToken token)
         {
-            using var headRequest = new HttpRequestMessage(HttpMethod.Head, EnginesUrl + engineName);
+            using var headRequest = new HttpRequestMessage(HttpMethod.Head, "/api/as/v1/engines/" + engineName);
             using var headResponse = await _httpClient.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, token);
             await Helpers.LogResponse(headResponse, token);
             return headResponse.IsSuccessStatusCode;
