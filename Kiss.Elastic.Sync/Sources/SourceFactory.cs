@@ -7,7 +7,7 @@ namespace Kiss.Elastic.Sync.Sources
         public static IKissSourceClient CreateClient(string? source) => (source?.ToLowerInvariant()) switch
         {
             "vac" => GetVacClient(),
-            "smoelenboek" or null => GetMedewerkerClient(),
+            "smoelenboek" => GetMedewerkerClient(),
             _ => GetProductClient(),
         };
 
