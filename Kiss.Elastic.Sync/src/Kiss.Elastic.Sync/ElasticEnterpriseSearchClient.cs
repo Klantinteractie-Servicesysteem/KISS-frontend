@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json.Nodes;
 
 namespace Kiss.Elastic.Sync
@@ -43,7 +41,7 @@ namespace Kiss.Elastic.Sync
             return new ElasticEnterpriseSearchClient(elasticBaseUri, elasticApiKey, elasticEngine);
         }
 
-        public async Task<bool> AddEngineAsync(string indexName, CancellationToken token)
+        public async Task<bool> AddIndexEngineAsync(string indexName, CancellationToken token)
         {
             var engineName = $"engine-{indexName}";
 
@@ -52,10 +50,8 @@ namespace Kiss.Elastic.Sync
 
             var url = $"/api/as/v1/engines/{_metaEngine}/source_engines";
             var body = new JsonArray(engineName);
-            using var content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
 
-            using var postResponse = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            using var postResponse = await _httpClient.SendJsonAsync(HttpMethod.Post, url, body, token);
 
             await Helpers.LogResponse(postResponse, token);
 
@@ -73,14 +69,7 @@ namespace Kiss.Elastic.Sync
                 ["source_engines"] = new JsonArray(firstEngineName)
             };
 
-            var str = body.ToJsonString();
-            using var content = new StringContent(str, Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/as/v1/engines/")
-            {
-                Content = content
-            };
-
-            using var postResponse = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            using var postResponse = await _httpClient.SendJsonAsync(HttpMethod.Post, "/api/as/v1/engines/", body, token);
 
             await Helpers.LogResponse(postResponse, token);
 
@@ -102,13 +91,8 @@ namespace Kiss.Elastic.Sync
                 ["language"] = "nl"
             };
 
-            var str = body.ToJsonString();
-            using var content = new StringContent(str, Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, EnginesUrl)
-            {
-                Content = content
-            };
-            using var postResponse = await _httpClient.SendAsync(request, token);
+
+            using var postResponse = await _httpClient.SendJsonAsync(HttpMethod.Post, EnginesUrl, body, token);
 
             await Helpers.LogResponse(postResponse, token);
 
@@ -117,8 +101,7 @@ namespace Kiss.Elastic.Sync
 
         private async Task<bool> EngineExistsAsync(string engineName, CancellationToken token)
         {
-            using var headRequest = new HttpRequestMessage(HttpMethod.Head, "/api/as/v1/engines/" + engineName);
-            using var headResponse = await _httpClient.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, token);
+            using var headResponse = await _httpClient.HeadAsync("/api/as/v1/engines/" + engineName, token);
             await Helpers.LogResponse(headResponse, token);
             return headResponse.IsSuccessStatusCode;
         }
