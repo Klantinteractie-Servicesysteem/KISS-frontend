@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -73,7 +74,7 @@ namespace Kiss.Elastic.Sync
             {
                 Content = content
             };
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
         }
     }

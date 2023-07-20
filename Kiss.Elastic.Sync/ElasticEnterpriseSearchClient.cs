@@ -8,7 +8,8 @@ namespace Kiss.Elastic.Sync
     {
         const string EnginesV0Url = "/api/as/v0/engines/";
         const string EnginesV1Url = "/api/as/v1/engines/";
-        const string CrawlEngineDomainUrl = $"{EnginesV1Url}{Helpers.CrawlEngineName}/crawler/domains";
+        const string CrawlEngineUrl = $"{EnginesV1Url}{Helpers.CrawlEngineName}/crawler/";
+        const string CrawlEngineDomainUrl = $"{CrawlEngineUrl}domains";
 
         private readonly HttpClient _httpClient;
         private readonly string _metaEngine;
@@ -53,6 +54,22 @@ namespace Kiss.Elastic.Sync
                 ["name"] = domainUri.ToString().TrimEnd('/'),
             };
             using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineDomainUrl, body, token);
+            await Helpers.LogResponse(response, token);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> CrawlDomain(Uri domainUri, CancellationToken token)
+        {
+            if (!await AddCrawlEngine(token)) return false;
+            if (!await DomainExists(domainUri, token)) return false;
+            var body = new JsonObject
+            {
+                ["overrides"] = new JsonObject
+                {
+                    ["domain_allowlist"] = new JsonArray(domainUri.ToString().TrimEnd('/'))
+                },
+            };
+            using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineUrl + "crawl_requests", body, token);
             await Helpers.LogResponse(response, token);
             return response.IsSuccessStatusCode;
         }
