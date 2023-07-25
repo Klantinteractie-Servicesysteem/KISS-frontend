@@ -2,10 +2,10 @@
 using Kiss.Elastic.Sync.Sources;
 
 #if DEBUG
-if (!args.Any())
-{
-    args = new[] { "domain", "https://www.deventer.nl" };
-}
+//if (!args.Any())
+//{
+//    args = new[] { "domain", "https://www.deventer.nl" };
+//}
 #endif
 
 using var cancelSource = new CancellationTokenSource();
