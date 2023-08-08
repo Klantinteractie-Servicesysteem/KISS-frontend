@@ -19,6 +19,7 @@ You can use `Relevance tuning` from Kibana on the `meta engine`.
 - Vraag/antwoord combinaties (VAC)
 
 ## Commands
+Examples of how to schedule a cron job in Kubernetes with these arguments [can be found here](deploy)
 | Arguments | Description |
 | --- | --- |
 | No arguments | Sync SDG Producten |
@@ -51,3 +52,10 @@ You can use `Relevance tuning` from Kibana on the `meta engine`.
 | VAC_OBJECTEN_TOKEN | The token to connect to the Objects API to retrieve VACs |
 | VAC_OBJECTTYPES_BASE_URL | The base url for the Object Types API to retrieve the VAC object type |
 | VAC_OBJECTTYPES_TOKEN | The token to connect to the Object Types API to retrieve the VAC object type |
+
+## Run locally
+1. Make a copy of .env.local.example, rename it .env.local and fill in the required secrets.
+2. Set up a port forward for Enterprise Search, e.g.: `kubectl port-forward service/kiss-ent-http 3002`
+3. Set up a port forward for Elasticsearch, e.g.: `kubectl port-forward service/kiss-es-http 9200`
+4. Build the tool using docker-compose: `docker compose build`
+4. Run the tool using docker-compose: `docker compose --env-file ./.env.local run kiss.elastic.sync [ARGS...]`
