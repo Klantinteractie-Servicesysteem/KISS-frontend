@@ -67,7 +67,7 @@ namespace Kiss.Elastic.Sync.Sources
 
             if (!string.IsNullOrWhiteSpace(next))
             {
-                await foreach (var el in GetObjecten(next, token))
+                await foreach (var el in GetObjectenInternal(next, token))
                 {
                     yield return el;
                 }
