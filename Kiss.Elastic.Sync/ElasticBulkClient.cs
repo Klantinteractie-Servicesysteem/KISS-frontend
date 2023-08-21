@@ -1,12 +1,20 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Kiss.Elastic.Sync.Mapping;
 
 namespace Kiss.Elastic.Sync
 {
     internal sealed class ElasticBulkClient : IDisposable
     {
+        private static JsonElement GetFieldMapping()
+        {
+            using var str = Helpers.GetEmbedded("field.json") ?? Stream.Null;
+            using var doc = JsonDocument.Parse(str);
+            return doc.RootElement.Clone();
+        }
+
+        private static readonly JsonElement s_fieldMapping = GetFieldMapping();
+
         private readonly HttpClient _httpClient;
 
         public ElasticBulkClient(Uri baseUri, string username, string password)
@@ -41,7 +49,7 @@ namespace Kiss.Elastic.Sync
             return new ElasticBulkClient(elasticBaseUri, username, password);
         }
 
-        public async Task<string> IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, CompletionMapping mapping, CancellationToken token)
+        public async Task<string> IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, IReadOnlyList<string> completionFields, CancellationToken token)
         {
             const string Prefix = "search-";
             var indexName = string.Create(bron.Length + Prefix.Length, bron, (a, b) =>
@@ -50,7 +58,7 @@ namespace Kiss.Elastic.Sync
                 b.AsSpan().ToLowerInvariant(a[Prefix.Length..]);
             });
 
-            if (!await EnsureIndex(indexName, mapping, token)) return indexName;
+            if (!await EnsureIndex(indexName, completionFields, token)) return indexName;
             await using var enumerator = envelopes.GetAsyncEnumerator(token);
             var hasNext = await enumerator.MoveNextAsync();
             const long MaxLength = 50 * 1000 * 1000;
@@ -114,7 +122,7 @@ namespace Kiss.Elastic.Sync
             return putResponse.IsSuccessStatusCode;
         }
 
-        private async Task<bool> EnsureIndex(string indexName, CompletionMapping mapping, CancellationToken token)
+        private async Task<bool> EnsureIndex(string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
         {
             using var existsRequest = new HttpRequestMessage(HttpMethod.Head, indexName);
             using var existsResponse = await _httpClient.SendAsync(existsRequest, HttpCompletionOption.ResponseHeadersRead, token);
@@ -124,7 +132,7 @@ namespace Kiss.Elastic.Sync
             using var bodyStream = Helpers.GetEmbedded("mapping.json") ?? Stream.Null;
             var putBody = JsonNode.Parse(bodyStream);
             var properties = putBody?["mappings"]?["properties"];
-            var sourceMappings = mapping?.ToJsonObject()?["properties"]?.AsObject();
+            var sourceMappings = MapCompletionFields(completionFields);
 
             if (properties != null && sourceMappings != null)
             {
@@ -146,6 +154,34 @@ namespace Kiss.Elastic.Sync
             await Helpers.LogResponse(putResponse, token);
 
             return putResponse.IsSuccessStatusCode;
+        }
+
+        private JsonObject MapCompletionFields(IReadOnlyList<string> completionFields)
+        {
+            if (!completionFields.Any()) return JsonObject.Create(s_fieldMapping)!;
+            var split = completionFields.Select(x => x.Split("."));
+            var groupedByFirst = split.GroupBy(x => x[0]);
+
+            var properties = new JsonObject();
+            var result = new JsonObject
+            {
+                ["properties"] = properties
+            };
+
+            foreach (var group in groupedByFirst)
+            {
+                var fields = new List<string>();
+                foreach (var item in group)
+                {
+                    var rest = item.Skip(1);
+                    var str = string.Join(".", rest);
+                    fields.Add(str);
+                }
+                var value = MapCompletionFields(fields);
+                properties[group.Key] = value;   
+            }
+
+            return result;
         }
     }
 }

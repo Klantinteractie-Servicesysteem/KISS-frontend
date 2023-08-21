@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Kiss.Elastic.Sync.Mapping;
 using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
@@ -14,28 +13,18 @@ namespace Kiss.Elastic.Sync.Sources
 
         public string Source => "Smoelenboek";
 
-        public CompletionMapping Mapping { get; } = new()
+        public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
-            ["department"] = true,
-            ["description"] = true,
-            ["function"] = true,
-            ["skills"] = true,
-            ["contact"] = new()
-            {
-                ["achternaam"] = true,
-                ["voornaam"] = true,
-                ["voorvoegselAchternaam"] = true,
-                ["identificatie"] = true,
-
-                ["emails"] = new()
-                {
-                    ["email"] = true
-                },
-                ["telefoonnummers"] = new()
-                {
-                    ["telefoonnummer"] = true
-                }
-            }
+            "department",
+            "description",
+            "function",
+            "skills",
+            "contact.achternaam",
+            "contact.voornaam",
+            "contact.voorvoegselAchternaam",
+            "contact.identificatie",
+            "emails.email",
+            "telefoonnummers.telefoonnummer"
         };
 
         public ObjectenMedewerkerClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
