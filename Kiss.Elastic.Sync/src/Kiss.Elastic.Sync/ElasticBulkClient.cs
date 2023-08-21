@@ -85,7 +85,7 @@ namespace Kiss.Elastic.Sync
                         stream.WriteByte(NewLine);
                         written++;
 
-                        enumerator.Current.WriteTo(writer, bron);
+                        enumerator.Current.WriteTo(writer, indexName);
                         await writer.FlushAsync(token);
                         written += writer.BytesCommitted;
                         writer.Reset();
@@ -132,12 +132,12 @@ namespace Kiss.Elastic.Sync
             using var bodyStream = Helpers.GetEmbedded("mapping.json") ?? Stream.Null;
             var putBody = JsonNode.Parse(bodyStream);
             var properties = putBody?["mappings"]?["properties"];
-            var sourceMappings = MapCompletionFields(completionFields);
+            var sourceMappings = MapCompletionFields(completionFields)?["properties"] as JsonObject;
 
             if (properties != null && sourceMappings != null)
             {
                 var targetMappings = new JsonObject();
-                properties["object"] = new JsonObject
+                properties[indexName] = new JsonObject
                 {
                     ["properties"] = targetMappings,
                     ["type"] = "object"
@@ -175,7 +175,10 @@ namespace Kiss.Elastic.Sync
                 {
                     var rest = item.Skip(1);
                     var str = string.Join(".", rest);
-                    fields.Add(str);
+                    if (!string.IsNullOrWhiteSpace(str))
+                    {
+                        fields.Add(str);
+                    }
                 }
                 var value = MapCompletionFields(fields);
                 properties[group.Key] = value;   
