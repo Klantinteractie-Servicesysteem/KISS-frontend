@@ -58,7 +58,7 @@ namespace Kiss.Elastic.Sync
                 b.AsSpan().ToLowerInvariant(a[Prefix.Length..]);
             });
 
-            if (!await EnsureIndex(indexName, completionFields, token)) return indexName;
+            if (!await EnsureIndex(bron, indexName, completionFields, token)) return indexName;
             await using var enumerator = envelopes.GetAsyncEnumerator(token);
             var hasNext = await enumerator.MoveNextAsync();
             const long MaxLength = 50 * 1000 * 1000;
@@ -85,7 +85,7 @@ namespace Kiss.Elastic.Sync
                         stream.WriteByte(NewLine);
                         written++;
 
-                        enumerator.Current.WriteTo(writer, indexName);
+                        enumerator.Current.WriteTo(writer, bron);
                         await writer.FlushAsync(token);
                         written += writer.BytesCommitted;
                         writer.Reset();
@@ -122,7 +122,7 @@ namespace Kiss.Elastic.Sync
             return putResponse.IsSuccessStatusCode;
         }
 
-        private async Task<bool> EnsureIndex(string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
+        private async Task<bool> EnsureIndex(string bron, string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
         {
             using var existsRequest = new HttpRequestMessage(HttpMethod.Head, indexName);
             using var existsResponse = await _httpClient.SendAsync(existsRequest, HttpCompletionOption.ResponseHeadersRead, token);
@@ -137,7 +137,7 @@ namespace Kiss.Elastic.Sync
             if (properties != null && sourceMappings != null)
             {
                 var targetMappings = new JsonObject();
-                properties[indexName] = new JsonObject
+                properties[bron] = new JsonObject
                 {
                     ["properties"] = targetMappings,
                     ["type"] = "object"
