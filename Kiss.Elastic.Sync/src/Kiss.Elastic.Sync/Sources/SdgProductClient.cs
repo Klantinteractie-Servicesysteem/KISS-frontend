@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Kiss.Elastic.Sync.Mapping;
 
 namespace Kiss.Elastic.Sync.Sources
 {
@@ -11,13 +10,10 @@ namespace Kiss.Elastic.Sync.Sources
 
         public string Source => "Kennisartikel";
 
-        public CompletionMapping Mapping { get; } = new()
+        public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
-            ["vertalingen"] = new()
-            {
-                ["productTitelDecentraal"] = true,
-                ["specifiekeTekst"] = true,
-            }
+            "vertalingen.productTitelDecentraal",
+            "vertalingen.specifiekeTekst"
         };
 
         public SdgProductClient(Uri baseUri, string apiKey)

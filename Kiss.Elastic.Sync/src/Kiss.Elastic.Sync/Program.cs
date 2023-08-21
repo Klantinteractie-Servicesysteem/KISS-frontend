@@ -36,6 +36,6 @@ using var sourceClient = SourceFactory.CreateClient(source);
 Console.WriteLine("Start syncing source " + sourceClient.Source);
 
 var records = sourceClient.Get(cancelSource.Token);
-var indexName = await elasticClient.IndexBulk(records, sourceClient.Source, sourceClient.Mapping, cancelSource.Token);
+var indexName = await elasticClient.IndexBulk(records, sourceClient.Source, sourceClient.CompletionFields, cancelSource.Token);
 await enterpriseClient.AddIndexEngineAsync(indexName, cancelSource.Token);
 Console.WriteLine("Finished indexing source " + sourceClient.Source);
