@@ -10,6 +10,7 @@ namespace Kiss.Elastic.Sync
 
             jsonWriter.WriteString("title", Title);
 
+            jsonWriter.WriteString("object_meta", ObjectMeta);
             jsonWriter.WriteString("object_bron", bron);
 
             jsonWriter.WritePropertyName(bron);
