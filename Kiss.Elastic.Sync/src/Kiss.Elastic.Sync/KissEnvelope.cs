@@ -8,11 +8,8 @@ namespace Kiss.Elastic.Sync
         {
             jsonWriter.WriteStartObject();
 
-            jsonWriter.WriteString("id", Id);
-
             jsonWriter.WriteString("title", Title);
 
-            jsonWriter.WriteString("object_meta", ObjectMeta);
             jsonWriter.WriteString("object_bron", bron);
 
             jsonWriter.WritePropertyName(bron);
