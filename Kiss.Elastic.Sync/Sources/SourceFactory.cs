@@ -14,14 +14,18 @@ namespace Kiss.Elastic.Sync.Sources
 
         private static SdgProductClient GetProductClient()
         {
-            var sdgBaseUrl = Helpers.GetEnvironmentVariable("SDG_BASE_URL");
-            var sdgApiKey = Helpers.GetEnvironmentVariable("SDG_API_KEY");
+            var sdgBaseUrl = Helpers.GetEnvironmentVariable("SDG_OBJECTEN_BASE_URL");
+            var sdgApiKey = Helpers.GetEnvironmentVariable("SDG_OBJECTEN_TOKEN");
+            var typeurl = Helpers.GetEnvironmentVariable("SDG_OBJECT_TYPE_URL");
 
             if (!Uri.TryCreate(sdgBaseUrl, UriKind.Absolute, out var sdgBaseUri))
             {
                 throw new Exception("sdg base url is niet valide: " + sdgBaseUrl);
             }
-            return new SdgProductClient(sdgBaseUri, sdgApiKey);
+
+            var objecten = new ObjectenClient(sdgBaseUri, sdgApiKey);
+
+            return new SdgProductClient(objecten, typeurl);
         }
 
         private static ObjectenMedewerkerClient GetMedewerkerClient()
