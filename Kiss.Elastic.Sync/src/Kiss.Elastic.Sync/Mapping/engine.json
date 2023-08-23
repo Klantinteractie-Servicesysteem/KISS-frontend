@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "_completion": {
+      "type": "completion"
+    },
+    "headings": {
+      "analyzer": "iq_text_base",
+      "index_options": "freqs",
+      "type": "text",
+      "copy_to": "_completion"
+    }
+  }
+}
