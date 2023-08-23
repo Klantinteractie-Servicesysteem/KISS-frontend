@@ -15,6 +15,14 @@ namespace Kiss.Elastic.Sync.Sources
             _objectTypesClient = objectTypesClient;
         }
 
+        public string Source => "VAC";
+
+        public IReadOnlyList<string> CompletionFields { get; } = new []
+        {
+            "vraag",
+            "trefwoorden.trefwoord"
+        };
+
         public void Dispose()
         {
             _objectenClient.Dispose();

@@ -2,38 +2,29 @@
 
 namespace Kiss.Elastic.Sync.Sources
 {
-	public static class SourceFactory
-	{
-		public static IKissSourceClient CreateClient(string? source, out string outputSource)
-		{
-			switch (source?.ToLowerInvariant())
-			{
-                case "vac":
-                    outputSource = "VAC";
-                    return GetVacClient();
-				case "smoelenboek":
-					outputSource = "Smoelenboek";
-					return GetMedewerkerClient();
-				default:
-					outputSource = "Kennisartikel";
-					return GetProductClient();
-			}
-		}
+    public static class SourceFactory
+    {
+        public static IKissSourceClient CreateClient(string? source) => (source?.ToLowerInvariant()) switch
+        {
+            "vac" => GetVacClient(),
+            "smoelenboek" => GetMedewerkerClient(),
+            _ => GetProductClient(),
+        };
 
 
-		private static SdgProductClient GetProductClient()
-		{
-			var sdgBaseUrl = Helpers.GetEnvironmentVariable("SDG_BASE_URL");
-			var sdgApiKey = Helpers.GetEnvironmentVariable("SDG_API_KEY");
+        private static SdgProductClient GetProductClient()
+        {
+            var sdgBaseUrl = Helpers.GetEnvironmentVariable("SDG_BASE_URL");
+            var sdgApiKey = Helpers.GetEnvironmentVariable("SDG_API_KEY");
 
-			if (!Uri.TryCreate(sdgBaseUrl, UriKind.Absolute, out var sdgBaseUri))
-			{
-				throw new Exception("sdg base url is niet valide: " + sdgBaseUrl);
-			}
-			return new SdgProductClient(sdgBaseUri, sdgApiKey);
-		}
+            if (!Uri.TryCreate(sdgBaseUrl, UriKind.Absolute, out var sdgBaseUri))
+            {
+                throw new Exception("sdg base url is niet valide: " + sdgBaseUrl);
+            }
+            return new SdgProductClient(sdgBaseUri, sdgApiKey);
+        }
 
-		private static ObjectenMedewerkerClient GetMedewerkerClient()
+        private static ObjectenMedewerkerClient GetMedewerkerClient()
         {
             var objectenBaseUrl = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTEN_BASE_URL");
             var objectenToken = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTEN_TOKEN");
@@ -80,5 +71,5 @@ namespace Kiss.Elastic.Sync.Sources
 
             return new ObjectenVacClient(objecten, types);
         }
-	}
+    }
 }

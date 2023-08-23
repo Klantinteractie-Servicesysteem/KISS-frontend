@@ -11,6 +11,22 @@ namespace Kiss.Elastic.Sync.Sources
         private readonly ObjectenClient _objectenClient;
         private readonly ObjectTypesClient _objectTypesClient;
 
+        public string Source => "Smoelenboek";
+
+        public IReadOnlyList<string> CompletionFields { get; } = new[]
+        {
+            "department",
+            "description",
+            "function",
+            "skills",
+            "contact.achternaam",
+            "contact.voornaam",
+            "contact.voorvoegselAchternaam",
+            "contact.identificatie",
+            "emails.email",
+            "telefoonnummers.telefoonnummer"
+        };
+
         public ObjectenMedewerkerClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
         {
             _objectenClient = objectenClient;
