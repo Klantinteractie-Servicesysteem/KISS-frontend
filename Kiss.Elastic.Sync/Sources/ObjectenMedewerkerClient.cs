@@ -15,14 +15,14 @@ namespace Kiss.Elastic.Sync.Sources
 
         public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
-            "department",
-            "description",
-            "function",
+            "afdelingen.afdelingnaam",
+            "groepen.groepsnaam",
+            "functie",
             "skills",
-            "contact.achternaam",
-            "contact.voornaam",
-            "contact.voorvoegselAchternaam",
-            "contact.identificatie",
+            "achternaam",
+            "voornaam",
+            "voorvoegselAchternaam",
+            "identificatie",
             "emails.email",
             "telefoonnummers.telefoonnummer"
         };
@@ -40,12 +40,14 @@ namespace Kiss.Elastic.Sync.Sources
                 await foreach (var item in _objectenClient.GetObjecten(type, token))
                 {
                     var data = item.Data;
-                    if (!data.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    if (!data.TryGetProperty("identificatie", out var idProp) || idProp.ValueKind != JsonValueKind.String)
                         continue;
 
-                    data.TryGetProperty("contact", out var contact);
-                    var title = string.Join(' ', GetStringValues(contact, s_nameProps));
-                    var objectMeta = string.Join(' ', GetStringValues(data, s_metaProps));
+                    var title = string.Join(' ', GetStringValues(data, s_nameProps));
+                    
+                    var objectMeta = data.TryGetProperty("functie", out var functieProp) && functieProp.ValueKind == JsonValueKind.String
+                        ? functieProp.GetString()
+                        : null;
 
                     yield return new KissEnvelope(data, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
                 }
