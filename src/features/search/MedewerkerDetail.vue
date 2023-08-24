@@ -62,9 +62,9 @@
       />
       <dl>
         <dt>Functie:</dt>
-        <dd>{{ medewerkerRaw?.function }}</dd>
+        <dd>{{ medewerkerRaw?.function ?? medewerkerRaw?.functie }}</dd>
         <dt>Afdeling:</dt>
-        <dd>{{ medewerkerRaw?.department }}</dd>
+        <dd>{{ afdeling }}</dd>
         <dt>Wat kun je en wat doe je:</dt>
         <dd>{{ medewerkerRaw?.skills }}</dd>
         <template v-if="replacement">
@@ -84,7 +84,7 @@
 
 <script lang="ts" setup>
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import { computed } from "@vue/reactivity";
+import { computed } from "vue";
 import { ContentFeedback } from "../feedback/index";
 import type { CurrentFeedbackSection } from "../feedback/types";
 
@@ -102,7 +102,8 @@ const currentFeedbackSection: CurrentFeedbackSection = {
 const availabilities = computed(() => {
   const rawAvailabilities =
     props.medewerkerRaw?.availabilities ??
-    props.medewerkerRaw?.calendar?.availabilities;
+    props.medewerkerRaw?.calendar?.availabilities ??
+    props.medewerkerRaw.beschikbaarheid;
 
   if (!rawAvailabilities) return null;
 
@@ -110,26 +111,36 @@ const availabilities = computed(() => {
   return Object.fromEntries(days.map((x) => [x, rawAvailabilities[x] || {}]));
 });
 
-const telefoonnummers = computed(() =>
-  props.medewerkerRaw?.contact?.telefoonnummers
-    ?.map(({ telefoonnummer }: any) => telefoonnummer)
-    ?.filter(Boolean)
-    ?.join(", ")
+const telefoonnummers = computed(
+  () =>
+    (props.medewerkerRaw?.contact ?? props.medewerkerRaw)?.telefoonnummers
+      ?.map(({ telefoonnummer }: any) => telefoonnummer)
+      ?.filter(Boolean)
+      ?.join(", "),
 );
 
 const emails = computed(
   () =>
-    props.medewerkerRaw?.contact?.emails
+    (props.medewerkerRaw?.contact ?? props.medewerkerRaw)?.emails
       ?.map(({ email }: any) => email)
       ?.filter(Boolean)
-      ?.join(", ") || props.medewerkerRaw?.user
+      ?.join(", ") || props.medewerkerRaw?.user,
 );
 
 const replacement = computed(() => {
-  if (typeof props.medewerkerRaw?.replacement === "string")
-    return props.medewerkerRaw.replacement;
-  if (typeof props.medewerkerRaw?.replacement?.name === "string")
-    return props.medewerkerRaw.replacement.name;
+  const obj =
+    props.medewerkerRaw?.replacement ?? props.medewerkerRaw?.vervanging;
+  if (typeof obj === "string") return obj;
+  return obj?.name || "";
+});
+
+const afdeling = computed(() => {
+  if (props.medewerkerRaw?.department) return props.medewerkerRaw.department;
+  if (Array.isArray(props.medewerkerRaw?.afdelingen))
+    return props.medewerkerRaw.afdelingen
+      .map(({ afdelingnaam }: any) => afdelingnaam)
+      .filter(Boolean)
+      .join(", ");
   return "";
 });
 </script>
