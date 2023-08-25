@@ -148,6 +148,26 @@ form {
   }
 }
 
+label:has(> input[type="radio"], > input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  font-weight: normal;
+
+  input {
+    margin: 0;
+    margin-block-start: 1px;
+  }
+}
+
+input {
+  accent-color: var(--color-primary);
+}
+
+label.disabled {
+  color: var(--color-grey);
+}
+
 menu {
   list-style: none;
 }

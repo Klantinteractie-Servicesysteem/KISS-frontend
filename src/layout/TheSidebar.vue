@@ -71,7 +71,6 @@ import {
   ContactmomentSwitcher,
 } from "@/features/contactmoment";
 import { TabList, TabListItem } from "@/components/tabs";
-import { watchEffect } from "vue";
 
 enum NotitieTabs {
   Regulier = "Reguliere notitie",
@@ -93,7 +92,7 @@ watch(
   () => contactmomentStore.huidigContactmoment?.huidigeVraag,
   () => {
     state.reset();
-  }
+  },
 );
 </script>
 
@@ -140,6 +139,7 @@ aside {
     display: flex;
     flex-direction: column;
     flex: 1;
+    color: var(--utrecht-form-label-color);
   }
 
   :deep([role="tab"]) {

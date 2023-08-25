@@ -1,4 +1,5 @@
 <template>
+  <slot name="init" v-if="data.state === 'init'"></slot>
   <slot v-if="data.loading" name="loading">
     <simple-spinner />
   </slot>

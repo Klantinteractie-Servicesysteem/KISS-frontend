@@ -9,7 +9,9 @@ export type SearchResult = {
 };
 
 export type Source = {
-  type: string;
+  boost?: number;
+  index: string;
+
   name: string;
 };
 

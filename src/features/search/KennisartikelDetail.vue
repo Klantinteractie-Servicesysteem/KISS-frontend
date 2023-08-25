@@ -42,14 +42,13 @@ import { ContentFeedback } from "../feedback/index";
 import type { Kennisartikel } from "./types";
 
 const knownSections = {
-  specifiekeTekst: "Inleiding",
+  tekst: "Inleiding",
   procedureBeschrijving: "Aanvraag",
-  conditions: "Voorwaarden",
+  vereisten: "Voorwaarden",
   bewijs: "Bewijs",
   kostenEnBetaalmethoden: "Kosten",
   uitersteTermijn: "Termijn",
   bezwaarEnBeroep: "Bezwaar",
-  vereisten: "Vereisten",
   notice: "Bijzonderheden",
   wtdBijGeenReactie: "Geen reactie",
   contact: "Contact",
@@ -94,8 +93,11 @@ const processedSections = computed(() => {
     ({ label, text, key }) => ({
       key: key,
       label,
-      html: unescapedSanatizedWithIncreadesHeadingsHtml(text, props.headingLevel),
-    })
+      html: unescapedSanatizedWithIncreadesHeadingsHtml(
+        text,
+        props.headingLevel,
+      ),
+    }),
   );
 
   return sectionsWithProcessedHtml;
@@ -110,14 +112,14 @@ const mappedSections = computed(() =>
     setActive() {
       currentSectionIndex.value = index;
     },
-  }))
+  })),
 );
 
 watch(
   () => props.kennisartikelRaw.uuid,
   () => {
     currentSectionIndex.value = 0;
-  }
+  },
 );
 
 const KENNISARTIKEL_SELECTED = "kennisartikel-selected";
@@ -132,7 +134,7 @@ watch(
     if (!s.length) return;
     const sections = s
       .map(({ label }) => label)
-      .filter((x) => x !== knownSections.specifiekeTekst);
+      .filter((x) => x !== knownSections.tekst);
 
     emit(KENNISARTIKEL_SELECTED, {
       title: props.title,
@@ -140,7 +142,7 @@ watch(
       sections,
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
@@ -161,7 +163,6 @@ article {
     &.is-active {
       display: block;
     }
-     
   }
 }
 

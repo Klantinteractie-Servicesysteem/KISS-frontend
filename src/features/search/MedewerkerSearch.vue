@@ -50,7 +50,9 @@ const props = defineProps({
 function mapDatalistItem(
   x: SearchResult,
 ): DatalistItem & { obj: Record<string, any> } {
-  const { department, function: functie } = x?.jsonObject ?? {};
+  const functie = x?.jsonObject?.functie || x?.jsonObject?.function;
+  const department =
+    x?.jsonObject?.afdelingen?.[0]?.afdelingnaam || x?.jsonObject?.department;
 
   const werk = [functie, department].filter(Boolean).join(" bij ");
   return {

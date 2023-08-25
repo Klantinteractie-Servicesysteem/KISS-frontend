@@ -6,7 +6,7 @@
     ref="searchBarRef"
   >
     <fieldset class="bronnen" v-if="sources.success">
-      <label v-for="bron in sources.data" :key="bron.name + bron.type">
+      <label v-for="bron in sources.data" :key="bron.name + bron.index">
         <input type="checkbox" v-model="state.selectedSources" :value="bron" />
         {{ bron.name.replace(/(^\w+:|^)\/\//, "").replace("www.", "") }}
       </label>
@@ -183,7 +183,7 @@ export default {
 <script lang="ts" setup>
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { computed, nextTick, ref, watch } from "vue";
-import { useGlobalSearch, useSources, useSuggestions } from "./service";
+import { useGlobalSearch, useSources } from "./service";
 
 import Pagination from "@/nl-design-system/components/Pagination.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
@@ -201,7 +201,6 @@ import { useContactmomentStore } from "@/stores/contactmoment";
 import { ensureState } from "@/stores/create-store";
 import SearchCombobox from "../../components/SearchCombobox.vue";
 import { mapServiceData } from "@/services";
-import { debouncedRef } from "@vueuse/core";
 
 const emit = defineEmits<{
   (
@@ -234,14 +233,21 @@ const state = ensureState({
 
 const searchBarRef = ref();
 
+const sources = useSources();
+
+const sourceParameter = computed(() =>
+  sources.success && !state.value.selectedSources.length
+    ? sources.data
+    : state.value.selectedSources,
+);
+
 const searchParameters = computed(() => ({
   search: state.value.currentSearch,
   page: state.value.currentPage,
-  filters: state.value.selectedSources,
+  filters: sourceParameter.value,
 }));
 
 const searchResults = useGlobalSearch(searchParameters);
-const sources = useSources();
 
 let automaticSearchTimeout: number | NodeJS.Timeout;
 
@@ -346,15 +352,8 @@ const handleWebsiteSelected = (website: Website): void => {
   window.open(website.url);
 };
 
-const debounceInput = debouncedRef(
-  computed(() => state.value.searchInput),
-  300,
-);
-
-const suggestions = useSuggestions(debounceInput);
-
-const listItems = mapServiceData(suggestions, (items) =>
-  items.map((value) => ({ value })),
+const listItems = mapServiceData(searchResults, (result) =>
+  result.suggestions.map((value) => ({ value })),
 );
 </script>
 

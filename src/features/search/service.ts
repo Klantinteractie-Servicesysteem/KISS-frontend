@@ -8,18 +8,20 @@ import {
 import { fetchLoggedIn } from "@/services";
 import type { Ref } from "vue";
 import type { SearchResult, Source } from "./types";
+import { computed } from "vue";
 
 function mapResult(obj: any): SearchResult {
-  const source = obj?.object_bron?.raw ?? "Website";
-  const id = obj?.id?.raw;
-  const title = obj?.headings?.raw?.[0] ?? obj?.title?.raw;
-  const content = obj?.body_content?.raw;
-  const url = parseValidUrl(obj?.url?.raw);
+  const source = obj?._source?.object_bron ?? "Website";
+  const id = obj?._id;
+
+  const title = obj?._source?.headings?.[0] ?? obj?._source?.title;
+  const content = obj?._source?.body_content;
+  const url = parseValidUrl(obj?._source?.url);
   const documentUrl = new URL(location.href);
-  documentUrl.pathname = searchUrl;
+  // documentUrl.pathname = searchUrl;
   documentUrl.searchParams.set("query", id);
 
-  const jsonObject = JSON.parse(obj?.object?.raw ?? null);
+  const jsonObject = obj?._source?.[source] ?? null;
   return {
     source,
     id,
@@ -31,167 +33,220 @@ function mapResult(obj: any): SearchResult {
   };
 }
 
-const globalSearchBaseUri =
-  "/api/enterprisesearch/api/as/v1/engines/kiss-engine";
+const globalSearchBaseUri = "/api/elasticsearch";
 
-const searchUrl = globalSearchBaseUri + "/search";
+const pageSize = 20;
 
-const suggestionUrl = globalSearchBaseUri + "/query_suggestion";
+const getSearchUrl = (query: string, sources: Source[]) => {
+  if (!query) return "";
+  const uniqueIndices = [...new Set(sources.map((x) => x.index))];
+
+  const url = new URL(location.href);
+  url.pathname = `${globalSearchBaseUri}/${uniqueIndices
+    .sort((a, b) => a.localeCompare(b))
+    .join(",")}/_search`;
+
+  return url.toString();
+};
+
+function mapSuggestions(json: any): string[] {
+  if (!Array.isArray(json?.suggest?.suggestions)) return [];
+  const result = [...json.suggest.suggestions].flatMap(({ options }: any) =>
+    options.map(({ text }: any) => (text as string).toLocaleLowerCase()),
+  ) as string[];
+  return [...new Set(result)];
+}
 
 export function useGlobalSearch(
   parameters: Ref<{
     search?: string;
     page?: number;
     filters: Source[];
-  }>
+  }>,
 ) {
-  function groupBy<K, V>(array: V[], grouper: (item: V) => K) {
-    return array.reduce((store, item) => {
-      const key = grouper(item);
-      if (!store.has(key)) {
-        store.set(key, [item]);
-      } else {
-        store.get(key)?.push(item);
-      }
-      return store;
-    }, new Map<K, V[]>());
-  }
+  const templateResult = useQueryTemplate();
+  const template = computed(
+    () => templateResult.success && templateResult.data.template,
+  );
 
-  async function fetcher(): Promise<Paginated<SearchResult>> {
-    const payLoad = {
-      query: parameters.value.search,
-      page: {
-        current: parameters.value.page || 1,
-      },
-      filters: { any: [] as Record<string, string[]>[] },
-    };
-    if (
-      parameters?.value?.filters !== undefined &&
-      parameters?.value?.filters?.length > 0
-    ) {
-      const groupedFilters = groupBy(parameters.value.filters, (x) => x.type);
-      groupedFilters.forEach((value, key) => {
-        const sourceNames = value.map((source) => source.name);
-        const filter = {
-          [key]: sourceNames,
-        };
-        payLoad.filters.any.push(filter);
-      });
-    }
+  const getUrl = () => {
+    if (!template.value) return "";
+    return getSearchUrl(
+      parameters.value.search || "",
+      parameters.value.filters,
+    );
+  };
 
-    const r = await fetchLoggedIn(searchUrl, {
+  const getPayload = () => {
+    if (!template.value || !parameters.value.search) return "";
+    const page = parameters.value.page || 1;
+    const from = (page - 1) * pageSize;
+
+    const replaced = template.value.replace(
+      /\{\{query\}\}/g,
+      parameters.value.search,
+    );
+
+    const query = JSON.parse(replaced);
+    query.from = from;
+    query.size = pageSize;
+
+    return JSON.stringify(query);
+  };
+
+  async function fetcher(
+    url: string,
+  ): Promise<Paginated<SearchResult> & { suggestions: string[] }> {
+    const r = await fetchLoggedIn(url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(payLoad),
+      body: getPayload(),
     });
     if (!r.ok) throw new Error();
     const json = await r.json();
-    const { results, meta } = json ?? {};
     const {
-      current: pageNumber,
-      total_pages: totalPages,
-      size: pageSize,
-    } = meta?.page ?? {};
-    const page = Array.isArray(results) ? results.map(mapResult) : [];
+      hits: { total, hits },
+    } = json ?? {};
+    const totalPages = Math.ceil((total?.value || 0) / pageSize);
+    const page = Array.isArray(hits) ? hits.map(mapResult) : [];
     return {
       page,
       pageSize,
-      pageNumber,
+      pageNumber: parameters.value.page || 1,
       totalPages,
+      suggestions: mapSuggestions(json),
     };
   }
 
   function getUniqueId() {
-    const { search, page, filters } = parameters.value ?? {};
-    if (!search) return "";
-    return `${search}|${page || 1}|${filters.sort((a, b) =>
-      a.name.localeCompare(b.name)
-    )}`;
+    if (!parameters.value.search) return "";
+    const payload = getPayload();
+    const url = getUrl();
+    return `${payload}${url}`;
   }
 
-  return ServiceResult.fromFetcher(searchUrl, fetcher, {
+  return ServiceResult.fromFetcher(getUrl, fetcher, {
     getUniqueId,
   });
 }
 
-export function useSources() {
-  async function fetcher(): Promise<Source[]> {
-    const r = await fetchLoggedIn(searchUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        query: "",
-        facets: {
-          object_bron: {
-            type: "value",
-          },
-          domains: {
-            type: "value",
-          },
-        },
-      }),
-    });
-    if (!r.ok) throw new Error();
-    const json = await r.json();
-    const { facets } = json ?? {};
+function useQueryTemplate() {
+  const url =
+    "/api/enterprisesearch/api/as/v1/engines/kiss-engine/search_explain";
 
-    if (typeof facets !== "object" || !facets) {
-      throw new Error();
-    }
-
-    const entries = Object.entries(facets) as [
-      string,
-      { data: { value: string }[] }[]
-    ][];
-
-    return entries.flatMap(([k, v]) =>
-      v.flatMap((x) =>
-        x.data.map((x) => ({
-          name: x.value,
-          type: k,
-        }))
-      )
-    );
-  }
-
-  return ServiceResult.fromFetcher(globalSearchBaseUri, fetcher, {
-    getUniqueId: () => "sources",
+  const body = JSON.stringify({
+    query: "{{query}}",
   });
-}
 
-export function useSuggestions(input: Ref<string>) {
-  function mapSuggestions(json: any): string[] {
-    if (!Array.isArray(json?.results?.documents)) return [];
-    return json.results.documents.map(({ suggestion }: any) => suggestion);
-  }
-  function fetchSuggestions() {
-    return fetchLoggedIn(suggestionUrl, {
+  function fetcher(url: string) {
+    return fetchLoggedIn(url, {
       method: "POST",
+      body,
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({
-        query: input.value,
-        size: 10,
-        types: {
-          documents: {
-            fields: ["title", "body_content"],
-          },
-        },
-      }),
     })
       .then(throwIfNotOk)
       .then(parseJson)
-      .then(mapSuggestions);
+      .then(({ query_string, query_body }) => {
+        delete query_body.from;
+        delete query_body.size;
+        delete query_body._source;
+        query_body.indices_boost = [{ ".ent-search*": 1 }, { "*": 10 }];
+        query_body.suggest = {
+          suggestions: {
+            prefix: "{{query}}",
+            completion: {
+              field: "_completion",
+              skip_duplicates: true,
+              fuzzy: {},
+            },
+          },
+        };
+
+        const searchUrl: string = query_string.split(" ").at(-1);
+        const indicesStr = searchUrl.split("/")[0];
+        const indices = indicesStr.split(",");
+        return {
+          indices,
+          template: JSON.stringify(query_body),
+        };
+      });
   }
-  function getUniqueId() {
-    return input.value && "suggestions_" + input.value;
+
+  return ServiceResult.fromFetcher(url, fetcher);
+}
+
+const BRON_QUERY = JSON.stringify({
+  size: 0,
+  aggs: {
+    bronnen: {
+      terms: {
+        field: "object_bron.enum",
+      },
+      aggs: {
+        by_index: {
+          terms: {
+            field: "_index",
+          },
+        },
+      },
+    },
+    domains: {
+      terms: {
+        field: "domains.enum",
+      },
+      aggs: {
+        by_index: {
+          terms: {
+            field: "_index",
+          },
+        },
+      },
+    },
+  },
+});
+
+export function useSources() {
+  const templateResult = useQueryTemplate();
+  const templateSources = computed(
+    () =>
+      templateResult.success &&
+      !!templateResult.data.indices.length &&
+      templateResult.data.indices,
+  );
+
+  const getUrl = () =>
+    !templateSources.value
+      ? ""
+      : `${globalSearchBaseUri}/${templateSources.value.join(",")}/_search`;
+
+  async function fetcher(u: string): Promise<Source[]> {
+    const r = await fetchLoggedIn(u, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: BRON_QUERY,
+    });
+    if (!r.ok) throw new Error();
+    const json = await r.json();
+    const {
+      aggregations: { bronnen, domains },
+    } = json ?? {};
+
+    const sources: Source[] = [...bronnen.buckets, ...domains.buckets].flatMap(
+      ({ key, by_index: { buckets } }) =>
+        buckets.map((x: any) => ({
+          index: x.key,
+          name: key,
+        })),
+    );
+
+    return sources;
   }
-  return ServiceResult.fromFetcher(suggestionUrl, fetchSuggestions, {
-    getUniqueId,
-  });
+
+  return ServiceResult.fromFetcher(getUrl, fetcher);
 }

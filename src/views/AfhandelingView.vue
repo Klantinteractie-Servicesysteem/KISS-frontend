@@ -846,4 +846,23 @@ select {
   padding: var(--spacing-default);
   margin-block-end: var(--spacing-default);
 }
+
+:deep(fieldset.radio-group) {
+  gap: var(--spacing-default);
+  display: flex;
+
+  > legend {
+    position: absolute;
+  }
+
+  > label {
+    display: flex;
+    gap: var(--spacing-extrasmall);
+    line-height: var(--utrecht-form-fieldset-legend-line-height);
+
+    &:first-of-type {
+      margin-inline-start: calc(var(--label-width) + var(--label-gap));
+    }
+  }
+}
 </style>

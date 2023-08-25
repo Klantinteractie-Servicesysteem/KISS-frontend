@@ -2,14 +2,12 @@ import {
   fetchLoggedIn,
   parseJson,
   parsePagination,
-  // parseJson,
-  // parsePagination,
   ServiceResult,
   throwIfNotOk,
+  type PaginatedResult,
 } from "@/services";
 
 import type { ContactmomentContactVerzoek } from "@/stores/contactmoment";
-// creating a klant will be done differently in the future. for now, jus reuse the type from the klant feature
 import { formatIsoDate } from "@/helpers/date";
 import type { Ref } from "vue";
 import { fullName } from "@/helpers/string";
@@ -36,7 +34,7 @@ type NewContactverzoek = {
       toelichting?: string;
       actor: {
         identificatie: string;
-        soortActor: "medewerker";
+        soortActor: string;
         naam: string;
       };
       betrokkene: {
@@ -113,6 +111,26 @@ export function saveContactverzoek({
         )
       : "";
 
+  const organisatorischeEenheid = data.groep
+    ? {
+        identificatie: data.groep.identificatie,
+        naam: data.groep.naam,
+        soortActor: "organisatorische eenheid",
+      }
+    : {
+        identificatie: data.afdeling?.identificatie || "",
+        naam: data.afdeling?.naam || "",
+        soortActor: "organisatorische eenheid",
+      };
+
+  const actor = data.isMedewerker
+    ? {
+        identificatie: data.medewerker?.contact?.identificatie || "",
+        naam: fullName(data.medewerker?.contact),
+        soortActor: "medewerker",
+      }
+    : organisatorischeEenheid;
+
   const body: NewContactverzoek = {
     record: {
       typeVersion: 1,
@@ -124,11 +142,7 @@ export function saveContactverzoek({
         toelichting:
           data.interneToelichting +
           (vragenToelichting ? "\n\n" + vragenToelichting : ""),
-        actor: {
-          identificatie: data.medewerker?.contact?.identificatie || "",
-          naam: fullName(data.medewerker?.contact),
-          soortActor: "medewerker",
-        },
+        actor,
         betrokkene: {
           rol: "klant",
           klant: klantUrl,
@@ -179,61 +193,74 @@ export function useContactverzoekenByKlantId(
   return ServiceResult.fromFetcher(getUrl, fetchContactverzoeken);
 }
 
-// interface Afdeling {
-//   id: string;
-//   name: string;
-// }
-
-export function useAfdelingen() {
-  const url = "not implemented";
-
-  // const mapOrganisatie = (x: unknown): Afdeling => x as any;
-
-  // const fetcher = (url: string, page = 1, limit = 100): Promise<Afdeling[]> =>
-  //   fetchLoggedIn(`${url}?_limit=${limit}&_page=${page}`)
-  //     .then(throwIfNotOk)
-  //     .then(parseJson)
-  //     .then((json) => parsePagination(json, mapOrganisatie))
-  //     .then(async (current) => {
-  //       //paginering model is gewijzigt daarom, vooruitlopend op de refactoring van dit deel, deze temp fix
-  //       return current.page;
-  //       // if (current.totalPages <= current.pageNumber) return current.page;
-  //       // const nextPage = await fetcher(url, page + 1);
-  //       // return [...current.page, ...nextPage];
-  //     })
-  //     .then((all) => all.sort((a, b) => a.name.localeCompare(b.name)));
-
-  return ServiceResult.fromFetcher(url, () =>
-    Promise.reject("not implemented")
-  );
+interface Afdeling {
+  id: string;
+  identificatie: string;
+  naam: string;
 }
 
-/*export function useVragenSets() {
-  return ServiceResult.fromFetcher(
-    () => contactMomentVragenSets,
-    fetchVragenSets
-  );
+interface Groep {
+  identificatie: string;
+  naam: string;
+  afdelingId: string;
 }
 
-export function fetchVragenSets(url: string) {
-  return fetchLoggedIn(url)
-    .then(throwIfNotOk)
-    .then((response) => response.json())
-    .then((data) => {
-      data.jsonVragen = safeJSONParse(data.jsonVragen, []);
-      return data;
-    }) as Promise<ServerContactVerzoekVragenSet>;
+export function useAfdelingen(search: () => string | undefined) {
+  const getUrl = () => {
+    const searchParams = new URLSearchParams();
+    searchParams.set("ordering", "record__data__naam");
+    const searchStr = search();
+    if (searchStr) {
+      searchParams.set("data_attrs", `naam__icontains__${searchStr}`);
+    }
+    return "/api/afdelingen/api/v2/objects?" + searchParams;
+  };
+
+  const mapOrganisatie = (x: any) =>
+    ({
+      ...x.record.data,
+      id: x.uuid,
+    } as Afdeling);
+
+  const fetcher = (url: string): Promise<PaginatedResult<Afdeling>> =>
+    fetchLoggedIn(url)
+      .then(throwIfNotOk)
+      .then(parseJson)
+      .then((json) => parsePagination(json, mapOrganisatie));
+
+  return ServiceResult.fromFetcher(getUrl, fetcher);
 }
 
-function safeJSONParse<T>(jsonString: string, defaultValue: T): T {
-  try {
-    return JSON.parse(jsonString);
-  } catch (e) {
-    return defaultValue;
-  }
+export function useGroepen(
+  getAfdelingId: () => string | undefined,
+  search?: () => string | undefined
+) {
+  const getUrl = () => {
+    const afdelingId = getAfdelingId();
+    if (!afdelingId) return "";
+    const searchParams = new URLSearchParams();
+    searchParams.set("ordering", "record__data__naam");
+    searchParams.set("data_attrs", `afdelingId__exact__${afdelingId}`);
+
+    const searchStr = search?.();
+    if (searchStr) {
+      searchParams.set("data_attrs", `naam__icontains__${searchStr}`);
+    }
+
+    return "/api/groepen/api/v2/objects?" + searchParams;
+  };
+
+  const mapOrganisatie = (x: any) => x.record.data as Groep;
+
+  const fetcher = (url: string): Promise<PaginatedResult<Groep>> =>
+    fetchLoggedIn(url)
+      .then(throwIfNotOk)
+      .then(parseJson)
+      .then((json) => parsePagination(json, mapOrganisatie));
+
+  return ServiceResult.fromFetcher(getUrl, fetcher);
 }
 
-*/
 export function useVragenSets() {
   return ServiceResult.fromFetcher(
     () => contactMomentVragenSets,

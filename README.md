@@ -41,13 +41,19 @@ Then launch a browser on [this address](http://localhost:7231)
 1. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
 ## Elastic search
-KISS uses Elastic search. Follow these steps to connect your local development environment to an Elastic search instance hosted in Azure/kubernetes. 
+KISS uses Elastic search. Building a search query is composed of two steps:
+1. The [App Search search-explain endpoint](https://www.elastic.co/guide/en/app-search/current/search-explain.html) is called to build an elasticsearch query
+1. The [Elasticsearch search endpoint](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) is called with the query from the previous step
+This is why both Enterprise Search and Elasticsearch need to be accessed by KISS.
+
+Follow these steps to connect your local development environment to an Elastic search instance hosted in Azure/kubernetes. 
 1. Install the azure cli
-1. az login (once)
-1. az account set --subscription [...your subscriptionid...] (once)
-1. az aks get-credentials --resource-group [for example: KISS_Kubernetes_Dev] --name [for example: KISS_Kubernetes_Dev]
-1. kubectl config set-context --current --namespace=[for example: kiss-namespace]
-1. kubectl port-forward deployment/enterprise-search-ent 3002:3002
+1. `az login (once)`
+1. `az account set --subscription [...your subscriptionid...]` (once)
+1. `az aks get-credentials --resource-group [for example: KISS_Kubernetes_Dev] --name [for example: KISS_Kubernetes_Dev]`
+1. `kubectl config set-context --current --namespace=[for example: kiss-namespace]`
+1. `kubectl port-forward service/kiss-ent-http 3002`
+1. in a new window: `kubectl port-forward service/kiss-es-http 9200`
 
 ## Adding Migrations
 When adding new migrations to the project, ensure you have the correct startup project selected.
