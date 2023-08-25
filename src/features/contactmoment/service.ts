@@ -32,9 +32,11 @@ const zaaksysteemBaseUri = `${zaaksysteemProxyRoot}${zaaksysteemApiRoot}`;
 const zaakcontactmomentUrl = `${zaaksysteemBaseUri}/zaakcontactmomenten`;
 
 export const saveContactmoment = (
-  data: Contactmoment,
-): Promise<{ url: string; gespreksId: string }> =>
-  fetchLoggedIn(`/api/postcontactmomenten`, {
+  data: Contactmoment
+): Promise<{ url: string; gespreksId: string }> => {
+  const x = data;
+
+  return fetchLoggedIn(`/api/postcontactmomenten`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -44,6 +46,7 @@ export const saveContactmoment = (
   })
     .then(throwIfNotOk)
     .then((r) => r.json());
+};
 
 export const CONTACTVERZOEK_GEMAAKT = "Contactverzoek gemaakt";
 
@@ -53,7 +56,7 @@ export const useGespreksResultaten = () => {
       .then((r) => {
         if (!r.ok) {
           throw new Error(
-            "Er is een fout opgetreden bij het laden van de gespreksresultaten",
+            "Er is een fout opgetreden bij het laden van de gespreksresultaten"
           );
         }
         return r.json();
@@ -62,7 +65,7 @@ export const useGespreksResultaten = () => {
         if (!Array.isArray(results))
           throw new Error("unexpected json result: " + JSON.stringify(results));
         const hasContactverzoekResultaat = results.some(
-          ({ definitie }) => definitie === CONTACTVERZOEK_GEMAAKT,
+          ({ definitie }) => definitie === CONTACTVERZOEK_GEMAAKT
         );
         if (!hasContactverzoekResultaat) {
           results.push({
@@ -149,7 +152,7 @@ export const useContactmomentDetails = (url: () => string) =>
         if (r.status === 404) return null;
         throwIfNotOk(r);
         return r.json() as Promise<ContactmomentDetails>;
-      }),
+      })
   );
 
 export function useContactmomentenByObjectUrl(url: Ref<string>) {
@@ -175,7 +178,7 @@ export function useContactmomentObject(getUrl: () => string) {
     (u) =>
       fetchLoggedIn(u)
         .then(throwIfNotOk)
-        .then(parseJson) as Promise<ObjectContactmoment>,
+        .then(parseJson) as Promise<ObjectContactmoment>
   );
 }
 
@@ -195,6 +198,6 @@ export function useContactmomentByUrl(getUrl: () => string) {
       fetchLoggedIn(u)
         .then(throwIfNotOk)
         .then(parseJson)
-        .then((r) => r as ContactmomentViewModel),
+        .then((r) => r as ContactmomentViewModel)
   );
 }

@@ -7,11 +7,22 @@ import {
   ServiceResult,
   throwIfNotOk,
 } from "@/services";
+
 import type { ContactmomentContactVerzoek } from "@/stores/contactmoment";
 // creating a klant will be done differently in the future. for now, jus reuse the type from the klant feature
 import { formatIsoDate } from "@/helpers/date";
 import type { Ref } from "vue";
 import { fullName } from "@/helpers/string";
+import type { ContactVerzoekVragenSet, VraagAntwoord } from "./types";
+
+const contactMomentVragenSets = "/api/contactverzoekvragensets";
+
+type ServerContactVerzoekVragenSet = {
+  id: string;
+  naam: string;
+  jsonVragen: string;
+  afdelingId: string;
+};
 
 type NewContactverzoek = {
   record: {
@@ -87,6 +98,21 @@ export function saveContactverzoek({
     });
   }
 
+  function formatVraagAntwoordForToelichting(
+    vraagAntwoord: VraagAntwoord[]
+  ): string {
+    return vraagAntwoord.map((va) => `${va.vraag} - ${va.antwoord}`).join("\n");
+  }
+
+  const vragenToelichting =
+    data.contactVerzoekVragenSet &&
+    data.contactVerzoekVragenSet.vraagAntwoord &&
+    data.contactVerzoekVragenSet.vraagAntwoord.length
+      ? formatVraagAntwoordForToelichting(
+          data.contactVerzoekVragenSet.vraagAntwoord
+        )
+      : "";
+
   const body: NewContactverzoek = {
     record: {
       typeVersion: 1,
@@ -95,7 +121,9 @@ export function saveContactverzoek({
         status: "te verwerken",
         contactmoment: contactmomentUrl,
         registratiedatum,
-        toelichting: data.interneToelichting,
+        toelichting:
+          data.interneToelichting +
+          (vragenToelichting ? "\n\n" + vragenToelichting : ""),
         actor: {
           identificatie: data.medewerker?.contact?.identificatie || "",
           naam: fullName(data.medewerker?.contact),
@@ -130,7 +158,7 @@ export function saveContactverzoek({
 
 export function useContactverzoekenByKlantId(
   id: Ref<string>,
-  page: Ref<number>,
+  page: Ref<number>
 ) {
   function getUrl() {
     if (!id.value) return "";
@@ -176,6 +204,73 @@ export function useAfdelingen() {
   //     .then((all) => all.sort((a, b) => a.name.localeCompare(b.name)));
 
   return ServiceResult.fromFetcher(url, () =>
-    Promise.reject("not implemented"),
+    Promise.reject("not implemented")
   );
+}
+
+/*export function useVragenSets() {
+  return ServiceResult.fromFetcher(
+    () => contactMomentVragenSets,
+    fetchVragenSets
+  );
+}
+
+export function fetchVragenSets(url: string) {
+  return fetchLoggedIn(url)
+    .then(throwIfNotOk)
+    .then((response) => response.json())
+    .then((data) => {
+      data.jsonVragen = safeJSONParse(data.jsonVragen, []);
+      return data;
+    }) as Promise<ServerContactVerzoekVragenSet>;
+}
+
+function safeJSONParse<T>(jsonString: string, defaultValue: T): T {
+  try {
+    return JSON.parse(jsonString);
+  } catch (e) {
+    return defaultValue;
+  }
+}
+
+*/
+export function useVragenSets() {
+  return ServiceResult.fromFetcher(
+    () => contactMomentVragenSets,
+    fetchVragenSets
+  );
+}
+
+export function fetchVragenSets(url: string) {
+  return fetchLoggedIn(url)
+    .then(throwIfNotOk)
+    .then((response) => response.json())
+    .then((data) => {
+      return mapToClientContactVerzoekVragenSets(data);
+    });
+}
+
+function safeJSONParse<T>(jsonString: string, defaultValue: T): T {
+  try {
+    return JSON.parse(jsonString);
+  } catch (e) {
+    return defaultValue;
+  }
+}
+
+function mapToClientContactVerzoekVragenSets(
+  serverDataArray: ServerContactVerzoekVragenSet[]
+): ContactVerzoekVragenSet[] {
+  return serverDataArray.map((serverData) => {
+    const parsedQuestions = safeJSONParse<string[]>(serverData.jsonVragen, []);
+    return {
+      id: serverData.id,
+      naam: serverData.naam,
+      vraagAntwoord: parsedQuestions.map((vraag) => ({
+        vraag: vraag,
+        antwoord: "",
+      })),
+      afdelingId: serverData.afdelingId,
+    };
+  });
 }

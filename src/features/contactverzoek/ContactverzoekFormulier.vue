@@ -44,7 +44,49 @@
         @input="setActive"
       />
     </label>
+    <form-fieldset>
+      <service-data-wrapper :data="vragenSets" class="container">
+        <template #success="{ data }">
+          <template v-if="form.medewerker">
+            <label class="utrecht-form-label">
+              <span> VragenSets </span>
+              <select
+                class="utrecht-select utrecht-select--html-select"
+                name="VragenSets"
+                v-model="form.vragenSetId"
+                @input="setActive"
+              >
+                <option
+                  v-for="item in data || []"
+                  :key="item.id"
+                  :value="item.id"
+                >
+                  {{ item.naam }}
+                </option>
+              </select>
+            </label>
 
+            <template v-if="form.contactVerzoekVragenSet">
+              <template
+                v-for="(item, index) in form.contactVerzoekVragenSet
+                  .vraagAntwoord"
+                :key="index"
+              >
+                <label class="utrecht-form-label">
+                  <span> {{ item.vraag }} </span>
+                  <input
+                    class="utrecht-textbox utrecht-textbox--html-input"
+                    type="text"
+                    v-model="item.antwoord"
+                    @input="setActive"
+                  />
+                </label>
+              </template>
+            </template>
+          </template>
+        </template>
+      </service-data-wrapper>
+    </form-fieldset>
     <form-fieldset>
       <form-fieldset-legend>Contact opnemen met</form-fieldset-legend>
       <label class="utrecht-form-label">
@@ -139,15 +181,16 @@ export default {
 
 <script lang="ts" setup>
 import MedewerkerSearch from "@/features/search/MedewerkerSearch.vue";
-import { useAfdelingen } from "./service";
+import { useAfdelingen, useVragenSets } from "./service";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import type { ContactmomentContactVerzoek } from "@/stores/contactmoment";
-import { ref } from "vue";
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import {
   FormFieldsetLegend,
   FormFieldset,
 } from "@utrecht/component-library-vue";
+import ServiceDataWrapper from "@/components/ServiceDataWrapper.vue";
+
 const props = defineProps<{
   modelValue: ContactmomentContactVerzoek;
 }>();
@@ -163,6 +206,16 @@ watch(
 );
 
 const afdelingen = useAfdelingen();
+const vragenSets = useVragenSets();
+
+watch(
+  () => form.value.vragenSetId,
+  (vragenSetId) => {
+    if (!vragenSets.success) return;
+    const vragenSet = vragenSets.data.find((s) => s.id == vragenSetId);
+    form.value.contactVerzoekVragenSet = vragenSet;
+  }
+);
 
 const setActive = () => {
   form.value.isActive = true;

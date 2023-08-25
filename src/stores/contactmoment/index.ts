@@ -5,6 +5,7 @@ import type {
   Nieuwsbericht,
   Werkinstructie,
 } from "@/features/search/types";
+import type { ContactVerzoekVragenSet } from "@/features/contactverzoek/types";
 import type { ZaakDetails } from "@/features/zaaksysteem/types";
 import { defineStore } from "pinia";
 import { createSession, type Session } from "../switchable-store";
@@ -33,6 +34,8 @@ export type ContactmomentContactVerzoek = {
   omschrijvingTelefoonnummer2?: string;
   emailadres?: string;
   interneToelichting?: string;
+  vragenSetId?: string;
+  contactVerzoekVragenSet?: ContactVerzoekVragenSet;
   isActive?: boolean;
 };
 
@@ -123,7 +126,7 @@ function initContactmoment(): ContactmomentState {
 
 function mapKlantToContactverzoek(
   klant: ContactmomentKlant,
-  contactverzoek: ContactmomentContactVerzoek,
+  contactverzoek: ContactmomentContactVerzoek
 ) {
   if (!contactverzoek.isActive) {
     contactverzoek.achternaam = klant.achternaam;
@@ -177,13 +180,13 @@ export const useContactmomentStore = defineStore("contactmoment", {
         nieuweVraag.klanten = huidigContactmoment.huidigeVraag.klanten.map(
           (klantKoppeling) => ({
             ...klantKoppeling,
-          }),
+          })
         );
         const activeKlanten = nieuweVraag.klanten.filter((x) => x.shouldStore);
         if (activeKlanten.length === 1) {
           mapKlantToContactverzoek(
             activeKlanten[0].klant,
-            nieuweVraag.contactverzoek,
+            nieuweVraag.contactverzoek
           );
         }
       }
@@ -200,7 +203,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     stop() {
       if (!this.huidigContactmoment) return;
       const currentIndex = this.contactmomenten.indexOf(
-        this.huidigContactmoment,
+        this.huidigContactmoment
       );
       if (currentIndex == -1) return;
       this.contactmomenten.splice(currentIndex, 1);
@@ -217,7 +220,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     },
     upsertZaak(zaak: ZaakDetails, vraag: Vraag, shouldStore = true) {
       const existingZaak = vraag.zaken.find(
-        (contacmomentZaak) => contacmomentZaak.zaak.id === zaak.id,
+        (contacmomentZaak) => contacmomentZaak.zaak.id === zaak.id
       );
 
       if (existingZaak) {
@@ -234,7 +237,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {
       return vraag.zaken.some(
-        ({ zaak, shouldStore }) => shouldStore && zaak.id === id,
+        ({ zaak, shouldStore }) => shouldStore && zaak.id === id
       );
     },
 
@@ -272,7 +275,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const targetKlantIndex = huidigeVraag.klanten.findIndex(
-        (k) => k.klant.id === klantId,
+        (k) => k.klant.id === klantId
       );
 
       if (targetKlantIndex === -1) return;
@@ -290,7 +293,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       }
 
       const newMedewerkerIndex = huidigeVraag.medewerkers.findIndex(
-        (m) => m.medewerker.id === medewerker.id,
+        (m) => m.medewerker.id === medewerker.id
       );
 
       if (newMedewerkerIndex === -1) {
@@ -316,7 +319,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const record = huidigeVraag.kennisartikelen.find(
-        (k) => k.kennisartikel.url === kennisartikel.url,
+        (k) => k.kennisartikel.url === kennisartikel.url
       );
 
       if (!record) {
@@ -337,7 +340,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const record = huidigeVraag.websites.find(
-        (w) => w.website.url === website.url,
+        (w) => w.website.url === website.url
       );
 
       if (!record) {
@@ -374,7 +377,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const foundBerichtIndex = huidigeVraag.nieuwsberichten.findIndex(
-        (n) => n.nieuwsbericht.url === nieuwsbericht.url,
+        (n) => n.nieuwsbericht.url === nieuwsbericht.url
       );
 
       if (foundBerichtIndex !== -1) {
@@ -396,7 +399,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const foundWerkinstructieIndex = huidigeVraag.werkinstructies.findIndex(
-        (w) => w.werkinstructie.url === werkinstructie.url,
+        (w) => w.werkinstructie.url === werkinstructie.url
       );
 
       if (foundWerkinstructieIndex !== -1) {

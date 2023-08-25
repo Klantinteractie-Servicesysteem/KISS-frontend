@@ -3,6 +3,7 @@ using Kiss.Bff.Beheer.Links.Data.Entities;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
 using Kiss.Bff.ZaakGerichtWerken.Contactmomenten;
+using Kiss.Bff.ZaakGerichtWerken.Contactverzoeken;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,6 @@ namespace Kiss.Bff.Beheer.Data
             {
                 b.Property(x => x.Type).HasMaxLength(200).IsRequired();
                 b.HasIndex(x => x.Type);
-
                 b.Property(x => x.Inhoud).IsRequired();
                 b.Property(x => x.Titel).IsRequired();
             });
@@ -44,7 +44,11 @@ namespace Kiss.Bff.Beheer.Data
             {
                 l.HasIndex(x => x.Vraag);
             });
-        }
+
+            modelBuilder.Entity<ContactVerzoekVragenSet>()
+                .Property(p => p.JsonVragen)
+                .HasColumnType("json");
+        } 
 
         public DbSet<Bericht> Berichten { get; set; } = null!;
         public DbSet<Skill> Skills { get; set; } = null!;
@@ -54,5 +58,6 @@ namespace Kiss.Bff.Beheer.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
         public DbSet<VerwerkingsLog> VerwerkingsLogs { get; set; } = null!;
         public DbSet<ContactmomentDetails> ContactMomentDetails { get; set; } = null!;
+        public DbSet<ContactVerzoekVragenSet> ContactVerzoekVragenSets { get; set; } = null!;
     }
 }
