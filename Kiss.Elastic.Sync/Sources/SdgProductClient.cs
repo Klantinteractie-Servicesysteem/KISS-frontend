@@ -47,7 +47,7 @@ namespace Kiss.Elastic.Sync.Sources
                     }
                 }
 
-                yield return new KissEnvelope(item.Data, title, objectMeta, $"kennisartikel_{id.GetString()}");
+                yield return new KissEnvelope(item.Data, title, objectMeta, $"kennisbank_{id.GetString()}");
             }
         }
 
