@@ -1,86 +1,56 @@
-﻿using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Kiss.Elastic.Sync.Sources
 {
     public sealed class SdgProductClient : IKissSourceClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly ObjectenClient _objectenClient;
+        private readonly string _objecttypeUrl;
 
         public string Source => "Kennisartikel";
 
         public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
-            "vertalingen.productTitelDecentraal",
-            "vertalingen.specifiekeTekst"
+            "vertalingen.tekst",
+            "vertalingen.titel"
         };
 
-        public SdgProductClient(Uri baseUri, string apiKey)
+        public SdgProductClient(ObjectenClient objectenClient, string objecttypeUrl)
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = baseUri,
-            };
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", apiKey);
+            _objectenClient = objectenClient;
+            _objecttypeUrl = objecttypeUrl;
         }
 
-        public IAsyncEnumerable<KissEnvelope> Get(CancellationToken token) => Get("/api/v1/producten", token);
-
-        private async IAsyncEnumerable<KissEnvelope> Get(string url, [EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            string? next = null;
-
-            using (var message = new HttpRequestMessage(HttpMethod.Get, url))
+            await foreach (var item in _objectenClient.GetObjecten(_objecttypeUrl, token))
             {
-                using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
-                response.EnsureSuccessStatusCode();
-                await using var stream = await response.Content.ReadAsStreamAsync(token);
-                using var jsonDoc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
-
-                if (!jsonDoc.TryParseZgwPagination(out var pagination))
+                if (!item.Data.TryGetProperty("uuid", out var id))
                 {
-                    yield break;
+                    continue;
                 }
 
-                next = pagination.Next;
+                string? title = default;
+                string? objectMeta = default;
 
-                foreach (var sdgProduct in pagination.Records)
+                if (item.Data.TryGetProperty("vertalingen", out var vertalingenProp) && vertalingenProp.ValueKind == JsonValueKind.Array)
                 {
-                    if (!sdgProduct.TryGetProperty("uuid", out var id))
+                    var vertaling = vertalingenProp[0];
+                    if (vertaling.TryGetProperty("titel", out var titleProp) && titleProp.ValueKind == JsonValueKind.String)
                     {
-                        continue;
+                        title = titleProp.GetString();
                     }
-
-                    string? title = default;
-                    string? objectMeta = default;
-
-                    if (sdgProduct.TryGetProperty("vertalingen", out var vertalingenProp) && vertalingenProp.ValueKind == JsonValueKind.Array)
+                    if (vertaling.TryGetProperty("tekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.String)
                     {
-                        var vertaling = vertalingenProp[0];
-                        if (vertaling.TryGetProperty("productTitelDecentraal", out var titleProp) && titleProp.ValueKind == JsonValueKind.String)
-                        {
-                            title = titleProp.GetString();
-                        }
-                        if (vertaling.TryGetProperty("specifiekeTekst", out var objectMetaProp) && objectMetaProp.ValueKind == JsonValueKind.String)
-                        {
-                            objectMeta = objectMetaProp.GetString();
-                        }
+                        objectMeta = objectMetaProp.GetString();
                     }
-
-                    yield return new KissEnvelope(sdgProduct, title, objectMeta, $"kennisartikel_{id.GetString()}");
                 }
-            }
 
-            if (!string.IsNullOrWhiteSpace(next))
-            {
-                await foreach (var el in Get(next, token))
-                {
-                    yield return el;
-                }
+                yield return new KissEnvelope(item.Data, title, objectMeta, $"kennisartikel_{id.GetString()}");
             }
         }
 
-        public void Dispose() => _httpClient.Dispose();
+        public void Dispose() => _objectenClient.Dispose();
     }
 }
