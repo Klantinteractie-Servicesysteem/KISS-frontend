@@ -59,8 +59,9 @@ namespace Kiss.Elastic.Sync.Sources
                 }
 
                 // 400 probably means there is something wrong with the objecttype. ignore it.
-                if (response.StatusCode != System.Net.HttpStatusCode.BadRequest)
+                else if (response.StatusCode != System.Net.HttpStatusCode.BadRequest)
                 {
+                    await Helpers.LogResponse(response, token);
                     response.EnsureSuccessStatusCode();
                 }
             }

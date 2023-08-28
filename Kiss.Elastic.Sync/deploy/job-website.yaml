@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kiss-elastic-sync-job-website
+spec:
+  template:
+    spec:
+      containers:
+          - name: kiss-elastic-sync
+            image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
+            imagePullPolicy: Always
+            args:
+            - domain
+            - https://www.my-website.nl
+            envFrom:
+            - secretRef:
+                name: kiss-elastic-env
+      restartPolicy: Never
