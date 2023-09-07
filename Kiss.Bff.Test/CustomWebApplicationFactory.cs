@@ -1,4 +1,5 @@
 ﻿using Kiss.Bff.Beheer.Data;
+using Kiss.Bff.Test.Config;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Kiss.Bff.Test
 {
-    internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
+    public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureClient(HttpClient client)
         {
@@ -25,6 +26,8 @@ namespace Kiss.Bff.Test
                         .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                         .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                     .Options);
+
+                s.AddTestAuth();
             });
         }
     }
