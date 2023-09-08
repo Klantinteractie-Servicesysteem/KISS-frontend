@@ -1,29 +1,28 @@
-﻿using Kiss.Bff.Test.Config;
-using static System.Net.HttpStatusCode;
+﻿using static System.Net.HttpStatusCode;
 
 namespace Kiss.Bff.Test
 {
     [TestClass]
     public class AuthorizationCheckTests
     {
-        public static CustomWebApplicationFactory WebApplicationFactory { get; private set; } = new();
+        private static readonly CustomWebApplicationFactory s_factory = new();
+        private static readonly HttpClient s_client = s_factory.CreateDefaultClient();
 
         [ClassCleanup]
-        public static void Cleanup()
+        public static void ClassCleanup()
         {
-            WebApplicationFactory?.Dispose();
+            s_client?.Dispose();
+            s_factory?.Dispose();
         }
 
         [DataTestMethod]
         [DataRow("/api/postcontactmomenten", "post")]
         [DataRow("/api/internetaak/api/version/objects", "post")]
         [DataRow("/api/faq")]
-        public async Task CheckEndpointReturnsNotAuthorized(string url, string method = "get")
+        public async Task Test(string url, string method = "get")
         {
             using var request = new HttpRequestMessage(new(method), url);
-            using var httpClient = WebApplicationFactory.CreateDefaultClient();
-            using var response = await httpClient
-                .SendAsync(request);
+            using var response = await s_client.SendAsync(request);
             Assert.AreEqual(Unauthorized, response.StatusCode);
         }
     }
