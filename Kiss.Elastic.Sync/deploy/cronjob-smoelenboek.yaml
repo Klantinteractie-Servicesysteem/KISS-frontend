@@ -16,5 +16,7 @@ spec:
             - smoelenboek
             envFrom:
             - secretRef:
-                name: kiss-elastic-env
+                name: kiss-secrets
+            - configMapRef:
+                name: kiss-config
           restartPolicy: Never
