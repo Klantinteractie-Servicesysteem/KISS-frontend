@@ -8,7 +8,7 @@ namespace Kiss.Elastic.Sync.Sources
         private readonly ObjectenClient _objectenClient;
         private readonly string _objecttypeUrl;
 
-        public string Source => "Kennisartikel";
+        public string Source => "Kennisbank";
 
         public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
@@ -47,7 +47,7 @@ namespace Kiss.Elastic.Sync.Sources
                     }
                 }
 
-                yield return new KissEnvelope(item.Data, title, objectMeta, $"kennisartikel_{id.GetString()}");
+                yield return new KissEnvelope(item.Data, title, objectMeta, $"kennisbank_{id.GetString()}");
             }
         }
 
