@@ -1,9 +1,18 @@
 # KISS-Elastic-Sync
 
-## Background
+## Introduction
+KISS offers the posibility to search for information within specific sources. This search functionality is using Elasticsearch. The KISS-Elastic-Sync-tool is used to create the necessary engines in a an Elasticsearch installation.
+
 Two types of sources are indexed in Elasticsearch to allow them to be easily searched from KISS:
 - Websites (by running this tool to set up a `crawler` in Enterprise Search)
 - Structured sources (by scheduling this tool to synchronize data from the source to an `index` in Elasticsearch)
+
+## Run locally
+1. Make a copy of .env.local.example, rename it .env.local and fill in the required secrets.
+2. Set up a port forward for Enterprise Search, e.g.: `kubectl port-forward service/kiss-ent-http 3002`
+3. Set up a port forward for Elasticsearch, e.g.: `kubectl port-forward service/kiss-es-http 9200`
+4. Build the tool using docker-compose: `docker compose build`
+4. Run the tool using docker-compose: `docker compose --env-file ./.env.local run kiss.elastic.sync [ARGS...]`
 
 ## When you first set up a source
 This tool does the following automatically:
@@ -11,7 +20,7 @@ This tool does the following automatically:
 1. Create a `meta engine`. This is used to aggregate multiple sources. The `engine` from step 1 is linked to this `meta engine`.
 
 ## Relevance tuning
-You can use `Relevance tuning` from Kibana on the `meta engine`.
+You can use `Relevance tuning` from Kibana on the `meta engine`. See also the [KISS-documenation (in Dutch)](https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/CONFIGURATIE/#configuratie-van-elasticsearch-voor-kiss).
 
 ## Supported structured sources
 - SDG Producten
@@ -53,9 +62,3 @@ Examples of how to schedule a cron job in Kubernetes with these arguments [can b
 | VAC_OBJECTTYPES_BASE_URL | The base url for the Object Types API to retrieve the VAC object type |
 | VAC_OBJECTTYPES_TOKEN | The token to connect to the Object Types API to retrieve the VAC object type |
 
-## Run locally
-1. Make a copy of .env.local.example, rename it .env.local and fill in the required secrets.
-2. Set up a port forward for Enterprise Search, e.g.: `kubectl port-forward service/kiss-ent-http 3002`
-3. Set up a port forward for Elasticsearch, e.g.: `kubectl port-forward service/kiss-es-http 9200`
-4. Build the tool using docker-compose: `docker compose build`
-4. Run the tool using docker-compose: `docker compose --env-file ./.env.local run kiss.elastic.sync [ARGS...]`

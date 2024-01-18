@@ -1,5 +1,6 @@
 # Deployen cronjobs
 
-Voor elke cronjob is een yaml bestand in deze folder opgenomen.
-Om de cronjob te installeren voer je het volgende commando uit op het cluster:
+The syncing of sources to Elasticsearch is done by cronjobs. For each cronjob (for each supported source) a yaml file can be found in this folder. 
+
+To install a cronjob you can run the following command on the cluster that KISS and Elasticsearch are running on:
 `kubectl apply -f .\cronjob-kennisartikelen.yaml`
