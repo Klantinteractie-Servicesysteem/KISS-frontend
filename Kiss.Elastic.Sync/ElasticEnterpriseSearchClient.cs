@@ -33,9 +33,9 @@ namespace Kiss.Elastic.Sync
 
         public static ElasticEnterpriseSearchClient Create()
         {
-            var elasticBaseUrl = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_BASE_URL");
-            var elasticApiKey = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_PRIVATE_API_KEY");
-            var elasticEngine = Helpers.GetEnvironmentVariable("ENTERPRISE_SEARCH_ENGINE");
+            var elasticBaseUrl = Helpers.GetRequiredEnvironmentVariable("ENTERPRISE_SEARCH_BASE_URL");
+            var elasticApiKey = Helpers.GetRequiredEnvironmentVariable("ENTERPRISE_SEARCH_PRIVATE_API_KEY");
+            var elasticEngine = Helpers.GetRequiredEnvironmentVariable("ENTERPRISE_SEARCH_ENGINE");
 
             if (!Uri.TryCreate(elasticBaseUrl, UriKind.Absolute, out var elasticBaseUri))
             {

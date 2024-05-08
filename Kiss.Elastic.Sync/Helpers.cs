@@ -22,7 +22,8 @@ namespace Kiss.Elastic.Sync
             }
         }
 
-        public static string GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process) ?? throw new Exception("missing environment variable: " + name);
+        public static string GetRequiredEnvironmentVariable(string name) => GetOptionalEnvironmentVariable(name) ?? throw new Exception("missing environment variable: " + name);
+        public static string? GetOptionalEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
 
         public static string EncodeCredential(string userName, string password)
         {
