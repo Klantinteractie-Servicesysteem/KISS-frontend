@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
 {
@@ -9,7 +8,7 @@ namespace Kiss.Elastic.Sync.Sources
         private static readonly string[] s_nameProps = new[] { "voornaam", "voorvoegselAchternaam", "achternaam" };
         private static readonly string[] s_metaProps = new[] { "function", "department", "skills" };
         private readonly ObjectenClient _objectenClient;
-        private readonly ObjectTypesClient _objectTypesClient;
+        private readonly string _objecttypeUrl;
 
         public string Source => "Smoelenboek";
 
@@ -27,30 +26,27 @@ namespace Kiss.Elastic.Sync.Sources
             "telefoonnummers.telefoonnummer"
         };
 
-        public ObjectenMedewerkerClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
+        public ObjectenMedewerkerClient(ObjectenClient objectenClient, string objecttypeUrl)
         {
             _objectenClient = objectenClient;
-            _objectTypesClient = objectTypesClient;
+            _objecttypeUrl = objecttypeUrl;
         }
 
         public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            await foreach (var type in _objectTypesClient.GetObjectTypeUrls("Medewerker", token))
+            await foreach (var item in _objectenClient.GetObjecten(_objecttypeUrl, token))
             {
-                await foreach (var item in _objectenClient.GetObjecten(type, token))
-                {
-                    var data = item.Data;
-                    if (!data.TryGetProperty("identificatie", out var idProp) || idProp.ValueKind != JsonValueKind.String)
-                        continue;
+                var data = item.Data;
+                if (!data.TryGetProperty("identificatie", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    continue;
 
-                    var title = string.Join(' ', GetStringValues(data, s_nameProps));
-                    
-                    var objectMeta = data.TryGetProperty("functie", out var functieProp) && functieProp.ValueKind == JsonValueKind.String
-                        ? functieProp.GetString()
-                        : null;
+                var title = string.Join(' ', GetStringValues(data, s_nameProps));
 
-                    yield return new KissEnvelope(data, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
-                }
+                var objectMeta = data.TryGetProperty("functie", out var functieProp) && functieProp.ValueKind == JsonValueKind.String
+                    ? functieProp.GetString()
+                    : null;
+
+                yield return new KissEnvelope(data, title, objectMeta, $"smoelenboek_{idProp.GetString()}");
             }
         }
 
@@ -71,7 +67,6 @@ namespace Kiss.Elastic.Sync.Sources
         public void Dispose()
         {
             _objectenClient.Dispose();
-            _objectTypesClient.Dispose();
         }
     }
 }

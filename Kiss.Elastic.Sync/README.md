@@ -51,14 +51,14 @@ Examples of how to schedule a cron job in Kubernetes with these arguments [can b
 ### Variables for the different sources
 | Variable | Description |
 | --- | --- |
-| SDG_BASE_URL | The base url for the SDG API to retrieve products |
-| SDG_API_KEY | The API key to connect to the SDG API |
-| MEDEWERKER_OBJECTEN_BASE_URL | The base url for the Objects API to retrieve mededewerkers (smoelenboek) |
-| MEDEWERKER_OBJECTEN_TOKEN | The token to connect to the Objects API to retrieve medewerkers (smoelenboek) |
-| MEDEWERKER_OBJECTTYPES_BASE_URL | The base url for the Object Types API to retrieve the medewerker object type (smoelenboek) |
-| MEDEWERKER_OBJECTTYPES_TOKEN | The token to connect to the Object Types API to retrieve the medewerker object type (smoelenboek) |
+| SDG_OBJECTEN_BASE_URL | The base url for the Objects API to retrieve Producten |
+| SDG_OBJECT_TYPE_URL | The full url of the object type for Producten |
+| SDG_OBJECTEN_TOKEN | The token to connect to the Objects API to retrieve Producten |
+| MEDEWERKER_OBJECTEN_BASE_URL | The base url for the Objects API to retrieve mededewerkers (smoelenboek), or the PodiumD Adapter if applicable |
+| MEDEWERKER_OBJECT_TYPE_URL | The full url of the object type for medewerkers (smoelenboek) |
+| MEDEWERKER_OBJECTEN_TOKEN | The token to connect to the Objects API to retrieve medewerkers (smoelenboek). Use this if you are NOT using the PodiumD Adapter |
+| MEDEWERKER_OBJECTEN_CLIENT_ID | The client id to generate a JWT to connect to the PodiumD Adapter to retrieve medewerkers (smoelenboek). This has to match a setting in the PodiumD Adapter |
+| MEDEWERKER_OBJECTEN_CLIENT_SECRET | The client secret to generate a JWT to connect to the PodiumD Adapter to retrieve medewerkers (smoelenboek). This has to match a setting in the PodiumD Adapter |
 | VAC_OBJECTEN_BASE_URL | The base url for the Objects API to retrieve VACs |
+| VAC_OBJECT_TYPE_URL | The full url of the object type for VACs |
 | VAC_OBJECTEN_TOKEN | The token to connect to the Objects API to retrieve VACs |
-| VAC_OBJECTTYPES_BASE_URL | The base url for the Object Types API to retrieve the VAC object type |
-| VAC_OBJECTTYPES_TOKEN | The token to connect to the Object Types API to retrieve the VAC object type |
-

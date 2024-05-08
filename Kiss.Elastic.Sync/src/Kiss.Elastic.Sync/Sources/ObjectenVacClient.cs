@@ -1,23 +1,22 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Kiss.Elastic.Sync.Objecten;
 
 namespace Kiss.Elastic.Sync.Sources
 {
     internal sealed class ObjectenVacClient : IKissSourceClient
     {
         private readonly ObjectenClient _objectenClient;
-        private readonly ObjectTypesClient _objectTypesClient;
+        private readonly string _objecttypeUrl;
 
-        public ObjectenVacClient(ObjectenClient objectenClient, ObjectTypesClient objectTypesClient)
+        public ObjectenVacClient(ObjectenClient objectenClient, string objecttypeUrl)
         {
             _objectenClient = objectenClient;
-            _objectTypesClient = objectTypesClient;
+            _objecttypeUrl = objecttypeUrl;
         }
 
         public string Source => "VAC";
 
-        public IReadOnlyList<string> CompletionFields { get; } = new []
+        public IReadOnlyList<string> CompletionFields { get; } = new[]
         {
             "vraag",
             "trefwoorden.trefwoord"
@@ -26,21 +25,17 @@ namespace Kiss.Elastic.Sync.Sources
         public void Dispose()
         {
             _objectenClient.Dispose();
-            _objectTypesClient.Dispose();
         }
 
         public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            await foreach (var typeUrl in _objectTypesClient.GetObjectTypeUrls("VAC", token))
+            await foreach (var item in _objectenClient.GetObjecten(_objecttypeUrl, token))
             {
-                await foreach (var item in _objectenClient.GetObjecten(typeUrl, token))
-                {
-                    var id = $"vac_{item.Id.GetString()}";
-                    var title = item.Data.TryGetProperty("vraag", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
-                        ? titleProp.GetString()
-                        : "";
-                    yield return new KissEnvelope(item.Data, title, null, id);
-                }
+                var id = $"vac_{item.Id.GetString()}";
+                var title = item.Data.TryGetProperty("vraag", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
+                    ? titleProp.GetString()
+                    : "";
+                yield return new KissEnvelope(item.Data, title, null, id);
             }
         }
     }
