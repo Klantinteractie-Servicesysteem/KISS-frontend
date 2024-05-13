@@ -37,9 +37,9 @@ namespace Kiss.Elastic.Sync
 
         public static ElasticBulkClient Create()
         {
-            var elasticBaseUrl = Helpers.GetEnvironmentVariable("ELASTIC_BASE_URL");
-            var username = Helpers.GetEnvironmentVariable("ELASTIC_USERNAME");
-            var password = Helpers.GetEnvironmentVariable("ELASTIC_PASSWORD");
+            var elasticBaseUrl = Helpers.GetRequiredEnvironmentVariable("ELASTIC_BASE_URL");
+            var username = Helpers.GetRequiredEnvironmentVariable("ELASTIC_USERNAME");
+            var password = Helpers.GetRequiredEnvironmentVariable("ELASTIC_PASSWORD");
 
             if (!Uri.TryCreate(elasticBaseUrl, UriKind.Absolute, out var elasticBaseUri))
             {
