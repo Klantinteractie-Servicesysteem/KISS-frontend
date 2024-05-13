@@ -1,6 +1,4 @@
-﻿using Kiss.Elastic.Sync.Objecten;
-
-namespace Kiss.Elastic.Sync.Sources
+﻿namespace Kiss.Elastic.Sync.Sources
 {
     public static class SourceFactory
     {
@@ -11,69 +9,58 @@ namespace Kiss.Elastic.Sync.Sources
             _ => GetProductClient(),
         };
 
-
         private static SdgProductClient GetProductClient()
         {
-            var sdgBaseUrl = Helpers.GetEnvironmentVariable("SDG_OBJECTEN_BASE_URL");
-            var sdgApiKey = Helpers.GetEnvironmentVariable("SDG_OBJECTEN_TOKEN");
-            var typeurl = Helpers.GetEnvironmentVariable("SDG_OBJECT_TYPE_URL");
+            var sdgBaseUrl = Helpers.GetRequiredEnvironmentVariable("SDG_OBJECTEN_BASE_URL");
+            var sdgApiKey = Helpers.GetOptionalEnvironmentVariable("SDG_OBJECTEN_TOKEN");
+            var objectenClientId = Helpers.GetOptionalEnvironmentVariable("SDG_OBJECTEN_CLIENT_ID");
+            var objectenClientSecret = Helpers.GetOptionalEnvironmentVariable("SDG_OBJECTEN_CLIENT_SECRET");
+            var typeurl = Helpers.GetRequiredEnvironmentVariable("SDG_OBJECT_TYPE_URL");
 
             if (!Uri.TryCreate(sdgBaseUrl, UriKind.Absolute, out var sdgBaseUri))
             {
                 throw new Exception("sdg base url is niet valide: " + sdgBaseUrl);
             }
 
-            var objecten = new ObjectenClient(sdgBaseUri, sdgApiKey);
+            var objecten = new ObjectenClient(sdgBaseUri, sdgApiKey, objectenClientId, objectenClientSecret);
 
             return new SdgProductClient(objecten, typeurl);
         }
 
         private static ObjectenMedewerkerClient GetMedewerkerClient()
         {
-            var objectenBaseUrl = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTEN_BASE_URL");
-            var objectenToken = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTEN_TOKEN");
+            var objectenBaseUrl = Helpers.GetOptionalEnvironmentVariable("MEDEWERKER_OBJECTEN_BASE_URL");
+            var objectenToken = Helpers.GetOptionalEnvironmentVariable("MEDEWERKER_OBJECTEN_TOKEN");
+            var objectenClientId = Helpers.GetOptionalEnvironmentVariable("MEDEWERKER_OBJECTEN_CLIENT_ID");
+            var objectenClientSecret = Helpers.GetOptionalEnvironmentVariable("MEDEWERKER_OBJECTEN_CLIENT_SECRET");
+            var typeurl = Helpers.GetRequiredEnvironmentVariable("MEDEWERKER_OBJECT_TYPE_URL");
 
             if (!Uri.TryCreate(objectenBaseUrl, UriKind.Absolute, out var objectenBaseUri))
             {
                 throw new Exception("objecten base url is niet valide: " + objectenBaseUrl);
             }
 
-            var objectTypesBaseUrl = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTTYPES_BASE_URL");
-            var objectTypesToken = Helpers.GetEnvironmentVariable("MEDEWERKER_OBJECTTYPES_TOKEN");
+            var objecten = new ObjectenClient(objectenBaseUri, objectenToken, objectenClientId, objectenClientSecret);
 
-            if (!Uri.TryCreate(objectTypesBaseUrl, UriKind.Absolute, out var objectTypesBaseUri))
-            {
-                throw new Exception("objecttypes base url is niet valide: " + objectTypesBaseUrl);
-            }
-
-            var objecten = new ObjectenClient(objectenBaseUri, objectenToken);
-            var types = new ObjectTypesClient(objectTypesBaseUri, objectTypesToken);
-
-            return new ObjectenMedewerkerClient(objecten, types);
+            return new ObjectenMedewerkerClient(objecten, typeurl);
         }
 
         private static ObjectenVacClient GetVacClient()
         {
-            var objectenBaseUrl = Helpers.GetEnvironmentVariable("VAC_OBJECTEN_BASE_URL");
-            var objectenToken = Helpers.GetEnvironmentVariable("VAC_OBJECTEN_TOKEN");
+            var objectenBaseUrl = Helpers.GetRequiredEnvironmentVariable("VAC_OBJECTEN_BASE_URL");
+            var objectenToken = Helpers.GetOptionalEnvironmentVariable("VAC_OBJECTEN_TOKEN");
+            var objectenClientId = Helpers.GetOptionalEnvironmentVariable("VAC_OBJECTEN_CLIENT_ID");
+            var objectenClientSecret = Helpers.GetOptionalEnvironmentVariable("VAC_OBJECTEN_CLIENT_SECRET");
+            var typeurl = Helpers.GetRequiredEnvironmentVariable("VAC_OBJECT_TYPE_URL");
 
             if (!Uri.TryCreate(objectenBaseUrl, UriKind.Absolute, out var objectenBaseUri))
             {
                 throw new Exception("objecten base url is niet valide: " + objectenBaseUrl);
             }
 
-            var objectTypesBaseUrl = Helpers.GetEnvironmentVariable("VAC_OBJECTTYPES_BASE_URL");
-            var objectTypesToken = Helpers.GetEnvironmentVariable("VAC_OBJECTTYPES_TOKEN");
+            var objecten = new ObjectenClient(objectenBaseUri, objectenToken, objectenClientId, objectenClientSecret);
 
-            if (!Uri.TryCreate(objectTypesBaseUrl, UriKind.Absolute, out var objectTypesBaseUri))
-            {
-                throw new Exception("objecttypes base url is niet valide: " + objectTypesBaseUrl);
-            }
-
-            var objecten = new ObjectenClient(objectenBaseUri, objectenToken);
-            var types = new ObjectTypesClient(objectTypesBaseUri, objectTypesToken);
-
-            return new ObjectenVacClient(objecten, types);
+            return new ObjectenVacClient(objecten, typeurl);
         }
     }
 }

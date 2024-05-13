@@ -1,6 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using System.Web;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kiss.Elastic.Sync.Sources
 {
@@ -10,19 +15,59 @@ namespace Kiss.Elastic.Sync.Sources
     {
         private readonly HttpClient _httpClient;
 
-        public ObjectenClient(Uri objectenBaseUri, string objectenToken)
+        public ObjectenClient(Uri objectenBaseUri, string? objectenToken, string? objectenClientId, string? objectenClientSecret)
         {
             _httpClient = new HttpClient
             {
                 BaseAddress = objectenBaseUri
             };
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", objectenToken);
+
+            if (!string.IsNullOrWhiteSpace(objectenClientId) && !string.IsNullOrWhiteSpace(objectenClientSecret))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken(objectenClientId, objectenClientSecret));
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(objectenToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", objectenToken);
+                return;
+            }
+
+            throw new Exception("No token or client id/secret is configured for the ObjectenClient");
         }
 
         public IAsyncEnumerable<OverigObject> GetObjecten(string type, CancellationToken token)
         {
             var url = $"/api/v2/objects?type={HttpUtility.UrlEncode(type)}";
             return GetObjectenInternal(url, token);
+        }
+
+        private static string GetToken(string id, string secret)
+        {
+            var now = DateTimeOffset.UtcNow;
+            // one minute leeway to account for clock differences between machines
+            var issuedAt = now.AddMinutes(-1);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Issuer = id,
+                IssuedAt = issuedAt.DateTime,
+                NotBefore = issuedAt.DateTime,
+                Claims = new Dictionary<string, object>
+                {
+                    { "client_id", id },
+                    { "user_id", "KISS Elastic Sync"},
+                    { "user_representation", "elastic-sync" }
+                },
+                Subject = new ClaimsIdentity(),
+                Expires = now.AddHours(1).DateTime,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         private async IAsyncEnumerable<OverigObject> GetObjectenInternal(string url, [EnumeratorCancellation] CancellationToken token)
