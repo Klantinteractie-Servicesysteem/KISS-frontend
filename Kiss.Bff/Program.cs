@@ -1,12 +1,19 @@
 ﻿using System.Security.Claims;
+using AngleSharp;
 using Kiss.Bff.Afdelingen;
 using Kiss.Bff.Beheer.Data;
+using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
+using Kiss.Bff.Beheer.Links.Data.Entities;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.Config;
 using Kiss.Bff.Groepen;
+using Kiss.Bff.Intern.Data;
+using Kiss.Bff.Intern.Kanalen.Data.Entities;
 using Kiss.Bff.InterneTaak;
+using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
 using Kiss.Bff.ZaakGerichtWerken;
 using Kiss.Bff.ZaakGerichtWerken.Contactmomenten;
+using Kiss.Bff.ZaakGerichtWerken.Contactverzoeken;
 using Kiss.Bff.ZaakGerichtWerken.Klanten;
 using Kiss.Bff.Zaken;
 using Microsoft.AspNetCore.DataProtection;
@@ -134,6 +141,11 @@ try
         if (db.Database.IsRelational())
         {
             await db.Database.MigrateAsync(app.Lifetime.ApplicationStopping);
+            var isDemo = builder.Configuration.GetValue<bool>("IsDemo");
+            if (isDemo)
+            {
+                SeedDatabase(db);
+            }
         }
     }
 
@@ -153,5 +165,15 @@ finally
     Log.Information("Shut down complete");
     Log.CloseAndFlush();
 }
-
+static void SeedDatabase(BeheerDbContext context)
+{
+    context.SeedData<Skill>("Intern/Data/SeedData/Skill.json");
+    context.SeedData<Bericht>("Intern/Data/SeedData/Bericht.json");
+    context.SeedData<Gespreksresultaat>("Intern/Data/SeedData/Gespreksresultaat.json");
+    context.SeedData<Kanaal>("Intern/Data/SeedData/Kanaal.json");
+    context.SeedData<Link>("Intern/Data/SeedData/Link.json");
+    //context.SeedData<BerichtGelezen>("Intern/Data/SeedData/BerichtGelezen.json");
+    context.SeedData<ContactVerzoekVragenSet>("Intern/Data/SeedData/ContactVerzoekVragenSet.json");
+}
 public partial class Program { }
+

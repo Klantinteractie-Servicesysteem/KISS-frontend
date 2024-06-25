@@ -1,0 +1,32 @@
+[
+    {
+        "Id": "123e4567-e89b-12d3-a456-426614174000",
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Definitie": "Afgehandeld na ruggespraak"
+    },
+      {
+        "Id": "6d81b32a-21a3-11ef-9262-0242ac120002",
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Definitie": "Doorverbonden naar afdeling"
+    },
+      {
+        "Id": "751f6014-21a3-11ef-9262-0242ac120002",
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Definitie": "Doorverbonden naar collega"
+    },
+      {
+        "Id": "7a0c242c-21a3-11ef-9262-0242ac120002",
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Definitie": "Klant neemt opnieuw contact op"
+    },
+      {
+        "Id": "83b73368-21a3-11ef-9262-0242ac120002",
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Definitie": "Zelfstandig afgehandeld"
+    }
+]

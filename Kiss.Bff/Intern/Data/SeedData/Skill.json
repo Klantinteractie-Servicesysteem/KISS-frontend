@@ -1,0 +1,66 @@
+[
+    {
+        "Id": 1,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "afval",
+        "Berichten": []
+    },
+     {
+        "Id": 2,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "algemeen",
+        "Berichten": []
+    }, 
+    {
+        "Id": 3,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "belastingen",
+        "Berichten": []
+    },
+      {
+        "Id": 4,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "burgerzaken",
+        "Berichten": []
+    },
+      {
+        "Id": 5,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "KCC",
+        "Berichten": []
+    },
+      {
+        "Id": 6,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "subsidies",
+        "Berichten": []
+    },
+      {
+        "Id": 7,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "vergunningen",
+        "Berichten": []
+    },
+      {
+        "Id": 8,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": "2024-05-22T14:00:00Z",
+        "IsDeleted": false,
+        "Naam": "werk en inkomen",
+        "Berichten": []
+    }
+]

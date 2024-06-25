@@ -1,0 +1,57 @@
+[
+  {
+    "Id": 1,
+    "DateCreated": "2024-05-22T13:30:00Z",
+    "DateUpdated": null,
+    "PublicatieDatum": "2024-04-22T13:30:00Z",
+    "PublicatieEinddatum": null,
+    "Titel": "KennisbronnenKaart bijgewerkt",
+    "Inhoud": "<p>Welke vraag stel je waar? Er is een nieuwe versie van de KennisbronnenKaart beschikbaar. Deze kun je inzien op ons intranet. Raadpleeg deze kaart om snel een beeld te krijgen van welke informatie waar te vinden is.</p>",
+    "IsBelangrijk": false,
+    "Type": "Nieuws"
+  },
+  {
+    "Id": 2,
+    "DateCreated": "2024-05-23T13:30:00Z",
+    "DateUpdated": null,
+    "PublicatieDatum": "2024-04-26T13:30:00Z",
+    "PublicatieEinddatum": null,
+    "Titel": "Aankomende staking van de vuilnisophaaldienst",
+    "Inhoud": "<p>We verwachten veel telefoontjes over de staking van de vuilnisophaal dienst. Daarom is er op Intranet een <a href=\"https://www.speciaalportaal.nl\">speciaal portaal</a> ingericht waarop je alles kan vinden dat je nodig hebt.&nbsp;</p>",
+    "IsBelangrijk": false,
+    "Type": "Nieuws"
+  },
+    {
+    "Id": 3,
+    "DateCreated": "2024-05-24T13:30:00Z",
+    "DateUpdated": null,
+    "PublicatieDatum": "2024-04-26T13:30:00Z",
+    "PublicatieEinddatum": null,
+    "Titel": "Mantelzorgcadeau volgende maand van start",
+    "Inhoud": "<p>Volgende maand begint de aanvraag van het Mantelzorgcadeau. Mantelzorgers en zorgontvangers die dit niet online kunnen aanvragen, kunnen bellen naar het KCC. Vul met deze bellers het speciale KCC-formulier in, om het cadeau aan te vragen.</p>",
+    "IsBelangrijk": false,
+    "Type": "Werkinstructie"
+  },
+    {
+    "Id": 4,
+    "DateCreated": "2024-05-25T13:30:00Z",
+    "DateUpdated": null,
+    "PublicatieDatum": "2024-04-26T13:30:00Z",
+    "PublicatieEinddatum": null,
+    "Titel": "Nieuws en werkinstructies toevoegen",
+    "Inhoud": "<p>Op de startpagina van KISS zie je als KCM nieuwsberichten en werkinstructies die belangrijk zijn voor je werk. Hier kunnen berichten staan over incidenten die plaatsvinden in de stad, zodat je weet waar burgers en bedrijven mogelijk extra contact over opzoeken.&nbsp;</p><ul><li>Nieuwsberichten en werkinstructies kunnen alleen door gebruikers toegevoegd worden, die bij Beheer kunnen</li><li>Hoe de berichten zijn georganiseerd lees je in <a href=\"https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/#nieuws-en-werkinstructies\">de documentatie van KISS</a>.&nbsp;</li><li>Hier staat ook een handleiding voor het <a href=\"https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/#nieuwsbericht-of-werkinstructie-toevoegen\">toevoegen </a>en <a href=\"https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/#nieuwsbericht-of-werkinstructie-wijzigen\">bewerken</a> van berichten.&nbsp;</li></ul>",
+    "IsBelangrijk": true,
+    "Type": "Werkinstructie"
+  } ,
+      {
+    "Id": 5,
+    "DateCreated": "2024-05-25T13:30:00Z",
+    "DateUpdated": null,
+    "PublicatieDatum": "2024-04-26T13:30:00Z",
+    "PublicatieEinddatum": null,
+    "Titel": "KISS op de testomgeving",
+    "Inhoud": "<p>Goed nieuws! Als je dit ziet, is KISS goed geïnstalleerd inclusief de demodata. KISS staat voor Klant Interactie Service Systeem. Het is een applicatie waarmee Klantcontactmedewerkers (KCM) optimaal worden ondersteund in hun werk: het informeren en helpen van burgers en ondernemers die contact opnemen met de gemeente.&nbsp;</p><p>KISS is een Open Source component in het Common Ground-landschap. Je leest meer informatie over KISS in <a href=\"https://github.com/Klantinteractie-Servicesysteem/\">Github</a>, en in de <a href=\"https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/\">documenatie</a>.</p>",
+    "IsBelangrijk": true,
+    "Type": "Werkinstructie"
+  } 
+]

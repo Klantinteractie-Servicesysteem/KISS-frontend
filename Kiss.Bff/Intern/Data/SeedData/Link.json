@@ -1,0 +1,42 @@
+[
+    {
+        "Id": 1,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Titel": "De repository van KISS, op Github",
+        "Url": "https://github.com/Klantinteractie-Servicesysteem/",
+        "Categorie": "KISS"
+    }, 
+      {
+        "Id": 2,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Titel": "Beheerhandleiding KISS",
+        "Url": "https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/",
+        "Categorie": "KISS"
+    },
+      {
+        "Id": 3,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Titel": "Documentatie KISS",
+        "Url": "https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/",
+        "Categorie": "KISS"
+    },
+      {
+        "Id": 4,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Titel": "Common Ground op Pleio",
+        "Url": "https://commonground.nl/",
+        "Categorie": "Common Ground"
+    },
+        {
+        "Id": 5,
+        "DateCreated": "2024-05-22T13:30:00Z",
+        "DateUpdated": null,
+        "Titel": "Programma Common Ground",
+        "Url": "https://vng.nl/projecten/programma-common-ground",
+        "Categorie": "Common Ground"
+    }
+]

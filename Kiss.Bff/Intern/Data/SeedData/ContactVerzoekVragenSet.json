@@ -1,0 +1,9 @@
+[
+    {
+        "Id": 1,
+        "Titel": "Sample title",
+        "JsonVragen": null,
+        "AfdelingId": "sample-department-id",
+        "AfdelingNaam": "Sample department name"
+    }
+]
