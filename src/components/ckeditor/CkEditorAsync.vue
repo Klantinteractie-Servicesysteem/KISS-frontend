@@ -1,9 +1,14 @@
 <template>
-  <ckeditor :editor="CustomEditor" v-model="modelValue" v-bind="$attrs" />
+  <ckeditor
+    :editor="ClassicEditor"
+    :config="config"
+    v-model="modelValue"
+    v-bind="$attrs"
+  />
 </template>
 
 <script setup lang="ts">
-import _Ckeditor from "@ckeditor/ckeditor5-vue";
+import type { EditorConfig } from "./ckeditor-exports";
 import { computed } from "vue";
 
 const props = defineProps<{ modelValue?: string }>();
@@ -13,6 +18,27 @@ const modelValue = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
-const CustomEditor = await import("./custom-editor").then((r) => r.default);
-const Ckeditor = _Ckeditor.component;
+// we don't want to import directly from ckeditor
+// see ./ckeditor-exports for an explanation of this workaround
+const { ClassicEditor, Ckeditor, ...plugins } = await import(
+  "./ckeditor-exports"
+);
+
+const config: EditorConfig = {
+  plugins: Object.values(plugins),
+  toolbar: [
+    "heading",
+    "|",
+    "bold",
+    "italic",
+    "link",
+    "bulletedList",
+    "numberedList",
+    "blockQuote",
+    "undo",
+    "redo",
+  ],
+};
 </script>
+
+<style src="ckeditor5/ckeditor5.css"></style>

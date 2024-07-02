@@ -3,7 +3,7 @@ import { defineConfig, type ProxyOptions, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 import { createRequire } from "node:module";
-import ckeditor5 from "@ckeditor/vite-plugin-ckeditor5";
+//import ckeditor5 from "@ckeditor/vite-plugin-ckeditor5";
 const require = createRequire(import.meta.url);
 
 const proxyCalls = [
@@ -14,7 +14,7 @@ const proxyCalls = [
 ];
 
 const getProxy = (
-  env?: Record<string, string>
+  env?: Record<string, string>,
 ): Record<string, ProxyOptions> | undefined => {
   const targetPort = env?.BFF_SSL_PORT;
   if (!targetPort) return undefined;
@@ -34,11 +34,7 @@ export default defineConfig(({ mode }) => {
     mode === "development" ? loadEnv(mode, process.cwd(), "") : undefined;
   const proxy = env && getProxy(env);
   return {
-    plugins: [
-      ckeditor5({ theme: require.resolve("@ckeditor/ckeditor5-theme-lark") }),
-      vue(),
-      basicSsl(),
-    ],
+    plugins: [vue(), basicSsl()],
     server: {
       port: 3000,
       proxy,

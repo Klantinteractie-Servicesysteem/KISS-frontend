@@ -40,8 +40,8 @@ p {
     --utrecht-paragraph-line-height,
     var(--utrecht-document-line-height, normal)
   );
-  margin-block-start: var(--utrecht-paragraph-margin-block-start);
-  margin-block-end: var(--utrecht-paragraph-margin-block-end);
+  margin-block: var(--utrecht-paragraph-margin-block-start)
+    var(--utrecht-paragraph-margin-block-end);
 }
 
 .utrecht-paragraph--lead {

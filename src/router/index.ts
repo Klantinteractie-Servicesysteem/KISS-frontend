@@ -1,8 +1,3 @@
-import {
-  createRouter,
-  createWebHistory,
-  type NavigationGuard,
-} from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import AfhandelingView from "../views/AfhandelingView.vue";
 import ZakenView from "../views/ZakenView.vue";
@@ -15,6 +10,11 @@ import BedrijvenView from "@/views/BedrijvenView.vue";
 import BedrijfDetailView from "@/views/BedrijfDetailView.vue";
 import LinksView from "@/views/LinksView.vue";
 import ContactenverzoekenView from "@/views/ContactenverzoekenView.vue";
+import {
+  createRouter,
+  createWebHistory,
+  type NavigationGuard,
+} from "vue-router";
 //import ContactverzoekenDetailView from "@/views/ContactverzoekenDetailView.vue";
 
 const NieuwsEnWerkinstructiesBeheer = () =>
@@ -43,10 +43,8 @@ const ContactverzoekFormulierenBeheer = () =>
     "@/views/Beheer/contactverzoek-formulieren/ContactverzoekFormulierenBeheer.vue"
   );
 
-  const KanaalBeheer = () =>
-  import("@/views/Beheer/Kanalen/KanaalBeheer.vue");
-const KanalenBeheer = () =>
-  import("@/views/Beheer/Kanalen/KanalenBeheer.vue");
+const KanaalBeheer = () => import("@/views/Beheer/Kanalen/KanaalBeheer.vue");
+const KanalenBeheer = () => import("@/views/Beheer/Kanalen/KanalenBeheer.vue");
 
 const guardContactMoment: NavigationGuard = (to, from, next) => {
   const contactmoment = useContactmomentStore();

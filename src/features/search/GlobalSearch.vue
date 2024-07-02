@@ -385,8 +385,7 @@ const listItems = mapServiceData(searchResults, (result) =>
 form {
   grid-area: bar;
   padding-inline-start: var(--spacing-large);
-  padding-block-start: var(--spacing-small);
-  padding-block-end: var(--spacing-default);
+  padding-block: var(--spacing-small) var(--spacing-default);
   display: grid;
   gap: var(--spacing-small);
   background-color: var(--color-primary);
@@ -519,9 +518,8 @@ nav ul {
     display: grid;
     grid-template-columns: 20ch 1fr 2ch;
     gap: var(--spacing-default);
-    justify-items: start;
     padding-inline-end: var(--spacing-default);
-    align-items: center;
+    place-items: center start;
   }
 
   li {

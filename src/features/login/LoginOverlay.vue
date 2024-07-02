@@ -62,7 +62,7 @@ function refresh() {
 // this channel is used to communicate between browser tabs/windows
 const channel = new BroadcastChannel(
   // unique name per environment
-  "kiss-close-tab-channel-" + window.location.host
+  "kiss-close-tab-channel-" + window.location.host,
 );
 
 channel.onmessage = (e) => {
@@ -85,7 +85,7 @@ const userStore = useUserStore();
 const initialized = ref(false);
 
 const isLoggedInRef = computed(
-  () => currentUserState.success && currentUserState.data.isLoggedIn
+  () => currentUserState.success && currentUserState.data.isLoggedIn,
 );
 
 const isLoadingRef = computed(() => currentUserState.loading);
@@ -169,17 +169,17 @@ watch(
     // the if is just there for type safety
     if (!dialog) {
       console.error(
-        "we expected a dialog in the dom, but it seems to be missing..."
+        "we expected a dialog in the dom, but it seems to be missing...",
       );
     }
 
     resetLoginTimeout();
     dialog?.showModal();
-  }
+  },
 );
 
 const computedUser = computed<User>(() =>
-  !currentUserState.success ? { isLoggedIn: false } : currentUserState.data
+  !currentUserState.success ? { isLoggedIn: false } : currentUserState.data,
 );
 
 watch(computedUser, (u) => {
@@ -192,13 +192,11 @@ dialog[open] {
   width: 100%;
   height: 100%;
   display: grid;
-  align-content: stretch;
-  justify-content: stretch;
+  place-content: stretch stretch;
 
   a {
     display: grid;
-    justify-content: center;
-    align-content: center;
+    place-content: center center;
   }
 }
 </style>

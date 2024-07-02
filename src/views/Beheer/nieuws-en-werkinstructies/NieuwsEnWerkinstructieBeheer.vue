@@ -182,7 +182,7 @@ const submit = async () => {
   try {
     bericht.value.publicatieDatum = addTimezone(bericht.value.publicatieDatum);
     bericht.value.publicatieEinddatum = addTimezone(
-      bericht.value.publicatieEinddatum
+      bericht.value.publicatieEinddatum,
     );
     if (props.id) {
       const result = await fetchLoggedIn("/api/berichten/" + props.id, {
@@ -236,7 +236,7 @@ async function load() {
 
       jsonData.publicatieDatum = toHtmlInputDateTime(jsonData.publicatieDatum);
       jsonData.publicatieEinddatum = toHtmlInputDateTime(
-        jsonData.publicatieEinddatum
+        jsonData.publicatieEinddatum,
       );
       jsonData.dateCreated = new Date(jsonData.dateCreated);
       jsonData.dateUpdated =

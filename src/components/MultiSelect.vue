@@ -106,8 +106,7 @@ fieldset {
   background-color: var(--color-white);
   box-shadow: var(--box-shadow);
   padding-block: var(--spacing-small);
-  padding-inline-end: var(--padding-inline);
-  padding-inline-start: calc(1rem + var(--border-width));
+  padding-inline: calc(1rem + var(--border-width)) var(--padding-inline); 
   border-radius: var(--radius-default);
   border: var(--border-style);
 

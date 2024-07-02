@@ -198,7 +198,7 @@ watch(
       const { id } = await ensureKlantForBsn({ bsn }, org);
       await router.push(`/personen/${id}`);
     }
-  }
+  },
 );
 </script>
 
@@ -238,8 +238,7 @@ input[type="radio"] {
   display: grid;
   grid-template-columns: repeat(3, auto);
   justify-content: flex-start;
-  column-gap: var(--spacing-default);
-  row-gap: var(--spacing-extrasmall);
+  grid-gap: var(--spacing-extrasmall) var(--spacing-default);
 
   > legend {
     font-size: 0;

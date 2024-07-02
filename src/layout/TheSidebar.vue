@@ -191,8 +191,7 @@ menu {
 }
 
 menu.starter {
-  margin-block-start: 4rem;
-  margin-block-end: var(--spacing-default);
+  margin-block: 4rem var(--spacing-default);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-default);
@@ -225,15 +224,13 @@ menu.finisher {
 
   > .contactmoment-header {
     background-color: var(--color-primary);
-    padding-block-start: var(--spacing-default);
-    padding-block-end: var(--spacing-default);
+    padding-block: var(--spacing-default) var(--spacing-default);
     padding-inline: var(--spacing-small);
 
     --utrecht-heading-color: var(--color-white);
 
     > h3 {
-      margin-block-start: var(--spacing-large);
-      margin-block-end: var(--spacing-small);
+      margin-block: var(--spacing-large) var(--spacing-small);
     }
   }
 }
