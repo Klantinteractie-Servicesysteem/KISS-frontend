@@ -14,6 +14,8 @@ env:
   IMAGE_NAME: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync # lowercase
   
 jobs:
+
+
   build:
     runs-on: ubuntu-latest
 
@@ -76,3 +78,36 @@ jobs:
         tags: ${{env.IMAGE_NAME}}:${{ env.RELEASE }},${{env.IMAGE_NAME}}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      checks: write
+      pull-requests: write
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    - run: dotnet test test/Kiss.Elastic.Sync.IntegrationTest -c Release --logger trx --results-directory ./testresults -v n /p:CollectCoverage=true /p:CoverletOutput=./testresults/ /p:CoverletOutputFormat=lcov
+    
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        action_fail: true
+        files: |
+          testresults/*.trx
+          testresults/*.xml
+    
+    # - name: Publish Coverage
+    #   if: github.event_name == 'pull_request'
+    #   uses: romeovs/lcov-reporter-action@v0.2.16
+    #   with:
+    #     lcov-file: ./testresults/coverage.info
+    #     github-token: ${{ secrets.GITHUB_TOKEN }}
