@@ -1,11 +1,15 @@
 ﻿using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Kiss.Elastic.Sync
 {
-    internal sealed class ElasticBulkClient : IDisposable
+    public sealed class ElasticBulkClient : IDisposable
     {
+        const long MaxBytes = 50_000_000;
+        const byte NewLine = (byte)'\n';
+
         private static JsonElement GetFieldMapping()
         {
             using var str = Helpers.GetEmbedded("field.json") ?? Stream.Null;
@@ -33,8 +37,6 @@ namespace Kiss.Elastic.Sync
 
         public void Dispose() => _httpClient?.Dispose();
 
-
-
         public static ElasticBulkClient Create()
         {
             var elasticBaseUrl = Helpers.GetRequiredEnvironmentVariable("ELASTIC_BASE_URL");
@@ -59,40 +61,33 @@ namespace Kiss.Elastic.Sync
             });
 
             if (!await EnsureIndex(bron, indexName, completionFields, token)) return indexName;
+
+            var existingIds = await GetExistingIds(indexName, token);
+
             await using var enumerator = envelopes.GetAsyncEnumerator(token);
             var hasNext = await enumerator.MoveNextAsync();
-            const long MaxLength = 50 * 1000 * 1000;
-            const byte NewLine = (byte)'\n';
-            while (hasNext)
+            
+            while (hasNext || existingIds.Count > 0)
             {
                 long written = 0;
                 using var content = new PushStreamContent(async (stream) =>
                 {
                     using var writer = new Utf8JsonWriter(stream);
 
-                    while (hasNext && written < MaxLength)
+                    // write an index statement in the bulk document for all records from the source
+                    while (hasNext && written < MaxBytes)
                     {
-                        writer.WriteStartObject();
-                        writer.WritePropertyName("index");
-                        writer.WriteStartObject();
-                        writer.WriteString("_index", indexName);
-                        writer.WriteString("_id", enumerator.Current.Id);
-                        writer.WriteEndObject();
-                        writer.WriteEndObject();
-                        await writer.FlushAsync(token);
-                        written += writer.BytesCommitted;
-                        writer.Reset();
-                        stream.WriteByte(NewLine);
-                        written++;
-
-                        enumerator.Current.WriteTo(writer, bron);
-                        await writer.FlushAsync(token);
-                        written += writer.BytesCommitted;
-                        writer.Reset();
-                        stream.WriteByte(NewLine);
-                        written++;
-
+                        existingIds.Remove(enumerator.Current.Id);
+                        written = await WriteIndexStatement(writer, stream, indexName, bron, enumerator.Current, token);
                         hasNext = await enumerator.MoveNextAsync();
+                    }
+
+                    // write a delete statement for all ids that are no longer in the source
+                    while (!hasNext && existingIds.Count > 0 && written < MaxBytes)
+                    {
+                        var existingId = existingIds.First();
+                        existingIds.Remove(existingId);
+                        written += await WriteDeleteStatement(stream, writer, indexName, existingId, token);
                     }
                 });
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -156,7 +151,85 @@ namespace Kiss.Elastic.Sync
             return putResponse.IsSuccessStatusCode;
         }
 
-        private JsonObject MapCompletionFields(IReadOnlyList<string> completionFields)
+        private async Task<HashSet<string>> GetExistingIds(string indexName, CancellationToken token)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{indexName}/_search?scroll=1m");
+            request.Content = new StringContent("""
+            { 
+                "query" : { 
+                    "match_all" : {} 
+                },
+                "stored_fields": []
+            }
+            """, Encoding.UTF8, "application/json");
+            var result = new HashSet<string>();
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            if (!response.IsSuccessStatusCode)
+            {
+                await Helpers.LogResponse(response, token);
+                return result;
+            }
+            using var stream = await response.Content.ReadAsStreamAsync(token);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
+
+            if (!TryGetHits(doc, out var hits, out var total, out var scrollId))
+            {
+                return [];
+            }
+
+            foreach (var item in hits)
+            {
+                result.Add(item);
+            }
+
+            while (result.Count < total && !string.IsNullOrWhiteSpace(scrollId))
+            {
+                using var scrollRequest = new HttpRequestMessage(HttpMethod.Post, "_search/scroll");
+                scrollRequest.Content = new StringContent($$"""
+                { 
+                    "scroll": "1m",
+                    "scroll_id": "{{scrollId}}"
+                }
+                """, Encoding.UTF8, "application/json");
+                using var scrollResponse = await _httpClient.SendAsync(scrollRequest, HttpCompletionOption.ResponseHeadersRead, token);
+                if (!scrollResponse.IsSuccessStatusCode)
+                {
+                    await Helpers.LogResponse(scrollResponse, token);
+                    return result;
+                }
+                using var scrollStream = await scrollResponse.Content.ReadAsStreamAsync(token);
+                using var scrollDoc = await JsonDocument.ParseAsync(scrollStream, cancellationToken: token);
+
+                if (!TryGetHits(scrollDoc, out hits, out total, out scrollId))
+                {
+                    return result;
+                }
+
+                foreach (var item in hits)
+                {
+                    result.Add(item);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(scrollId))
+            {
+                using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, "_search/scroll");
+                deleteRequest.Content = new StringContent($$"""
+                { 
+                    "scroll_id": "{{scrollId}}"
+                }
+                """, Encoding.UTF8, "application/json");
+                using var deleteResponse = await _httpClient.SendAsync(deleteRequest, HttpCompletionOption.ResponseHeadersRead, token);
+                if (!deleteResponse.IsSuccessStatusCode)
+                {
+                    await Helpers.LogResponse(deleteResponse, token);
+                }
+            }
+
+            return result;
+        }
+
+        private static JsonObject MapCompletionFields(IReadOnlyList<string> completionFields)
         {
             if (!completionFields.Any()) return JsonObject.Create(s_fieldMapping)!;
             var split = completionFields.Select(x => x.Split("."));
@@ -181,10 +254,80 @@ namespace Kiss.Elastic.Sync
                     }
                 }
                 var value = MapCompletionFields(fields);
-                properties[group.Key] = value;   
+                properties[group.Key] = value;
             }
 
             return result;
+        }
+
+        private static async Task<long> WriteIndexStatement(Utf8JsonWriter writer, Stream stream, string indexName, string bron, KissEnvelope envelope, CancellationToken token)
+        {
+            long written = 0;
+            writer.WriteStartObject();
+            writer.WritePropertyName("index"u8);
+            writer.WriteStartObject();
+            writer.WriteString("_index"u8, indexName);
+            writer.WriteString("_id"u8, envelope.Id);
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            await writer.FlushAsync(token);
+            written += writer.BytesCommitted;
+            writer.Reset();
+            stream.WriteByte(NewLine);
+            written++;
+
+            envelope.WriteTo(writer, bron);
+            await writer.FlushAsync(token);
+            written += writer.BytesCommitted;
+            writer.Reset();
+            stream.WriteByte(NewLine);
+            written++;
+            return written;
+        }
+
+        private static async Task<long> WriteDeleteStatement(Stream stream, Utf8JsonWriter writer, string indexName, string existingId, CancellationToken token)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("delete"u8);
+            writer.WriteStartObject();
+            writer.WriteString("_index"u8, indexName);
+            writer.WriteString("_id"u8, existingId);
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            await writer.FlushAsync(token);
+            var written = writer.BytesCommitted;
+            writer.Reset();
+            stream.WriteByte(NewLine);
+            written++;
+            return written;
+        }
+
+        private static bool TryGetHits(JsonDocument document, out IEnumerable<string> ids, out int total, out string scrollId)
+        {
+            if (!document.RootElement.TryGetProperty("hits"u8, out var hits)
+                || !hits.TryGetProperty("total"u8, out var totalP)
+                || !totalP.TryGetProperty("value"u8, out var totalV)
+                || !totalV.TryGetInt32(out total)
+                || !hits.TryGetProperty("hits"u8, out hits)
+                || hits.ValueKind != JsonValueKind.Array
+                || !document.RootElement.TryGetProperty("_scroll_id"u8, out var scrId)
+                || scrId.ValueKind != JsonValueKind.String)
+            {
+                ids = [];
+                total = 0;
+                scrollId = "";
+                return false;
+            }
+
+            ids = hits.EnumerateArray()
+                .Select(x => x.TryGetProperty("_id"u8, out var id) && id.ValueKind == JsonValueKind.String
+                    ? id.GetString()
+                    : null)
+                .OfType<string>();
+
+            scrollId = scrId.GetString() ?? "";
+
+            return true;
         }
     }
 }
