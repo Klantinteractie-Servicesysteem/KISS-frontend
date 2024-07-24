@@ -180,7 +180,7 @@ namespace Kiss.Elastic.Sync
             var scrollId = searchResponse.ScrollId;
             var hits = searchResponse.Hits;
 
-            while (scrollId is { } && hits.Count > 0)
+            while (scrollId is not null && hits.Count > 0)
             {
                 foreach (var id in hits.Select(x=> x.Id).OfType<string>())
                 {
@@ -197,7 +197,7 @@ namespace Kiss.Elastic.Sync
                 hits = scrollResponse.Hits;
             }
 
-            if (scrollId is { })
+            if (scrollId is not null)
             {
                 // it's best practice to clear the active scroll when you are done
                 await _elasticsearchClient.ClearScrollAsync(x => x.ScrollId(searchResponse.ScrollId!), token);
