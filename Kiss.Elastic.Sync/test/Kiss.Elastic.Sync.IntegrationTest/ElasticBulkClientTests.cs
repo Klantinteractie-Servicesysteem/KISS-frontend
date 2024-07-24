@@ -17,7 +17,8 @@ namespace Kiss.Elastic.Sync.IntegrationTest
             using var bulkClient = new ElasticBulkClient(
                 fixture.BaseUri,
                 ElasticsearchBuilder.DefaultUsername,
-                ElasticsearchBuilder.DefaultPassword
+                ElasticsearchBuilder.DefaultPassword,
+                1
             );
 
             var elastic = new ElasticsearchClient(fixture.BaseUri);

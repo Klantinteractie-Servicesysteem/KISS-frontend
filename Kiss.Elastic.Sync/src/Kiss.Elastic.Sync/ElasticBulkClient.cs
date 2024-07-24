@@ -24,8 +24,9 @@ namespace Kiss.Elastic.Sync
 
         private readonly HttpClient _httpClient;
         private readonly ElasticsearchClient _elasticsearchClient;
+        private readonly int _scrollPageSize;
 
-        public ElasticBulkClient(Uri baseUri, string username, string password)
+        public ElasticBulkClient(Uri baseUri, string username, string password, int scrollPageSize = MaxPageSizeForScrolling)
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
@@ -40,6 +41,7 @@ namespace Kiss.Elastic.Sync
             var clientSettings = new ElasticsearchClientSettings(baseUri)
                 .Authentication(new BasicAuthentication(username, password));
             _elasticsearchClient = new ElasticsearchClient(clientSettings);
+            _scrollPageSize = scrollPageSize;
         }
 
         public void Dispose() => _httpClient?.Dispose();
@@ -168,7 +170,7 @@ namespace Kiss.Elastic.Sync
                     .StoredFields(Array.Empty<string>())
                     // we don't need the source documents
                     .Source(new(false))
-                    .Size(MaxPageSizeForScrolling)
+                    .Size(_scrollPageSize)
                     // scrolling is the most efficient way to loop through big result sets
                     .Scroll(TimeSpan.FromMinutes(1)),
                 token);
