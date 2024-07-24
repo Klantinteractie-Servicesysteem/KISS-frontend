@@ -8,67 +8,53 @@ namespace Kiss.Elastic.Sync.IntegrationTest
 {
     public class ElasticBulkClientTests(ElasticFixture fixture) : IClassFixture<ElasticFixture>
     {
+        const string IndexWithoutPrefix = "my_index";
+        const string IndexWithPrefix = $"search-{IndexWithoutPrefix}";
+
         [Fact]
         public async Task Bulk_insert_works_for_inserts_updates_and_deletes()
         {
-            const string IndexWithoutPrefix = "my_index";
-            const string IndexWithPrefix = $"search-{IndexWithoutPrefix}";
-
             using var bulkClient = new ElasticBulkClient(
                 fixture.BaseUri,
                 ElasticsearchBuilder.DefaultUsername,
                 ElasticsearchBuilder.DefaultPassword,
-                1
+                1 // page size of 1 so we also test if scrolling works correctly
             );
 
             var elastic = new ElasticsearchClient(fixture.BaseUri);
 
-            var expectedInitalRecords = new Dictionary<string, string>
+            await BulkIndexRecordsAndAssertOutput(bulkClient, elastic, new ()
             {
                 ["1"] = "first record to be deleted",
                 ["2"] = "second record to be updated",
                 ["3"] = "third record to remain the same",
-            };
+            });
 
-            var expectedUpdatedRecords = new Dictionary<string, string>
+            await BulkIndexRecordsAndAssertOutput(bulkClient, elastic, new()
             {
                 ["2"] = "second record with update",
                 ["3"] = "third record to remain the same",
                 ["4"] = "fourth record which is new",
-            };
+            });
+        }
 
-            var initialEnvelopes = expectedInitalRecords
+        private static async Task BulkIndexRecordsAndAssertOutput(ElasticBulkClient bulkClient, ElasticsearchClient elastic, Dictionary<string, string> expectedRecords)
+        {
+            var envelopes = expectedRecords
                 .Select(Map)
                 .AsAsyncEnumerable();
 
-            var updatedEnvelopes = expectedUpdatedRecords
-                .Select(Map)
-                .AsAsyncEnumerable();
+            await bulkClient.IndexBulk(envelopes, IndexWithoutPrefix, [], default);
 
-            // Bulk index the initial values
-            await bulkClient.IndexBulk(initialEnvelopes, IndexWithoutPrefix, [], default);
+            var refreshResponse = await elastic.Indices.RefreshAsync(IndexWithPrefix);
+            Assert.True(refreshResponse.IsSuccess());
 
-            Assert.True((await elastic.Indices.RefreshAsync(IndexWithPrefix)).IsSuccess());
+            var searchResponse = await elastic.SearchAsync<KissEnvelope>(IndexWithPrefix);
+            Assert.True(searchResponse.IsSuccess());
 
-            var firstSearchResponse = await elastic.SearchAsync<KissEnvelope>(IndexWithPrefix);
-            Assert.True(firstSearchResponse.IsSuccess());
+            var actualRecords = searchResponse.Hits.ToDictionary(x => x.Id!, x => x.Source.Title!);
 
-            var actualInitialRecords = firstSearchResponse.Hits.ToDictionary(x => x.Id!, x => x.Source.Title!);
-
-            Assert.Equivalent(expectedInitalRecords, actualInitialRecords);
-
-
-            // Bulk index the updated values
-            await bulkClient.IndexBulk(updatedEnvelopes, IndexWithoutPrefix, [], default);
-
-            Assert.True((await elastic.Indices.RefreshAsync(IndexWithPrefix)).IsSuccess());
-
-            var secondSearchResponse = await elastic.SearchAsync<KissEnvelope>(IndexWithPrefix);
-            Assert.True(secondSearchResponse.IsSuccess());
-
-            var actualUpdatedRecords = secondSearchResponse.Hits.ToDictionary(x => x.Id!, x => x.Source.Title!);
-
-            Assert.Equal(expectedUpdatedRecords, actualUpdatedRecords);
+            Assert.Equal(expectedRecords, actualRecords);
         }
 
         private static KissEnvelope Map(KeyValuePair<string, string> x) 
