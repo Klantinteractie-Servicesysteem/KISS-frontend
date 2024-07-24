@@ -87,7 +87,7 @@ namespace Kiss.Elastic.Sync
                     while (hasNext && written < MaxBytesForBulk)
                     {
                         existingIds.Remove(enumerator.Current.Id);
-                        written = await WriteIndexStatement(writer, stream, indexName, bron, enumerator.Current, token);
+                        written += await WriteIndexStatement(writer, stream, indexName, bron, enumerator.Current, token);
                         hasNext = await enumerator.MoveNextAsync();
                     }
 
