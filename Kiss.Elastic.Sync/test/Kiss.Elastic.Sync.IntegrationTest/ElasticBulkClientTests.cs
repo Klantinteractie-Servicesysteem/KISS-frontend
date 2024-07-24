@@ -23,6 +23,7 @@ namespace Kiss.Elastic.Sync.IntegrationTest
 
             var elastic = new ElasticsearchClient(fixture.BaseUri);
 
+            // index some records and assert if we get the same records back from elasticsearch
             await BulkIndexRecordsAndAssertOutput(bulkClient, elastic, new ()
             {
                 ["1"] = "first record to be deleted",
@@ -30,6 +31,12 @@ namespace Kiss.Elastic.Sync.IntegrationTest
                 ["3"] = "third record to remain the same",
             });
 
+            // index a new set of records, with:
+            // - an excluded record from the first set
+            // - an update
+            // - an unchanged record 
+            // - a new record
+            // and assert if we get that exact same records back from elasticsearch
             await BulkIndexRecordsAndAssertOutput(bulkClient, elastic, new()
             {
                 ["2"] = "second record with update",
