@@ -1,14 +1,17 @@
 ﻿using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
+using HttpMethod = System.Net.Http.HttpMethod;
 
 namespace Kiss.Elastic.Sync
 {
     public sealed class ElasticBulkClient : IDisposable
     {
-        const long MaxBytes = 50_000_000;
+        const long MaxBytesForBulk = 50_000_000;
         const byte NewLine = (byte)'\n';
+        const int MaxPageSizeForScrolling = 10_000;
 
         private static JsonElement GetFieldMapping()
         {
@@ -20,6 +23,7 @@ namespace Kiss.Elastic.Sync
         private static readonly JsonElement s_fieldMapping = GetFieldMapping();
 
         private readonly HttpClient _httpClient;
+        private readonly ElasticsearchClient _elasticsearchClient;
 
         public ElasticBulkClient(Uri baseUri, string username, string password)
         {
@@ -33,6 +37,9 @@ namespace Kiss.Elastic.Sync
             _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = baseUri;
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Helpers.EncodeCredential(username, password));
+            var clientSettings = new ElasticsearchClientSettings(baseUri)
+                .Authentication(new BasicAuthentication(username, password));
+            _elasticsearchClient = new ElasticsearchClient(clientSettings);
         }
 
         public void Dispose() => _httpClient?.Dispose();
@@ -75,7 +82,7 @@ namespace Kiss.Elastic.Sync
                     using var writer = new Utf8JsonWriter(stream);
 
                     // write an index statement in the bulk document for all records from the source
-                    while (hasNext && written < MaxBytes)
+                    while (hasNext && written < MaxBytesForBulk)
                     {
                         existingIds.Remove(enumerator.Current.Id);
                         written = await WriteIndexStatement(writer, stream, indexName, bron, enumerator.Current, token);
@@ -83,7 +90,7 @@ namespace Kiss.Elastic.Sync
                     }
 
                     // write a delete statement for all ids that are no longer in the source
-                    while (!hasNext && existingIds.Count > 0 && written < MaxBytes)
+                    while (!hasNext && existingIds.Count > 0 && written < MaxBytesForBulk)
                     {
                         var existingId = existingIds.First();
                         existingIds.Remove(existingId);
@@ -153,77 +160,43 @@ namespace Kiss.Elastic.Sync
 
         private async Task<HashSet<string>> GetExistingIds(string indexName, CancellationToken token)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{indexName}/_search?scroll=1m");
-            request.Content = new StringContent("""
-            { 
-                "query" : { 
-                    "match_all" : {} 
-                },
-                "stored_fields": []
-            }
-            """, Encoding.UTF8, "application/json");
             var result = new HashSet<string>();
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-            if (!response.IsSuccessStatusCode)
-            {
-                await Helpers.LogResponse(response, token);
-                return result;
-            }
-            using var stream = await response.Content.ReadAsStreamAsync(token);
-            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
 
-            if (!TryGetHits(doc, out var hits, out var total, out var scrollId))
-            {
-                return [];
-            }
+            var searchResponse = await _elasticsearchClient.SearchAsync<object>(x => x
+                    .Index(indexName)
+                    // we don't need any stored fields
+                    .StoredFields(Array.Empty<string>())
+                    // we don't need the source documents
+                    .Source(new(false))
+                    .Size(MaxPageSizeForScrolling)
+                    // scrolling is the most efficient way to loop through big result sets
+                    .Scroll(TimeSpan.FromMinutes(1)),
+                token);
 
-            foreach (var item in hits)
-            {
-                result.Add(item);
-            }
+            var scrollId = searchResponse.ScrollId;
+            var hits = searchResponse.Hits;
 
-            while (result.Count < total && !string.IsNullOrWhiteSpace(scrollId))
+            while (scrollId is { } && hits.Count > 0)
             {
-                using var scrollRequest = new HttpRequestMessage(HttpMethod.Post, "_search/scroll");
-                scrollRequest.Content = new StringContent($$"""
-                { 
-                    "scroll": "1m",
-                    "scroll_id": "{{scrollId}}"
-                }
-                """, Encoding.UTF8, "application/json");
-                using var scrollResponse = await _httpClient.SendAsync(scrollRequest, HttpCompletionOption.ResponseHeadersRead, token);
-                if (!scrollResponse.IsSuccessStatusCode)
+                foreach (var id in hits.Select(x=> x.Id).OfType<string>())
                 {
-                    await Helpers.LogResponse(scrollResponse, token);
-                    return result;
-                }
-                using var scrollStream = await scrollResponse.Content.ReadAsStreamAsync(token);
-                using var scrollDoc = await JsonDocument.ParseAsync(scrollStream, cancellationToken: token);
-
-                if (!TryGetHits(scrollDoc, out hits, out total, out scrollId))
-                {
-                    return result;
+                    result.Add(id);
                 }
 
-                foreach (var item in hits)
-                {
-                    result.Add(item);
-                }
+                // get the next result set by specifying the scrollId we got previously
+                var scrollResponse = await _elasticsearchClient.ScrollAsync<object>(new ScrollRequest { 
+                    ScrollId = scrollId, 
+                    Scroll = TimeSpan.FromMinutes(1),
+                }, token);
+                
+                scrollId = scrollResponse.ScrollId;
+                hits = scrollResponse.Hits;
             }
 
-            if (!string.IsNullOrWhiteSpace(scrollId))
+            if (scrollId is { })
             {
-                using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, "_search/scroll");
-                deleteRequest.Content = new StringContent($$"""
-                { 
-                    "scroll_id": "{{scrollId}}"
-                }
-                """, Encoding.UTF8, "application/json");
-                using var deleteResponse = await _httpClient.SendAsync(deleteRequest, HttpCompletionOption.ResponseHeadersRead, token);
-                if (!deleteResponse.IsSuccessStatusCode)
-                {
-                    await Helpers.LogResponse(deleteResponse, token);
-                }
+                // it's best practice to clear the active scroll when you are done
+                await _elasticsearchClient.ClearScrollAsync(x => x.ScrollId(searchResponse.ScrollId!), token);
             }
 
             return result;
@@ -300,34 +273,6 @@ namespace Kiss.Elastic.Sync
             stream.WriteByte(NewLine);
             written++;
             return written;
-        }
-
-        private static bool TryGetHits(JsonDocument document, out IEnumerable<string> ids, out int total, out string scrollId)
-        {
-            if (!document.RootElement.TryGetProperty("hits"u8, out var hits)
-                || !hits.TryGetProperty("total"u8, out var totalP)
-                || !totalP.TryGetProperty("value"u8, out var totalV)
-                || !totalV.TryGetInt32(out total)
-                || !hits.TryGetProperty("hits"u8, out hits)
-                || hits.ValueKind != JsonValueKind.Array
-                || !document.RootElement.TryGetProperty("_scroll_id"u8, out var scrId)
-                || scrId.ValueKind != JsonValueKind.String)
-            {
-                ids = [];
-                total = 0;
-                scrollId = "";
-                return false;
-            }
-
-            ids = hits.EnumerateArray()
-                .Select(x => x.TryGetProperty("_id"u8, out var id) && id.ValueKind == JsonValueKind.String
-                    ? id.GetString()
-                    : null)
-                .OfType<string>();
-
-            scrollId = scrId.GetString() ?? "";
-
-            return true;
         }
     }
 }
