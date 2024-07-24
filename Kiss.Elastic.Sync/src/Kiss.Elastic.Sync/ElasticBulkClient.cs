@@ -76,6 +76,11 @@ namespace Kiss.Elastic.Sync
             await using var enumerator = envelopes.GetAsyncEnumerator(token);
             var hasNext = await enumerator.MoveNextAsync();
             
+            // we need to continue sending requests to elasticsearch until:
+            // - there are no more records from the source left to process
+            // - there are no more records to delete
+            // we enter this loop multiple times if there are so much records in the source,
+            // that the total size of the request would become too large if we send it to Elasticsearch in one go.
             while (hasNext || existingIds.Count > 0)
             {
                 long written = 0;
@@ -83,7 +88,8 @@ namespace Kiss.Elastic.Sync
                 {
                     using var writer = new Utf8JsonWriter(stream);
 
-                    // write an index statement in the bulk document for all records from the source
+                    // here we loop through the records from the source and add them to the index,
+                    // as long as the request size is not too large
                     while (hasNext && written < MaxBytesForBulk)
                     {
                         existingIds.Remove(enumerator.Current.Id);
@@ -91,6 +97,8 @@ namespace Kiss.Elastic.Sync
                         hasNext = await enumerator.MoveNextAsync();
                     }
 
+                    // once there are no more records from the source left to process,
+                    // and there is still room in the request to add delete statements
                     // write a delete statement for all ids that are no longer in the source
                     while (!hasNext && existingIds.Count > 0 && written < MaxBytesForBulk)
                     {
