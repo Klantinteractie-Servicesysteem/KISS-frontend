@@ -162,6 +162,8 @@ namespace Kiss.Elastic.Sync
 
         private async Task<HashSet<string>> GetExistingIds(string indexName, CancellationToken token)
         {
+            // 1 minute is used in the elasticsearch examples
+            var scrollDuration = TimeSpan.FromMinutes(1);
             var result = new HashSet<string>();
 
             var searchResponse = await _elasticsearchClient.SearchAsync<object>(x => x
@@ -172,7 +174,7 @@ namespace Kiss.Elastic.Sync
                     .Source(new(false))
                     .Size(_scrollPageSize)
                     // scrolling is the most efficient way to loop through big result sets
-                    .Scroll(TimeSpan.FromMinutes(1)),
+                    .Scroll(scrollDuration),
                 token);
 
             var scrollId = searchResponse.ScrollId;
@@ -188,7 +190,7 @@ namespace Kiss.Elastic.Sync
                 // get the next result set by specifying the scrollId we got previously
                 var scrollResponse = await _elasticsearchClient.ScrollAsync<object>(new ScrollRequest { 
                     ScrollId = scrollId, 
-                    Scroll = TimeSpan.FromMinutes(1),
+                    Scroll = scrollDuration,
                 }, token);
                 
                 scrollId = scrollResponse.ScrollId;
