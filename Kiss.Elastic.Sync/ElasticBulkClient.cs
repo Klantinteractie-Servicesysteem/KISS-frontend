@@ -30,12 +30,14 @@ namespace Kiss.Elastic.Sync
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            // skip checking the certificate because we run Elastic internally, with a local certificate
             handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = baseUri;
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Helpers.EncodeCredential(username, password));
             var clientSettings = new ElasticsearchClientSettings(baseUri)
                 .Authentication(new BasicAuthentication(username, password))
+                // skip checking the certificate because we run Elastic internally, with a local certificate
                 .ServerCertificateValidationCallback((a, b, c, d) => true);
 
             _elasticsearchClient = new ElasticsearchClient(clientSettings);
