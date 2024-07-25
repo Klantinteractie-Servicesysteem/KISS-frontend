@@ -30,16 +30,16 @@ namespace Kiss.Elastic.Sync
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback =
-                (httpRequestMessage, cert, cetChain, policyErrors) =>
-                {
-                    return true;
-                };
+            // skip checking the certificate because we run Elastic internally, with a local certificate
+            handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = baseUri;
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Helpers.EncodeCredential(username, password));
             var clientSettings = new ElasticsearchClientSettings(baseUri)
-                .Authentication(new BasicAuthentication(username, password));
+                .Authentication(new BasicAuthentication(username, password))
+                // skip checking the certificate because we run Elastic internally, with a local certificate
+                .ServerCertificateValidationCallback((a, b, c, d) => true);
+
             _elasticsearchClient = new ElasticsearchClient(clientSettings);
             _scrollPageSize = scrollPageSize;
         }
@@ -185,6 +185,11 @@ namespace Kiss.Elastic.Sync
                     .Scroll(scrollDuration),
                 token);
 
+            if (!searchResponse.IsSuccess())
+            {
+                throw new Exception("search failed: " + searchResponse.ToString());
+            }
+
             var scrollId = searchResponse.ScrollId;
             var hits = searchResponse.Hits;
 
@@ -200,7 +205,12 @@ namespace Kiss.Elastic.Sync
                     ScrollId = scrollId, 
                     Scroll = scrollDuration,
                 }, token);
-                
+
+                if (!scrollResponse.IsSuccess())
+                {
+                    throw new Exception("scroll failed: " + scrollResponse.ToString());
+                }
+
                 scrollId = scrollResponse.ScrollId;
                 hits = scrollResponse.Hits;
             }
