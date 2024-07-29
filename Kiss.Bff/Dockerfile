@@ -26,7 +26,7 @@ RUN dotnet restore "Kiss.Bff.Test/Kiss.Bff.Test.csproj"
 COPY Kiss.Bff.Test Kiss.Bff.Test
 WORKDIR "/src/Kiss.Bff.Test"
 RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
-RUN dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n
+RUN dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n /p:CollectCoverage=true /p:CoverletOutput=/testresults/ /p:CoverletOutputFormat=lcov; exit 0
 
 FROM node:18-alpine AS frontend
 WORKDIR /app
@@ -42,6 +42,7 @@ RUN npm run build --if-present
 
 FROM scratch as test
 COPY --from=dotnettest /testresults/*.trx .
+COPY --from=dotnettest /testresults/*.info .
 COPY --from=frontendtest /testresults/*.xml .
 
 FROM dotnetbuild AS dotnetpublish
