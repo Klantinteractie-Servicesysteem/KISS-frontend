@@ -424,27 +424,19 @@ import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import { useContactmomentStore, type Vraag } from "@/stores/contactmoment";
 import { toast } from "@/stores/toast";
 import {
-  koppelKlant,
-  saveContactmoment,
-  koppelObject,
   useGespreksResultaten,
-  type Contactmoment,
-  koppelZaakContactmoment,
   CONTACTVERZOEK_GEMAAKT,
-  saveContactverzoek,
-  mapContactverzoekData,
 } from "@/features/contact/contactmoment";
-import { useOrganisatieIds, useUserStore } from "@/stores/user";
+import { useUserStore } from "@/stores/user";
 import { useConfirmDialog } from "@vueuse/core";
 import PromptModal from "@/components/PromptModal.vue";
-import { nanoid } from "nanoid";
-import { writeContactmomentDetails } from "@/features/contact/contactmoment/write-contactmoment-details";
 import BackLink from "@/components/BackLink.vue";
 import AfdelingenSearch from "@/features/contact/components/AfdelingenSearch.vue";
 import { fetchAfdelingen } from "@/features/contact/components/afdelingen";
 import contactmomentVraag from "@/features/contact/contactmoment/ContactmomentVraag.vue";
 import { useKanalenKeuzeLijst } from "@/features/Kanalen/service";
 import ContactverzoekFormulier from "../contactverzoek/formulier/ContactverzoekFormulier.vue";
+import { useEsuite } from "./esuite";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -452,6 +444,7 @@ const saving = ref(false);
 const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
+const esuite = useEsuite();
 
 onMounted(() => {
   // nog even laten voor een test: rechtstreeks opvragen van een klant.
@@ -472,157 +465,6 @@ onMounted(() => {
   }
 });
 
-const zakenToevoegenAanContactmoment = async (
-  vraag: Vraag,
-  contactmomentId: string,
-) => {
-  for (const { zaak, shouldStore } of vraag.zaken) {
-    if (shouldStore) {
-      try {
-        // dit is voorlopige, hopelijk tijdelijke, code om uit te proberen of dit een nuttige manier is om met de instabiliteit van openzaak en openklant om te gaan
-        // derhalve bewust nog niet geoptimaliseerd
-        try {
-          await koppelZaakContactmoment({
-            contactmoment: contactmomentId,
-            zaak: zaak.self,
-          });
-        } catch (e) {
-          try {
-            console.log(
-              "koppelZaakContactmoment in openzaak attempt 1 failed",
-              e,
-            );
-            await koppelZaakContactmoment({
-              contactmoment: contactmomentId,
-              zaak: zaak.self,
-            });
-          } catch (e) {
-            try {
-              console.log(
-                "koppelZaakContactmoment in openzaak attempt 2 failed",
-                e,
-              );
-              await koppelZaakContactmoment({
-                contactmoment: contactmomentId,
-                zaak: zaak.self,
-              });
-            } catch (e) {
-              console.log(
-                "koppelZaakContactmoment in openzaak attempt 3 failed",
-                e,
-              );
-            }
-          }
-        }
-
-        // de tweede call gaat vaak mis, maar geeft dan bijna altijd ten onterechte een error response.
-        // de data is dan wel correct opgeslagen
-        // wellicht een timing issue. voor de zekerheid even wachten
-
-        try {
-          setTimeout(
-            async () =>
-              await koppelObject({
-                contactmoment: contactmomentId,
-                object: zaak.self,
-                objectType: "zaak",
-              }),
-            1000,
-          );
-        } catch (e) {
-          console.log("koppelZaakContactmoment in openklant", e);
-        }
-      } catch (e) {
-        // zaken toevoegen aan een contactmoment en anedrsom retourneert soms een error terwijl de data meetal wel correct opgelsagen is.
-        // toch maar verder gaan dus
-        console.error(e);
-      }
-    }
-  }
-};
-
-const koppelKlanten = async (vraag: Vraag, contactmomentId: string) => {
-  for (const { shouldStore, klant } of vraag.klanten) {
-    if (shouldStore && klant.url) {
-      await koppelKlant({ contactmomentId, klantId: klant.url });
-    }
-  }
-};
-
-const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
-  const contactmoment: Contactmoment = {
-    bronorganisatie: organisatieIds.value[0] || "",
-    registratiedatum: new Date().toISOString(), // "2023-06-07UTC15:15:48" "YYYY-MM-DDThh:mm[:ss[.uuuuuu]][+HH:MM|-HH:MM|Z]"getFormattedUtcDate(), // todo check of dit nog het juiste format is. lijkt iso te moeten zijn
-    kanaal: vraag.kanaal,
-    tekst: vraag.notitie,
-    onderwerpLinks: [],
-    initiatiefnemer: "klant", //enum "gemeente" of "klant"
-    vraag: vraag?.vraag?.title,
-    specifiekevraag: vraag.specifiekevraag || undefined,
-    gespreksresultaat: vraag.gespreksresultaat,
-    verantwoordelijkeAfdeling: vraag.afdeling?.naam,
-    startdatum: vraag.startdatum,
-    // overige velden zijn waarschijnlijk obsolete. nog even laten staan. misschien nog deels breuikbaar voor bv contactverzoek
-    gespreksId,
-    vorigContactmoment: undefined,
-    voorkeurskanaal: "",
-    voorkeurstaal: "",
-    medewerker: "",
-    einddatum: new Date().toISOString(),
-  };
-
-  addKennisartikelenToContactmoment(contactmoment, vraag);
-  addWebsitesToContactmoment(contactmoment, vraag);
-  addMedewerkersToContactmoment(contactmoment, vraag);
-  addNieuwsberichtToContactmoment(contactmoment, vraag);
-  addWerkinstructiesToContactmoment(contactmoment, vraag);
-  addVacToContactmoment(contactmoment, vraag);
-
-  const klantUrl = vraag.klanten
-    .filter((x) => x.shouldStore)
-    .map((x) => x.klant.url)
-    .find(Boolean);
-
-  const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
-  let cvData;
-  if (isContactverzoek) {
-    cvData = mapContactverzoekData({
-      klantUrl,
-      data: vraag.contactverzoek,
-    });
-
-    Object.assign(contactmoment, cvData);
-  }
-
-  const savedContactmomentResult = await saveContactmoment(contactmoment);
-
-  if (savedContactmomentResult.errorMessage || !savedContactmomentResult.data) {
-    return savedContactmomentResult;
-  }
-
-  const savedContactmoment = savedContactmomentResult.data;
-
-  const promises = [
-    writeContactmomentDetails(contactmoment, savedContactmoment.url),
-    zakenToevoegenAanContactmoment(vraag, savedContactmoment.url),
-  ];
-
-  if (isContactverzoek && cvData) {
-    promises.push(
-      saveContactverzoek({
-        data: cvData,
-        contactmomentUrl: savedContactmoment.url,
-      }),
-    );
-  }
-
-  promises.push(koppelKlanten(vraag, savedContactmoment.url));
-
-  await Promise.all(promises);
-
-  return savedContactmomentResult;
-};
-
 const navigateToPersonen = () => router.push({ name: "personen" });
 
 async function submit() {
@@ -631,16 +473,13 @@ async function submit() {
     errorMessage.value = "";
     if (!contactmomentStore.huidigContactmoment) return;
 
-    const { vragen } = contactmomentStore.huidigContactmoment;
-    const saveVraagResult = await saveVraag(vragen[0]);
+    const result = await esuite.save();
 
-    if (saveVraagResult.errorMessage) {
-      handleSaveVraagError(saveVraagResult.errorMessage);
+    if (result.errorMessage) {
+      handleSaveVraagError(result.errorMessage);
     } else {
-      await handleSaveVraagSuccess(
-        saveVraagResult.data?.gespreksId,
-        vragen.slice(1),
-      );
+      toast({ text: "Het contactmoment is opgeslagen" });
+      navigateToPersonen();
     }
   } catch (error) {
     errorMessage.value =
@@ -649,123 +488,11 @@ async function submit() {
     saving.value = false;
   }
 }
-const addKennisartikelenToContactmoment = (
-  contactmoment: Contactmoment,
-  vraag: Vraag,
-) => {
-  if (!vraag.kennisartikelen) return;
-
-  vraag.kennisartikelen.forEach((kennisartikel) => {
-    if (!kennisartikel.shouldStore) return;
-
-    contactmoment.onderwerpLinks.push(kennisartikel.kennisartikel.url);
-  });
-};
-
-const addVacToContactmoment = (contactmoment: Contactmoment, vraag: Vraag) => {
-  if (!vraag.vacs) return;
-
-  vraag.vacs.forEach((item) => {
-    if (!item.shouldStore) return;
-
-    contactmoment.onderwerpLinks.push(item.vac.url);
-  });
-};
-
-const addWebsitesToContactmoment = (
-  contactmoment: Contactmoment,
-  vraag: Vraag,
-) => {
-  if (!vraag.websites) return;
-
-  vraag.websites.forEach((website) => {
-    if (!website.shouldStore) return;
-
-    contactmoment.onderwerpLinks.push(website.website.url);
-  });
-};
-
-const addMedewerkersToContactmoment = (
-  contactmoment: Contactmoment,
-  vraag: Vraag,
-) => {
-  if (!vraag.medewerkers) return;
-
-  vraag.medewerkers.forEach((medewerker) => {
-    if (!medewerker.shouldStore || !medewerker.medewerker.url) return;
-
-    contactmoment.onderwerpLinks.push(medewerker.medewerker.url);
-  });
-};
-
-const addNieuwsberichtToContactmoment = (
-  contactmoment: Contactmoment,
-  vraag: Vraag,
-) => {
-  if (!vraag.nieuwsberichten) return;
-
-  vraag.nieuwsberichten.forEach((nieuwsbericht) => {
-    if (!nieuwsbericht.shouldStore) return;
-
-    // make absolute if not already
-    const absoluteUrl = new URL(
-      nieuwsbericht.nieuwsbericht.url,
-      window.location.origin,
-    );
-
-    contactmoment.onderwerpLinks.push(absoluteUrl.toString());
-  });
-};
-
-const addWerkinstructiesToContactmoment = (
-  contactmoment: Contactmoment,
-  vraag: Vraag,
-) => {
-  if (!vraag.werkinstructies) return;
-
-  vraag.werkinstructies.forEach((werkinstructie) => {
-    if (!werkinstructie.shouldStore) return;
-
-    // make absolute if not already
-    const absoluteUrl = new URL(
-      werkinstructie.werkinstructie.url,
-      window.location.origin,
-    );
-
-    contactmoment.onderwerpLinks.push(absoluteUrl.toString());
-  });
-};
 
 const userStore = useUserStore();
-const organisatieIds = useOrganisatieIds();
 
 const handleSaveVraagError = (msg: string) => {
   errorMessage.value = msg;
-};
-
-const handleSaveVraagSuccess = async (
-  gespreksId: string | undefined,
-  otherVragen: Vraag[],
-) => {
-  if (!gespreksId) {
-    gespreksId = nanoid();
-  }
-
-  const promises = otherVragen.map((x) => saveVraag(x, gespreksId));
-  const otherVrageSaveResults = await Promise.all(promises);
-  const firstErrorInOtherVragen = otherVrageSaveResults.find(
-    (x) => x.errorMessage,
-  );
-
-  if (firstErrorInOtherVragen && firstErrorInOtherVragen.errorMessage) {
-    handleSaveVraagError(firstErrorInOtherVragen.errorMessage);
-    return;
-  }
-
-  // klaar
-  contactmomentStore.stop();
-  toast({ text: "Het contactmoment is opgeslagen" });
-  navigateToPersonen();
 };
 
 function setUserChannel(e: Event) {
