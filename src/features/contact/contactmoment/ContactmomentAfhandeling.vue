@@ -437,6 +437,7 @@ import contactmomentVraag from "@/features/contact/contactmoment/ContactmomentVr
 import { useKanalenKeuzeLijst } from "@/features/Kanalen/service";
 import ContactverzoekFormulier from "../contactverzoek/formulier/ContactverzoekFormulier.vue";
 import { useEsuite } from "./esuite";
+import { useKlantinteractie } from "./klantinteractie";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -445,6 +446,8 @@ const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
 const esuite = useEsuite();
+const klantinteractie = useKlantinteractie();
+const isEsuite = false;
 
 onMounted(() => {
   // nog even laten voor een test: rechtstreeks opvragen van een klant.
@@ -473,7 +476,9 @@ async function submit() {
     errorMessage.value = "";
     if (!contactmomentStore.huidigContactmoment) return;
 
-    const result = await esuite.save();
+    const result = isEsuite
+      ? await esuite.save()
+      : await klantinteractie.save();
 
     if (result.errorMessage) {
       handleSaveVraagError(result.errorMessage);
