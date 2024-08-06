@@ -1,8 +1,3 @@
-export type UpdateContactgegevensParams = Pick<
-  Klant,
-  "id" | "telefoonnummer" | "emailadres"
->;
-
 export interface Klant {
   _typeOfKlant: "klant";
   id: string;

@@ -1,8 +1,11 @@
 <template>
   <back-link />
   <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
-
-  <tab-list v-model="currentTab">
+  <application-message
+    messageType="error"
+    message="Deze pagina werkt tijdelijk niet, totdat story PC-341 is uitgevoerd"
+  />
+  <!-- <tab-list v-model="currentTab">
     <tab-list-data-item
       label="Contactgegevens"
       :data="klant"
@@ -66,10 +69,11 @@
         </contactverzoeken-overzicht>
       </template>
     </tab-list-data-item>
-  </tab-list>
+  </tab-list> -->
 </template>
 
 <script setup lang="ts">
+import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import { computed, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
@@ -117,7 +121,6 @@ const contactverzoeken = useContactverzoekenByKlantId(
   klantUrl,
   contactverzoekenPage,
 );
-
 const contactmomenten = useContactmomentenByKlantId(klantUrl);
 
 const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
@@ -128,7 +131,8 @@ const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
     };
   if (klant.data.nietNatuurlijkPersoonIdentifier)
     return {
-      nietNatuurlijkPersoonIdentifier: klant.data.nietNatuurlijkPersoonIdentifier,
+      nietNatuurlijkPersoonIdentifier:
+        klant.data.nietNatuurlijkPersoonIdentifier,
     };
 };
 
