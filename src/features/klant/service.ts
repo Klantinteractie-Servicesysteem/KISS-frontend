@@ -10,11 +10,7 @@ import {
 import { mutate } from "swrv";
 import type { Ref } from "vue";
 
-import {
-  type UpdateContactgegevensParams,
-  type Klant,
-  KlantType,
-} from "./types";
+import { type Klant, KlantType } from "./types";
 import { nanoid } from "nanoid";
 import type { BedrijfIdentifier } from "./bedrijf/types";
 import { klantinteractieClient } from "./klantinteractie-client";
@@ -138,75 +134,28 @@ function searchKlanten(url: string): Promise<PaginatedResult<Klant>> {
     .then((j) => parsePagination(j, mapKlant))
     .then((p) => {
       p.page.forEach((klant) => {
-        const idUrl = getKlantIdUrl(klant.id);
-        if (idUrl) {
-          mutate(idUrl, klant);
+        if (klant.id) {
+          mutate(klant.id, klant);
         }
       });
       return p;
     });
 }
 
-function getKlantIdUrl(id?: string) {
-  if (!id) return "";
-  const url = new URL(`${klantRootUrl}/${id}`);
-  return url.toString();
-}
-
 const searchSingleKlant = (url: string) =>
   searchKlanten(url).then(enforceOneOrZero);
 
-function fetchKlantById(url: string) {
-  return fetchLoggedIn(url).then(throwIfNotOk).then(parseJson).then(mapKlant);
-}
-
 export function useKlantById(id: Ref<string>) {
   return ServiceResult.fromFetcher(
-    () => getKlantIdUrl(id.value),
-    fetchKlantById,
+    () => id.value,
+    (uuid) =>
+      klantinteractieClient.partijen
+        .partijenRetrieve({
+          uuid,
+          expand: ["digitaleAdressen"],
+        })
+        .then(mapPartijToKlant),
   );
-}
-
-const getValidIdentificatie = ({ subjectType, subjectIdentificatie }: any) => {
-  if (subjectType === KlantType.Persoon)
-    return subjectIdentificatie || { inpBsn: "" };
-
-  const { handelsnaam, ...rest } = subjectIdentificatie ?? {};
-  if (Array.isArray(handelsnaam) && handelsnaam.length)
-    return subjectIdentificatie;
-  return rest;
-};
-
-function updateContactgegevens({
-  id,
-  telefoonnummer,
-  emailadres,
-}: UpdateContactgegevensParams): Promise<UpdateContactgegevensParams> {
-  const endpoint = klantRootUrl + "/" + id;
-  return fetchLoggedIn(endpoint)
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((klant) =>
-      fetchLoggedIn(endpoint, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...klant,
-          subjectIdentificatie: getValidIdentificatie(klant),
-          telefoonnummer,
-          emailadres,
-        }),
-      }),
-    )
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then(({ telefoonnummer, emailadres }) => ({
-      id,
-      telefoonnummer,
-      emailadres,
-    }));
 }
 
 export function useSearchKlanten<K extends KlantSearchField>({
@@ -223,18 +172,13 @@ export function useSearchKlanten<K extends KlantSearchField>({
   return ServiceResult.fromFetcher(getUrl, searchKlanten);
 }
 
-export function useUpdateContactGegevens() {
-  return ServiceResult.fromSubmitter(updateContactgegevens);
-}
-
 export async function ensureKlantForBsn({ bsn }: { bsn: string }) {
   if (!bsn) throw new Error();
 
   const first = await getSingleKlantByBsn(bsn);
 
   if (first) {
-    const idUrl = getKlantIdUrl(first.id);
-    mutate(idUrl, first);
+    mutate(first.id, first);
     return first;
   }
 
@@ -274,9 +218,8 @@ export async function ensureKlantForBsn({ bsn }: { bsn: string }) {
   );
 
   const newKlant = await mapPartijToKlant(partij);
-  const idUrl = getKlantIdUrl(newKlant.id);
 
-  mutate(idUrl, newKlant);
+  mutate(newKlant.id, newKlant);
 
   return newKlant;
 }
@@ -353,8 +296,7 @@ export async function ensureKlantForBedrijfIdentifier(
 
   if (first) {
     mutate(uniqueId, first);
-    const idUrl = getKlantIdUrl(first.id);
-    mutate(idUrl, first);
+    mutate(first.id, first);
     return first;
   }
 
@@ -399,9 +341,8 @@ export async function ensureKlantForBedrijfIdentifier(
 
   const json = await response.json();
   const newKlant = mapKlant(json);
-  const idUrl = getKlantIdUrl(newKlant.id);
 
-  mutate(idUrl, newKlant);
+  mutate(newKlant.id, newKlant);
   mutate(uniqueId, newKlant);
 
   return newKlant;
