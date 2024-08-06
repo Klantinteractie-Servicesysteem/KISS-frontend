@@ -119,7 +119,6 @@ import {
 } from "./service";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
 import { ensureKlantForBsn } from "../service";
-import { useOrganisatieIds } from "@/stores/user";
 import { FriendlyError } from "@/services";
 
 const store = ensureState({
@@ -190,16 +189,12 @@ const singleBsn = computed(() => {
 });
 
 const router = useRouter();
-const organisatieIds = useOrganisatieIds();
-watch(
-  [singleBsn, () => organisatieIds.value[0]],
-  async ([bsn, org], [oldBsn]) => {
-    if (org && bsn && bsn !== oldBsn) {
-      const { id } = await ensureKlantForBsn({ bsn }, org);
-      await router.push(`/personen/${id}`);
-    }
-  },
-);
+watch(singleBsn, async (bsn, oldBsn) => {
+  if (bsn && bsn !== oldBsn) {
+    const { id } = await ensureKlantForBsn({ bsn });
+    await router.push(`/personen/${id}`);
+  }
+});
 </script>
 
 <style lang="scss" scoped>

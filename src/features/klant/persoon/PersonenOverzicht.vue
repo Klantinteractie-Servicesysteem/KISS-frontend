@@ -56,19 +56,15 @@ import { useRouter } from "vue-router";
 
 defineProps<{ records: Persoon[] }>();
 
-const organisatieIds = useOrganisatieIds();
 const router = useRouter();
 
 const getKlantUrl = (klant: Klant) => `/personen/${klant.id}`;
 
 const create = async (record: Persoon) => {
   if (!record.bsn) throw new Error();
-  const newKlant = await ensureKlantForBsn(
-    {
-      bsn: record.bsn,
-    },
-    organisatieIds.value[0] || ""
-  );
+  const newKlant = await ensureKlantForBsn({
+    bsn: record.bsn,
+  });
   const url = getKlantUrl(newKlant);
   router.push(url);
 };
