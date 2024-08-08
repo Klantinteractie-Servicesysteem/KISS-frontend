@@ -19,13 +19,14 @@ export type ZaakDetails = {
   url: string;
   documenten?: ZaakDocument[];
   omschrijving: string;
-  zaaksysteemId?: string;
+  zaaksysteemId: string;
 };
 
 export interface ZaakPreview {
   identificatie: string;
   zaaktypeLabel: string;
   status: string;
+  zaaksysteemId: string;
 }
 
 export interface ZaakDocument {

@@ -58,7 +58,12 @@ export const useZakenPreviewByUrl = (url: Ref<string>) => {
     return fetchWithZaaksysteemId(zaaksysteemId, u)
       .then(throwIfNotOk)
       .then((x) => x.json())
-      .then((json) => mapZaakDetailsPreview(json, zaaksysteemId));
+      .then((json) =>
+        mapZaakDetailsPreview({
+          ...json,
+          zaaksysteemId,
+        }),
+      );
   };
 
   const getUniqueId = () => url.value && `${url.value}_preview`;
@@ -83,7 +88,12 @@ const singleZaakFetcher = function fetcher(
   return fetchWithZaaksysteemId(zaaksysteemId, url)
     .then(throwIfNotOk)
     .then((x) => x.json())
-    .then((x) => mapZaakDetails(x, zaaksysteemId));
+    .then((x) =>
+      mapZaakDetails({
+        ...x,
+        zaaksysteemId,
+      }),
+    );
 };
 
 export const useZaakById = (
@@ -175,8 +185,8 @@ const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   return ONBEKEND;
 };
 
-const getStatus = async (statusUrl: string, zaaksysteemId: string) => {
-  const statusId = statusUrl?.split("/")?.pop();
+const getStatus = async ({ status, zaaksysteemId }: any) => {
+  const statusId = status?.split("/")?.pop();
 
   if (!statusId) return "";
 
@@ -205,13 +215,13 @@ const getStatus = async (statusUrl: string, zaaksysteemId: string) => {
   return statusOmschrijving;
 };
 
-const getDocumenten = async (
-  zaakurl: string,
-  zaaksysteemId: string,
-): Promise<Array<ZaakDocument | null>> => {
+const getDocumenten = async ({
+  url,
+  zaaksysteemId,
+}: any): Promise<Array<ZaakDocument | null>> => {
   const infoObjecten = await fetchWithZaaksysteemId(
     zaaksysteemId,
-    `${zaaksysteemBaseUri}/zaakinformatieobjecten?zaak=${zaakurl}`,
+    `${zaaksysteemBaseUri}/zaakinformatieobjecten?zaak=${url}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json());
@@ -233,17 +243,17 @@ const getDocumenten = async (
   return [];
 };
 
-const getRollen = async (
-  zaakurl: string,
-  zaaksysteemId: string,
-): Promise<Array<RolType>> => {
+const getRollen = async ({
+  url,
+  zaaksysteemId,
+}: any): Promise<Array<RolType>> => {
   // rollen is een gepagineerd resultaat. we verwachten maar twee rollen.
   // het lijkt extreem onwaarschijnlijk dat er meer dan 1 pagina met rollen zal zijn.
   // we kijken dus (voorlopig) alleen naar de eerste pagina
 
   let pageIndex = 0;
   const rollen: Array<RolType> = [];
-  const rollenUrl = `${zaaksysteemBaseUri}/rollen?zaak=${zaakurl}`;
+  const rollenUrl = `${zaaksysteemBaseUri}/rollen?zaak=${url}`;
 
   const getPage = async (url: string) => {
     const page = await fetchWithZaaksysteemId(zaaksysteemId, url)
@@ -264,10 +274,7 @@ const getRollen = async (
   return rollen;
 };
 
-const getZaakType = (
-  zaaktype: string,
-  zaaksysteemId: string,
-): Promise<ZaakType> => {
+const getZaakType = ({ zaaktype, zaaksysteemId }: any): Promise<ZaakType> => {
   const zaaktypeid = zaaktype.split("/").pop();
   const url = `/api/zaken/catalogi/api/v1/zaaktypen/${zaaktypeid}`;
 
@@ -284,8 +291,8 @@ const getZaakUrl = (id: string) => {
   return `${zaaksysteemBaseUri}/zaken/${id}`;
 };
 
-const mapZaakDetails = async (zaak: any, zaaksysteemId: string) => {
-  const zaakzaaktype = await getZaakType(zaak.zaaktype, zaaksysteemId);
+const mapZaakDetails = async (zaak: any) => {
+  const zaakzaaktype = await getZaakType(zaak);
 
   const startdatum = zaak.startdatum ? new Date(zaak.startdatum) : undefined;
 
@@ -320,9 +327,9 @@ const mapZaakDetails = async (zaak: any, zaaksysteemId: string) => {
   //     })
   //     .toJSDate();
 
-  const documenten = await getDocumenten(zaak.url, zaaksysteemId);
+  const documenten = await getDocumenten(zaak);
 
-  const rollen = await getRollen(zaak.url, zaaksysteemId);
+  const rollen = await getRollen(zaak);
 
   const id = zaak.url.split("/").pop();
 
@@ -332,7 +339,7 @@ const mapZaakDetails = async (zaak: any, zaaksysteemId: string) => {
     zaaktype: zaakzaaktype.id,
     zaaktypeLabel: zaakzaaktype.onderwerp,
     zaaktypeOmschrijving: zaakzaaktype.omschrijving,
-    status: await getStatus(zaak.status, zaaksysteemId),
+    status: await getStatus(zaak),
     behandelaar: getNamePerRoltype(rollen, "behandelaar"),
     aanvrager: getNamePerRoltype(rollen, "initiator"),
     startdatum,
@@ -346,13 +353,13 @@ const mapZaakDetails = async (zaak: any, zaaksysteemId: string) => {
   } as ZaakDetails;
 };
 
-const mapZaakDetailsPreview = async (zaak: any, zaaksysteemId: string) => {
-  const zaakzaaktype = await getZaakType(zaak.zaaktype, zaaksysteemId);
+const mapZaakDetailsPreview = async (zaak: any) => {
+  const zaakzaaktype = await getZaakType(zaak);
 
   return {
     identificatie: zaak.identificatie,
     zaaktypeLabel: zaakzaaktype.onderwerp,
-    status: await getStatus(zaak.status, zaaksysteemId),
+    status: await getStatus(zaak),
   } as ZaakPreview;
 };
 
@@ -363,9 +370,7 @@ const overviewFetcher = (url: string): Promise<PaginatedResult<ZaakDetails>> =>
   fetchLoggedIn(url)
     .then(throwIfNotOk)
     .then((x) => x.json())
-    .then((json) =>
-      parsePagination(json, (x) => mapZaakDetails(x, (x as any).zaaksysteemId)),
-    )
+    .then((json) => parsePagination(json, mapZaakDetails))
     .then((zaken) => {
       zaken.page.forEach((zaak) => {
         mutate(getZaakUrl(zaak.id), zaak);

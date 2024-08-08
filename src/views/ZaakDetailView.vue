@@ -31,7 +31,7 @@
         label="Documenten"
         :disabled="!zaak.data.documenten?.length"
       >
-        <zaak-documenten :zaak="zaak.data" :zaaksysteemId="zaaksysteemId" />
+        <zaak-documenten :zaak="zaak.data" />
       </tab-list-item>
       <tab-list-data-item
         label="Contactmomenten"
@@ -71,7 +71,7 @@ import { TabList, TabListItem, TabListDataItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { useZaaksysteemDeeplink } from "@/features/zaaksysteem/deeplink";
 
-const props = defineProps<{ zaakId: string; zaaksysteemId?: string }>();
+const props = defineProps<{ zaakId: string; zaaksysteemId: string }>();
 const contactmomentStore = useContactmomentStore();
 const zaak = useZaakById(
   computed(() => props.zaakId),

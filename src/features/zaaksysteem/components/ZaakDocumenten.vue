@@ -47,7 +47,6 @@ import { fetchWithZaaksysteemId } from "../service";
 
 const props = defineProps<{
   zaak: ZaakDetails;
-  zaaksysteemId: string;
 }>();
 // bij het implementeren van meerdere zaaksystemen is gekozen om de zaaksysteemid mee te geven in de header
 // zodat de requests en querystrings verder zo min mogelijk afwijken van de api standaard
@@ -55,7 +54,7 @@ const props = defineProps<{
 // omdat je in een gewone link geen header mee kan geven.
 async function download(doc: ZaakDocument) {
   const url = doc.url + "/download";
-  const blob = await fetchWithZaaksysteemId(props.zaaksysteemId, url)
+  const blob = await fetchWithZaaksysteemId(props.zaak.zaaksysteemId, url)
     .then(throwIfNotOk)
     .then((r) => r.blob());
   const objectUrl = URL.createObjectURL(blob);

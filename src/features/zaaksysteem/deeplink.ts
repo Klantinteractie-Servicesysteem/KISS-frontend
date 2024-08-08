@@ -1,20 +1,21 @@
 import { ServiceResult, parseJson, throwIfNotOk } from "@/services";
 import type { ZaakDetails } from "./types";
-import { computed, type Ref } from "vue";
+import { computed } from "vue";
 import { fetchWithZaaksysteemId } from "./service";
 
-const useZaaksysteemDeeplinkConfig = (
-  zaaksysteemId: Ref<string | undefined>,
-) => {
+export function useZaaksysteemDeeplink(getZaak: () => ZaakDetails | undefined) {
   const url = "/api/zaaksysteem/deeplinkconfig";
+  const getZaaksysteemId = () => getZaak()?.zaaksysteemId || "";
+
   const getCacheKey = () => {
-    const id = zaaksysteemId.value || "";
-    return id && url + id;
+    const zaaksysteemId = getZaaksysteemId();
+    return zaaksysteemId && url + zaaksysteemId;
   };
-  return ServiceResult.fromFetcher(
+
+  const config = ServiceResult.fromFetcher(
     url,
     (u) =>
-      fetchWithZaaksysteemId(zaaksysteemId.value, u)
+      fetchWithZaaksysteemId(getZaaksysteemId(), u)
         .then(throwIfNotOk)
         .then(parseJson)
         .then((r) =>
@@ -32,15 +33,10 @@ const useZaaksysteemDeeplinkConfig = (
       getUniqueId: getCacheKey,
     },
   );
-};
 
-export function useZaaksysteemDeeplink(getZaak: () => ZaakDetails | undefined) {
-  const zaak = computed(getZaak);
-  const zaaksysteemId = computed(() => zaak.value?.zaaksysteemId);
-  const config = useZaaksysteemDeeplinkConfig(zaaksysteemId);
   return computed(() => {
     if (!config.success || !config.data) return null;
-    const property = (zaak.value as any)?.[config.data.idProperty];
+    const property = (getZaak() as any)?.[config.data.idProperty];
     if (!property) return null;
     return config.data.baseUrl + property;
   });
