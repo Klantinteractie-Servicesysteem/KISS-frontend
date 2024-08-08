@@ -39,9 +39,9 @@ type Partij = {
 // TODO in toekomstige story: waardes overleggen met Maykin en INFO
 const identificatorTypes = {
   persoon: {
-    codeRegister: "BRP",
-    codeSoortObjectId: "Burgerservicenummer",
-    codeObjecttype: "INGESCHREVEN NATUURLIJK PERSOON",
+    codeRegister: "brp",
+    codeSoortObjectId: "bsn",
+    codeObjecttype: "inp",
   },
   // TODO in PC-341
   // vestiging: {
@@ -55,6 +55,14 @@ const identificatorTypes = {
   //   codeObjecttype: "INGESCHREVEN NIET-NATUURLIJK PERSOON",
   // },
 } as const satisfies Record<string, IdentificatorType>;
+
+const partijTypes = {
+  persoon: "persoon",
+  organisatie: "organisatie",
+  contactpersoon: "contactpersoon",
+} as const;
+
+type PartijType = (typeof partijTypes)[keyof typeof partijTypes];
 
 const digitaalAdresTypes = {
   email: "e-mailadres",
@@ -240,7 +248,11 @@ export function useUpdateContactGegevens() {
 export async function ensureKlantForBsn({ bsn }: { bsn: string }) {
   if (!bsn) throw new Error();
 
-  const first = await getSingleKlantByBsn(bsn);
+  const first = await getSingleKlantByIdentificator(
+    partijTypes.persoon,
+    identificatorTypes.persoon,
+    bsn,
+  );
 
   if (first) {
     const idUrl = getKlantIdUrl(first.id);
@@ -248,7 +260,7 @@ export async function ensureKlantForBsn({ bsn }: { bsn: string }) {
     return first;
   }
 
-  const partij = await createPartij({ soortPartij: "persoon" });
+  const partij = await createPartij({ soortPartij: partijTypes.persoon });
 
   await createPartijIdentificator({
     identificeerdePartij: {
@@ -395,21 +407,25 @@ export async function ensureKlantForBedrijfIdentifier(
   return newKlant;
 }
 
-const getSingleKlantByBsn = (bsn: string) =>
+const getSingleKlantByIdentificator = (
+  soortPartij: PartijType,
+  identificatorType: IdentificatorType,
+  objectId: string,
+) =>
   fetchLoggedIn(
     klantinteractiesBaseUrl +
       "/partijen?" +
       new URLSearchParams({
-        soortPartij: "persoon",
+        soortPartij,
         partijIdentificatorCodeSoortObjectId:
-          identificatorTypes.persoon.codeSoortObjectId,
-        partijIdentificatorObjectId: bsn,
+          identificatorType.codeSoortObjectId,
+        partijIdentificatorObjectId: objectId,
         expand: "digitaleAdressen",
       }),
   )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((r) => parsePagination(r, (x) => mapPartijToKlant(x as any)))
+    .then((r) => parsePagination(r, (x) => mapPartijToKlant(x as Partij)))
     .then(enforceOneOrZero);
 
 async function mapPartijToKlant(partij: Partij): Promise<Klant> {
@@ -447,7 +463,7 @@ async function mapPartijToKlant(partij: Partij): Promise<Klant> {
   };
 }
 
-const createPartij = (partij: { soortPartij: string }): Promise<Partij> =>
+const createPartij = (partij: { soortPartij: PartijType }): Promise<Partij> =>
   fetchLoggedIn(klantinteractiesBaseUrl + "/partijen", {
     body: JSON.stringify(partij),
     headers: {
