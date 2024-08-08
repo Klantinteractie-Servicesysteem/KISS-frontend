@@ -26,6 +26,16 @@ type IdentificatorType = {
   codeObjecttype: string;
 };
 
+type Partij = {
+  nummer?: string;
+  uuid: string;
+  url: string;
+  partijIdentificatoren: { uuid: string }[];
+  _expand?: {
+    digitaleAdressen?: { adres?: string; soortDigitaalAdres?: string }[];
+  };
+};
+
 // TODO in toekomstige story: waardes overleggen met Maykin en INFO
 const identificatorTypes = {
   persoon: {
@@ -402,15 +412,7 @@ const getSingleKlantByBsn = (bsn: string) =>
     .then((r) => parsePagination(r, (x) => mapPartijToKlant(x as any)))
     .then(enforceOneOrZero);
 
-async function mapPartijToKlant(partij: {
-  nummer?: string;
-  uuid: string;
-  url: string;
-  partijIdentificatoren: { uuid: string }[];
-  _expand?: {
-    digitaleAdressen?: { adres?: string; soortDigitaalAdres?: string }[];
-  };
-}): Promise<Klant> {
+async function mapPartijToKlant(partij: Partij): Promise<Klant> {
   const promises = partij.partijIdentificatoren.map(({ uuid }) =>
     getPartijIdentificator(uuid),
   );
@@ -445,9 +447,7 @@ async function mapPartijToKlant(partij: {
   };
 }
 
-const createPartij = (partij: {
-  soortPartij: string;
-}): Promise<{ url: string; uuid: string }> =>
+const createPartij = (partij: { soortPartij: string }): Promise<Partij> =>
   fetchLoggedIn(klantinteractiesBaseUrl + "/partijen", {
     body: JSON.stringify(partij),
     headers: {
