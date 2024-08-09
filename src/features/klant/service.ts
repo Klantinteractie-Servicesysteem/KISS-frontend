@@ -248,37 +248,18 @@ export function useUpdateContactGegevens() {
 export async function ensureKlantForBsn({ bsn }: { bsn: string }) {
   if (!bsn) throw new Error();
 
-  const first = await getSingleKlantByIdentificator(
-    partijTypes.persoon,
-    identificatorTypes.persoon,
-    bsn,
-  );
+  const klant =
+    (await getSingleKlantByIdentificator(
+      partijTypes.persoon,
+      identificatorTypes.persoon,
+      bsn,
+    )) ??
+    (await createKlant(partijTypes.persoon, identificatorTypes.persoon, bsn));
 
-  if (first) {
-    const idUrl = getKlantIdUrl(first.id);
-    mutate(idUrl, first);
-    return first;
-  }
+  const idUrl = getKlantIdUrl(klant.id);
+  mutate(idUrl, klant);
 
-  const partij = await createPartij({ soortPartij: partijTypes.persoon });
-
-  await createPartijIdentificator({
-    identificeerdePartij: {
-      url: partij.url,
-      uuid: partij.uuid,
-    },
-    partijIdentificator: {
-      ...identificatorTypes.persoon,
-      objectId: bsn,
-    },
-  });
-
-  const newKlant = await mapPartijToKlant(partij as any);
-  const idUrl = getKlantIdUrl(newKlant.id);
-
-  mutate(idUrl, newKlant);
-
-  return newKlant;
+  return klant;
 }
 
 const getUrlVoorGetKlantById = (
@@ -495,3 +476,21 @@ const getPartijIdentificator = (uuid: string) =>
   fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren/" + uuid)
     .then(throwIfNotOk)
     .then(parseJson);
+
+const createKlant = (
+  soortPartij: PartijType,
+  identificatorType: IdentificatorType,
+  objectId: string,
+) =>
+  createPartij({ soortPartij }).then((partij) => {
+    return createPartijIdentificator({
+      identificeerdePartij: {
+        url: partij.url,
+        uuid: partij.uuid,
+      },
+      partijIdentificator: {
+        ...identificatorType,
+        objectId,
+      },
+    }).then(() => mapPartijToKlant(partij));
+  });
