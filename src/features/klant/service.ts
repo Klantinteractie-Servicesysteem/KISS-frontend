@@ -482,8 +482,8 @@ const createKlant = (
   identificatorType: IdentificatorType,
   objectId: string,
 ) =>
-  createPartij({ soortPartij }).then((partij) => {
-    return createPartijIdentificator({
+  createPartij({ soortPartij }).then((partij) =>
+    createPartijIdentificator({
       identificeerdePartij: {
         url: partij.url,
         uuid: partij.uuid,
@@ -492,5 +492,5 @@ const createKlant = (
         ...identificatorType,
         objectId,
       },
-    }).then(() => mapPartijToKlant(partij));
-  });
+    }).then(() => mapPartijToKlant(partij)),
+  );
