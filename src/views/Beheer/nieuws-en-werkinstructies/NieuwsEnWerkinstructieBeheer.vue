@@ -246,7 +246,7 @@ async function load() {
       bericht.value = initBericht();
     }
 
-    //load skils
+    //load skills
     const skillsResponse = await fetchLoggedIn("/api/Skills");
 
     if (skillsResponse.status > 300) {
