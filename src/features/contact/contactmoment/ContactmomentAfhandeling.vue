@@ -441,7 +441,6 @@ import {
   CONTACTVERZOEK_GEMAAKT,
   saveContactverzoek,
   mapContactverzoekData,
-  isOk2DefaultContactenApi,
 } from "@/features/contact/contactmoment";
 
 import {
@@ -454,12 +453,13 @@ import {
   mapContactmomentToInternetaak,
   saveBetrokkene,
   saveDigitaleAdressen,
-  enrichInterneTaakWithActoren
- } from "../../../services/klantinteracties/service";
+  enrichInterneTaakWithActoren,
+  useOpenKlant2
+ } from "../../../services/openklant2/service";
 
  import type { 
   KlantContactPostmodel
- } from "../../../services/klantinteracties/types";
+ } from "../../../services/openklant2/types";
 
 import { useOrganisatieIds, useUserStore } from "@/stores/user";
 import { useConfirmDialog } from "@vueuse/core";
@@ -607,7 +607,7 @@ const saveBetrokkeneBijKlantContact = async (
 
 
 const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
-  const useKlantInteractiesApi = await isOk2DefaultContactenApi();
+  const useKlantInteractiesApi = await useOpenKlant2();
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
   const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);

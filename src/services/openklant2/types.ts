@@ -122,6 +122,28 @@ export interface KlantContactPostmodel {
   plaatsgevondenOp: string; // 2019-08-24T14:15:22Z
 }
 
+export interface Klant {
+  _typeOfKlant: "klant";
+  id: string;
+  klantnummer: string;
+  telefoonnummers: string[];
+  emailadressen: string[];
+  bsn?: string;
+  bedrijfsnaam?: string;
+  vestigingsnummer?: string;
+  rsin?: string;
+  kvkNummer?: string;
+  url: string;
+}
+
+export type KlantBedrijfIdentifier =
+  | {
+      vestigingsnummer: string;
+    }
+  | {
+      rsin: string;
+    };
+
 ///////////////////////////////
 
 //todo: Contactverzoek type verplaatsen naar hier. o meer specifieke models introduceren
