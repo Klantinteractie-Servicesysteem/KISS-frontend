@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import { type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import type { Klant } from "@/services/klanten";
+import type { Klant } from "@/services/openklant2";
 
 defineProps({
   klant: {

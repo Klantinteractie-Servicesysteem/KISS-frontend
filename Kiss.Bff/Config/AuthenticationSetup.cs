@@ -12,6 +12,7 @@ namespace Kiss
     public static class Policies
     {
         public const string RedactiePolicy = "RedactiePolicy";
+        public const string ExternSysteemPolicy = "ExternSysteemPolicy";
     }
 
     public static class KissClaimTypes

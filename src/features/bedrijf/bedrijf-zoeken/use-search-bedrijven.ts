@@ -1,10 +1,4 @@
 import { ServiceResult, type Paginated } from "@/services";
-
-import {
-  PartijTypes,
-  searchKlantenByDigitaalAdres,
-  type Klant,
-} from "@/services/klanten";
 import {
   searchBedrijvenInHandelsRegister,
   type Bedrijf,
@@ -35,20 +29,15 @@ export function useSearchBedrijven(
       throw new Error("query wordt hierboven al gecheckt");
     }
 
-    const { page, query } = args;
+    const { page, query} = args;
 
-    if ("email" in query || "telefoonnummer" in query)
-      return searchKlantenByDigitaalAdres({
-        ...query,
-        partijType: PartijTypes.organisatie,
-      }).then((r) => ({
-        page: r,
-      }));
+    if ("email" in query || "telefoonnummer" in query) {
+      throw new Error("Invalid query for searchBedrijvenInHandelsRegister");
+    }
 
+    // Voer een zoekopdracht uit voor bedrijven via het Handelsregister
     return searchBedrijvenInHandelsRegister(query, page);
   };
-  return ServiceResult.fromFetcher<{ page: Klant[] } | Paginated<Bedrijf>>(
-    getCacheKey,
-    fetcher,
-  );
+
+  return ServiceResult.fromFetcher<Paginated<Bedrijf>>(getCacheKey, fetcher);
 }

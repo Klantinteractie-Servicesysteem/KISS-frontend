@@ -28,10 +28,9 @@
 <script lang="ts" setup>
 import type { Bedrijf } from "@/services/kvk";
 import BedrijvenOverzichtRow from "./BedrijvenOverzichtRow.vue";
-import type { Klant } from "@/services/klanten";
 
 defineProps<{
-  records: Array<Bedrijf | Klant>;
+  records: Array<Bedrijf>;
   navigateOnSingleResult?: boolean;
 }>();
 </script>

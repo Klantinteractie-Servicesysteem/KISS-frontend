@@ -49,11 +49,13 @@
 <script lang="ts" setup>
 import DutchDate from "@/components/DutchDate.vue";
 import type { Persoon } from "@/services/brp";
-import type { Klant } from "@/services/klanten";
 import { useRouter } from "vue-router";
-import { ensureKlantForBsn } from "./ensure-klant-for-bsn";
 import { mutate } from "swrv";
 import { watchEffect } from "vue";
+
+import type { Klant as KlantOpenKlant1 } from "@/services/openklant1/types";
+import type { Klant as KlantOpenKlant2 } from "@/services/openklant2/types";
+import { ensureKlantForBsn } from "./ensure-klant-for-bsn";
 
 const props = defineProps<{
   records: Persoon[];
@@ -62,16 +64,17 @@ const props = defineProps<{
 
 const router = useRouter();
 
-const getKlantUrl = (klant: Klant) => `/personen/${klant.id}`;
+const getKlantUrl = (klant: KlantOpenKlant1 | KlantOpenKlant2) => `/personen/${klant.id}`;
 
 const navigate = async (persoon: Persoon) => {
   const { bsn } = persoon;
-  if (!bsn) throw new Error();
-  const klant = await ensureKlantForBsn({
-    bsn,
-  });
+  if (!bsn) throw new Error("BSN is required");
+
+  const klant = await ensureKlantForBsn({ bsn });
+
   await mutate("persoon" + bsn, persoon);
   await mutate(klant.id, klant);
+
   const url = getKlantUrl(klant);
   await router.push(url);
 };

@@ -83,10 +83,7 @@ import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { ContactmomentenOverzicht } from "@/features/contact/contactmoment";
 import { KlantDetails, useKlantById } from "@/features/klant/klant-details";
-import {
-  isOk2DefaultContactenApi,
-  useContactmomentenByKlantId,
-} from "@/features/contact/contactmoment/service";
+import { useContactmomentenByKlantId } from "@/features/contact/contactmoment/service";
 import { useZakenByBsn } from "@/features/zaaksysteem";
 import ZakenOverzicht from "@/features/zaaksysteem/ZakenOverzicht.vue";
 import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
@@ -100,6 +97,7 @@ import {
   BrpGegevens,
 } from "@/features/persoon/persoon-details";
 import { useContactverzoekenByKlantId } from "@/features/contact/contactverzoek/overzicht/service";
+import { useOpenKlant2 } from "@/services/openklant2";
 
 const activeTab = ref("");
 
@@ -122,7 +120,7 @@ const contactmomenten = useContactmomentenByKlantId(
 );
 
 onMounted(async () => {
-  gebruikKlantInteracatiesApi.value = await isOk2DefaultContactenApi();
+  gebruikKlantInteracatiesApi.value = await useOpenKlant2();
 });
 
 const getBsn = () => (!klant.success || !klant.data.bsn ? "" : klant.data.bsn);

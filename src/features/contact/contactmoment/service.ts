@@ -44,7 +44,7 @@ import {
   fetchBetrokkene,
   mapToContactmomentViewModel,
   type ContactmomentViewModel,
-} from "@/services/klantinteracties";
+} from "@/services/openklant2";
 
 //obsolete. api calls altijd vanuit /src/services of /src/apis. hier alleen nog busniesslogica afhandelen
 const contactmomentenProxyRoot = "/api/contactmomenten";
@@ -513,12 +513,4 @@ export function mapContactverzoekData({
       digitaleAdressen,
     },
   };
-}
-
-export async function isOk2DefaultContactenApi() {
-  // bepaal of de openklant api of de klantinteracties api gebruikt moet worden voor verwerken van contactmomenten en contactverzoeken
-  // Fetch USE_KLANTCONTACTEN environment variable, wordt in sommige gevallen vervangen door flow te bepalen op basis van zaken
-  const response = await fetch("/api/environment/use-klantinteracties");
-  const { useKlantInteracties } = await response.json();
-  return useKlantInteracties as boolean;
 }

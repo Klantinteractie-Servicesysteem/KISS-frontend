@@ -14,7 +14,7 @@ import {
   filterOutContactmomenten,
   mapToContactverzoekViewModel,
   type ContactverzoekViewmodel,
-} from "@/services/klantinteracties";
+} from "@/services/openklant2";
 import type { Ref } from "vue";
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";

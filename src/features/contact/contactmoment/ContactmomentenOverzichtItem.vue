@@ -54,7 +54,7 @@ import ServiceDataWrapper from "@/components/ServiceDataWrapper.vue";
 import DutchDate from "@/components/DutchDate.vue";
 import DutchTime from "@/components/DutchTime.vue";
 import { computed } from "vue";
-import type { ContactmomentViewModel } from "@/services/klantinteracties/types";
+import type { ContactmomentViewModel } from "@/services/openklant2/types";
 const props = defineProps<{ contactmoment: ContactmomentViewModel }>();
 
 const registratieDatum = computed(

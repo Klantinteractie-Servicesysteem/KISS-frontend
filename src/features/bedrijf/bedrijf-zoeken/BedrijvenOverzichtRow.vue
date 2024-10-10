@@ -56,18 +56,19 @@
 </template>
 <script lang="ts" setup>
 import { computed, watchEffect } from "vue";
-import type { Klant } from "@/services/klanten";
 import { useBedrijfByIdentifier } from "../use-bedrijf-by-identifier";
 import { useKlantByBedrijfIdentifier } from "./use-klant-by-bedrijf-identifier";
 import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
 import { useRouter } from "vue-router";
 import { mutate } from "swrv";
 import { ensureKlantForBedrijfIdentifier } from "./ensure-klant-for-bedrijf-identifier";
+import type { Klant as KlantOpenKlant1 } from "@/services/openklant1/types";
+import type { Klant as KlantOpenKlant2 } from "@/services/openklant2/types";
 
-const props = defineProps<{ item: Bedrijf | Klant; autoNavigate?: boolean }>();
+const props = defineProps<{ item: Bedrijf | KlantOpenKlant1 | KlantOpenKlant2; autoNavigate?: boolean }>();
 
 const matchingBedrijf = useBedrijfByIdentifier(() => {
-  // we hebben al een bedrijf, we hoeven die niet meer op te zoeken
+  // wordt niet meer gebruikt, alleen als we een klant hebben maar telefoonnumer en email adres is eruitgesloopt
   if (props.item._typeOfKlant === "bedrijf") return undefined;
   const { vestigingsnummer, rsin } = props.item;
   if (vestigingsnummer)
@@ -127,9 +128,9 @@ const bedrijfIdentifier = computed<BedrijfIdentifier | undefined>(() => {
 
 const router = useRouter();
 
-const getKlantUrl = (klant: Klant) => `/bedrijven/${klant.id}`;
+const getKlantUrl = (klant: KlantOpenKlant1 | KlantOpenKlant2) => `/bedrijven/${klant.id}`;
 
-const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
+const setCache = (klant: KlantOpenKlant1 | KlantOpenKlant2, bedrijf?: Bedrijf | null) => {
   mutate(klant.id, klant);
   const bedrijfId = bedrijf?.vestigingsnummer || bedrijf?.rsin;
   if (bedrijfId) {
@@ -138,10 +139,13 @@ const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
 };
 
 async function navigate(bedrijf: Bedrijf, identifier: BedrijfIdentifier) {
-  const newKlant =
-    klant.value.data || (await ensureKlantForBedrijfIdentifier(identifier));
-  setCache(newKlant, bedrijf);
-  const url = getKlantUrl(newKlant);
+
+  const bedrijfsnaam = bedrijf.bedrijfsnaam; 
+  const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
+
+  setCache(klant, bedrijf);
+
+  const url = getKlantUrl(klant);
   await router.push(url);
 }
 
