@@ -32,7 +32,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
         }
 
         [HttpGet("/api/contactmomentendetails")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [Authorize(Policy = Policies.ExternSysteemPolicy)]
         public async Task<IActionResult> Get(
             [FromQuery] string from,
             [FromQuery] string to,
