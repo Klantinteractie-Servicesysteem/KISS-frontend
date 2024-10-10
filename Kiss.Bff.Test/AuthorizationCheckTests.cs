@@ -43,7 +43,7 @@ namespace Kiss.Bff.Test
             // Define the controllers and methods to test here
             var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes)>
                 {
-                    (typeof(ReadContactmomentenDetails), "Get", new Type[0]),
+                     (typeof(ReadContactmomentenDetails), "Get", new[] { typeof(string), typeof(string), typeof(CancellationToken), typeof(int), typeof(int) }),
                     (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }),
                     (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}),
                     (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}),
