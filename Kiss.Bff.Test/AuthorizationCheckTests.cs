@@ -27,6 +27,7 @@ namespace Kiss.Bff.Test
         [ClassInitialize]
         public static void ClassInit(TestContext _)
         {
+            Environment.SetEnvironmentVariable("CONTACTMOMENTDETAILS_API_KEY", "eenZeerGeheimeSleutelMetMinimaal32TekensLang");
             s_factory = new CustomWebApplicationFactory();
             s_client = s_factory.CreateDefaultClient();
         }
@@ -34,6 +35,7 @@ namespace Kiss.Bff.Test
         [ClassCleanup]
         public static void ClassCleanup()
         {
+            Environment.SetEnvironmentVariable("CONTACTMOMENTDETAILS_API_KEY", null);
             s_client?.Dispose();
             s_factory?.Dispose();
         }
@@ -101,8 +103,11 @@ namespace Kiss.Bff.Test
                 .FirstOrDefault() as AuthorizeAttribute;
 
             // Assert that the Authorize attribute exists and has the expected policy
-            Assert.IsNotNull(authorizeAttribute);
-            Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute.Policy);
+            string expectedPolicy = controllerType == typeof(ReadContactmomentenDetails)
+              ? Policies.ExternSysteemPolicy
+              : Policies.RedactiePolicy;
+
+            Assert.AreEqual(expectedPolicy, authorizeAttribute.Policy);
         }
     }
 }
