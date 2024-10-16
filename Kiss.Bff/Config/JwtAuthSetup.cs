@@ -36,9 +36,8 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 options.AddPolicy(Policies.ExternSysteemPolicy, policy =>
                 {
-                    policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
-
                     policy.RequireRole("ExternSysteem");
+                    policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
                 });
             });
 

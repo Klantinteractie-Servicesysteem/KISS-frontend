@@ -27,6 +27,7 @@ namespace Kiss.Bff.Test
         [ClassInitialize]
         public static void ClassInit(TestContext _)
         {
+            Environment.SetEnvironmentVariable("CONTACTMOMENTDETAILS_API_KEY", "eenZeerGeheimeSleutelMetMinimaal32TekensLang");
             s_factory = new CustomWebApplicationFactory();
             s_client = s_factory.CreateDefaultClient();
         }
@@ -34,6 +35,7 @@ namespace Kiss.Bff.Test
         [ClassCleanup]
         public static void ClassCleanup()
         {
+            Environment.SetEnvironmentVariable("CONTACTMOMENTDETAILS_API_KEY", null);
             s_client?.Dispose();
             s_factory?.Dispose();
         }
@@ -80,29 +82,28 @@ namespace Kiss.Bff.Test
         [DynamicData(nameof(GetControllersWithAuthorizeAttributeAndMethods), DynamicDataSourceType.Method)]
         public async Task TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
         {
-            // Manually create an instance of the controller
             var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
             var dbContext = new BeheerDbContext(dbContextOptions);
             var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
 
-            // Assert that the controller instance is not null
             Assert.IsNotNull(controller);
 
-            // Retrieve the method to test
             var method = controllerType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly, null, parameterTypes, null);
 
-            // Assert that the method exists
             Assert.IsNotNull(method);
 
-            // Retrieve the Authorize attribute
             var authorizeAttribute = method.GetCustomAttributes(typeof(AuthorizeAttribute), true)
                 .FirstOrDefault() as AuthorizeAttribute;
 
-            // Assert that the Authorize attribute exists and has the expected policy
             Assert.IsNotNull(authorizeAttribute);
-            Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute.Policy);
+
+            string expectedPolicy = controllerType == typeof(ReadContactmomentenDetails)
+                ? Policies.ExternSysteemPolicy
+                : Policies.RedactiePolicy;
+
+            Assert.AreEqual(expectedPolicy, authorizeAttribute.Policy);
         }
     }
 }
