@@ -105,6 +105,7 @@ const gebruikKlantInteracatiesApi = ref<boolean | null>(false);
 const contactverzoeken = useContactverzoekenByKlantId(
   klantUrl,
   gebruikKlantInteracatiesApi,
+  "wasPartij__url"
   //contactverzoekenPage,
 );
 const contactmomenten = useContactmomentenByKlantId(

@@ -4,6 +4,7 @@ import {
   throwIfNotOk,
   parseJson,
   parsePagination,
+  type PaginatedResult,
 } from "@/services";
 import {
   enrichBetrokkeneWithDigitaleAdressen,
@@ -15,74 +16,124 @@ import {
   mapToContactverzoekViewModel,
   type ContactverzoekViewmodel,
 } from "@/services/klantinteracties";
-import type { Ref } from "vue";
+import { ref, type Ref } from "vue";
+import type { Contactverzoek } from "./types";
 
+// API URL's
 const klantinteractiesProxyRoot = "/api/klantinteracties";
 const klantinteractiesApiRoot = "/api/v1";
 const klantinteractiesBaseUrl = `${klantinteractiesProxyRoot}${klantinteractiesApiRoot}`;
 const klantinteractiesBetrokkenen = `${klantinteractiesBaseUrl}/betrokkenen`;
+const klantinteractiesDigitaleAdressen = `${klantinteractiesBaseUrl}/digitaleadressen`;
 
-type SearchParameters = {
-  query: string;
-};
-
-function getSearchUrl({ query = "" }: SearchParameters) {
+// Functie om de juiste URL op te bouwen op basis van de API keuze
+function getSearchUrl(
+ query: string,
+  gebruikKlantInteractiesApi: Ref<boolean | null>
+) {
   if (!query) return "";
 
-  const url = new URL("/api/internetaak/api/v2/objects", location.origin);
-  url.searchParams.set("ordering", "-record__data__registratiedatum"); //todo: is dit de correcte orderning?
-  url.searchParams.set("pageSize", "10");
+  let url: URL;
 
-  url.searchParams.set(
-    "data_attrs",
-    `betrokkene__digitaleAdressen__icontains__${query}`,
-  ); //todo: kan je in 1 call op email OF telefoonnr zoeken? anders de interface aanpassen zodat duidelijk is dat je maar naar een van beide kan zoeken (bv samenvoegen in 1 zoekveld!)
+  if (gebruikKlantInteractiesApi.value) {
+    // Gebruik de klantinteracties API
+    url = new URL(klantinteractiesDigitaleAdressen, location.origin);
+    url.searchParams.set("adres", query);
+    url.searchParams.set("expand", "verstrektDoorBetrokkene");
+    url.searchParams.set("page", "1");
+  } else {
+    // Gebruik de interne taak API
+    url = new URL("/api/internetaak/api/v2/objects", location.origin);
+    url.searchParams.set("ordering", "-record__data__registratiedatum");
+    url.searchParams.set("pageSize", "10");
+    url.searchParams.set(
+      "data_attrs",
+      `betrokkene__digitaleAdressen__icontains__${query}`
+    );
+  }
 
   return url.toString();
 }
 
+// Recursieve zoekfunctie voor het ophalen van alle pagina's
 function searchRecursive(urlStr: string, page = 1): Promise<any[]> {
-  //recursive alle pagina's ophalen.
-  //set de page param van de huidige op te halen pagina
   const url = new URL(urlStr);
   url.searchParams.set("page", page.toString());
 
-  return (
-    fetchLoggedIn(url)
-      .then(throwIfNotOk)
-      .then(parseJson)
-      //todo: parsePagination toevoegen??
-      .then(async (j) => {
-        if (!Array.isArray(j?.results)) {
-          throw new Error("expected array: " + JSON.stringify(j));
-        }
+  return fetchLoggedIn(url)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(async (j) => {
+      if (!Array.isArray(j?.results)) {
+        throw new Error("Expected array: " + JSON.stringify(j));
+      }
 
-        const result: any[] = [];
-        j.results.forEach((k: any) => {
-          result.push(k);
-        });
+      const result: any[] = [...j.results];
 
-        if (!j.next) return result;
-        return await searchRecursive(urlStr, page + 1).then((next) => [
-          ...result,
-          ...next,
-        ]);
+      if (!j.next) return result; // Als er geen volgende pagina is, return de resultaten
+      const nextResults = await searchRecursive(urlStr, page + 1); // Haal de volgende pagina op
+      return [...result, ...nextResults];
+    });
+}
+
+// Functie die afhankelijk van de API keuze ofwel enriched ofwel normale zoekresultaten geeft
+export async function search(
+  params: Ref<string>,
+  gebruikKlantInteractiesApi: Ref<boolean | null>
+) : Promise<PaginatedResult<Contactverzoek>[]> {
+  const url = getSearchUrl(params.value, gebruikKlantInteractiesApi);
+
+  if (gebruikKlantInteractiesApi.value) {
+    // Enriched search: zoekresultaten ophalen en verrijken met contactverzoeken
+    const searchResults = await searchRecursive(url);
+    const enrichedResults = await Promise.all(
+      searchResults.map(async (result: any) => {
+        const klantUrl = ref(result.url);
+        return await getContactverzoekenByKlantUrl(klantUrl);
       })
-  );
+    );
+    return enrichedResults;
+  } else {
+    // Normale search: zoekresultaten zonder verrijking
+    return await searchRecursive(url);
+  }
 }
 
-function search(url: string) {
-  return searchRecursive(url); //todo: sortering???  .then((r) => r.sort(sortKlant));
-}
+// // Gebruik van de search met de juiste logica op basis van de gekozen API
+// export function useSearch(
+//   params: Ref<SearchParameters>,
+//   gebruikKlantInteractiesApi: Ref<boolean | null>
+// ) {
+//   const getUrl = () => getSearchUrl(params.value, gebruikKlantInteractiesApi);
 
-export function useSearch(params: Ref<SearchParameters>) {
-  const getUrl = () => getSearchUrl(params.value);
-  return ServiceResult.fromFetcher(getUrl, search);
+//   // Kies de juiste fetch functie afhankelijk van de API keuze
+//   const fetchFunction =
+//     gebruikKlantInteractiesApi.value === true ? searchAndEnrich : normalSearch;
+
+//   return ServiceResult.fromFetcher(getUrl, fetchFunction);
+// }
+
+// Hulpfunctie om contactverzoeken op te halen voor een specifieke klant
+export async function getContactverzoekenByKlantUrl(klantUrl: Ref<string>) {
+  function getUrl() {
+    const searchParams = new URLSearchParams();
+    searchParams.set("verstrektedigitaalAdres__url", klantUrl.value);
+    return `${klantinteractiesBetrokkenen}?${searchParams.toString()}`;
+  }
+
+  return fetchBetrokkene(getUrl())
+    .then(enrichBetrokkeneWithKlantContact)
+    .then(enrichKlantcontactWithInterneTaak)
+    .then(filterOutContactmomenten)
+    .then(enrichBetrokkeneWithDigitaleAdressen)
+    .then(enrichInterneTakenWithActoren)
+    .then(mapToContactverzoekViewModel);
 }
 
 export function useContactverzoekenByKlantId(
-  id: Ref<string>,
-  gebruikKlantInteractiesApi: Ref<boolean | null>,
+  id: Ref<string>, // De ID van de klant als een Ref<string>
+  gebruikKlantInteractiesApi: Ref<boolean | null>, // Of de klantinteracties API gebruikt moet worden als een Ref<boolean | null>
+  urlParam: string // Een parameter voor de URL key
 ) {
   function getUrl() {
     if (gebruikKlantInteractiesApi.value === null) {
@@ -90,26 +141,20 @@ export function useContactverzoekenByKlantId(
     }
     if (gebruikKlantInteractiesApi.value === true) {
       const searchParams = new URLSearchParams();
-      searchParams.set("wasPartij__url", id.value);
+      searchParams.set(urlParam, id.value); // Gebruik de meegegeven URL-parameter hier
       return `${klantinteractiesBetrokkenen}?${searchParams.toString()}`;
     } else {
       if (!id.value) return "";
       const url = new URL("/api/internetaak/api/v2/objects", location.origin);
       url.searchParams.set("ordering", "-record__data__registratiedatum");
       url.searchParams.set("pageSize", "10");
-      url.searchParams.set(
-        "data_attrs",
-        `betrokkene__klant__exact__${id.value}`,
-      );
+      url.searchParams.set("data_attrs", `betrokkene__klant__exact__${id.value}`);
       return url.toString();
     }
   }
 
-  const fetchContactverzoeken = (
-    url: string,
-    gebruikKlantinteractiesApi: Ref<boolean | null>,
-  ) => {
-    if (gebruikKlantinteractiesApi.value) {
+  const fetchContactverzoeken = (url: string) => {
+    if (gebruikKlantInteractiesApi.value) {
       return fetchBetrokkene(url)
         .then(enrichBetrokkeneWithKlantContact)
         .then(enrichKlantcontactWithInterneTaak)
@@ -125,7 +170,5 @@ export function useContactverzoekenByKlantId(
     }
   };
 
-  return ServiceResult.fromFetcher(getUrl, (u: string) =>
-    fetchContactverzoeken(u, gebruikKlantInteractiesApi),
-  );
+  return ServiceResult.fromFetcher(getUrl, (u: string) => fetchContactverzoeken(u));
 }
