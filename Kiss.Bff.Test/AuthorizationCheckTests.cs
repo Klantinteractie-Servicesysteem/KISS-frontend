@@ -45,7 +45,7 @@ namespace Kiss.Bff.Test
             // Define the controllers and methods to test here
             var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes)>
                 {
-                     (typeof(ReadContactmomentenDetails), "Get", new[] { typeof(string), typeof(string), typeof(CancellationToken), typeof(int), typeof(int) }),
+                  
                     (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }),
                     (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}),
                     (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}),
@@ -80,7 +80,7 @@ namespace Kiss.Bff.Test
 
         [DataTestMethod]
         [DynamicData(nameof(GetControllersWithAuthorizeAttributeAndMethods), DynamicDataSourceType.Method)]
-        public async Task TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
+        public void TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
         {
             var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
@@ -104,6 +104,29 @@ namespace Kiss.Bff.Test
                 : Policies.RedactiePolicy;
 
             Assert.AreEqual(expectedPolicy, authorizeAttribute.Policy);
+        }
+
+        [TestMethod]
+        public void TestAuthorizationOfManagementInformatieEndpoint()
+        {
+            var controllerType = typeof(ReadContactmomentenDetails);                    
+                      
+            var dbContext = new BeheerDbContext( new DbContextOptions<BeheerDbContext>() );
+            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+
+            Assert.IsNotNull(controller);
+
+            var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            Assert.AreEqual(2, methods.Length);
+
+            for (var i = 0; i < methods.Length; i += 1)
+            {
+                var authorizeAttribute = methods[i].GetCustomAttributes(typeof(AuthorizeAttribute), true).FirstOrDefault() as AuthorizeAttribute;
+
+                Assert.IsNotNull(authorizeAttribute);
+                Assert.AreEqual(Policies.ExternSysteemPolicy, authorizeAttribute.Policy);
+            }           
         }
     }
 }
