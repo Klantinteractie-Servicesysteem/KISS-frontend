@@ -18,6 +18,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
         }
 
         [HttpGet("/api/contactmomentdetails")]
+        [Authorize(Policy = Policies.ExternSysteemPolicy)]
         public async Task<IActionResult> Get([FromQuery] string id, CancellationToken token)
         {
             var contactmoment = await _db.ContactMomentDetails
@@ -32,7 +33,7 @@ namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
         }
 
         [HttpGet("/api/contactmomentendetails")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [Authorize(Policy = Policies.ExternSysteemPolicy)]
         public async Task<IActionResult> Get(
             [FromQuery] string from,
             [FromQuery] string to,
