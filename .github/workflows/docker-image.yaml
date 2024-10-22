@@ -1,15 +1,14 @@
 name: Docker CI
 
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
   push:
     branches:
       - main
-  workflow_dispatch:
-
+  workflow_dispatch:  
 jobs:
   build-node:
     runs-on: ubuntu-latest
