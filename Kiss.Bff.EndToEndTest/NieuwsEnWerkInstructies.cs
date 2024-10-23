@@ -262,35 +262,35 @@ public class NieuwsEnWerkInstructies : BaseTestInitializer
     }
 
 
+    // This test covers Step 12. 13. 14.
+    [TestMethod]
+    public async Task Als_ik_een_skill_toevoeg_wordt_deze_vermeld_in_de_filter()
+    {
+        // Define the new skill name to be added and tested
+        var newSkill = "Test Skill";
 
-    //[TestMethod]
-    //public async Task Als_ik_een_skill_toevoeg_wordt_deze_vermeld_in_de_filter()
-    //{
-    //    // Define the new skill name to be added and tested
-    //    var newSkill = "Test Skill";
+        try
+        {
+            // Step 1: Navigate to the Skills management page
+            await NavigateToSkillsBeheer();
 
-    //    try
-    //    {
-    //        // Step 1: Navigate to the Skills management page
-    //        await NavigateToSkillsBeheer();
+            // Step 2: Add the new skill
+            await CreateSkill(newSkill);
+            await Page.GotoAsync("/");
+            // Step 3: Open the filter dropdown to verify the skill
+            await Page.ClickAsync("summary:has-text('Filter op categorie')");
 
-    //        // Step 2: Add the new skill
-    //        await CreateSkill(newSkill);
-    //        await Page.GotoAsync("/");
-    //        // Step 3: Open the filter dropdown to verify the skill
-    //        await Page.ClickAsync("summary:has-text('Filter op categorie')");
+            // Step 4: Verify the newly added skill appears in the filter list as a checkbox option
+            var addedSkillCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = newSkill }).First;
+            await Expect(addedSkillCheckbox).ToBeVisibleAsync();
 
-    //        // Step 4: Verify the newly added skill appears in the filter list as a checkbox option
-    //        var addedSkillCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = newSkill }).First;
-    //        await Expect(addedSkillCheckbox).ToBeVisibleAsync();
-
-    //    }
-    //    finally
-    //    {
-    //        // Optional clean-up: Remove the skill after test completion if necessary
-    //        await DeleteSkill(newSkill);
-    //    }
-    //}
+        }
+        finally
+        {
+            // clean-up: Remove the skill after test completion
+            await DeleteSkill(newSkill);
+        }
+    }
 
     //// Made private because the test isn't done yet, this is just a stepping stone made with the playwright editor
     //[TestMethod]
