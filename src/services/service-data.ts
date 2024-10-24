@@ -175,6 +175,8 @@ export const ServiceResult = {
       fetcherWithoutParameters,
       {
         refreshInterval: config?.poll ? refreshInterval : undefined,
+        dedupingInterval: 0, //caching levert onvoorspelbaar gedrag op. caching uitzetten kan niet, bij wijze van experiment proberen deduping uitzetten een vergelijkbaar effect heeft
+        revalidateOnFocus: false, //gegevens niet automatisch herhalen bij scherm focus: minder onnodige calls, eenvoudiger debuggen, voorspelbaarder gedrag voor gebruiker
       },
     );
 

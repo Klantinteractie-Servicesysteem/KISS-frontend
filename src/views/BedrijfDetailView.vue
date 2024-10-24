@@ -1,6 +1,7 @@
 <template>
   <back-link />
   <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
+
   <tab-list v-model="currentTab">
     <tab-list-data-item
       label="Contactgegevens"
@@ -55,7 +56,12 @@
               </template>
             </contactmoment-details-context>
           </template>
-          <template #contactmoment="{ url }">
+
+          <!-- voor OK1/esuite moeten gegevens die bij het contactmoment en niet bij het contactverzoek horen apart opgehaald worden-->
+          <template
+            v-if="!gebruikKlantInteracatiesApi"
+            #contactmoment="{ url }"
+          >
             <contactmoment-preview :url="url">
               <template #object="{ object }">
                 <zaak-preview v-if="object.object" :zaakurl="object.object" />
@@ -69,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { ContactmomentenOverzicht } from "@/features/contact/contactmoment";
@@ -91,15 +97,19 @@ import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
 import { useBedrijfByIdentifier } from "@/features/bedrijf/use-bedrijf-by-identifier";
 import type { BedrijfIdentifier } from "@/services/kvk";
 import { useContactverzoekenByKlantId } from "@/features/contact/contactverzoek/overzicht/service";
+import { useOpenKlant2 } from "@/services/openklant2/service";
 
 const props = defineProps<{ bedrijfId: string }>();
+
+const gebruikKlantInteracatiesApi = ref<boolean | null>(null);
+
 const klantId = computed(() => props.bedrijfId);
 const contactmomentStore = useContactmomentStore();
-const klant = useKlantById(klantId);
+
+const klant = useKlantById(klantId, gebruikKlantInteracatiesApi);
+
 const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
 const currentTab = ref("");
-
-const gebruikKlantInteracatiesApi = ref<boolean | null>(false);
 
 //const contactverzoekenPage = ref(1);
 const contactverzoeken = useContactverzoekenByKlantId(
@@ -107,6 +117,7 @@ const contactverzoeken = useContactverzoekenByKlantId(
   gebruikKlantInteracatiesApi,
   //contactverzoekenPage,
 );
+
 const contactmomenten = useContactmomentenByKlantId(
   klantUrl,
   gebruikKlantInteracatiesApi,
@@ -118,14 +129,25 @@ const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
     return {
       vestigingsnummer: klant.data.vestigingsnummer,
     };
+  // if (klant.data.rsin)
+  //   return {
+  //     rsin: klant.data.rsin,
+  //     kvkNummer: klant.data.kvkNummer,
+  //   };
+  if (klant.data.nietNatuurlijkPersoonIdentifier)
+    return {
+      //gechoogel met params verschil ok1 en esuite
+      rsin: klant.data.nietNatuurlijkPersoonIdentifier,
+    };
   if (klant.data.rsin)
     return {
+      //gechoogel met params verschil ok1 en esuite
       rsin: klant.data.rsin,
-      kvkNummer: klant.data.kvkNummer,
     };
 };
 
 const bedrijf = useBedrijfByIdentifier(getBedrijfIdentifier);
+
 const zaken = useZakenByKlantBedrijfIdentifier(() => {
   if (!bedrijf.success || !bedrijf.data?.kvkNummer) return undefined;
   if (bedrijf.data.vestigingsnummer)
@@ -145,9 +167,14 @@ watch(
       ...k,
       ...b,
       hasContactInformation:
-        !!k.emailadressen.length || !!k.telefoonnummers.length,
+        (k.emailadressen && k.emailadressen.length > 0) ||
+        (k.telefoonnummers && k.telefoonnummers.length > 0),
     });
   },
   { immediate: true },
 );
+
+onMounted(async () => {
+  gebruikKlantInteracatiesApi.value = await useOpenKlant2();
+});
 </script>

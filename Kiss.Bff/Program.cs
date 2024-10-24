@@ -55,7 +55,13 @@ try
         {
             options.TruncateMedewerkerIdentificatie = truncate;
         }
+        options.JwtTokenAuthenticationSecret = builder.Configuration["MANAGEMENTINFORMATIE_API_KEY"];
     });
+
+    //builder.Services.AddJwtAuth(options =>
+    //{
+    //    options.SecretKey = builder.Configuration["MANAGEMENTINFORMATIE_API_KEY"];
+    //});
 
     builder.Services.AddKissProxy();
     builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"]);
@@ -129,7 +135,7 @@ try
     app.MapKissAuthEndpoints();
     app.MapControllers();
     app.MapKissProxy();
-    app.MapHealthChecks("/healthz");
+    app.MapHealthChecks("/healthz").AllowAnonymous();
     app.MapFallbackToIndexHtml();
 
     using (var scope = app.Services.CreateScope())

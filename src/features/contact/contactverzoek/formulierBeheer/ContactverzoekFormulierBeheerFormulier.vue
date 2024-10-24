@@ -288,7 +288,6 @@ const vragen = ref<Vraag[]>([]);
 
 const submit = async () => {
   loading.value = true;
-  console.log(selectedAfdeling.value);
   const generatedSchema = createJsonSchema(vragen.value);
   try {
     const payload = {

@@ -41,6 +41,8 @@ const zoekTermenCaption = computed(() => {
     return `voor '${props.zoekTermen.handelsnaam}'.`;
   } else if ("kvkNummer" in props.zoekTermen) {
     return `voor '${props.zoekTermen.kvkNummer}'.`;
+  } else if ("vestigingsnummer" in props.zoekTermen) {
+    return `voor '${props.zoekTermen.vestigingsnummer}'.`;
   } else {
     return "";
   }

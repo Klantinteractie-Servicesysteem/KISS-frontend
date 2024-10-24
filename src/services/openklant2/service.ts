@@ -1,27 +1,34 @@
 import {
   fetchLoggedIn,
+  enforceOneOrZero,
   parseJson,
   parsePagination,
   throwIfNotOk,
   type PaginatedResult,
 } from "@/services";
 
-import type {
-  ContactmomentViewModel,
-  BetrokkeneMetKlantContact as BetrokkeneWithKlantContact,
-  ExpandedKlantContactApiViewmodel,
-  ContactverzoekViewmodel,
-  InternetaakApiViewModel,
-  ActorApiViewModel,
-  InternetaakPostModel,
-  SaveInterneTaakResponseModel,
-  KlantContactPostmodel,
-  SaveKlantContactResponseModel,
-  DigitaalAdresApiViewModel
+import {
+  type ContactmomentViewModel,
+  type BetrokkeneMetKlantContact as BetrokkeneWithKlantContact,
+  type ExpandedKlantContactApiViewmodel,
+  type ContactverzoekViewmodel,
+  type InternetaakApiViewModel,
+  type ActorApiViewModel,
+  type InternetaakPostModel,
+  type SaveInterneTaakResponseModel,
+  type KlantContactPostmodel,
+  type SaveKlantContactResponseModel,
+  type DigitaalAdresApiViewModel,
+  PartijTypes,
+  identificatorTypes,
+  type IdentificatorType,
+  type Contactnaam,
+  type Partij,
+  DigitaalAdresTypes,
 } from "./types";
 
-import type { Contactmoment } from "../../features/contact/contactmoment/types";
 import type { ContactverzoekData } from "../../features/contact/components/types";
+import type { Klant } from "../openklant/types";
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";
 const klantinteractiesApiRoot = "/api/v1";
@@ -264,7 +271,7 @@ export function saveBetrokkene({
 }: {
   partijId?: string;
   klantcontactId: string;
-  organisatienaam?: string; 
+  organisatienaam?: string;
   voornaam?: string;
   voorvoegselAchternaam?: string;
   achternaam?: string;
@@ -289,20 +296,20 @@ export function saveBetrokkene({
         voornaam: voornaam || "",
         voorvoegselAchternaam: voorvoegselAchternaam || "",
         achternaam: achternaam || "",
-      }
+      },
     }),
   })
     .then(throwIfNotOk)
-    .then((response) => response.json()) 
+    .then((response) => response.json())
     .then((data) => ({
-      uuid: data.uuid, 
+      uuid: data.uuid,
     }));
 }
 
 export const saveInternetaak = async (
   data: InternetaakPostModel,
 ): Promise<SaveInterneTaakResponseModel> => {
-  const response = await postInternetaak(data); 
+  const response = await postInternetaak(data);
   const responseBody = await response.json();
 
   throwIfNotOk(response);
@@ -320,34 +327,7 @@ const postInternetaak = (data: InternetaakPostModel): Promise<Response> => {
   });
 };
 
-export const mapContactmomentToInternetaak = (
-  contactmoment: Contactmoment, 
-): InternetaakPostModel => {
-
-  return {
-    nummer: "",  
-    gevraagdeHandeling: "Contact opnemen met betrokkene", 
-    aanleidinggevendKlantcontact: {
-      uuid: contactmoment.uuid
-    },
-    toegewezenAanActoren: [], 
-    toelichting: contactmoment.toelichting,  
-    status: "te_verwerken"
-  };
-};
-
-export const enrichInterneTaakWithActoren = async (
-  interneTaak: InternetaakPostModel,
-  actorData: ContactverzoekData["actor"]
-) => {
-  const actoren = await ensureActoren(actorData);
-
-  actoren.forEach((actor) => {
-    interneTaak.toegewezenAanActoren.push(actor);
-  });
-};
-
-const ensureActoren = async (actorData: ContactverzoekData["actor"]) => {
+export const ensureActoren = async (actorData: ContactverzoekData["actor"]) => {
   const {
     identificatie,
     naam,
@@ -356,7 +336,11 @@ const ensureActoren = async (actorData: ContactverzoekData["actor"]) => {
     identificatieOrganisatorischeEenheid,
   } = actorData;
 
-  const getOrCreateActor = async (name: string, id: string, type?: "afdeling" | "groep" | undefined) => {
+  const getOrCreateActor = async (
+    name: string,
+    id: string,
+    type?: "afdeling" | "groep" | undefined,
+  ) => {
     const actor = await getActorById(id);
     if (actor.results.length === 0) {
       return await postActor({
@@ -376,20 +360,26 @@ const ensureActoren = async (actorData: ContactverzoekData["actor"]) => {
     const organisatorischeActorUuid = await getOrCreateActor(
       naamOrganisatorischeEenheid,
       identificatieOrganisatorischeEenheid,
-      typeOrganisatorischeEenheid
+      typeOrganisatorischeEenheid,
     );
     if (actorUuid) actoren.push({ uuid: actorUuid });
-    if (organisatorischeActorUuid) actoren.push({ uuid: organisatorischeActorUuid });
+    if (organisatorischeActorUuid)
+      actoren.push({ uuid: organisatorischeActorUuid });
   } else {
     // als alleen een afdeling/groep is geselecteerd
-    const actorUuid = await getOrCreateActor(naam, identificatie, typeOrganisatorischeEenheid);
+    const actorUuid = await getOrCreateActor(
+      naam,
+      identificatie,
+      typeOrganisatorischeEenheid,
+    );
     if (actorUuid) actoren.push({ uuid: actorUuid });
   }
 
   return actoren;
 };
 
-export async function getActorById(identificatie: string): Promise<any> {  const url = `${klantinteractiesActoren}?actoridentificatorObjectId=${identificatie}`;
+export async function getActorById(identificatie: string): Promise<any> {
+  const url = `${klantinteractiesActoren}?actoridentificatorObjectId=${identificatie}`;
   const response = await fetchLoggedIn(url, {
     method: "GET",
     headers: {
@@ -397,18 +387,35 @@ export async function getActorById(identificatie: string): Promise<any> {  const
     },
   });
 
-  throwIfNotOk(response); 
-  return await response.json(); 
+  throwIfNotOk(response);
+  return await response.json();
 }
 
-function mapActorType(typeOrganisatorischeEenheid: "groep" | "afdeling" | undefined) {
+function mapActorType(
+  typeOrganisatorischeEenheid: "groep" | "afdeling" | undefined,
+) {
   switch (typeOrganisatorischeEenheid) {
     case "afdeling":
-      return { codeObjecttype: "afd", codeRegister: "obj", codeSoortObjectId: "idf", soortActor: "organisatorische_eenheid" };
+      return {
+        codeObjecttype: "afd",
+        codeRegister: "obj",
+        codeSoortObjectId: "idf",
+        soortActor: "organisatorische_eenheid",
+      };
     case "groep":
-      return { codeObjecttype: "grp", codeRegister: "obj", codeSoortObjectId: "idf", soortActor: "organisatorische_eenheid" };
+      return {
+        codeObjecttype: "grp",
+        codeRegister: "obj",
+        codeSoortObjectId: "idf",
+        soortActor: "organisatorische_eenheid",
+      };
     default:
-      return { codeObjecttype: "mdw", codeRegister: "obj", codeSoortObjectId: "idf", soortActor: "medewerker" };
+      return {
+        codeObjecttype: "mdw",
+        codeRegister: "obj",
+        codeSoortObjectId: "idf",
+        soortActor: "medewerker",
+      };
   }
 }
 
@@ -421,7 +428,8 @@ export async function postActor({
   identificatie: string;
   typeOrganisatorischeEenheid: "afdeling" | "groep" | undefined;
 }): Promise<string> {
-  const { codeObjecttype, codeRegister, codeSoortObjectId, soortActor } = mapActorType(typeOrganisatorischeEenheid);
+  const { codeObjecttype, codeRegister, codeSoortObjectId, soortActor } =
+    mapActorType(typeOrganisatorischeEenheid);
 
   const parsedModel = {
     naam: fullName,
@@ -480,12 +488,11 @@ export const saveDigitaleAdressen = async (
   for (const adres of digitaleAdressen) {
     const postBody = {
       verstrektDoorBetrokkene: { uuid: verstrektDoorBetrokkeneUuid },
-      verstrektDoorPartij: null, 
+      verstrektDoorPartij: null,
       adres: adres.adres,
-      soortDigitaalAdres: adres.soortDigitaalAdres === 'telefoonnummer'
-        ? 'telnr'
-        : 'email', 
-      omschrijving: adres.omschrijving || "onbekend", 
+      soortDigitaalAdres:
+        adres.soortDigitaalAdres === "telefoonnummer" ? "telnr" : "email",
+      omschrijving: adres.omschrijving || "onbekend",
     };
 
     const savedAdres = await postDigitaalAdres(postBody);
@@ -495,15 +502,13 @@ export const saveDigitaleAdressen = async (
   return savedAdressen;
 };
 
-const postDigitaalAdres = async (
-  data: {
-    verstrektDoorBetrokkene: { uuid: string };
-    verstrektDoorPartij?: { uuid: string } | null;
-    adres: string;
-    soortDigitaalAdres: string;
-    omschrijving: string;
-  }
-): Promise<{ uuid: string; url: string }> => {
+const postDigitaalAdres = async (data: {
+  verstrektDoorBetrokkene: { uuid: string };
+  verstrektDoorPartij?: { uuid: string } | null;
+  adres: string;
+  soortDigitaalAdres: string;
+  omschrijving: string;
+}): Promise<{ uuid: string; url: string }> => {
   const response = await fetchLoggedIn(klantinteractiesDigitaleadressen, {
     method: "POST",
     headers: {
@@ -517,3 +522,318 @@ const postDigitaalAdres = async (
   throwIfNotOk(response);
   return { uuid: responseBody.uuid, url: responseBody.url };
 };
+
+//-----------------------------------------------------------------------------------------------------------
+
+export const fetchKlantByIdOk2 = (uuid: string) => {
+  return fetchLoggedIn(
+    `${klantinteractiesBaseUrl}/partijen/${uuid}?${new URLSearchParams({ expand: "digitaleAdressen" })}`,
+  )
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(mapPartijToKlant);
+};
+
+export function findKlantByIdentifier(
+  query:
+    | {
+        vestigingsnummer: string;
+      }
+    | {
+        rsin: string;
+        kvkNummer?: string;
+      }
+    | {
+        bsn: string;
+      }
+    | {
+        kvkNummer: string;
+      },
+): Promise<Klant | null> {
+  const expand = "digitaleAdressen";
+  let soortPartij,
+    partijIdentificator__codeSoortObjectId,
+    partijIdentificator__objectId;
+
+  if ("bsn" in query) {
+    soortPartij = PartijTypes.persoon;
+    partijIdentificator__codeSoortObjectId =
+      identificatorTypes.persoon.codeSoortObjectId;
+    partijIdentificator__objectId = query.bsn;
+  } else {
+    soortPartij = PartijTypes.organisatie;
+
+    if ("vestigingsnummer" in query) {
+      partijIdentificator__codeSoortObjectId =
+        identificatorTypes.vestiging.codeSoortObjectId;
+      partijIdentificator__objectId = query.vestigingsnummer;
+    } else if ("rsin" in query) {
+      partijIdentificator__codeSoortObjectId =
+        identificatorTypes.nietNatuurlijkPersoonRsin.codeSoortObjectId;
+      partijIdentificator__objectId = query.rsin;
+    } else {
+      //toegeovegd om types te alignen.. is dee route wenselijk???
+
+      partijIdentificator__codeSoortObjectId =
+        identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId;
+      partijIdentificator__objectId = query.kvkNummer;
+    }
+  }
+
+  const searchParams = new URLSearchParams({
+    expand,
+    soortPartij,
+    partijIdentificator__codeSoortObjectId,
+    partijIdentificator__objectId,
+  });
+
+  return fetchLoggedIn(`${klantinteractiesBaseUrl}/partijen?${searchParams}`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((r) => parsePagination(r, (x) => mapPartijToKlant(x as Partij)))
+    .then(enforceOneOrZero);
+}
+
+export async function createKlant(
+  parameters:
+    | {
+        vestigingsnummer: string;
+      }
+    | {
+        rsin: string;
+        kvkNummer?: string;
+      }
+    | {
+        bsn: string;
+      }
+    | {
+        kvkNummer: string;
+      },
+) {
+  let partijIdentificatie, partijIdentificator, soortPartij, kvkNummer;
+  if ("bsn" in parameters) {
+    soortPartij = PartijTypes.persoon;
+    // dit is de enige manier om een partij zonder contactnaam aan te maken
+    partijIdentificatie = { contactnaam: null };
+    partijIdentificator = {
+      ...identificatorTypes.persoon,
+      objectId: parameters.bsn,
+    };
+  } else {
+    soortPartij = PartijTypes.organisatie;
+    // dit is de enige manier om een partij zonder naam aan te maken
+    partijIdentificatie = { naam: "" };
+    if ("vestigingsnummer" in parameters && parameters.vestigingsnummer) {
+      partijIdentificator = {
+        ...identificatorTypes.vestiging,
+        objectId: parameters.vestigingsnummer,
+      };
+    } else if ("rsin" in parameters && parameters.rsin) {
+      partijIdentificator = {
+        ...identificatorTypes.nietNatuurlijkPersoonRsin,
+        objectId: parameters.rsin,
+      };
+      kvkNummer = parameters.kvkNummer;
+    }
+  }
+
+  if (!partijIdentificator) throw new Error("");
+
+  const partij = await createPartij(partijIdentificatie, soortPartij);
+
+  const identificators = [
+    await createPartijIdentificator({
+      identificeerdePartij: {
+        url: partij.url,
+        uuid: partij.uuid,
+      },
+      partijIdentificator,
+    }),
+  ];
+
+  if (kvkNummer) {
+    const kvkIdentificator = await createPartijIdentificator({
+      identificeerdePartij: {
+        url: partij.url,
+        uuid: partij.uuid,
+      },
+      partijIdentificator: {
+        ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
+        objectId: kvkNummer,
+      },
+    });
+    identificators.push(kvkIdentificator);
+  }
+
+  return mapPartijToKlant(partij, identificators);
+}
+
+const createPartijIdentificator = (body: {
+  identificeerdePartij: {
+    url: string;
+    uuid: string;
+  };
+  partijIdentificator: IdentificatorType & {
+    objectId: string;
+  };
+}) =>
+  fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren", {
+    body: JSON.stringify(body),
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+  })
+    .then(throwIfNotOk)
+    .then(parseJson);
+
+const getPartijIdentificator = (uuid: string) =>
+  fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren/" + uuid)
+    .then(throwIfNotOk)
+    .then(parseJson);
+
+function createPartij(
+  partijIdentificatie: { naam: string } | { contactnaam: Contactnaam | null },
+  soortPartij: PartijTypes,
+) {
+  return fetchLoggedIn(klantinteractiesBaseUrl + "/partijen", {
+    body: JSON.stringify({
+      digitaleAdressen: [],
+      betrokkenen: [],
+      categorieRelaties: [],
+      voorkeursDigitaalAdres: null,
+      vertegenwoordigden: [],
+      rekeningnummers: [],
+      partijIdentificatoren: [],
+      voorkeursRekeningnummer: null,
+      indicatieGeheimhouding: false,
+      indicatieActief: true,
+      partijIdentificatie,
+      soortPartij,
+    }),
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+  })
+    .then(throwIfNotOk)
+    .then(parseJson);
+}
+
+async function mapPartijToKlant(
+  partij: Partij,
+  identificatoren?: any[],
+): Promise<Klant> {
+  if (!identificatoren?.length) {
+    const promises = partij.partijIdentificatoren.map(({ uuid }) =>
+      getPartijIdentificator(uuid),
+    );
+    identificatoren = await Promise.all(promises);
+  }
+
+  const getDigitaalAdressen = (type: DigitaalAdresTypes) =>
+    partij._expand?.digitaleAdressen
+      ?.filter((x) => x.adres && x.soortDigitaalAdres === type)
+      .map((x) => x.adres || "") || [];
+
+  const getIdentificator = (type: { codeSoortObjectId: string }) =>
+    identificatoren?.find(
+      (x) =>
+        x?.partijIdentificator?.objectId &&
+        x?.partijIdentificator?.codeSoortObjectId == type.codeSoortObjectId,
+    )?.partijIdentificator?.objectId;
+
+  const ret: Klant = {
+    _typeOfKlant: "klant" as const,
+    klantnummer: partij.nummer || "",
+    id: partij.uuid,
+    url: partij.url,
+    bedrijfsnaam: partij.partijIdentificatie?.naam,
+    ...(partij.partijIdentificatie?.contactnaam || {}),
+    telefoonnummers: getDigitaalAdressen(DigitaalAdresTypes.telefoonnummer),
+    emailadressen: getDigitaalAdressen(DigitaalAdresTypes.email),
+    bsn: getIdentificator(identificatorTypes.persoon),
+    vestigingsnummer: getIdentificator(identificatorTypes.vestiging),
+    kvkNummer: getIdentificator(
+      identificatorTypes.nietNatuurlijkPersoonKvkNummer,
+    ),
+    rsin: getIdentificator(identificatorTypes.nietNatuurlijkPersoonRsin),
+  };
+
+  return ret;
+}
+
+export function searchKlantenByDigitaalAdres(
+  query:
+    | {
+        telefoonnummer: string;
+        partijType: PartijTypes;
+      }
+    | {
+        email: string;
+        partijType: PartijTypes;
+      },
+) {
+  let key: DigitaalAdresTypes, value: string;
+
+  if ("telefoonnummer" in query) {
+    key = DigitaalAdresTypes.telefoonnummer;
+    value = query.telefoonnummer;
+  } else {
+    key = DigitaalAdresTypes.email;
+    value = query.email;
+  }
+
+  const searchParams = new URLSearchParams();
+  searchParams.append("verstrektDoorPartij__soortPartij", query.partijType);
+  searchParams.append("soortDigitaalAdres", key);
+  searchParams.append("adres__icontains", value);
+
+  const url = klantinteractiesBaseUrl + "/digitaleadressen?" + searchParams;
+
+  return (
+    fetchLoggedIn(url)
+      .then(throwIfNotOk)
+      .then(parseJson)
+      .then(
+        ({
+          results,
+        }: {
+          results: { verstrektDoorPartij: { uuid: string } }[];
+        }) => {
+          const partijIds = results.map((x) => x.verstrektDoorPartij.uuid);
+          const uniquePartijIds = [...new Set(partijIds)];
+          const promises = uniquePartijIds.map(fetchKlantByIdOk2);
+          return Promise.all(promises);
+        },
+      )
+      // TIJDELIJK: de filters werken nog niet in OpenKlant 2.1, dat komt in een nieuwe release
+      // daarom filteren we hier handmatig
+      .then((klanten) =>
+        klanten.filter((klant) => {
+          const isBedrijf =
+            !!klant.kvkNummer || !!klant.vestigingsnummer || !!klant.rsin;
+          if (!isBedrijf) return false;
+          const matchesEmail =
+            key === DigitaalAdresTypes.email &&
+            klant.emailadressen.some((adres: string | string[]) =>
+              adres.includes(value),
+            );
+          const matchesTelefoon =
+            key === DigitaalAdresTypes.telefoonnummer &&
+            klant.telefoonnummers.some((adres: string | string[]) =>
+              adres.includes(value),
+            );
+          return matchesEmail || matchesTelefoon;
+        }),
+      )
+  );
+}
+
+export async function useOpenKlant2() {
+  // bepaal of de openklant api of de klantinteracties api gebruikt moet worden voor verwerken van contactmomenten en contactverzoeken
+  // Fetch USE_KLANTCONTACTEN environment variable, wordt in sommige gevallen vervangen door flow te bepalen op basis van zaken
+  const response = await fetch("/api/environment/use-klantinteracties");
+  const { useKlantInteracties } = await response.json();
+  return useKlantInteracties as boolean;
+}

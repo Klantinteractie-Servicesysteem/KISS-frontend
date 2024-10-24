@@ -1,8 +1,13 @@
 import { ServiceResult } from "@/services";
 import {
+  mapBedrijfsIdentifier,
+  useKlantByIdentifier,
+} from "@/services/openklant1/service";
+import {
   findKlantByIdentifier,
   type KlantBedrijfIdentifier,
-} from "@/services/klanten";
+  useOpenKlant2,
+} from "@/services/openklant2";
 
 export const useKlantByBedrijfIdentifier = (
   getId: () => KlantBedrijfIdentifier | undefined,
@@ -10,16 +15,26 @@ export const useKlantByBedrijfIdentifier = (
   const getCacheKey = () => {
     const id = getId();
     if (!id) return "";
-    return "klant" + JSON.stringify(getId());
+    return "klant" + JSON.stringify(id);
   };
-  const findKlant = () => {
+
+  const findKlant = async () => {
     const id = getId();
     if (!id) {
-      throw new Error();
+      throw new Error("Geen valide KlantBedrijfIdentifier");
     }
-    return findKlantByIdentifier(id);
+
+    const isOpenKlant2 = await useOpenKlant2();
+
+    if (isOpenKlant2) {
+      return findKlantByIdentifier(id);
+    } else {
+      const mappedId = mapBedrijfsIdentifier(id);
+      return useKlantByIdentifier(() => mappedId);
+    }
   };
-  return ServiceResult.fromFetcher("", findKlant, {
+
+  return ServiceResult.fromFetcher(getCacheKey(), findKlant, {
     getUniqueId: getCacheKey,
   });
 };

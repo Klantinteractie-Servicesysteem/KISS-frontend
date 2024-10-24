@@ -14,7 +14,7 @@ import {
   filterOutContactmomenten,
   mapToContactverzoekViewModel,
   type ContactverzoekViewmodel,
-} from "@/services/klantinteracties";
+} from "@/services/openklant2";
 import type { Ref } from "vue";
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";
@@ -88,12 +88,14 @@ export function useContactverzoekenByKlantId(
     if (gebruikKlantInteractiesApi.value === null) {
       return "";
     }
+
+    if (!id.value) return "";
+
     if (gebruikKlantInteractiesApi.value === true) {
       const searchParams = new URLSearchParams();
       searchParams.set("wasPartij__url", id.value);
       return `${klantinteractiesBetrokkenen}?${searchParams.toString()}`;
     } else {
-      if (!id.value) return "";
       const url = new URL("/api/internetaak/api/v2/objects", location.origin);
       url.searchParams.set("ordering", "-record__data__registratiedatum");
       url.searchParams.set("pageSize", "10");
@@ -101,6 +103,7 @@ export function useContactverzoekenByKlantId(
         "data_attrs",
         `betrokkene__klant__exact__${id.value}`,
       );
+
       return url.toString();
     }
   }

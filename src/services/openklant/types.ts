@@ -4,18 +4,15 @@ export interface Klant {
   klantnummer: string;
   telefoonnummers: string[];
   emailadressen: string[];
+
+  telefoonnummer?: string;
+  emailadres?: string;
+
   bsn?: string;
   bedrijfsnaam?: string;
   vestigingsnummer?: string;
   rsin?: string;
   kvkNummer?: string;
+  nietNatuurlijkPersoonIdentifier?: string;
   url: string;
 }
-
-export type KlantBedrijfIdentifier =
-  | {
-      vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-    };

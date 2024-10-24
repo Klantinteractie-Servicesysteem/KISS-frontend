@@ -1,9 +1,35 @@
-import type { BedrijfIdentifier } from "@/services/kvk";
-import { findKlantByIdentifier, createKlant } from "@/services/klanten";
+import {
+  findKlantByIdentifier,
+  createKlant,
+  type KlantBedrijfIdentifier,
+} from "@/services/openklant2";
+import { ensureKlantForBedrijfIdentifier as ensureKlantForBedrijfIdentifierOk1 } from "@/services/openklant1/service";
+import { useOpenKlant2 } from "@/services/openklant2/service";
+import { mapBedrijfsIdentifier } from "@/services/openklant1/service";
+import { useOrganisatieIds } from "@/stores/user";
 
-//maak een klant aan in het klanten register als die nog niet bestaat
-//bijvoorbeeld om een contactmoment voor een in de kvk opgezocht bedrijf op te kunnen slaan
 export const ensureKlantForBedrijfIdentifier = async (
-  identifier: BedrijfIdentifier,
-) =>
-  (await findKlantByIdentifier(identifier)) ?? (await createKlant(identifier));
+  identifier: KlantBedrijfIdentifier,
+  bedrijfsnaam: string,
+) => {
+  const isOpenKlant2 = await useOpenKlant2();
+
+  if (isOpenKlant2) {
+    // Gebruik openklant2 implementatie
+    const klant = await findKlantByIdentifier(identifier);
+    return klant ?? (await createKlant(identifier));
+  } else {
+    // Gebruik openklant1 implementatie
+    const mappedIdentifier = mapBedrijfsIdentifier(identifier);
+    const organisatieIds = useOrganisatieIds();
+    const organisatieId = organisatieIds.value[0] || "";
+
+    return await ensureKlantForBedrijfIdentifierOk1(
+      {
+        bedrijfsnaam,
+        identifier: mappedIdentifier,
+      },
+      organisatieId,
+    );
+  }
+};

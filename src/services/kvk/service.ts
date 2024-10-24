@@ -30,7 +30,14 @@ export function searchBedrijvenInHandelsRegister(
     searchParams.set("type", "hoofdvestiging");
     searchParams.append("type", "nevenvestiging");
   } else if ("rsin" in query && query.rsin) {
-    searchParams.set("rsin", query.rsin);
+    if (query.rsin.length === 9) {
+      //ok2
+      searchParams.set("rsin", query.rsin);
+    } else {
+      //e-suite variant van ok1
+      searchParams.set("kvkNummer", query.rsin);
+    }
+
     searchParams.set("type", "rechtspersoon");
   } else if ("postcodeHuisnummer" in query) {
     const {

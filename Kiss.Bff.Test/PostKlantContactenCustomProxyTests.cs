@@ -27,8 +27,6 @@ namespace Kiss.Bff.Test
             _configurationMock = new Mock<IConfiguration>();
             _getMedewerkerIdentificatieMock = new Mock<GetMedewerkerIdentificatie>();
 
-            _configurationMock.Setup(config => config["KLANTCONTACTEN_BASE_URL"]).Returns("https://fakeurl.com");
-
             _httpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]

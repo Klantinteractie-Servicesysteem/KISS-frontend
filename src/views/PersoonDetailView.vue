@@ -83,10 +83,7 @@ import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { ContactmomentenOverzicht } from "@/features/contact/contactmoment";
 import { KlantDetails, useKlantById } from "@/features/klant/klant-details";
-import {
-  isOk2DefaultContactenApi,
-  useContactmomentenByKlantId,
-} from "@/features/contact/contactmoment/service";
+import { useContactmomentenByKlantId } from "@/features/contact/contactmoment/service";
 import { useZakenByBsn } from "@/features/zaaksysteem";
 import ZakenOverzicht from "@/features/zaaksysteem/ZakenOverzicht.vue";
 import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
@@ -100,16 +97,16 @@ import {
   BrpGegevens,
 } from "@/features/persoon/persoon-details";
 import { useContactverzoekenByKlantId } from "@/features/contact/contactverzoek/overzicht/service";
-
-const activeTab = ref("");
+import { useOpenKlant2 } from "@/services/openklant2";
 
 const props = defineProps<{ persoonId: string }>();
-const klantId = computed(() => props.persoonId);
-const contactmomentStore = useContactmomentStore();
-const klant = useKlantById(klantId);
-const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
 
 const gebruikKlantInteracatiesApi = ref<boolean | null>(null);
+const activeTab = ref("");
+const klantId = computed(() => props.persoonId);
+const contactmomentStore = useContactmomentStore();
+const klant = useKlantById(klantId, gebruikKlantInteracatiesApi);
+const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
 
 const contactverzoeken = useContactverzoekenByKlantId(
   klantUrl,
@@ -122,10 +119,16 @@ const contactmomenten = useContactmomentenByKlantId(
 );
 
 onMounted(async () => {
-  gebruikKlantInteracatiesApi.value = await isOk2DefaultContactenApi();
+  gebruikKlantInteracatiesApi.value = await useOpenKlant2();
 });
 
-const getBsn = () => (!klant.success || !klant.data.bsn ? "" : klant.data.bsn);
+const getBsn = () =>
+  !klant.success ||
+  !klant.data.bsn ||
+  gebruikKlantInteracatiesApi.value === null
+    ? ""
+    : klant.data.bsn;
+
 const klantBsn = computed(getBsn);
 
 const zaken = useZakenByBsn(klantBsn);

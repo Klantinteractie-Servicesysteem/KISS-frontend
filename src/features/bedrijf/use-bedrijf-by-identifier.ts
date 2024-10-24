@@ -9,9 +9,12 @@ export const useBedrijfByIdentifier = (
 ) => {
   const getCacheKey = () => {
     const id = getId();
+
     if (!id) return "";
-    const identfier = "vestigingsnummer" in id ? id.vestigingsnummer : id.rsin;
-    return "bedrijf" + identfier;
+
+    //door de constructie zoder url is een cachekey nodig, maar die willen we eigenlijk niet gebruiken, ivm onvoorspelbaar gedrag.
+    //voor nu opgelost door een unieke key te genereren.,
+    return "" + Date.now();
   };
 
   const fetcher = () => {
@@ -21,6 +24,7 @@ export const useBedrijfByIdentifier = (
         "Dit scenario kan niet voorkomen, wordt al afgehandeld door getCacheKey",
       );
     }
+
     return searchBedrijvenInHandelsRegister(id).then(enforceOneOrZero);
   };
 

@@ -8,17 +8,27 @@
     <dl>
       <dt>E-mailadressen</dt>
       <dd>
-        <ul v-if="klant.emailadressen.length">
+        <ul v-if="klant.emailadressen && klant.emailadressen.length">
           <li v-for="(email, idx) in klant.emailadressen" :key="idx">
             {{ email }}
+          </li>
+        </ul>
+        <ul v-else-if="klant.emailadres">
+          <li>
+            {{ klant.emailadres }}
           </li>
         </ul>
       </dd>
       <dt>Telefoonnummers</dt>
       <dd>
-        <ul v-if="klant.telefoonnummers.length">
+        <ul v-if="klant.telefoonnummers && klant.telefoonnummers.length">
           <li v-for="(telefoon, idx) in klant.telefoonnummers" :key="idx">
             {{ telefoon }}
+          </li>
+        </ul>
+        <ul v-else-if="klant.telefoonnummer">
+          <li>
+            {{ klant.telefoonnummer }}
           </li>
         </ul>
       </dd>
@@ -29,7 +39,7 @@
 <script lang="ts" setup>
 import { type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import type { Klant } from "@/services/klanten";
+import type { Klant } from "@/services/openklant/types";
 
 defineProps({
   klant: {

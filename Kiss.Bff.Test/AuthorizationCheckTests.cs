@@ -27,6 +27,7 @@ namespace Kiss.Bff.Test
         [ClassInitialize]
         public static void ClassInit(TestContext _)
         {
+            Environment.SetEnvironmentVariable("MANAGEMENTINFORMATIE_API_KEY", "eenZeerGeheimeSleutelMetMinimaal32TekensLang");
             s_factory = new CustomWebApplicationFactory();
             s_client = s_factory.CreateDefaultClient();
         }
@@ -34,16 +35,16 @@ namespace Kiss.Bff.Test
         [ClassCleanup]
         public static void ClassCleanup()
         {
+            Environment.SetEnvironmentVariable("MANAGEMENTINFORMATIE_API_KEY", null);
             s_client?.Dispose();
             s_factory?.Dispose();
         }
 
-        public static IEnumerable<object[]> GetControllersWithAuthorizeAttributeAndMethods()
+        public static IEnumerable<object[]> GetControllersMethodsWithDefaultAuthorizeAttributes()
         {
             // Define the controllers and methods to test here
             var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes)>
                 {
-                     (typeof(ReadContactmomentenDetails), "Get", new[] { typeof(string), typeof(string), typeof(CancellationToken), typeof(int), typeof(int) }),
                     (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }),
                     (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}),
                     (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}),
@@ -69,7 +70,7 @@ namespace Kiss.Bff.Test
         [DataRow("/api/contactmomentendetails?id=1")]
         [DataRow("/api/zaaksysteem/deeplinkconfig")]
         [DataRow("/api/KanaalToevoegen", "post")]
-        public async Task Test(string url, string method = "get")
+        public async Task CallingEnpointsWithoutCredetialsShouldResultInAUnauthorizedResponse(string url, string method = "get")
         {
             using var request = new HttpRequestMessage(new(method), url);
             using var response = await s_client.SendAsync(request);
@@ -77,8 +78,8 @@ namespace Kiss.Bff.Test
         }
 
         [DataTestMethod]
-        [DynamicData(nameof(GetControllersWithAuthorizeAttributeAndMethods), DynamicDataSourceType.Method)]
-        public async Task TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
+        [DynamicData(nameof(GetControllersMethodsWithDefaultAuthorizeAttributes), DynamicDataSourceType.Method)]
+        public void TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
         {
             // Manually create an instance of the controller
             var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
@@ -100,10 +101,35 @@ namespace Kiss.Bff.Test
             var authorizeAttribute = method.GetCustomAttributes(typeof(AuthorizeAttribute), true)
                 .FirstOrDefault() as AuthorizeAttribute;
 
-            // Assert that the Authorize attribute exists and has the expected policy
-            Assert.IsNotNull(authorizeAttribute);
-            Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute.Policy);
+            // Assert that the method has the right auth attribute
+            Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute?.Policy);
         }
+
+
+        [TestMethod]
+        public void TestAuthorizationOfManagementInformatieEndpoint()
+        {
+            var controllerType = typeof(ReadContactmomentenDetails);
+
+            var dbContext = new BeheerDbContext(new DbContextOptions<BeheerDbContext>());
+            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+
+            Assert.IsNotNull(controller);
+
+            var methods = controllerType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            Assert.AreEqual(2, methods.Length);
+
+            for (var i = 0; i < methods.Length; i += 1)
+            {
+                var authorizeAttribute = methods[i].GetCustomAttributes(typeof(AuthorizeAttribute), true).FirstOrDefault() as AuthorizeAttribute;
+
+                Assert.IsNotNull(authorizeAttribute);
+                Assert.AreEqual(Policies.ExternSysteemPolicy, authorizeAttribute.Policy);
+            }
+        }
+
     }
 }
+
 

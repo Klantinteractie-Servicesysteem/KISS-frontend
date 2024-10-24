@@ -44,7 +44,7 @@ import {
   fetchBetrokkene,
   mapToContactmomentViewModel,
   type ContactmomentViewModel,
-} from "@/services/klantinteracties";
+} from "@/services/openklant2";
 
 //obsolete. api calls altijd vanuit /src/services of /src/apis. hier alleen nog busniesslogica afhandelen
 const contactmomentenProxyRoot = "/api/contactmomenten";
@@ -199,7 +199,9 @@ export function useContactmomentenByKlantId(
   const getCacheKey = () =>
     gebruikKlantinteractiesApi.value === null
       ? ""
-      : `${id.value}_contactmoment`;
+      : id.value
+        ? `${id.value}_contactmoment`
+        : "";
 
   const fetchContactmomenten = async (
     url: string,
@@ -224,9 +226,12 @@ export function useContactmomentenByKlantId(
 
   return ServiceResult.fromFetcher(
     () => {
+
       if (gebruikKlantinteractiesApi.value === null) {
         return "";
       }
+
+      if (!id.value) return "";
 
       // retourneer een url voor openklant 1 OF de klantInteracties api
       if (gebruikKlantinteractiesApi.value === true) {
@@ -235,7 +240,6 @@ export function useContactmomentenByKlantId(
 
         return `${klantinteractiesBetrokkenen}?${searchParams.toString()}`;
       } else {
-        if (!id.value) return "";
         const searchParams = new URLSearchParams();
         searchParams.set("klant", id.value);
         searchParams.set("ordering", "-registratiedatum");
@@ -513,12 +517,4 @@ export function mapContactverzoekData({
       digitaleAdressen,
     },
   };
-}
-
-export async function isOk2DefaultContactenApi() {
-  // bepaal of de openklant api of de klantinteracties api gebruikt moet worden voor verwerken van contactmomenten en contactverzoeken
-  // Fetch USE_KLANTCONTACTEN environment variable, wordt in sommige gevallen vervangen door flow te bepalen op basis van zaken
-  const response = await fetch("/api/environment/use-klantinteracties");
-  const { useKlantInteracties } = await response.json();
-  return useKlantInteracties as boolean;
 }

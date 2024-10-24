@@ -119,6 +119,7 @@ type ZaakBedrijfIdentifier =
 export const useZakenByKlantBedrijfIdentifier = (
   getId: () => ZaakBedrijfIdentifier | undefined,
 ) => {
+
   const getUrl = () => {
     const searchParam = getId();
     if (!searchParam) return "";

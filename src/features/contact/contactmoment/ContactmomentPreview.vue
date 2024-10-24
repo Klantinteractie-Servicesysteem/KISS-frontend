@@ -41,6 +41,7 @@ import ServiceDataWrapper from "@/components/ServiceDataWrapper.vue";
 import { useContactmomentByUrl } from "./service";
 import { fullName } from "@/helpers/string";
 import ContactmomentDetailsContext from "./ContactmomentDetailsContext.vue";
+
 const props = defineProps<{ url: string }>();
 const cm = useContactmomentByUrl(() => props.url);
 </script>
