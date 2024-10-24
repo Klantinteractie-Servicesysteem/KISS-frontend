@@ -9,7 +9,7 @@ import {
   type ServiceData,
 } from "@/services";
 import { mutate } from "swrv";
-import type { UpdateContactgegevensParams } from "./types";
+import type { ContactmomentObject, UpdateContactgegevensParams } from "./types";
 import { KlantType } from "./types";
 import type { Ref } from "vue";
 import { nanoid } from "nanoid";
@@ -19,6 +19,11 @@ import type { KlantBedrijfIdentifier as BedrijfIdentifierOpenKlant2 } from "../o
 import type { Klant } from "../openklant/types";
 
 const klantenBaseUrl = "/api/klanten/api/v1/klanten";
+
+const contactmomentenProxyRoot = "/api/contactmomenten";
+const contactmomentenApiRoot = "/contactmomenten/api/v1";
+const contactmomentenBaseUrl = `${contactmomentenProxyRoot}${contactmomentenApiRoot}`;
+const objectcontactmomentenUrl = `${contactmomentenBaseUrl}/objectcontactmomenten`;
 
 // type FieldParams = {
 //   email: string;
@@ -417,3 +422,13 @@ export function createKlant({
       return newKlant;
     });
 }
+
+export const koppelObject = (data: ContactmomentObject) =>
+  fetchLoggedIn(objectcontactmomentenUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  }).then(throwIfNotOk);

@@ -11,7 +11,11 @@ import { defineStore } from "pinia";
 import { createSession, type Session } from "../switchable-store";
 export * from "./types";
 import type { ContactVerzoekVragenSet } from "@/features/contact/components/types";
-export type ContactmomentZaak = { zaak: ZaakDetails; shouldStore: boolean };
+export type ContactmomentZaak = {
+  zaak: ZaakDetails;
+  shouldStore: boolean;
+  zaaksysteemId: string;
+};
 
 export interface OrganisatorischeEenheid extends Afdeling, Groep {
   typeOrganisatorischeEenheid: string;
@@ -284,7 +288,12 @@ export const useContactmomentStore = defineStore("contactmoment", {
       // start with an empty session. this is equivalent to resetting all state.
       createSession().enable();
     },
-    upsertZaak(zaak: ZaakDetails, vraag: Vraag, shouldStore = true) {
+    upsertZaak(
+      zaak: ZaakDetails,
+      vraag: Vraag,
+      shouldStore = true,
+      zaaksysteemId: string,
+    ) {
       const existingZaak = vraag.zaken.find(
         (contacmomentZaak) => contacmomentZaak.zaak.id === zaak.id,
       );
@@ -292,6 +301,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       if (existingZaak) {
         existingZaak.zaak = zaak;
         existingZaak.shouldStore = shouldStore;
+        existingZaak.zaaksysteemId = zaaksysteemId;
         return;
       }
 
@@ -299,6 +309,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       vraag.zaken.push({
         zaak,
         shouldStore,
+        zaaksysteemId,
       });
     },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {

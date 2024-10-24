@@ -95,11 +95,6 @@
           <utrecht-heading :level="3">{{
             vraag.zaken.length > 1 ? "Gerelateerde zaken" : "Gerelateerde zaak"
           }}</utrecht-heading>
-          <application-message
-            class="error-message"
-            message="Let op, zaken koppelen aan een contactmoment is stuk tot PC-316 is uitgevoerd"
-            message-type="error"
-          />
           <ul>
             <li v-for="record in vraag.zaken" :key="record.zaak.id">
               <label>
@@ -434,13 +429,13 @@ import { toast } from "@/stores/toast";
 import {
   koppelKlant,
   saveContactmoment,
-  koppelObject,
   useGespreksResultaten,
   type Contactmoment,
-  koppelZaakContactmoment,
   CONTACTVERZOEK_GEMAAKT,
   saveContactverzoek,
   mapContactverzoekData,
+  koppelZaakEnContactmoment,
+  addContactmomentToZaak,
 } from "@/features/contact/contactmoment";
 
 import { type ContactverzoekData } from "../components/types";
@@ -452,12 +447,10 @@ import {
   saveDigitaleAdressen,
   useOpenKlant2,
   ensureActoren,
+  postOnderwerpobject,
 } from "../../../services/openklant2/service";
 
-import type {
-  InternetaakPostModel,
-  KlantContactPostmodel,
-} from "../../../services/openklant2/types";
+import type { SaveInterneTaakResponseModel } from "../../../services/openklant2/types";
 
 import { useOrganisatieIds, useUserStore } from "@/stores/user";
 import { useConfirmDialog } from "@vueuse/core";
@@ -504,59 +497,7 @@ const zakenToevoegenAanContactmoment = async (
   for (const { zaak, shouldStore } of vraag.zaken) {
     if (shouldStore) {
       try {
-        // dit is voorlopige, hopelijk tijdelijke, code om uit te proberen of dit een nuttige manier is om met de instabiliteit van openzaak en openklant om te gaan
-        // derhalve bewust nog niet geoptimaliseerd
-        try {
-          await koppelZaakContactmoment({
-            contactmoment: contactmomentId,
-            ...zaak,
-          });
-        } catch (e) {
-          try {
-            console.log(
-              "koppelZaakContactmoment in openzaak attempt 1 failed",
-              e,
-            );
-            await koppelZaakContactmoment({
-              contactmoment: contactmomentId,
-              ...zaak,
-            });
-          } catch (e) {
-            try {
-              console.log(
-                "koppelZaakContactmoment in openzaak attempt 2 failed",
-                e,
-              );
-              await koppelZaakContactmoment({
-                contactmoment: contactmomentId,
-                ...zaak,
-              });
-            } catch (e) {
-              console.log(
-                "koppelZaakContactmoment in openzaak attempt 3 failed",
-                e,
-              );
-            }
-          }
-        }
-
-        // de tweede call gaat vaak mis, maar geeft dan bijna altijd ten onterechte een error response.
-        // de data is dan wel correct opgeslagen
-        // wellicht een timing issue. voor de zekerheid even wachten
-
-        try {
-          setTimeout(
-            async () =>
-              await koppelObject({
-                contactmoment: contactmomentId,
-                object: zaak.self,
-                objectType: "zaak",
-              }),
-            1000,
-          );
-        } catch (e) {
-          console.log("koppelZaakContactmoment in openklant", e);
-        }
+        koppelZaakEnContactmoment(zaak, contactmomentId);
       } catch (e) {
         // zaken toevoegen aan een contactmoment en anedrsom retourneert soms een error terwijl de data meetal wel correct opgelsagen is.
         // toch maar verder gaan dus
@@ -574,7 +515,7 @@ const koppelKlanten = async (vraag: Vraag, contactmomentId: string) => {
   }
 };
 
-const saveBetrokkeneBijKlantContact = async (
+const saveBetrokkeneBijContactverzoek = async (
   vraag: Vraag,
   klantcontactId: string,
   contactverzoekData?: Partial<ContactverzoekData>,
@@ -610,11 +551,26 @@ const saveBetrokkeneBijKlantContact = async (
   return betrokkenenUuids;
 };
 
+const saveBetrokkeneBijContactmoment = async (
+  vraag: Vraag,
+  klantcontactId: string,
+) => {
+  for (const { shouldStore, klant } of vraag.klanten) {
+    if (shouldStore && klant.id) {
+      await saveBetrokkene({
+        partijId: klant.id,
+        klantcontactId: klantcontactId,
+      });
+    }
+  }
+};
+
 const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const useKlantInteractiesApi = await useOpenKlant2();
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
   const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
+  const isNietAnoniemContactmoment = !isContactverzoek && !isAnoniem;
 
   // gedeeld contactmoment voor contactmomentdetails
   const contactmoment: Contactmoment = {
@@ -653,55 +609,52 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
     Object.assign(contactmoment, contactverzoekData);
   }
 
-  // Klantcontacten flow
+  // Openklant2 flow
   if (useKlantInteractiesApi) {
-    const klantcontact: KlantContactPostmodel = {
-      kanaal: vraag.kanaal,
-      onderwerp:
-        vraag.vraag?.title === "anders"
-          ? vraag.specifiekevraag
-          : vraag.vraag
-            ? vraag.specifiekevraag
-              ? `${vraag.vraag.title} (${vraag.specifiekevraag})`
-              : vraag.vraag.title
-            : vraag.specifiekevraag,
-      inhoud: vraag.notitie,
-      indicatieContactGelukt: true,
-      taal: "nld",
-      vertrouwelijk: false,
-      plaatsgevondenOp: new Date().toISOString(),
-    };
+    // 1. klantcontact opslaan
+    // 2. contactmomentdetails opslaan (wat niet in de standaardapi's mee kan, maar tbv management rapportage wel opgeslagen dient te worden)
+    // 3. betrokkenen opslaan in geval van een niet anoniem contactmoment of een contactverzoek
+    // 4. contactgegevens (digitaleadressen) opslaan bij een contactverzoek
+    // 5. actoren opslaan bij een contactverzoek (aan wie het contactverzoek is toegewezen)
+    // 6. internetaak opslaan bij een contactverzoek (dit is in wezen het cotnactverzoek)
+    // 7. zaken toevoegen
 
-    const savedKlantContactResult = await saveKlantContact(klantcontact);
+    let betrokkenenUuids: string[] = [];
 
-    if (savedKlantContactResult.errorMessage || !savedKlantContactResult.data) {
+    // 1 //////////////////////
+    const savedKlantContactResult = await saveKlantContact(vraag);
+
+    if (
+      savedKlantContactResult.errorMessage ||
+      !savedKlantContactResult.data ||
+      !savedKlantContactResult.data?.uuid
+    ) {
       return savedKlantContactResult;
     }
 
+    const savedKlantContactId = savedKlantContactResult.data.uuid;
+
+    // 2 //////////////////////
     await writeContactmomentDetails(
       contactmoment,
       savedKlantContactResult.data?.url,
     );
 
-    //contactmoment.uuid = savedKlantContactResult.data?.uuid;
-
-    // Drie scenario's:
-
-    // 1. Klantcontact met betrokkenen
-    if (!isContactverzoek && !isAnoniem) {
-      await saveBetrokkeneBijKlantContact(
+    // 3 //////////////////////
+    if (isContactverzoek) {
+      betrokkenenUuids = await saveBetrokkeneBijContactverzoek(
         vraag,
-        savedKlantContactResult.data?.uuid,
-      );
-
-      // 2. Contactverzoek met betrokkenen
-    } else if (isContactverzoek && !isAnoniem && contactverzoekData) {
-      const betrokkenenUuids = await saveBetrokkeneBijKlantContact(
-        vraag,
-        savedKlantContactResult.data?.uuid,
+        savedKlantContactId,
         contactverzoekData,
       );
+    }
 
+    if (isNietAnoniemContactmoment) {
+      await saveBetrokkeneBijContactmoment(vraag, savedKlantContactId);
+    }
+
+    // 4 ///////////////////////
+    if (isContactverzoek) {
       if (betrokkenenUuids.length > 0) {
         const saveAdressenPromises = betrokkenenUuids.map(
           async (betrokkeneUuid) => {
@@ -718,53 +671,57 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
         );
         await Promise.all(saveAdressenPromises);
       }
-
-      const actoren = await ensureActoren(contactverzoekData?.actor);
-      const interneTaak = createInternetaakPostModel(
-        contactverzoekData.toelichting ?? "",
-        savedKlantContactResult.data?.uuid,
-        actoren,
-      );
-      const savedContactverzoekResult = await saveInternetaak(interneTaak);
-
-      return savedContactverzoekResult || savedKlantContactResult;
-
-      // 3. Anoniem contactverzoek
-    } else if (isContactverzoek && isAnoniem && contactverzoekData) {
-      const betrokkeneResult = await saveBetrokkene({
-        partijId: undefined,
-        klantcontactId: savedKlantContactResult.data?.uuid,
-        organisatienaam: contactverzoekData?.betrokkene?.organisatie,
-        voornaam: contactverzoekData?.betrokkene?.persoonsnaam?.voornaam,
-        voorvoegselAchternaam:
-          contactverzoekData?.betrokkene?.persoonsnaam?.voorvoegselAchternaam,
-        achternaam: contactverzoekData?.betrokkene?.persoonsnaam?.achternaam,
-      });
-
-      const betrokkeneUuid = betrokkeneResult.uuid;
-
-      if (
-        betrokkeneUuid &&
-        contactverzoekData?.betrokkene?.digitaleAdressen?.length
-      ) {
-        await saveDigitaleAdressen(
-          contactverzoekData.betrokkene.digitaleAdressen,
-          betrokkeneUuid,
-        );
-      }
-
-      const actoren = await ensureActoren(contactverzoekData?.actor);
-      const interneTaak = createInternetaakPostModel(
-        contactverzoekData.toelichting ?? "",
-        savedKlantContactResult.data?.uuid,
-        actoren,
-      );
-      const savedContactverzoekResult = await saveInternetaak(interneTaak);
-
-      return savedContactverzoekResult || savedKlantContactResult;
     }
 
-    return savedKlantContactResult;
+    // 5 /////////////////////////
+    let actoren: string[] = [];
+    if (isContactverzoek) {
+      actoren = await ensureActoren(contactverzoekData?.actor);
+    }
+
+    // 6 /////////////////////////
+    let savedContactverzoekResult: SaveInterneTaakResponseModel | null = null;
+    if (isContactverzoek) {
+      savedContactverzoekResult = await saveInternetaak(
+        contactverzoekData?.toelichting ?? "",
+        savedKlantContactId,
+        actoren,
+      );
+    }
+
+    // 7 ////////////////////////
+    vraag.zaken?.forEach((zaakinfo) => {
+      // onderwerp object van het type zaak
+      if (zaakinfo.shouldStore) {
+        const onderwerpObject = {
+          klantcontact: {
+            uuid: savedKlantContactId,
+          },
+          wasKlantcontact: null,
+          onderwerpobjectidentificator: {
+            objectId: zaakinfo.zaak.id,
+            codeObjecttype: "zgw-Zaak",
+            codeRegister: "openzaak",
+            codeSoortObjectId: "uuid",
+          },
+        };
+
+        //voeg de zaak toe aan het contactmoment
+        postOnderwerpobject(onderwerpObject);
+
+        //voeg het contactmoment toe aan de zaak
+        //DIT WERKT NIET
+        //OPENZAAK ACCEPTEERT ALLEEN OK1 Contactmomenten, GEEN KLANTCONTACTEN
+        //ER ZIJN GEEN PLANNEN OM DIT MOGELIJK TE GAAN MAKEN
+        // addContactmomentToZaak(
+        //   savedKlantContactResult.data?.url as string,
+        //   zaakinfo.zaak?.url,
+        //   zaakinfo.zaaksysteemId,
+        // );
+      }
+    });
+
+    return savedContactverzoekResult || savedKlantContactResult;
   } else {
     // Contactmomenten flow
     addKennisartikelenToContactmoment(contactmoment, vraag);
@@ -1000,29 +957,6 @@ const trySetOfficieleAfdeling = async (vraag: Vraag) => {
   }
   const artikelAfdelingen = await fetchAfdelingen(vraag.vraag.afdeling, true);
   vraag.afdeling = artikelAfdelingen.page[0];
-};
-
-const createInternetaakPostModel = (
-  toelichting: string,
-  uuid: string,
-  actoren: { uuid: string }[],
-): InternetaakPostModel => {
-  const interneTaak: InternetaakPostModel = {
-    nummer: "",
-    gevraagdeHandeling: "Contact opnemen met betrokkene",
-    aanleidinggevendKlantcontact: {
-      uuid: uuid,
-    },
-    toegewezenAanActoren: [],
-    toelichting: toelichting,
-    status: "te_verwerken",
-  };
-
-  actoren.forEach((actor) => {
-    interneTaak.toegewezenAanActoren.push(actor);
-  });
-
-  return interneTaak;
 };
 
 onMounted(() => {

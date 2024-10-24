@@ -23,6 +23,8 @@ export type ExpandedKlantContactApiViewmodel = {
     };
   }>;
   internetaak: InternetaakApiViewModel;
+  //toe te voegen bij PC-317 Klantcontacten bij een Zaak tonen
+  //"gingOverOnderwerpobjecten": [ {   "uuid": "...",  "url": "..."  }],
 };
 
 export type InternetaakApiViewModel = {
@@ -201,6 +203,19 @@ export type Partij = {
   _expand?: {
     digitaleAdressen?: { adres?: string; soortDigitaalAdres?: string }[];
   };
+};
+
+export type identificator = {
+  objectId: string;
+  codeObjecttype: string;
+  codeRegister: string;
+  codeSoortObjectId: string;
+};
+
+export type onderwerpObjectPostModel = {
+  klantcontact: { uuid: string };
+  wasKlantcontact: { uuid: string } | null;
+  onderwerpobjectidentificator: identificator;
 };
 
 //todo: Contactverzoek type verplaatsen naar hier. o meer specifieke models introduceren

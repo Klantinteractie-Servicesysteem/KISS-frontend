@@ -22,3 +22,9 @@ export type BedrijfIdentifier =
   | {
       nietNatuurlijkPersoonIdentifier: string;
     };
+
+export interface ContactmomentObject {
+  contactmoment: string;
+  object: string;
+  objectType: string;
+}

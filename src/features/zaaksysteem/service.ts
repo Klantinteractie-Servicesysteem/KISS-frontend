@@ -3,7 +3,6 @@ import {
   parseJson,
   parsePagination,
   ServiceResult,
-  setHeader,
   throwIfNotOk,
   type PaginatedResult,
 } from "@/services";
@@ -22,6 +21,7 @@ import type {
 import type { Ref } from "vue";
 import { mutate } from "swrv";
 import { toRelativeProxyUrl } from "@/helpers/url";
+import { fetchWithZaaksysteemId } from "@/services/openzaak";
 
 const zakenProxyRoot = "/api/zaken";
 
@@ -119,7 +119,6 @@ type ZaakBedrijfIdentifier =
 export const useZakenByKlantBedrijfIdentifier = (
   getId: () => ZaakBedrijfIdentifier | undefined,
 ) => {
-
   const getUrl = () => {
     const searchParam = getId();
     if (!searchParam) return "";
@@ -416,17 +415,6 @@ const mapDocument = (rawDocumenten: any, url: string): ZaakDocument | null => {
   };
   return doc;
 };
-
-export function fetchWithZaaksysteemId(
-  zaaksysteemId: string | undefined,
-  url: string,
-  request: RequestInit = {},
-) {
-  if (zaaksysteemId) {
-    setHeader(request, "ZaaksysteemId", zaaksysteemId);
-  }
-  return fetchLoggedIn(url, request);
-}
 
 export function useZaaksysteemDeeplinkConfig(getZaaksysteemId: () => string) {
   const url = "/api/zaaksysteem/deeplinkconfig";

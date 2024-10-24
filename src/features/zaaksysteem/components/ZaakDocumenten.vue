@@ -43,7 +43,7 @@ import { formatDateOnly } from "@/helpers/date";
 import { formatBytes } from "@/helpers/formatBytes";
 import { throwIfNotOk } from "@/services";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
-import { fetchWithZaaksysteemId } from "../service";
+import { fetchWithZaaksysteemId } from "@/services/openzaak";
 
 const props = defineProps<{
   zaak: ZaakDetails;

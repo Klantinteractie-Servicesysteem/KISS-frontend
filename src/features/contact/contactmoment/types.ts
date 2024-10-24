@@ -44,18 +44,6 @@ export interface Gespreksresultaat {
   definitie: string;
 }
 
-export interface ContactmomentObject {
-  contactmoment: string;
-  object: string;
-  objectType: string;
-}
-
-export interface ZaakContactmoment {
-  contactmoment: string;
-  url: string;
-  zaaksysteemId: string;
-}
-
 export interface ContactverzoekDetail {
   id: string;
   datum: string;
