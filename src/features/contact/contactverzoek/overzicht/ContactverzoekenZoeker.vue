@@ -54,6 +54,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import SearchResultsCaption from "@/components/SearchResultsCaption.vue";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
 import ContactverzoekenOverzicht from "./ContactverzoekenOverzicht.vue";
+import { ensureState } from "@/stores/create-store";
 import ContactmomentDetailsContext from "@/features/contact/contactmoment/ContactmomentDetailsContext.vue";
 import ContactmomentPreview from "@/features/contact/contactmoment/ContactmomentPreview.vue";
 import { isOk2DefaultContactenApi } from "@/features/contact/contactmoment/service";
@@ -63,6 +64,17 @@ import type { PaginatedResult } from "@/services";
 
 const gebruikKlantInteracatiesApi = ref<boolean>(false);
 
+const store = ensureState({
+  stateId: "klant-zoeker",
+  stateFactory() {
+    return {
+      searchQuery: "",
+    };
+  },
+});
+
+const query = ref(store.value.searchQuery);
+
 const zoekerResults = ref({
   loading: false,
   success: false,
@@ -70,22 +82,18 @@ const zoekerResults = ref({
   data: [] as PaginatedResult<Contactverzoek>[], 
 });
 
-// Haal de waarde van gebruikKlantInteracatiesApi op bij het laden
 onMounted(async () => {
   gebruikKlantInteracatiesApi.value = await isOk2DefaultContactenApi();
 });
 
-// Gebruik een Ref voor de searchQuery
-const query = ref<string>("");
-
-// Gebruik een Ref direct voor de query in plaats van een object
 const handleSearch = async () => {
+  store.value.searchQuery = query.value; // Sla `query` op in de `store`
   zoekerResults.value.loading = true;
   zoekerResults.value.success = false;
   zoekerResults.value.error = false;
 
   try {
-    zoekerResults.value.data = await search(query, gebruikKlantInteracatiesApi);  
+    zoekerResults.value.data = await search(query, gebruikKlantInteracatiesApi);
     zoekerResults.value.success = true;
   } catch (error) {
     zoekerResults.value.error = true;
@@ -94,7 +102,6 @@ const handleSearch = async () => {
   }
 };
 
-// Filter de zoekresultaten indien nodig
 const filteredZoekerData = computed(() => {
   if (zoekerResults.value.success && query.value) {
     return zoekerResults.value.data.flatMap((paginatedResult) =>
@@ -108,8 +115,8 @@ const filteredZoekerData = computed(() => {
   }
   return [];
 });
-</script>
 
+</script>
 
 <style lang="scss" scoped>
 form {
