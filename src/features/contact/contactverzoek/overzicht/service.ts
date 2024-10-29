@@ -72,10 +72,10 @@ function searchRecursive(urlStr: string, page = 1): Promise<any[]> {
 }
 
 export async function search(
-  query: Ref<string>,
+  query: string,
   gebruikKlantInteractiesApi: Ref<boolean | null>
 ): Promise<PaginatedResult<Contactverzoek>[]> {
-  const url = getSearchUrl(query.value, gebruikKlantInteractiesApi);
+  const url = getSearchUrl(query, gebruikKlantInteractiesApi);
 
   if (gebruikKlantInteractiesApi.value) {
     const searchResults = await searchRecursive(url);

@@ -159,6 +159,7 @@ export function mapToContactverzoekViewModel(
             rol: "klant",
             persoonsnaam: x.contactnaam,
             digitaleAdressen: x.digitaleAdressenExpanded,
+            wasPartij: x.wasPartij
           },
 
           verantwoordelijkeAfdeling: "", //todo: waar komt dit vandaan?

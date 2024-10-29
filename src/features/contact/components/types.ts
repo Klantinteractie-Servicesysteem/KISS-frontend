@@ -64,6 +64,7 @@ export type ContactverzoekData = {
     };
     organisatie?: string;
     digitaleAdressen: DigitaalAdres[];
+    wasPartij: { uuid: string; url: string };
   };
   verantwoordelijkeAfdeling: string;
 };

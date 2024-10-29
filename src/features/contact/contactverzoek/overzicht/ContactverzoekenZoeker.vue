@@ -4,7 +4,7 @@
       Telefoonnummer of e-mailadres
       <input
         type="text"
-        v-model="query"
+        v-model="store.searchQuery"
         class="utrecht-textbox utrecht-textbox--html-input"
       />
     </label>
@@ -73,8 +73,6 @@ const store = ensureState({
   },
 });
 
-const query = ref(store.value.searchQuery);
-
 const zoekerResults = ref({
   loading: false,
   success: false,
@@ -87,13 +85,12 @@ onMounted(async () => {
 });
 
 const handleSearch = async () => {
-  store.value.searchQuery = query.value; // Sla `query` op in de `store`
   zoekerResults.value.loading = true;
   zoekerResults.value.success = false;
   zoekerResults.value.error = false;
 
   try {
-    zoekerResults.value.data = await search(query, gebruikKlantInteracatiesApi);
+    zoekerResults.value.data = await search(store.value.searchQuery, gebruikKlantInteracatiesApi);
     zoekerResults.value.success = true;
   } catch (error) {
     zoekerResults.value.error = true;
@@ -103,18 +100,17 @@ const handleSearch = async () => {
 };
 
 const filteredZoekerData = computed(() => {
-  if (zoekerResults.value.success && query.value) {
+  if (zoekerResults.value.success && store.value.searchQuery) {
     return zoekerResults.value.data.flatMap((paginatedResult) =>
       paginatedResult.page.filter((item) => {
-        return !item.record.data.betrokkene.hasOwnProperty.call(
-          item.record.data.betrokkene,
-          "klant"
-        );
+        return item.record.data.betrokkene.wasPartij === null || 
+               item.record.data.betrokkene.wasPartij === undefined;
       })
     );
   }
   return [];
 });
+
 
 </script>
 
