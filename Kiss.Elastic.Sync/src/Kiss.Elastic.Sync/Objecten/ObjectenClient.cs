@@ -39,8 +39,7 @@ namespace Kiss.Elastic.Sync.Sources
 
         public IAsyncEnumerable<OverigObject> GetObjecten(string type, CancellationToken token)
         {
-            var url = $"/api/v2/objects?type={HttpUtility.UrlEncode(type)}";
-            return GetObjectenInternal(url, token);
+            return GetObjectenInternal(type, 1, token);
         }
 
         private static string GetToken(string id, string secret)
@@ -70,8 +69,10 @@ namespace Kiss.Elastic.Sync.Sources
             return tokenHandler.WriteToken(token);
         }
 
-        private async IAsyncEnumerable<OverigObject> GetObjectenInternal(string url, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<OverigObject> GetObjectenInternal(string type, int page, [EnumeratorCancellation] CancellationToken token)
         {
+            var url = $"/api/v2/objects?type={HttpUtility.UrlEncode(type)}&page={page}";
+
             string? next = null;
 
             using (var message = new HttpRequestMessage(HttpMethod.Get, url))
@@ -113,7 +114,7 @@ namespace Kiss.Elastic.Sync.Sources
 
             if (!string.IsNullOrWhiteSpace(next))
             {
-                await foreach (var el in GetObjectenInternal(next, token))
+                await foreach (var el in GetObjectenInternal(type, page + 1, token))
                 {
                     yield return el;
                 }
