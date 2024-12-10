@@ -162,7 +162,8 @@ export type Contactnaam = {
 
 export enum DigitaalAdresTypes {
   email = "email",
-  telefoonnummer = "telnr",
+  telefoonnummer = "telefoonnummer",
+  overig = "overig"
 }
 
 export type IdentificatorType = {
