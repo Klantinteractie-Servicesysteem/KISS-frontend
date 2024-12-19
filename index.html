@@ -3,51 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src https://unpkg.com/simpledotcss@2.3.3/simple.min.css 'sha256-kZS4Ytg58npMuRkQ/J+zM+WLW6n1befhcf5YgPVHdEE=';">
     <title>Playwright traces</title>
+    <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.3.3/simple.min.css" integrity="sha384-Cxvt41nwdtHMOjpCqr+FaCybNL58LeIc0vPSLR4KlFSCBrHTb095iJbbw+hDTklQ" crossorigin="anonymous">
+    <style>[data-outcome=Failed]{color: var(--code)}</style>
 </head>
 <body>
-    <ol>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario1</p>
+    <main>
+        <div data-outcome="Passed">
+    <h2>Scenario: Scenario1</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario1.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>When navigates through the HOME Page</li>    <li>Then nieuws items are displayed</li>    <li>And werkinstructies are displayed</li>
+    <ol>    <li>When navigates through the HOME Page</li>    <li>Then nieuws items are displayed</li>    <li>And werkinstructies are displayed</li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario2</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario2</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario2.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there is an important message</li>    <li>When navigates through the HOME Page</li>    <li>Then count of the important messages displayed in the News and Instructions tabs.</li>
+    <ol>    <li>Given there is an important message</li>    <li>When navigates through the HOME Page</li>    <li>Then count of the important messages displayed in the News and Instructions tabs.</li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario3</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario3</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario3.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there is a nieuws item</li>    <li>When navigates through the HOME Page</li>    <li>And clicks on the book icon next to the news icon</li>    <li>Then button changes to 'markeer ongelezen'</li>    <li>And only title is displayed </li>
+    <ol>    <li>Given there is a nieuws item</li>    <li>When navigates through the HOME Page</li>    <li>And clicks on the book icon next to the news icon</li>    <li>Then button changes to 'markeer ongelezen'</li>    <li>And only title is displayed </li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario4</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario4</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario4.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there are at least 20 news articles</li>    <li>When navigates through the HOME Page</li>    <li>And clicks on the "Next" button to go to the next page</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 2</li>
+    <ol>    <li>Given there are at least 20 news articles</li>    <li>When navigates through the HOME Page</li>    <li>And clicks on the "Next" button to go to the next page</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 2</li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario5</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario5</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario5.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there are at least 20 news articles</li>    <li>And is on the HOME Page</li>    <li>And is on page 2 with 10 articles displayed</li>    <li>When clicks on the "Previous" button</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 1</li>
+    <ol>    <li>Given there are at least 20 news articles</li>    <li>And is on the HOME Page</li>    <li>And is on page 2 with 10 articles displayed</li>    <li>When clicks on the "Previous" button</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 1</li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario6</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario6</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario6.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there are at least 20 werkinstructies</li>    <li>And is on the HOME Page</li>    <li>And is on page 2 with 10 articles displayed</li>    <li>When clicks on the "Previous" button</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 1</li>
+    <ol>    <li>Given there are at least 20 werkinstructies</li>    <li>And is on the HOME Page</li>    <li>And is on page 2 with 10 articles displayed</li>    <li>When clicks on the "Previous" button</li>    <li>Then should see 10 new articles on the next page</li>    <li>And the current page number should be 1</li>
     </ol>
-</div></li>    <li><div data-outcome="Passed">
-    <p>Scenario: Scenario7</p>
+</div><div data-outcome="Passed">
+    <h2>Scenario: Scenario7</h2>
     <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Scenarios.Scenario7.zip">Playwright tracing</a>
     <p>Steps:</p>
-    <ol>    <li>Given user is logged in to KISS DEV environment</li>    <li>And there are at least 20 werkinstructies</li>    <li>And is on the HOME Page</li>    <li>And is on the last page of articles</li>    <li>When clicks on the "Next" button</li>    <li>Then should remain on the last page</li>
+    <ol>    <li>Given there are at least 20 werkinstructies</li>    <li>And is on the HOME Page</li>    <li>And is on the last page of articles</li>    <li>When clicks on the "Next" button</li>    <li>Then should remain on the last page</li>
     </ol>
-</div></li>
-    </ol>
+</div>
+    </main>
 </body>
