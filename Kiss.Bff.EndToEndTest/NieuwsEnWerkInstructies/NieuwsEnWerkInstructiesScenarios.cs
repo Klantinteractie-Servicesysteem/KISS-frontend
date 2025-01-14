@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection.Emit;
+﻿ 
 using Kiss.Bff.EndToEndTest.Helpers;
 using Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers;
 
@@ -662,21 +661,44 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
+        await using var skill = await Page.CreateSkill(Guid.NewGuid().ToString());
+         var nieuw = await Page.CreateBericht(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill = skill.Naam });
+
         await Step("And the user is on the Nieuws and werkinstructiesscreen available under Beheer");
+
+        await Page.NavigateToNieuwsWerkinstructiesBeheer();
 
         await Step("And the user has clicked on the arrow button of the nieuwsbericht");
 
+        await Page.GetBeheerRowByValue(nieuw.Title).GetByRole(AriaRole.Link).ClickAsync();
+
         await Step("And the news detail screen is displayed");
+
+        await Expect(Page.Locator("#titel")).ToHaveValueAsync(nieuw.Title);
+        await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync();
+        await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = skill.Naam })).ToBeCheckedAsync();
 
         await Step("When the user updates the title section of news");
 
+        var updatedTitle = Guid.NewGuid().ToString();
+        await Page.GetByLabel("Titel").FillAsync(updatedTitle);
+
         await Step("And clicks on the submit button");
+
+        var opslaanKnop = Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
+        while (await opslaanKnop.IsVisibleAsync() && await opslaanKnop.IsEnabledAsync())
+        {
+            await opslaanKnop.ClickAsync();
+        }
 
         await Step("Then the updated news title is displayed in Berichten screen");
 
-        await Step("And the “Gewijzigd op” field gets updated with the latest time");
+      
+        await Expect(Page.GetBeheerTableCell(1,1)).ToHaveTextAsync(updatedTitle);
 
-        Assert.Inconclusive("Not implemented yet");
+        await Step("And the “Gewijzigd op” field gets updated with the latest time"); 
+       
+        await Expect(Page.GetBeheerTableCell(5, 1)).ToHaveTextAsync(DateTime.Now.ToString("dd-MM-yyyy, HH:mm"));
     }
 
     [TestMethod]
@@ -684,19 +706,40 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
+        await using var skill = await Page.CreateSkill(Guid.NewGuid().ToString());
+        await using var nieuw = await Page.CreateBericht(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill = skill.Naam });
+
+
         await Step("And the user is on the Nieuws and werkinstructiesscreen available under Beheer");
+
+        await Page.NavigateToNieuwsWerkinstructiesBeheer();
 
         await Step("And the user has clicked on the arrow button of the nieuwsbericht");
 
+        await Page.GetBeheerRowByValue(nieuw.Title).GetByRole(AriaRole.Link).ClickAsync();
+
         await Step("And the news detail screen is displayed");
 
+        await Expect(Page.Locator("#titel")).ToHaveValueAsync(nieuw.Title);
+        await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync();
+        await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = skill.Naam })).ToBeCheckedAsync();
+
         await Step("When the user updates the Publicatiedatum section of the nieuwsbericht to a future date");
+       
+        var updatedPublicatieDatum = nieuw.PublicatieDatum.AddDays(30); 
+
+        await Page.GetByLabel("Publicatiedatum").FillAsync(updatedPublicatieDatum.ToString("yyyy-MM-ddTHH:mm"));
 
         await Step("And clicks on the submit button");
-
+        var opslaanKnop = Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
+        while (await opslaanKnop.IsVisibleAsync() && await opslaanKnop.IsEnabledAsync())
+        {
+            await opslaanKnop.ClickAsync();
+        }
         await Step("Then the nieuwsbericht with the updated Publicatiedatum is displayed in the Berichten screen");
 
-        Assert.Inconclusive("Not implemented yet");
+        await Expect(Page.GetBeheerTableCell(3, 1)).ToHaveTextAsync(updatedPublicatieDatum.ToString("dd-MM-yyyy, HH:mm"));
+
     }
 
     [TestMethod]
@@ -704,23 +747,50 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
+        await using var skill = await Page.CreateSkill(Guid.NewGuid().ToString());
+        await using var nieuw = await Page.CreateBericht(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill = skill.Naam });
+
         await Step("And the user is on the Nieuws and werkinstructiesscreen available under Beheer");
+
+        await Page.NavigateToNieuwsWerkinstructiesBeheer();
 
         await Step("And the user has clicked on the arrow button of the nieuwsbericht");
 
+        await Page.GetBeheerRowByValue(nieuw.Title).GetByRole(AriaRole.Link).ClickAsync();
+
         await Step("And the news detail screen is displayed");
 
+        await Expect(Page.Locator("#titel")).ToHaveValueAsync(nieuw.Title);
+        await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync();
+        await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = skill.Naam })).ToBeCheckedAsync();
+
+
         await Step("When the user checks the ‘belangrijk’ checkbox");
+        
+        await Page.GetByRole(AriaRole.Checkbox, new() { Name = "Belangrijk" }).CheckAsync();
+
 
         await Step("And clicks on the submit button");
 
+        var opslaanKnop = Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
+        while (await opslaanKnop.IsVisibleAsync() && await opslaanKnop.IsEnabledAsync())
+        {
+            await opslaanKnop.ClickAsync();
+        }
+
         await Step("And navigates to the home screen of the KISS environment");
 
+        await Page.GotoAsync("/");
+
         await Step("And navigates to the page containing the nieuwsbericht selected earlier");
+        await Page.GetNieuwsAndWerkinstructiesSearch().FillAsync(nieuw.Title);
+        await Page.GetNieuwsAndWerkinstructiesSearch().PressAsync("Enter");
 
         await Step("Then the nieuwsbericht should be displayed with the ‘belangrijk’ flag");
 
-        Assert.Inconclusive("Not implemented yet");
+        await Expect(Page.GetSearchResultFilteredByType("Nieuws")).ToHaveCountAsync(1);
+        await Expect(Page.GetSearchResultFilteredByType("Nieuws").GetByText("Belangrijk")).ToBeVisibleAsync();
+
     }
 
     [TestMethod]
