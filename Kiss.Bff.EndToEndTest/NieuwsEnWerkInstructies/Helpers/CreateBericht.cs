@@ -94,19 +94,41 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
                 IsImportant = request.IsImportant,
                 Title = request.Title,
                 PublishDateOffset = request.PublishDateOffset,
-                PublicatieDatum= publishDate,
+                PublicatieDatum = publishDate,
                 PublicatieEinddatum = publishDate.AddYears(1),
                 Skill = request.Skill,
                 Body = request.Body,
                 BerichtType = request.BerichtType,
             };
         }
+        public static async Task<Bericht> OnSaveBericht(this IPage page)
+        {
+            
+          var title=  await page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).TextContentAsync() ?? string.Empty;
+          var body = await page.GetByRole(AriaRole.Textbox, new() { Name = "Rich Text Editor" }).TextContentAsync() ?? string.Empty;
+          var berichtType = await page.GetByRole(AriaRole.Radio, new() { Name = BerichtType.Nieuws.ToString() }).IsCheckedAsync() ? BerichtType.Nieuws : BerichtType.Werkinstructie;
+
+            var opslaanKnop = page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
+            while (await opslaanKnop.IsVisibleAsync() && await opslaanKnop.IsEnabledAsync())
+            {
+                await opslaanKnop.ClickAsync();
+            }
+
+            await page.GetByRole(AriaRole.Table).WaitForAsync();
+            return new(page)
+            { 
+                Title = title,
+                Body = body,
+                BerichtType = berichtType
+            };
+        }
+
     }
 
     internal record class Bericht(IPage Page) : CreateBerichtRequest, IAsyncDisposable
     {
         public required new string Body { get; init; }
-        public DateTime PublicatieDatum { get; init; } 
+        public DateTime PublicatieDatum { get; init; }
         public DateTime PublicatieEinddatum { get; init; }
         public async ValueTask DisposeAsync()
         {
