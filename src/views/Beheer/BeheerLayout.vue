@@ -11,13 +11,13 @@
     >
     <router-link to="/Beheer/Kanalen">Kanalen</router-link>
     <router-link to="/Beheer/formulieren-contactverzoek-afdeling">
-      Formulieren contactverzoek afdelingen
+      Contactverzoekformulieren afdelingen
     </router-link>
     <router-link to="/Beheer/formulieren-contactverzoek-groep">
-      Formulieren contactverzoek groepen
+      Contactverzoekformulieren groepen
     </router-link>
 
-    <router-link to="/Beheer/vacs"> Vacs </router-link>
+    <router-link v-if="useVacs" to="/Beheer/vacs">Vacs</router-link>
   </nav>
 
   <main>
@@ -29,6 +29,8 @@
 import { watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import { useCurrentUser } from "@/features/login";
+import { useLoader } from "@/services/use-loader";
+import { fetchLoggedIn } from "@/services";
 
 const user = useCurrentUser();
 const router = useRouter();
@@ -38,11 +40,18 @@ watchEffect(() => {
     router.push("/");
   }
 });
+
+const { data: useVacs } = useLoader(() =>
+  fetchLoggedIn("/api/environment/use-vacs")
+    .then((r) => r.json())
+    .then(({ useVacs }) => useVacs),
+);
 </script>
 
 <style lang="scss" scoped>
 nav {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-default);
   margin-bottom: var(--spacing-large);
 }

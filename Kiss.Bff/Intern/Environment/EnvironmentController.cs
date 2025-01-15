@@ -21,6 +21,13 @@ namespace Kiss.Bff.Intern.Environment
             return Ok(new { useKlantInteracties = bool.Parse(useKlantInteracties) });
         }
 
+        [HttpGet("use-vacs")]
+        public IActionResult GetUseVacs()
+        {
+            var useVacs = _configuration["USE_VACS"] ?? "false";
+            return Ok(new { useVacs = bool.Parse(useVacs) });
+        }
+
         [HttpGet("versienummer")]
         public IActionResult GetVersienummer()
         {
