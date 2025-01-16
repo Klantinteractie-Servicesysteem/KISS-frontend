@@ -19,6 +19,8 @@ export {
   Link,
   List,
   Paragraph,
+  Table,
+  TableToolbar,
   type EditorConfig,
 } from "ckeditor5";
 

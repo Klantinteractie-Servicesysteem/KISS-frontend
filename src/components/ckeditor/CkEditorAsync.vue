@@ -37,7 +37,12 @@ const config: EditorConfig = {
     "blockQuote",
     "undo",
     "redo",
+    "insertTable",
   ],
+  table: {
+    defaultHeadings: { rows: 1 },
+    contentToolbar: ["tableColumn", "tableRow"],
+  },
 };
 </script>
 

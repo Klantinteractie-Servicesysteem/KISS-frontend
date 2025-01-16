@@ -8,13 +8,14 @@ namespace Kiss.Bff.Vacs
     {
         public static IServiceCollection AddVacsProxy(this IServiceCollection services, string destination, string token, string objectTypeUrl, string typeVersion)
         {
-            return services.AddSingleton<IKissProxyRoute>(s =>
+            return services.AddSingleton(s =>
             {
                 var authorizationService = s.GetRequiredService<IAuthorizationService>();
                 var policyProvider = s.GetRequiredService<IAuthorizationPolicyProvider>();
 
                 return new VacsProxyConfig(destination, token, objectTypeUrl, typeVersion, authorizationService, policyProvider);
-            });
+            })
+                .AddSingleton<IKissProxyRoute>(s => s.GetRequiredService<VacsProxyConfig>());
         }
     }
 

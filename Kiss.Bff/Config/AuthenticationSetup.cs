@@ -116,7 +116,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
-                options.Events.OnRedirectToAccessDenied = HandleLoggedOut;
+                options.Events.OnRedirectToAccessDenied = (ctx) =>
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
                 options.Events.OnRedirectToLogin = HandleLoggedOut;
             });
 

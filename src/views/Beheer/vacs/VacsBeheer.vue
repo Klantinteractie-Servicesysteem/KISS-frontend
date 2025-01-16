@@ -1,9 +1,20 @@
 <template>
-  <utrecht-heading :level="1">Vacs</utrecht-heading>
+  <div class="header-wrapper">
+    <utrecht-heading :level="1">Vacs</utrecht-heading>
+
+    <router-link
+      to="/Beheer/vac/"
+      title="Toevoegen"
+      class="utrecht-button utrecht-button--primary-action icon icon-after plus icon-only"
+    >
+    </router-link>
+  </div>
 
   <simple-spinner v-if="loading" />
 
-  <div v-else-if="error">Er is een fout opgetreden.</div>
+  <div v-else-if="error">
+    Er is een fout opgetreden bij het ophalen van de Vacs.
+  </div>
 
   <ul v-else>
     <li v-for="vac in vacs" :key="vac.uuid" class="listItem">

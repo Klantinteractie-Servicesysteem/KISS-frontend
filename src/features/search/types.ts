@@ -42,7 +42,11 @@ export type Vac = {
   uuid?: string;
   vraag: string;
   antwoord: string;
+  toelichting?: string;
   afdelingen?: VacAfdeling[];
+  trefwoorden?: { trefwoord: string }[];
+  status?: string;
+  doelgroep?: string;
 };
 
 export type Nieuwsbericht = {
