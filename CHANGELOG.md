@@ -18,11 +18,18 @@
 - Contactverzoekformuliertjes / vragensetjes óók voor groepen #954
 - Pagesize meegeven bij ophalen contactverzoeken en contactmomenten #896
 - VAC items vindbaar maken voor beheer #1004
+- VAC items toevoegen #1005
+- VAC item bewerken #1006
+- VAC beheerfunctionaliteit kunnen verbergen  #1007
+- VAC item verwijderen #1008
+- Kan geen tekst selecteren binnen harmonica componenten #945
+
 
 ### Warnings and deployment notes
 Zie installatiehandleiding voor instructies
 - Nieuwe Environment Variabelen nodig: `VAC_OBJECTEN_BASE_URL`, `VAC_OBJECT_TYPE_URL` , `VAC_OBJECT_TYPE_VERSION`, `VAC_OBJECTEN_TOKEN` 
 - Minimale lengte van secrets is verhoogd van 16 naar 32 tekens
+- Om de functionaliteit rondom beheer van VAC-items te kunnen gebruiken, moet je een nieuwe environment variable toevoegen: `USE_VACS`. Deze mag ook ontbreken. 
   
 ### Bugfixes
 
