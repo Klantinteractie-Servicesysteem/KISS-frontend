@@ -9,7 +9,7 @@ describe("ServiceResult.fromSubmitter", () => {
     };
 
     const fromSubmitterResult = ServiceResult.fromSubmitter<TestType, TestType>(
-      () => Promise.resolve({ data: "out" } as TestType)
+      () => Promise.resolve({ data: "out" } as TestType),
     );
 
     fromSubmitterResult.submit({ data: "in" });
@@ -31,7 +31,7 @@ describe("ServiceResult.fromSubmitter", () => {
     };
 
     const fromPromiseResult = ServiceResult.fromSubmitter<TestType, TestType>(
-      () => Promise.resolve({ data: "value" } as TestType)
+      () => Promise.resolve({ data: "value" } as TestType),
     );
 
     fromPromiseResult.submit({ data: "in" });
@@ -58,14 +58,16 @@ describe("ServiceResult.fromSubmitter", () => {
             TestType
           >(() => Promise.reject<TestType>());
 
-          expect(fromPromiseResult.submit({ data: "in" })).rejects.toBeFalsy();
+          await expect(
+            fromPromiseResult.submit({ data: "in" }),
+          ).rejects.toBeFalsy();
 
           await flushPromises();
 
           expect(fromPromiseResult.state).toMatch("error");
           expect(fromPromiseResult.success).toBeFalsy();
         },
-      }
+      },
     );
   });
 });
