@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
+using Kiss.Bff.EndToEndTest.Infrastructure;
 using Microsoft.Extensions.Configuration;
 
 
@@ -25,10 +26,16 @@ namespace Kiss.Bff.EndToEndTest
 
         private static readonly UniqueOtpHelper s_uniqueOtpHelper = new(GetRequiredConfig("TestSettings:TEST_TOTP_SECRET"));
         
-        // this is used to build a test report for each test
-        private static readonly ConcurrentDictionary<string, string> s_testReports = [];
+        // we keep track of the test class name because we need it when building the report
+        private static string s_className = "";
 
         private readonly List<string> _steps = [];
+
+        [ClassInitialize(InheritanceBehavior.BeforeEachDerivedClass)]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            s_className = testContext.FullyQualifiedTestClassName ?? "";
+        }
 
         /// <summary>
         /// This is run before each test
@@ -86,10 +93,13 @@ namespace Kiss.Bff.EndToEndTest
                 Path = fullPath
             });
 
+            var testName = TestContext.TestDisplayName ?? TestContext.TestName ?? "";
+            testName = testName.Trim();
+
             // build a html report containing the test steps and a link to the playwright traces viewer
             var html = $"""
             <div data-outcome="{TestContext.CurrentTestOutcome}">
-                <h2>{HtmlEncoder.Default.Encode(TestContext.TestName ?? "")}</h2>
+                <h2>{HtmlEncoder.Default.Encode(testName)}</h2>
                 <a target="_blank" href="https://trace.playwright.dev/?trace=https://klantinteractie-servicesysteem.github.io/KISS-frontend/{fileName}">Playwright tracing</a>
                 <p>Steps:</p>
                 <ol>{string.Join("", _steps.Select(step => $"""
@@ -99,14 +109,14 @@ namespace Kiss.Bff.EndToEndTest
             </div>
             """;
 
-            s_testReports.TryAdd(TestContext.TestName!, html);
+            HtmlReport.TryAdd(TestContext.FullyQualifiedTestClassName!, testName, html);
         }
 
         /// <summary>
         /// This is run after all tests in a test class are done
         /// </summary>
         /// <returns></returns>
-        [ClassCleanup(InheritanceBehavior.BeforeEachDerivedClass)]
+        [ClassCleanup(InheritanceBehavior.BeforeEachDerivedClass, ClassCleanupBehavior.EndOfClass)]
         public static async Task ClassCleanup()
         {
             // combine the reports for each test in a single html file
@@ -123,11 +133,38 @@ namespace Kiss.Bff.EndToEndTest
             </head>
             <body>
                 <main>
-                    {{string.Join("", s_testReports.OrderBy(x=> x.Key).Select(x=> x.Value))}}
+                    {{string.Join("", HtmlReport.GetByClassName(s_className).OrderBy(x=> x.Key).Select(x=> x.Value))}}
                 </main>
             </body>
             """;
-            
+
+            var fileName = $"{s_className}.html";
+            using var writer = File.CreateText(Path.Combine(Environment.CurrentDirectory, "playwright-traces", fileName));
+            await writer.WriteLineAsync(html);
+        }
+
+        [AssemblyCleanup]
+        public static async Task AssemblyCleanup()
+        {
+            var html = $$"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src https://unpkg.com/simpledotcss@2.3.3/simple.min.css;">
+                <title>Playwright traces</title>
+                <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.3.3/simple.min.css" integrity="sha384-Cxvt41nwdtHMOjpCqr+FaCybNL58LeIc0vPSLR4KlFSCBrHTb095iJbbw+hDTklQ" crossorigin="anonymous">
+            </head>
+            <body>
+                <main>
+                    <ul>
+                        {{string.Join("", HtmlReport.GetClassNames().OrderBy(x => x.Key).Select(x => $"<li><a href=\"{x.Key}.html\">{x.Value}</a></li>"))}}
+                    </ul>
+                </main>
+            </body>
+            """;
+
             using var writer = File.CreateText(Path.Combine(Environment.CurrentDirectory, "playwright-traces", "index.html"));
             await writer.WriteLineAsync(html);
         }
