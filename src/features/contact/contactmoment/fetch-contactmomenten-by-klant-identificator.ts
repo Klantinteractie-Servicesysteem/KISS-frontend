@@ -18,7 +18,7 @@ import { getIdentificatorForOk1And2 } from "../shared";
 export async function fetchContactmomentenByKlantIdentificator(
   id: KlantIdentificator,
   systemen: Systeem[],
-): Promise<ContactmomentViewModel[]> {
+): Promise<Array<ContactmomentViewModel & { systeemId: string }>> {
   const klantidentificators = getIdentificatorForOk1And2(id);
 
   const promises = systemen.map((systeem) => {
@@ -33,7 +33,12 @@ export async function fetchContactmomentenByKlantIdentificator(
           : fetchContactmomentenByKlantUrlOk1({
               systeemIdentifier: systeem.identifier,
               klantUrl: klant.url,
-            }).then(({ page }) => page),
+            }).then(({ page }) =>
+              page.map((cm) => ({
+                ...cm,
+                systeemId: systeem.identifier,
+              })),
+            ),
       );
     }
     if (!klantidentificators.ok2) return [];
@@ -56,9 +61,10 @@ export async function fetchContactmomentenByKlantIdentificator(
               ),
             )
             .then((page) =>
-              page.map(({ klantContact }) =>
-                mapKlantContactToContactmomentViewModel(klantContact),
-              ),
+              page.map(({ klantContact }) => ({
+                ...mapKlantContactToContactmomentViewModel(klantContact),
+                systeemId: systeem.identifier,
+              })),
             ),
     );
   });

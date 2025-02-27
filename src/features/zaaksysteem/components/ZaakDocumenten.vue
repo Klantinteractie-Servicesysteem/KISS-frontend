@@ -43,7 +43,7 @@ import { formatDateOnly } from "@/helpers/date";
 import { formatBytes } from "@/helpers/formatBytes";
 import { throwIfNotOk } from "@/services";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
-import { fetchWithZaaksysteemId } from "@/services/openzaak";
+import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
 
 const props = defineProps<{
   zaak: ZaakDetails;
@@ -54,7 +54,7 @@ const props = defineProps<{
 // omdat je in een gewone link geen header mee kan geven.
 async function download(doc: ZaakDocument) {
   const url = doc.url + "/download";
-  const blob = await fetchWithZaaksysteemId(props.zaak.zaaksysteemId, url)
+  const blob = await fetchWithSysteemId(props.zaak.zaaksysteemId, url)
     .then(throwIfNotOk)
     .then((r) => r.blob());
   const objectUrl = URL.createObjectURL(blob);

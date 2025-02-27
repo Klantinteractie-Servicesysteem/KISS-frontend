@@ -28,6 +28,7 @@
       v-for="object in contactmoment.objectcontactmomenten"
       :key="object.object"
       :object="object"
+      :systeemId="contactmoment.systeemId"
     />
     <ServiceDataWrapper :data="cmDetails">
       <template #success="{ data: contactmoment }">
@@ -55,7 +56,9 @@ import DutchDate from "@/components/DutchDate.vue";
 import DutchTime from "@/components/DutchTime.vue";
 import { computed } from "vue";
 import type { ContactmomentViewModel } from "@/services/openklant2/types";
-const props = defineProps<{ contactmoment: ContactmomentViewModel }>();
+const props = defineProps<{
+  contactmoment: ContactmomentViewModel & { systeemId: string };
+}>();
 
 const registratieDatum = computed(
   () =>

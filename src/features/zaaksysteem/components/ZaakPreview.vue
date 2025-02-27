@@ -20,6 +20,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { useLoader } from "@/services/use-loader";
 
 const props = defineProps<{
+  systeemId: string;
   zaakurl: string;
 }>();
 
@@ -27,5 +28,5 @@ const {
   data: zaak,
   error,
   loading,
-} = useLoader(() => fetchZakenPreviewByUrlOrId(props.zaakurl));
+} = useLoader(() => fetchZakenPreviewByUrlOrId(props.systeemId, props.zaakurl));
 </script>

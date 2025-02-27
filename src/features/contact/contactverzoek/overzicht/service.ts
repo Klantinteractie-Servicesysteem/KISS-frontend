@@ -197,7 +197,7 @@ function mapObjectToContactverzoekOverzichtItem({
 export async function fetchContactverzoekenByKlantIdentificator(
   id: KlantIdentificator,
   systemen: Systeem[],
-): Promise<ContactverzoekOverzichtItem[]> {
+): Promise<Array<ContactverzoekOverzichtItem & { systeemId: string }>> {
   const klantidentificators = getIdentificatorForOk1And2(id);
 
   const promises = systemen.map((systeem) => {
@@ -222,7 +222,9 @@ export async function fetchContactverzoekenByKlantIdentificator(
               await enrichContactverzoekObjectWithContactmoment(
                 obj,
                 systeem.identifier,
-              ).then(mapObjectToContactverzoekOverzichtItem),
+              )
+                .then(mapObjectToContactverzoekOverzichtItem)
+                .then((cm) => ({ ...cm, systeemId: systeem.identifier })),
             );
           }
           return result;
@@ -251,7 +253,10 @@ export async function fetchContactverzoekenByKlantIdentificator(
               .then((page) =>
                 enrichInterneTakenWithActoren(systeem.identifier, page),
               )
-              .then(mapKlantcontactToContactverzoekOverzichtItem),
+              .then(mapKlantcontactToContactverzoekOverzichtItem)
+              .then((x) =>
+                x.map((cm) => ({ ...cm, systeemId: systeem.identifier })),
+              ),
           ),
     );
   });

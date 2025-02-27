@@ -38,23 +38,28 @@
           @loading="setLoading"
           @error="setError"
         >
-          <template #object="{ object }">
-            <zaak-preview :zaakurl="object.object" />
+          <template #object="{ object, systeemId }">
+            <zaak-preview :zaakurl="object.object" :systeem-id="systeemId" />
           </template>
         </contactmomenten-for-klant-identificator>
       </template>
     </tab-list-item>
 
-    <tab-list-data-item label="Zaken" :data="zaken" :disabled="(c) => !c.count">
-      <template #success="{ data }">
+    <tab-list-item label="Zaken">
+      <template #default="{ setError, setLoading, setDisabled }">
         <utrecht-heading :level="2"> Zaken </utrecht-heading>
 
-        <zaken-overzicht
-          :zaken="data.page"
+        <zaken-for-klant
+          v-if="persoon && systemen"
+          :systemen="systemen"
+          :klant-identificator="persoon"
           :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
         />
       </template>
-    </tab-list-data-item>
+    </tab-list-item>
 
     <tab-list-item label="Contactverzoeken">
       <template #default="{ setError, setLoading, setDisabled }">
@@ -67,8 +72,12 @@
           @error="setError"
           @load="setDisabled(!$event.length)"
         >
-          <template #object="{ object }">
-            <zaak-preview v-if="object.object" :zaakurl="object.object" />
+          <template #object="{ object, systeemId }">
+            <zaak-preview
+              v-if="object.object"
+              :zaakurl="object.object"
+              :systeemId="systeemId"
+            />
           </template>
         </contactverzoeken-for-klant-identificator>
       </template>
@@ -81,16 +90,15 @@ import { computed, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { KlantDetails } from "@/features/klant/klant-details";
-import { useZakenByBsn } from "@/features/zaaksysteem";
-import ZakenOverzicht from "@/features/zaaksysteem/ZakenOverzicht.vue";
 import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
-import { TabList, TabListDataItem, TabListItem } from "@/components/tabs";
+import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { BrpGegevens } from "@/features/persoon/persoon-details";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
 import type { Klant } from "@/services/openklant/types";
 import type { Persoon } from "@/services/brp";
+import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
 defineProps<{ persoonId: string }>();
 
@@ -99,9 +107,6 @@ const contactmomentStore = useContactmomentStore();
 
 const klant = ref<Klant>();
 
-const klantBsn = computed(() => klant.value?.bsn || "");
-
-const zaken = useZakenByBsn(klantBsn);
 const persoon = ref<Persoon>();
 
 watch(
