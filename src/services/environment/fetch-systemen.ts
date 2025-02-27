@@ -12,6 +12,8 @@ export type Systeem = {
   isDefault: boolean;
   identifier: string;
   registryVersion: ValueOf<typeof registryVersions>;
+  deeplinkUrl?: string;
+  deeplinkProperty?: string;
 };
 
 const _fetchSystemen = () =>

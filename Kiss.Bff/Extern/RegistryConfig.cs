@@ -77,6 +77,8 @@ namespace Kiss.Bff.Extern
             headers.Add(CrsHeaderConstants.AcceptCrs, CrsHeaderConstants.Value);
             headers.Add(CrsHeaderConstants.ContentCrs, CrsHeaderConstants.Value);
         }
+        public string? DeeplinkUrl { get; init; }
+        public string? DeeplinkProperty { get; init; }
     }
 
     public static class CrsHeaderConstants

@@ -41,7 +41,14 @@
 
                 var zaakysteemBaseUrl = GetValue("ZAAKSYSTEEM_BASE_URL");
                 var zaaksysteem = !string.IsNullOrWhiteSpace(zaakysteemBaseUrl)
-                    ? new ZaaksysteemRegistry { BaseUrl = zaakysteemBaseUrl, ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"), ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID") }
+                    ? new ZaaksysteemRegistry
+                    {
+                        BaseUrl = zaakysteemBaseUrl,
+                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
+                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
+                        DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
+                        DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
+                    }
                     : null;
 
                 if (registryVersion == RegistryVersion.OpenKlant2)

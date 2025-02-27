@@ -14,7 +14,7 @@
       <utrecht-heading :level="1"
         >Zaak {{ zaak.identificatie }}</utrecht-heading
       >
-      <zaak-deeplink :zaak="zaak" />
+      <zaak-deeplink :zaak="zaak" :systeem="systeem" v-if="systeem" />
     </header>
 
     <tab-list v-model="activeTab" v-if="zaaksysteemId">

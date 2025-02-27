@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
 using Kiss.Bff.Extern;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Intern.Environment
 {
@@ -48,7 +48,14 @@ namespace Kiss.Bff.Intern.Environment
             {
                 Systemen = _registryConfig.Systemen
                     // don't expose secrets
-                    .Select((x) => new { x.IsDefault, x.Identifier, x.RegistryVersion })
+                    .Select((x) => new
+                    {
+                        x.IsDefault,
+                        x.Identifier,
+                        x.RegistryVersion,
+                        x.ZaaksysteemRegistry?.DeeplinkUrl,
+                        x.ZaaksysteemRegistry?.DeeplinkProperty
+                    })
             };
 
             return Ok(model);
