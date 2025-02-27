@@ -66,7 +66,7 @@ export const fetchZakenPreviewByUrlOrId = (
   return fetchWithSysteemId(systeemId, `${zaaksysteemBaseUri}/zaken/${id}`)
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(mapZaakDetailsPreview);
+    .then((x) => mapZaakDetailsPreview({ ...x, zaaksysteemId: systeemId }));
 };
 
 export function fetchZakenByZaaknummer(

@@ -11,8 +11,8 @@
 
       <template v-slot:item="{ item }">
         <ContactmomentenOverzichtItem :contactmoment="item">
-          <template #object="{ object }">
-            <slot name="object" :object="object"></slot>
+          <template #object="{ object, systeemId }">
+            <slot name="object" :object="object" :systeem-id="systeemId"></slot>
           </template>
         </ContactmomentenOverzichtItem>
       </template>
@@ -26,6 +26,6 @@ import ContactmomentenOverzichtItem from "./ContactmomentenOverzichtItem.vue";
 import ExpandableTableList from "@/components/ExpandableTableList.vue";
 
 defineProps<{
-  contactmomenten: ContactmomentViewModel[];
+  contactmomenten: Array<ContactmomentViewModel & { systeemId: string }>;
 }>();
 </script>

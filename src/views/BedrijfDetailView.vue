@@ -36,7 +36,11 @@
           @error="setError"
         >
           <template #object="{ object, systeemId }">
-            <zaak-preview :zaakurl="object.object" :systeem-id="systeemId" />
+            <zaak-preview
+              v-if="systeemId && object"
+              :zaakurl="object.object"
+              :systeem-id="systeemId"
+            />
           </template>
         </contactmomenten-for-klant-identificator>
       </template>

@@ -28,5 +28,8 @@ const {
   data: zaak,
   error,
   loading,
-} = useLoader(() => fetchZakenPreviewByUrlOrId(props.systeemId, props.zaakurl));
+} = useLoader(() => {
+  if (props.zaakurl && props.systeemId)
+    return fetchZakenPreviewByUrlOrId(props.systeemId, props.zaakurl);
+});
 </script>
