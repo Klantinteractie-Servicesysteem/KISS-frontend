@@ -81,7 +81,7 @@ const singleZaakUrl = computed(() => {
     const zaaksysteemId = zaak.zaaksysteemId
       ? encodeURIComponent(zaak.zaaksysteemId)
       : "";
-    return `/zaken/${zaak.id}?zaaksysteemId=${zaaksysteemId}`;
+    return `/zaken/${zaak.url}?zaaksysteemId=${zaaksysteemId}`;
   }
   return "";
 });

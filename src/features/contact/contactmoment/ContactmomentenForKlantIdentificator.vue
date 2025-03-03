@@ -2,22 +2,15 @@
   <contactmomenten-overzicht
     v-if="contactmomenten"
     :contactmomenten="contactmomenten"
-  >
-    <template v-for="(_, slotName) in $slots" #[slotName]="props">
-      <slot :name="slotName" v-bind="props"></slot>
-    </template>
-  </contactmomenten-overzicht>
+  />
 </template>
 <script setup lang="ts">
-import type { ContactmomentViewModel } from "@/services/openklant2";
 import { useLoader } from "@/services/use-loader";
 import { watchEffect } from "vue";
 import ContactmomentenOverzicht from "./ContactmomentenOverzicht.vue";
 import { fetchContactmomentenByKlantIdentificator } from "./fetch-contactmomenten-by-klant-identificator";
 import { useSystemen } from "@/services/environment/fetch-systemen";
-import type { KlantIdentificator } from "../types";
-
-defineSlots();
+import type { ContactmomentViewModel, KlantIdentificator } from "../types";
 
 const props = defineProps<{
   klantIdentificator: KlantIdentificator;

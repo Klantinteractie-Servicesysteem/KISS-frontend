@@ -2,7 +2,6 @@ import type { DigitaalAdresTypes } from "@/services/openklant2";
 
 export type ContactverzoekOverzichtItem = {
   url: string;
-  systeemId: string;
   registratiedatum: string;
   onderwerp: string;
   status: string;
@@ -26,9 +25,5 @@ export type ContactverzoekOverzichtItem = {
     }[];
   };
   vraag: string;
-  objecten: {
-    object: string;
-    objectType: string;
-    contactmoment: string;
-  }[];
+  zaaknummers: string[];
 };

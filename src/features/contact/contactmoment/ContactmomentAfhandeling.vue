@@ -96,7 +96,7 @@
             vraag.zaken.length > 1 ? "Gerelateerde zaken" : "Gerelateerde zaak"
           }}</utrecht-heading>
           <ul>
-            <li v-for="record in vraag.zaken" :key="record.zaak.id">
+            <li v-for="record in vraag.zaken" :key="record.zaak.url">
               <label>
                 <span
                   >{{ record.zaak.identificatie }}
@@ -797,7 +797,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
           },
           wasKlantcontact: null,
           onderwerpobjectidentificator: {
-            objectId: zaakinfo.zaak.id,
+            objectId: zaakinfo.zaak.url,
             codeObjecttype: "zgw-Zaak",
             codeRegister: "openzaak",
             codeSoortObjectId: "uuid",

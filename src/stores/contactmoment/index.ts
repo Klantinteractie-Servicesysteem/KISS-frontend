@@ -322,7 +322,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       zaaksysteemId: string,
     ) {
       const existingZaak = vraag.zaken.find(
-        (contacmomentZaak) => contacmomentZaak.zaak.id === zaak.id,
+        (contacmomentZaak) => contacmomentZaak.zaak.url === zaak.url,
       );
 
       if (existingZaak) {
@@ -341,7 +341,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {
       return vraag.zaken.some(
-        ({ zaak, shouldStore }) => shouldStore && zaak.id === id,
+        ({ zaak, shouldStore }) => shouldStore && zaak.url === id,
       );
     },
 

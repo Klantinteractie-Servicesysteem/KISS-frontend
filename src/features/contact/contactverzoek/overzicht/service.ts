@@ -11,7 +11,6 @@ import {
   searchDigitaleAdressen,
   type Betrokkene,
   type BetrokkeneMetKlantContact,
-  type ContactmomentViewModel,
   type DigitaalAdresExpandedApiViewModel,
 } from "@/services/openklant2";
 import {
@@ -21,13 +20,17 @@ import {
 import type { ContactverzoekOverzichtItem } from "./types";
 import type { ContactmomentDetails } from "../../contactmoment";
 import { fullName } from "@/helpers/string";
-import type { KlantIdentificator } from "../../types";
+import type { ContactmomentViewModel, KlantIdentificator } from "../../types";
 import {
   registryVersions,
   type Systeem,
 } from "@/services/environment/fetch-systemen";
 import { fetchInternetakenByKlantIdFromObjecten } from "@/services/internetaak/service";
-import { getIdentificatorForOk1And2 } from "../../shared";
+import {
+  enrichContactmomentWithZaaknummer,
+  enrichOnderwerpObjectenWithZaaknummers,
+  getIdentificatorForOk1And2,
+} from "../../shared";
 
 function searchRecursive(urlStr: string, page = 1): Promise<any[]> {
   const url = new URL(urlStr);
@@ -89,6 +92,17 @@ export async function search(
       .then((page) => enrichBetrokkeneWithDigitaleAdressen(systeemId, page))
       .then((page) => enrichInterneTakenWithActoren(systeemId, page))
       .then((page) =>
+        Promise.all(
+          page.map(async (item) => ({
+            ...item,
+            zaaknummers: await enrichOnderwerpObjectenWithZaaknummers(
+              systeemId,
+              item.klantContact._expand.gingOverOnderwerpobjecten || [],
+            ),
+          })),
+        ),
+      )
+      .then((page) =>
         mapKlantcontactToContactverzoekOverzichtItem(systeemId, page),
       )
       .then(filterOutGeauthenticeerdeContactverzoeken);
@@ -107,9 +121,15 @@ export async function search(
       .then((x) =>
         Promise.all(
           x.map((obj) =>
-            enrichContactverzoekObjectWithContactmoment(systeemId, obj).then(
-              (x) => mapObjectToContactverzoekOverzichtItem(systeemId, x),
-            ),
+            enrichContactverzoekObjectWithContactmoment(systeemId, obj)
+              .then(async (cm) => ({
+                ...cm,
+                contactmoment: await enrichContactmomentWithZaaknummer(
+                  systeemId,
+                  cm.contactmoment,
+                ),
+              }))
+              .then(mapObjectToContactverzoekOverzichtItem),
           ),
         ),
       )
@@ -126,10 +146,18 @@ function filterOutGeauthenticeerdeContactverzoeken(
 
 function mapKlantcontactToContactverzoekOverzichtItem(
   systeemId: string,
-  betrokkeneMetKlantcontact: BetrokkeneMetKlantContact[],
+  betrokkeneMetKlantcontact: (BetrokkeneMetKlantContact & {
+    zaaknummers: string[];
+  })[],
 ): ContactverzoekOverzichtItem[] {
   return betrokkeneMetKlantcontact.map(
-    ({ klantContact, contactnaam, expandedDigitaleAdressen, wasPartij }) => {
+    ({
+      klantContact,
+      contactnaam,
+      expandedDigitaleAdressen,
+      wasPartij,
+      zaaknummers,
+    }) => {
       const internetaak = klantContact._expand?.leiddeTotInterneTaken?.[0];
       if (!internetaak) {
         throw new Error("");
@@ -137,7 +165,6 @@ function mapKlantcontactToContactverzoekOverzichtItem(
 
       return {
         url: internetaak.url,
-        systeemId,
         onderwerp: klantContact.onderwerp,
         toelichtingBijContactmoment: klantContact.inhoud,
         status: internetaak.status,
@@ -151,29 +178,21 @@ function mapKlantcontactToContactverzoekOverzichtItem(
           digitaleAdressen: expandedDigitaleAdressen || [],
           isGeauthenticeerd: !!wasPartij,
         },
-        objecten:
-          klantContact?._expand?.gingOverOnderwerpobjecten?.map((x) => ({
-            object: x.onderwerpobjectidentificator.objectId,
-            objectType: x.onderwerpobjectidentificator.codeObjecttype,
-            contactmoment: x.klantcontact.uuid,
-          })) || [],
+        zaaknummers,
       } satisfies ContactverzoekOverzichtItem;
     },
   );
 }
 
-function mapObjectToContactverzoekOverzichtItem(
-  systeemId: string,
-  {
-    contactverzoekObject,
-    contactmoment,
-    details,
-  }: {
-    contactverzoekObject: any;
-    contactmoment: ContactmomentViewModel | null;
-    details: ContactmomentDetails | null;
-  },
-): ContactverzoekOverzichtItem {
+function mapObjectToContactverzoekOverzichtItem({
+  contactverzoekObject,
+  contactmoment,
+  details,
+}: {
+  contactverzoekObject: any;
+  contactmoment: ContactmomentViewModel | null;
+  details: ContactmomentDetails | null;
+}): ContactverzoekOverzichtItem {
   const getVraag = (cd: ContactmomentDetails | null) => {
     const { vraag, specifiekeVraag } = cd || {};
     if (!vraag) return specifiekeVraag;
@@ -186,7 +205,6 @@ function mapObjectToContactverzoekOverzichtItem(
 
   return {
     url: contactverzoekObject.url,
-    systeemId,
     onderwerp: vraag,
     toelichtingBijContactmoment: contactmoment?.tekst || "",
     status: data.status || "onbekend",
@@ -200,7 +218,7 @@ function mapObjectToContactverzoekOverzichtItem(
       digitaleAdressen: data.betrokkene?.digitaleAdressen || [],
     },
     aangemaaktDoor: fullName(contactmoment?.medewerkerIdentificatie),
-    objecten: contactmoment?.objectcontactmomenten || [],
+    zaaknummers: contactmoment?.zaaknummers || [],
   } satisfies ContactverzoekOverzichtItem;
 }
 
@@ -232,9 +250,15 @@ export async function fetchContactverzoekenByKlantIdentificator(
               await enrichContactverzoekObjectWithContactmoment(
                 systeem.identifier,
                 obj,
-              ).then((x) =>
-                mapObjectToContactverzoekOverzichtItem(systeem.identifier, x),
-              ),
+              )
+                .then(async ({ contactmoment, ...item }) => ({
+                  ...item,
+                  contactmoment: await enrichContactmomentWithZaaknummer(
+                    systeem.identifier,
+                    contactmoment,
+                  ),
+                }))
+                .then(mapObjectToContactverzoekOverzichtItem),
             );
           }
           return result;
@@ -262,6 +286,17 @@ export async function fetchContactverzoekenByKlantIdentificator(
               )
               .then((page) =>
                 enrichInterneTakenWithActoren(systeem.identifier, page),
+              )
+              .then((page) =>
+                Promise.all(
+                  page.map(async (item) => ({
+                    ...item,
+                    zaaknummers: await enrichOnderwerpObjectenWithZaaknummers(
+                      systeem.identifier,
+                      item.klantContact._expand.gingOverOnderwerpobjecten || [],
+                    ),
+                  })),
+                ),
               )
               .then((page) =>
                 mapKlantcontactToContactverzoekOverzichtItem(

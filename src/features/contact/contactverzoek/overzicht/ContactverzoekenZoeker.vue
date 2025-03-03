@@ -23,11 +23,7 @@
         />
         <contactverzoeken-overzicht
           :contactverzoeken="store.zoekerResults.data"
-        >
-          <template v-for="(_, slotName) in $slots" #[slotName]="props">
-            <slot :name="slotName" v-bind="props"></slot>
-          </template>
-        </contactverzoeken-overzicht>
+        />
       </table>
     </template>
 
@@ -50,8 +46,6 @@ import { search } from "./service";
 import type { ContactverzoekOverzichtItem } from "./types";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import { getRegisterDetails } from "@/features/shared/systeemdetails";
-
-defineSlots();
 
 const gebruikKlantInteracatiesApi = ref<boolean>(false);
 const defaultSysteemId = ref<string | null>(null);

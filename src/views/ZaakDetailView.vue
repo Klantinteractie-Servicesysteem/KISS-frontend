@@ -21,27 +21,29 @@
       <tab-list-item label="Algemeen">
         <zaak-algemeen :zaak="zaak" />
       </tab-list-item>
-      <tab-list-item label="Documenten" :disabled="!zaak.documenten?.length">
-        <zaak-documenten :zaak="zaak" />
+
+      <tab-list-item label="Documenten">
+        <template #default="{ setDisabled, setLoading, setError }">
+          <zaak-documenten
+            :zaak-url="zaak.url"
+            :systeem-id="zaaksysteemId"
+            @load="setDisabled(!$event.length)"
+            @loading="setLoading"
+            @error="setError"
+          />
+        </template>
       </tab-list-item>
+
       <tab-list-item label="Contactmomenten">
         <template #default="{ setError, setLoading, setDisabled }">
           <div class="contactmomenten">
             <utrecht-heading :level="2"> Contactmomenten </utrecht-heading>
             <contactmomenten-for-object-url
-              v-if="zaakUrl"
-              :object-url="zaakUrl"
+              :object-url="zaak.url"
               @load="setDisabled(!$event.count)"
               @loading="setLoading"
               @error="setError"
-            >
-              <template #object="{ object }">
-                <zaak-preview
-                  :zaakurl="object.object"
-                  :systeem-id="zaaksysteemId"
-                />
-              </template>
-            </contactmomenten-for-object-url>
+            />
           </div>
         </template>
       </tab-list-item>
@@ -58,7 +60,6 @@ import { useContactmomentStore } from "@/stores/contactmoment";
 import ZaakDocumenten from "@/features/zaaksysteem/components/ZaakDocumenten.vue";
 import ZaakAlgemeen from "@/features/zaaksysteem/components/ZaakAlgemeen.vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
 import ZaakDeeplink from "@/features/zaaksysteem/components/ZaakDeeplink.vue";
 import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
@@ -83,8 +84,6 @@ const {
   if (props.zaakId && systeem.value)
     return fetchZaakDetailsById(props.zaakId, systeem.value);
 });
-
-const zaakUrl = computed(() => zaak.value?.self || "");
 
 const activeTab = ref("");
 

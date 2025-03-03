@@ -1,9 +1,4 @@
-import {
-  parseJson,
-  parsePagination,
-  ServiceResult,
-  throwIfNotOk,
-} from "@/services";
+import { parseJson, parsePagination, throwIfNotOk } from "@/services";
 import type {
   Medewerker,
   NatuurlijkPersoon,
@@ -13,7 +8,6 @@ import type {
   Vestiging,
   ZaakDetails,
   ZaakDocument,
-  ZaakPreview,
   ZaakType,
 } from "./types";
 import {
@@ -52,18 +46,6 @@ export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
     systemen.map((systeem) => fetchZaakOverview(systeem, query)),
   ).then(combineOverview);
 }
-
-export const fetchZakenPreviewByUrlOrId = (
-  systeemId: string,
-  urlOrId: string,
-) => {
-  const id = urlOrId.split("/").at(-1) || urlOrId;
-
-  return fetchWithSysteemId(systeemId, `${zaaksysteemBaseUri}/zaken/${id}`)
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((x) => mapZaakDetailsPreview({ ...x, zaaksysteemId: systeemId }));
-};
 
 export function fetchZakenByZaaknummer(
   systemen: Systeem[],
@@ -164,7 +146,13 @@ const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   return ONBEKEND;
 };
 
-const getStatus = async ({ status, zaaksysteemId }: any) => {
+const getStatus = async ({
+  status,
+  zaaksysteemId,
+}: {
+  status: string;
+  zaaksysteemId: string;
+}) => {
   const statusId = status?.split("/")?.pop();
 
   if (!statusId) return "";
@@ -194,13 +182,16 @@ const getStatus = async ({ status, zaaksysteemId }: any) => {
   return statusOmschrijving;
 };
 
-const getDocumenten = async ({
-  url,
-  zaaksysteemId,
-}: any): Promise<Array<ZaakDocument | null>> => {
+export const getDocumenten = async ({
+  zaakUrl,
+  systeemId,
+}: {
+  systeemId: string;
+  zaakUrl: string;
+}): Promise<Array<ZaakDocument>> => {
   const infoObjecten = await fetchWithSysteemId(
-    zaaksysteemId,
-    `${zaaksysteemBaseUri}/zaakinformatieobjecten?zaak=${url}`,
+    systeemId,
+    `${zaaksysteemBaseUri}/zaakinformatieobjecten?${new URLSearchParams({ zaak: zaakUrl })}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json());
@@ -210,13 +201,13 @@ const getDocumenten = async ({
       const id = item.informatieobject.split("/").pop();
 
       const docUrl = `${documentenBaseUri}/enkelvoudiginformatieobjecten/${id}`;
-      return fetchWithSysteemId(zaaksysteemId, docUrl)
+      return fetchWithSysteemId(systeemId, docUrl)
         .then(throwIfNotOk) //todo 404 afvanengen?
         .then((x) => x.json())
         .then((x) => mapDocument(x, docUrl));
     });
 
-    return await Promise.all(promises);
+    return await Promise.all(promises).then((r) => r.filter((x) => !!x));
   }
 
   return [];
@@ -225,7 +216,10 @@ const getDocumenten = async ({
 const getRollen = async ({
   url,
   zaaksysteemId,
-}: any): Promise<Array<RolType>> => {
+}: {
+  url: string;
+  zaaksysteemId: string;
+}): Promise<Array<RolType>> => {
   // rollen is een gepagineerd resultaat. we verwachten maar twee rollen.
   // het lijkt extreem onwaarschijnlijk dat er meer dan 1 pagina met rollen zal zijn.
   // we kijken dus (voorlopig) alleen naar de eerste pagina
@@ -253,7 +247,13 @@ const getRollen = async ({
   return rollen;
 };
 
-const getZaakType = ({ zaaktype, zaaksysteemId }: any): Promise<ZaakType> => {
+const getZaakType = ({
+  zaaktype,
+  zaaksysteemId,
+}: {
+  zaaktype: string;
+  zaaksysteemId: string;
+}): Promise<ZaakType> => {
   const zaaktypeid = zaaktype.split("/").pop();
   const url = `/api/zaken/catalogi/api/v1/zaaktypen/${zaaktypeid}`;
 
@@ -265,76 +265,35 @@ const getZaakType = ({ zaaktype, zaaksysteemId }: any): Promise<ZaakType> => {
     });
 };
 
-const mapZaakDetails = async (zaak: any) => {
+const mapZaakDetails = async (zaak: {
+  identificatie: string;
+  zaaksysteemId: string;
+  zaaktype: string;
+  toelichting: string;
+  startdatum: string | undefined;
+  url: string;
+  omschrijving: string;
+  status: string;
+}) => {
   const zaakzaaktype = await getZaakType(zaak);
 
   const startdatum = zaak.startdatum ? new Date(zaak.startdatum) : undefined;
 
-  // voorlopig disabled: openzaakbrondata is niet conform de standaard
-  // const doorlooptijd = parseInt(
-  //   zaakzaaktype.doorlooptijd
-  //     ? zaakzaaktype.doorlooptijd.replace(/^\D+/g, "")
-  //     : "0",
-  //   10
-  // );
-
-  // const servicenorm = parseInt(
-  //   zaakzaaktype.servicenorm
-  //     ? zaakzaaktype.servicenorm.replace(/^\D+/g, "")
-  //     : "0",
-  //   10
-  // );
-
-  // const fataleDatum =
-  //   startdatum &&
-  //   DateTime.fromJSDate(startdatum)
-  //     .plus({
-  //       days: isNaN(doorlooptijd) ? 0 : doorlooptijd,
-  //     })
-  //     .toJSDate();
-
-  // const streefDatum =
-  //   startdatum &&
-  //   DateTime.fromJSDate(startdatum)
-  //     .plus({
-  //       days: isNaN(servicenorm) ? 0 : servicenorm,
-  //     })
-  //     .toJSDate();
-
-  const documenten = await getDocumenten(zaak);
-
   const rollen = await getRollen(zaak);
 
-  const id = zaak.url.split("/").pop();
-
   return {
-    ...zaak,
-    id: id,
-    zaaktype: zaakzaaktype.id,
+    identificatie: zaak.identificatie,
+    zaaksysteemId: zaak.zaaksysteemId,
+    toelichting: zaak.toelichting,
+    omschrijving: zaak.omschrijving,
     zaaktypeLabel: zaakzaaktype.onderwerp,
     zaaktypeOmschrijving: zaakzaaktype.omschrijving,
     status: await getStatus(zaak),
     behandelaar: getNamePerRoltype(rollen, "behandelaar"),
     aanvrager: getNamePerRoltype(rollen, "initiator"),
     startdatum,
-    // fataleDatum: fataleDatum, voorlopig niet tonen: openzaakbrondata is niet conform de standaard
-    // streefDatum: streefDatum, voorlopig niet tonen: openzaakbrondata is niet conform de standaard
-    indienDatum: zaak.publicatiedatum && new Date(zaak.publicatiedatum),
-    registratieDatum: zaak.registratiedatum && new Date(zaak.registratiedatum),
-    self: zaak.url,
-    documenten: documenten,
-    omschrijving: zaak.omschrijving,
+    url: zaak.url,
   } as ZaakDetails;
-};
-
-const mapZaakDetailsPreview = async (zaak: any) => {
-  const zaakzaaktype = await getZaakType(zaak);
-
-  return {
-    identificatie: zaak.identificatie,
-    zaaktypeLabel: zaakzaaktype.onderwerp,
-    status: await getStatus(zaak),
-  } as ZaakPreview;
 };
 
 const mapDocument = (rawDocumenten: any, url: string): ZaakDocument | null => {

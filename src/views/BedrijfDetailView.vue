@@ -34,11 +34,7 @@
           @load="setDisabled(!$event?.length)"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object, systeemId }">
-            <zaak-preview :zaakurl="object.object" :systeem-id="systeemId" />
-          </template>
-        </contactmomenten-for-klant-identificator>
+        />
       </template>
     </tab-list-item>
 
@@ -65,11 +61,7 @@
           @load="setDisabled(!$event?.length)"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object, systeemId }">
-            <zaak-preview :systeem-id="systeemId" :zaakurl="object.object" />
-          </template>
-        </contactverzoeken-for-klant-identificator>
+        />
       </template>
     </tab-list-item>
   </tab-list>
@@ -80,8 +72,6 @@ import { computed, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { KlantDetails } from "@/features/klant/klant-details";
-// import Pagination from "@/nl-design-system/components/Pagination.vue";
-import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
 import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
