@@ -33,12 +33,7 @@ export async function fetchContactmomentenByKlantIdentificator(
           : fetchContactmomentenByKlantUrlOk1({
               systeemIdentifier: systeem.identifier,
               klantUrl: klant.url,
-            }).then(({ page }) =>
-              page.map((cm) => ({
-                ...cm,
-                systeemId: systeem.identifier,
-              })),
-            ),
+            }).then(({ page }) => page),
       );
     }
     if (!klantidentificators.ok2) return [];
