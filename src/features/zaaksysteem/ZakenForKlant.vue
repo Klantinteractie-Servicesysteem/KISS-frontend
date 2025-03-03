@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { useLoader } from "@/services";
-import type { Systeem } from "@/services/environment/fetch-systemen";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 import { watchEffect } from "vue";
 import type { ZaakDetails } from "./types";
 import { fetchZakenByBsn, fetchZakenByKlantBedrijfIdentifier } from "./service";
@@ -19,7 +19,6 @@ import type { Bedrijf } from "@/services/kvk";
 
 const props = defineProps<{
   klantIdentificator: Persoon | Bedrijf;
-  systemen: Systeem[];
 }>();
 
 const emit = defineEmits<{
@@ -30,20 +29,24 @@ const emit = defineEmits<{
 
 const contactmomentStore = useContactmomentStore();
 
+const { systemen } = useSystemen();
+
 const {
   data: zaken,
   loading,
   error,
 } = useLoader(() => {
+  if (!systemen.value) return;
+
   if ("bsn" in props.klantIdentificator && props.klantIdentificator.bsn)
-    return fetchZakenByBsn(props.systemen, props.klantIdentificator.bsn);
+    return fetchZakenByBsn(systemen.value, props.klantIdentificator.bsn);
 
   if (
     "kvkNummer" in props.klantIdentificator &&
     props.klantIdentificator.kvkNummer
   )
     return fetchZakenByKlantBedrijfIdentifier(
-      props.systemen,
+      systemen.value,
       props.klantIdentificator,
     );
 });

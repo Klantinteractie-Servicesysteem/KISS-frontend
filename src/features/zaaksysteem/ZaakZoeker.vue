@@ -45,10 +45,8 @@ import { ensureState } from "@/stores/create-store"; //todo: niet in de stores m
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRouter } from "vue-router";
 import SearchResultsCaption from "../../components/SearchResultsCaption.vue";
-import type { Systeem } from "@/services/environment/fetch-systemen";
 import { useLoader } from "@/services";
-
-const props = defineProps<{ systemen: Systeem[] }>();
+import { useSystemen } from "@/services/environment/fetch-systemen";
 
 const contactmomentStore = useContactmomentStore();
 
@@ -62,13 +60,15 @@ const store = ensureState({
   },
 });
 
+const { systemen } = useSystemen();
+
 const {
   data: zaken,
   error,
   loading,
 } = useLoader(() => {
-  if (props.systemen && store.value.currentSearch)
-    return fetchZakenByZaaknummer(props.systemen, store.value.currentSearch);
+  if (systemen.value && store.value.currentSearch)
+    return fetchZakenByZaaknummer(systemen.value, store.value.currentSearch);
 });
 
 const zoekOpZaak = () => {

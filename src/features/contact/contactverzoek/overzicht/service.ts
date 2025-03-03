@@ -64,7 +64,7 @@ export async function search(
   systeemId: string,
   query: string,
   gebruikKlantInteractiesApi: boolean,
-): Promise<ContactverzoekOverzichtItem[]> {
+): Promise<Array<ContactverzoekOverzichtItem & { systeemId: string }>> {
   // OK2
   if (gebruikKlantInteractiesApi) {
     const adressen = await searchOk2Recursive(query);
@@ -89,7 +89,8 @@ export async function search(
       .then((page) => enrichBetrokkeneWithDigitaleAdressen(systeemId, page))
       .then((page) => enrichInterneTakenWithActoren(systeemId, page))
       .then(mapKlantcontactToContactverzoekOverzichtItem)
-      .then(filterOutGeauthenticeerdeContactverzoeken);
+      .then(filterOutGeauthenticeerdeContactverzoeken)
+      .then((page) => page.map((item) => ({ ...item, systeemId })));
   }
   /// OK1 heeft geen interne taak, dus gaan we naar de objecten registratie
   else {
@@ -110,7 +111,8 @@ export async function search(
         ),
       )
       .then((x) => x.map(mapObjectToContactverzoekOverzichtItem))
-      .then(filterOutGeauthenticeerdeContactverzoeken);
+      .then(filterOutGeauthenticeerdeContactverzoeken)
+      .then((page) => page.map((item) => ({ ...item, systeemId })));
   }
 }
 

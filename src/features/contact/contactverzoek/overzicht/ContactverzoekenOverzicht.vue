@@ -12,7 +12,7 @@
         v-slot:item="{
           item: contactverzoek,
         }: {
-          item: ContactverzoekOverzichtItem;
+          item: ContactverzoekOverzichtItem & { systeemId: string };
         }"
       >
         <summary>

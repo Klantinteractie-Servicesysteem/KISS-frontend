@@ -65,7 +65,7 @@ const store = ensureState({
         loading: false,
         success: false,
         error: false,
-        data: [] as ContactverzoekOverzichtItem[],
+        data: [] as Array<ContactverzoekOverzichtItem & { systeemId: string }>,
       },
     };
   },

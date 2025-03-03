@@ -54,8 +54,7 @@
         <utrecht-heading :level="2"> Zaken </utrecht-heading>
 
         <zaken-for-klant
-          v-if="persoon && systemen"
-          :systemen="systemen"
+          v-if="persoon"
           :klant-identificator="persoon"
           :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
           @load="setDisabled(!$event?.length)"
