@@ -11,7 +11,7 @@ import { useLoader } from "@/services";
 import type { Systeem } from "@/services/environment/fetch-systemen";
 import { watchEffect } from "vue";
 import type { ZaakDetails } from "./types";
-import { fetchZakenByBsn } from "./service";
+import { fetchZakenByBsn, fetchZakenByKlantBedrijfIdentifier } from "./service";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import ZakenOverzicht from "./ZakenOverzicht.vue";
 import type { Persoon } from "@/services/brp";
@@ -39,13 +39,15 @@ const {
     return fetchZakenByBsn(props.systemen, props.klantIdentificator.bsn);
 
   if (
-    "vestigingsnummer" in props.klantIdentificator &&
-    props.klantIdentificator.vestigingsnummer
+    "kvkNummer" in props.klantIdentificator &&
+    props.klantIdentificator.kvkNummer
   )
-    return;
+    return fetchZakenByKlantBedrijfIdentifier(
+      props.systemen,
+      props.klantIdentificator,
+    );
 });
 
-watchEffect(() => zaken.value && emit("load", zaken.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>

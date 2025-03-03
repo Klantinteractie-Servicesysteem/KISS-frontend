@@ -33,19 +33,15 @@ const combineOverview = (multiple: ZaakDetails[][]) =>
     );
 
 const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
-  fetchWithSysteemId(
-    systeem.identifier,
-    `${zaaksysteemBaseUri}/zaken?=${query}`,
-  )
+  fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken?${query}`)
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((json) => parsePagination(json, mapZaakDetails))
-    .then(({ page }) =>
-      page.map((zaak) => ({
-        ...zaak,
-        zaaksysteemId: systeem.identifier,
-      })),
-    );
+    .then((json) =>
+      parsePagination(json, (x) =>
+        mapZaakDetails({ ...(x as any), zaaksysteemId: systeem.identifier }),
+      ),
+    )
+    .then(({ page }) => page);
 
 export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
   const query = new URLSearchParams([
@@ -83,16 +79,13 @@ export const fetchZaakDetailsById = (id: string, systeem: Systeem) =>
   fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken/${id}`)
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(mapZaakDetails);
+    .then((x) => mapZaakDetails({ ...x, zaaksysteemId: systeem.identifier }));
 
-type ZaakBedrijfIdentifier =
-  | {
-      vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-      kvkNummer: string;
-    };
+type ZaakBedrijfIdentifier = {
+  vestigingsnummer?: string;
+  rsin?: string;
+  kvkNummer: string;
+};
 
 export const fetchZakenByKlantBedrijfIdentifier = (
   systemen: Systeem[],

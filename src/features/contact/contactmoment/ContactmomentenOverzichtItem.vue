@@ -54,7 +54,7 @@ import { useContactmomentDetails } from "./service";
 import ServiceDataWrapper from "@/components/ServiceDataWrapper.vue";
 import DutchDate from "@/components/DutchDate.vue";
 import DutchTime from "@/components/DutchTime.vue";
-import { computed, watchEffect } from "vue";
+import { computed } from "vue";
 import type { ContactmomentViewModel } from "@/services/openklant2/types";
 const props = defineProps<{
   contactmoment: ContactmomentViewModel & { systeemId: string };
@@ -67,6 +67,4 @@ const registratieDatum = computed(
 );
 
 const cmDetails = useContactmomentDetails(() => props.contactmoment.url);
-
-watchEffect(() => console.log("syteemid: " + props.contactmoment.systeemId));
 </script>

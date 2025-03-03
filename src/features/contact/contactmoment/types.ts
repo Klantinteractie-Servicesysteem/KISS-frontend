@@ -46,12 +46,3 @@ export interface KlantContactmoment {
   klant: string;
   rol: string;
 }
-
-export interface ContactmomentViewModel {
-  url: string;
-  registratiedatum: string;
-  kanaal: string;
-  tekst: string;
-  zaken: string[];
-  medewerkerIdentificatie: MedewerkerIdentificatie;
-}

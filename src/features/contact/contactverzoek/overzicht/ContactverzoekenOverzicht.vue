@@ -77,6 +77,7 @@
           <slot
             name="object"
             :object="object"
+            :systeem-id="contactverzoek.systeemId"
             v-for="(object, k) in contactverzoek.objecten ?? []"
             :key="k"
           >
@@ -106,7 +107,7 @@ import ExpandableTableList from "@/components/ExpandableTableList.vue";
 import type { ContactverzoekOverzichtItem } from "./types";
 
 defineProps<{
-  contactverzoeken: ContactverzoekOverzichtItem[];
+  contactverzoeken: Array<ContactverzoekOverzichtItem & { systeemId: string }>;
 }>();
 
 const capitalizeFirstLetter = (val: string) =>

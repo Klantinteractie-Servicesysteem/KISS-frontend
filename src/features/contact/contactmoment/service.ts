@@ -140,7 +140,10 @@ export function fetchContactmomentenByObjectUrl(systeem: Systeem, url: string) {
       expand: [KlantContactExpand.gingOverOnderwerpobjecten],
     }).then((paginated) => ({
       ...paginated,
-      page: paginated.page.map(mapKlantContactToContactmomentViewModel),
+      page: paginated.page.map((x) => ({
+        ...mapKlantContactToContactmomentViewModel(x),
+        systeemId: systeem.identifier,
+      })),
     }));
   }
 
@@ -156,7 +159,12 @@ export function fetchContactmomentenByObjectUrl(systeem: Systeem, url: string) {
   )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((p) => parsePagination(p, (x) => x as ContactmomentViewModel));
+    .then((p) =>
+      parsePagination(p, (x) => ({
+        ...(x as ContactmomentViewModel),
+        systeemId: systeem.identifier,
+      })),
+    );
 }
 
 //te gebruiken om cotactverzoeken als internetaak op te slaan in een overige objecten register, wanneer er geen regiser compatibel met openklant 2 of hoger beschikbaar is.
