@@ -51,6 +51,7 @@ const {
     );
 });
 
+watchEffect(() => zaken.value && emit("load", zaken.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>

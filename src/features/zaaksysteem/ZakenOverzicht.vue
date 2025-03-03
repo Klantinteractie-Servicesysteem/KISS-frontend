@@ -25,7 +25,7 @@
           </td>
           <td class="link">
             <router-link
-              :to="`/zaken/${zaak.url}?zaaksysteemId=${zaak.zaaksysteemId ? encodeURIComponent(zaak.zaaksysteemId) : ''}`"
+              :to="`/zaken/${zaak.url.split('/').pop()}?zaaksysteemId=${zaak.zaaksysteemId ? encodeURIComponent(zaak.zaaksysteemId) : ''}`"
               :title="`Details ${zaak.identificatie}`"
             ></router-link>
           </td>

@@ -104,8 +104,30 @@
                 </span>
                 <input
                   title="Deze zaak opslaan bij het contactmoment"
-                  type="checkbox"
-                  v-model="record.shouldStore"
+                  type="radio"
+                  :name="idx + 'zaak'"
+                  :checked="record.shouldStore"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(record, vraag)
+                  "
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                <span>Geen </span>
+                <input
+                  title="Geen zaak opslaan bij het contactmoment"
+                  type="radio"
+                  :name="idx + 'zaak'"
+                  :checked="!vraag.zaken.some(({ shouldStore }) => shouldStore)"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(undefined, vraag)
+                  "
                 />
               </label>
             </li>
@@ -1120,7 +1142,7 @@ onMounted(() => {
     }
   }
 
-  input[type="checkbox"] {
+  input:is([type="checkbox"], [type="radio"]) {
     margin: var(--spacing-extrasmall);
     scale: 1.5;
   }

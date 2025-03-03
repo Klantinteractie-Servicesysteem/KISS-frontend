@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, computed } from "vue";
+import { watch, computed, ref } from "vue";
 import { fetchZakenByZaaknummer } from "./service";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
@@ -47,6 +47,8 @@ import { useRouter } from "vue-router";
 import SearchResultsCaption from "../../components/SearchResultsCaption.vue";
 import { useLoader } from "@/services";
 import { useSystemen } from "@/services/environment/fetch-systemen";
+
+const submitted = ref(false);
 
 const contactmomentStore = useContactmomentStore();
 
@@ -72,6 +74,7 @@ const {
 });
 
 const zoekOpZaak = () => {
+  submitted.value = true;
   store.value.currentSearch = store.value.searchField;
 };
 
@@ -81,7 +84,7 @@ const singleZaakUrl = computed(() => {
     const zaaksysteemId = zaak.zaaksysteemId
       ? encodeURIComponent(zaak.zaaksysteemId)
       : "";
-    return `/zaken/${zaak.url}?zaaksysteemId=${zaaksysteemId}`;
+    return `/zaken/${zaak.url.split("/").pop()}?zaaksysteemId=${zaaksysteemId}`;
   }
   return "";
 });
@@ -89,7 +92,7 @@ const singleZaakUrl = computed(() => {
 const router = useRouter();
 
 watch(singleZaakUrl, (newId, oldId) => {
-  if (newId && newId !== oldId) {
+  if (newId && newId !== oldId && submitted.value) {
     router.push(newId);
   }
 });

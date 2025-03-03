@@ -94,7 +94,6 @@ watch(
     contactmomentStore.upsertZaak(
       z,
       contactmomentStore.huidigContactmoment.huidigeVraag,
-      true,
       props.zaaksysteemId,
     );
   },
