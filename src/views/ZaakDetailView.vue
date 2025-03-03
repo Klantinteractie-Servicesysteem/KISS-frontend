@@ -7,17 +7,17 @@
     message="Er kon geen zaak gevonden worden"
   ></application-message>
 
-  <template v-if="zaak">
+  <template v-if="zaak && zaaksysteemId">
     <back-link />
 
     <header class="zaak-header">
       <utrecht-heading :level="1"
         >Zaak {{ zaak.identificatie }}</utrecht-heading
       >
-      <zaak-deeplink :zaak="zaak" :systeem="systeem" v-if="systeem" />
+      <zaak-deeplink :zaak="zaak" :systeem-id="zaaksysteemId" />
     </header>
 
-    <tab-list v-model="activeTab" v-if="zaaksysteemId">
+    <tab-list v-model="activeTab">
       <tab-list-item label="Algemeen">
         <zaak-algemeen :zaak="zaak" />
       </tab-list-item>
