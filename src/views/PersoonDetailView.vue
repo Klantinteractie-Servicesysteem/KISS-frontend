@@ -39,11 +39,7 @@
           @error="setError"
         >
           <template #object="{ object, systeemId }">
-            <zaak-preview
-              v-if="object && systeemId"
-              :zaakurl="object.object"
-              :systeem-id="systeemId"
-            />
+            <zaak-preview :zaakurl="object.object" :systeem-id="systeemId" />
           </template>
         </contactmomenten-for-klant-identificator>
       </template>
@@ -76,11 +72,7 @@
           @load="setDisabled(!$event.length)"
         >
           <template #object="{ object, systeemId }">
-            <zaak-preview
-              v-if="object.object"
-              :zaakurl="object.object"
-              :systeemId="systeemId"
-            />
+            <zaak-preview :zaakurl="object.object" :systeemId="systeemId" />
           </template>
         </contactverzoeken-for-klant-identificator>
       </template>
