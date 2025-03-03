@@ -64,7 +64,7 @@ export async function search(
   systeemId: string,
   query: string,
   gebruikKlantInteractiesApi: boolean,
-): Promise<Array<ContactverzoekOverzichtItem & { systeemId: string }>> {
+): Promise<ContactverzoekOverzichtItem[]> {
   // OK2
   if (gebruikKlantInteractiesApi) {
     const adressen = await searchOk2Recursive(query);
@@ -88,9 +88,10 @@ export async function search(
       .then(filterOutContactmomenten)
       .then((page) => enrichBetrokkeneWithDigitaleAdressen(systeemId, page))
       .then((page) => enrichInterneTakenWithActoren(systeemId, page))
-      .then(mapKlantcontactToContactverzoekOverzichtItem)
-      .then(filterOutGeauthenticeerdeContactverzoeken)
-      .then((page) => page.map((item) => ({ ...item, systeemId })));
+      .then((page) =>
+        mapKlantcontactToContactverzoekOverzichtItem(systeemId, page),
+      )
+      .then(filterOutGeauthenticeerdeContactverzoeken);
   }
   /// OK1 heeft geen interne taak, dus gaan we naar de objecten registratie
   else {
@@ -106,13 +107,14 @@ export async function search(
       .then((x) =>
         Promise.all(
           x.map((obj) =>
-            enrichContactverzoekObjectWithContactmoment(obj, systeemId),
+            enrichContactverzoekObjectWithContactmoment(systeemId, obj).then(
+              (x) => mapObjectToContactverzoekOverzichtItem(systeemId, x),
+            ),
           ),
         ),
       )
-      .then((x) => x.map(mapObjectToContactverzoekOverzichtItem))
-      .then(filterOutGeauthenticeerdeContactverzoeken)
-      .then((page) => page.map((item) => ({ ...item, systeemId })));
+
+      .then(filterOutGeauthenticeerdeContactverzoeken);
   }
 }
 
@@ -123,6 +125,7 @@ function filterOutGeauthenticeerdeContactverzoeken(
 }
 
 function mapKlantcontactToContactverzoekOverzichtItem(
+  systeemId: string,
   betrokkeneMetKlantcontact: BetrokkeneMetKlantContact[],
 ): ContactverzoekOverzichtItem[] {
   return betrokkeneMetKlantcontact.map(
@@ -134,6 +137,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
 
       return {
         url: internetaak.url,
+        systeemId,
         onderwerp: klantContact.onderwerp,
         toelichtingBijContactmoment: klantContact.inhoud,
         status: internetaak.status,
@@ -158,15 +162,18 @@ function mapKlantcontactToContactverzoekOverzichtItem(
   );
 }
 
-function mapObjectToContactverzoekOverzichtItem({
-  contactverzoekObject,
-  contactmoment,
-  details,
-}: {
-  contactverzoekObject: any;
-  contactmoment: ContactmomentViewModel | null;
-  details: ContactmomentDetails | null;
-}): ContactverzoekOverzichtItem {
+function mapObjectToContactverzoekOverzichtItem(
+  systeemId: string,
+  {
+    contactverzoekObject,
+    contactmoment,
+    details,
+  }: {
+    contactverzoekObject: any;
+    contactmoment: ContactmomentViewModel | null;
+    details: ContactmomentDetails | null;
+  },
+): ContactverzoekOverzichtItem {
   const getVraag = (cd: ContactmomentDetails | null) => {
     const { vraag, specifiekeVraag } = cd || {};
     if (!vraag) return specifiekeVraag;
@@ -179,6 +186,7 @@ function mapObjectToContactverzoekOverzichtItem({
 
   return {
     url: contactverzoekObject.url,
+    systeemId,
     onderwerp: vraag,
     toelichtingBijContactmoment: contactmoment?.tekst || "",
     status: data.status || "onbekend",
@@ -199,7 +207,7 @@ function mapObjectToContactverzoekOverzichtItem({
 export async function fetchContactverzoekenByKlantIdentificator(
   id: KlantIdentificator,
   systemen: Systeem[],
-): Promise<Array<ContactverzoekOverzichtItem & { systeemId: string }>> {
+): Promise<ContactverzoekOverzichtItem[]> {
   const klantidentificators = getIdentificatorForOk1And2(id);
 
   const promises = systemen.map((systeem) => {
@@ -222,11 +230,11 @@ export async function fetchContactverzoekenByKlantIdentificator(
           for (const obj of page) {
             result.push(
               await enrichContactverzoekObjectWithContactmoment(
-                obj,
                 systeem.identifier,
-              )
-                .then(mapObjectToContactverzoekOverzichtItem)
-                .then((cm) => ({ ...cm, systeemId: systeem.identifier })),
+                obj,
+              ).then((x) =>
+                mapObjectToContactverzoekOverzichtItem(systeem.identifier, x),
+              ),
             );
           }
           return result;
@@ -255,9 +263,11 @@ export async function fetchContactverzoekenByKlantIdentificator(
               .then((page) =>
                 enrichInterneTakenWithActoren(systeem.identifier, page),
               )
-              .then(mapKlantcontactToContactverzoekOverzichtItem)
-              .then((x) =>
-                x.map((cm) => ({ ...cm, systeemId: systeem.identifier })),
+              .then((page) =>
+                mapKlantcontactToContactverzoekOverzichtItem(
+                  systeem.identifier,
+                  page,
+                ),
               ),
           ),
     );

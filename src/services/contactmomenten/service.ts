@@ -26,5 +26,10 @@ export function fetchContactmomentenByKlantUrlOk1({
   )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((p) => parsePagination(p, (x) => x as ContactmomentViewModel));
+    .then((p) =>
+      parsePagination(p, (x) => ({
+        ...(x as ContactmomentViewModel),
+        systeemId: systeemIdentifier,
+      })),
+    );
 }

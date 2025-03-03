@@ -57,7 +57,7 @@ import DutchTime from "@/components/DutchTime.vue";
 import { computed } from "vue";
 import type { ContactmomentViewModel } from "@/services/openklant2/types";
 const props = defineProps<{
-  contactmoment: ContactmomentViewModel & { systeemId: string };
+  contactmoment: ContactmomentViewModel;
 }>();
 
 const registratieDatum = computed(

@@ -26,6 +26,6 @@ import ContactmomentenOverzichtItem from "./ContactmomentenOverzichtItem.vue";
 import ExpandableTableList from "@/components/ExpandableTableList.vue";
 
 defineProps<{
-  contactmomenten: Array<ContactmomentViewModel & { systeemId: string }>;
+  contactmomenten: ContactmomentViewModel[];
 }>();
 </script>

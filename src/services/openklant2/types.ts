@@ -87,6 +87,7 @@ export interface MedewerkerIdentificatie {
 
 export interface ContactmomentViewModel {
   url: string;
+  systeemId: string;
   registratiedatum: string;
   kanaal: string;
   tekst: string;

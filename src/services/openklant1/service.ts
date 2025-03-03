@@ -406,8 +406,8 @@ const nullForStatusCodes =
   };
 
 export async function enrichContactverzoekObjectWithContactmoment(
-  contactverzoekObject: any,
   systeemId: string,
+  contactverzoekObject: any,
 ) {
   const url = contactverzoekObject.record.data.contactmoment;
   const [contactmoment, details, objects] = await Promise.all([

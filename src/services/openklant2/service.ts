@@ -45,6 +45,7 @@ const klantinteractiesBetrokkenen = `${klantinteractiesBaseUrl}/betrokkenen`;
 ////////////////////////////////////////////
 // contactmomenten
 export function mapKlantContactToContactmomentViewModel(
+  systeemId: string,
   klantContact: ExpandedKlantContactApiViewmodel,
 ) {
   const medewerker = klantContact.hadBetrokkenActoren?.find(
@@ -52,6 +53,7 @@ export function mapKlantContactToContactmomentViewModel(
   );
   const vm: ContactmomentViewModel = {
     url: klantContact.url,
+    systeemId,
     registratiedatum: klantContact.plaatsgevondenOp,
     kanaal: klantContact?.kanaal,
     tekst: klantContact?.inhoud,

@@ -140,10 +140,9 @@ export function fetchContactmomentenByObjectUrl(systeem: Systeem, url: string) {
       expand: [KlantContactExpand.gingOverOnderwerpobjecten],
     }).then((paginated) => ({
       ...paginated,
-      page: paginated.page.map((x) => ({
-        ...mapKlantContactToContactmomentViewModel(x),
-        systeemId: systeem.identifier,
-      })),
+      page: paginated.page.map((x) =>
+        mapKlantContactToContactmomentViewModel(systeem.identifier, x),
+      ),
     }));
   }
 

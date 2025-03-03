@@ -12,7 +12,7 @@
         v-slot:item="{
           item: contactverzoek,
         }: {
-          item: ContactverzoekOverzichtItem & { systeemId: string };
+          item: ContactverzoekOverzichtItem;
         }"
       >
         <summary>
@@ -107,7 +107,7 @@ import ExpandableTableList from "@/components/ExpandableTableList.vue";
 import type { ContactverzoekOverzichtItem } from "./types";
 
 defineProps<{
-  contactverzoeken: Array<ContactverzoekOverzichtItem & { systeemId: string }>;
+  contactverzoeken: ContactverzoekOverzichtItem[];
 }>();
 
 const capitalizeFirstLetter = (val: string) =>
