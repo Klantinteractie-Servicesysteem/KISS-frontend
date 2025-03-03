@@ -809,8 +809,12 @@ export const useOpenKlant2 = () =>
       registryVersions.ok2,
   );
 
-export const postOnderwerpobject = async (data: OnderwerpObjectPostModel) => {
-  const response = await fetchLoggedIn(
+export const postOnderwerpobject = async (
+  systeemId: string,
+  data: OnderwerpObjectPostModel,
+) => {
+  const response = await fetchWithSysteemId(
+    systeemId,
     `${klantinteractiesBaseUrl}/onderwerpobjecten`,
     {
       method: "POST",
