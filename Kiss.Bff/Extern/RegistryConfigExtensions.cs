@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Metrics;
-
-namespace Kiss.Bff.Extern
+﻿namespace Kiss.Bff.Extern
 {
     public static class RegistryConfigExtensions
     {
@@ -41,9 +39,22 @@ namespace Kiss.Bff.Extern
 
                 var isDefault = bool.TryParse(GetValue("IS_DEFAULT"), out var defaultValue) && defaultValue;
 
+                var zaakysteemBaseUrl = GetValue("ZAAKSYSTEEM_BASE_URL");
+                var zaaksysteem = !string.IsNullOrWhiteSpace(zaakysteemBaseUrl)
+                    ? new ZaaksysteemRegistry
+                    {
+                        BaseUrl = zaakysteemBaseUrl,
+                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
+                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
+                        DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
+                        DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
+                    }
+                    : null;
+
                 if (registryVersion == RegistryVersion.OpenKlant2)
                 {
                     var klantinteractieBaseUrl = GetValue("KLANTINTERACTIE_BASE_URL") ?? throw new Exception("Fout: base url ontbreekt voor klantinteractie");
+
 
                     yield return new RegistrySystem
                     {
@@ -54,7 +65,8 @@ namespace Kiss.Bff.Extern
                         {
                             BaseUrl = klantinteractieBaseUrl,
                             Token = GetValue("KLANTINTERACTIE_TOKEN")
-                        }
+                        },
+                        ZaaksysteemRegistry = zaaksysteem,
                     };
                 }
                 else if (registryVersion == RegistryVersion.OpenKlant1)
@@ -90,7 +102,8 @@ namespace Kiss.Bff.Extern
                             BaseUrl = GetValue("KLANTEN_BASE_URL"),
                             ClientId = GetValue("KLANTEN_CLIENT_ID"),
                             ClientSecret = GetValue("KLANTEN_CLIENT_SECRET"),
-                        }
+                        },
+                        ZaaksysteemRegistry = zaaksysteem,
                     };
                 }
             }

@@ -10,18 +10,14 @@
       </template>
 
       <template v-slot:item="{ item }">
-        <ContactmomentenOverzichtItem :contactmoment="item">
-          <template #object="{ object }">
-            <slot name="object" :object="object"></slot>
-          </template>
-        </ContactmomentenOverzichtItem>
+        <ContactmomentenOverzichtItem :contactmoment="item" />
       </template>
     </expandable-table-list>
   </section>
 </template>
 
 <script lang="ts" setup>
-import type { ContactmomentViewModel } from "@/services/openklant2/types";
+import type { ContactmomentViewModel } from "../types";
 import ContactmomentenOverzichtItem from "./ContactmomentenOverzichtItem.vue";
 import ExpandableTableList from "@/components/ExpandableTableList.vue";
 

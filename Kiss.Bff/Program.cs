@@ -3,12 +3,8 @@ using Kiss.Bff.Afdelingen;
 using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.Config;
-using Kiss.Bff.Extern.Klantinteracties;
-using Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem.Shared;
 using Kiss.Bff.Groepen;
 using Kiss.Bff;
-using Kiss.Bff.ZaakGerichtWerken.Contactmomenten;
-using Kiss.Bff.ZaakGerichtWerken.Klanten;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
@@ -17,7 +13,6 @@ using Serilog;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
 using Kiss.Bff.Extern;
-using Kiss.Bff.Extern.InterneTaak;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,7 +69,6 @@ try
     builder.Services.AddHttpClient();
 
     builder.Services.AddRegistryConfig(builder.Configuration);
-    builder.Services.AddZaaksystemen(builder.Configuration);
 
     var connStr = $"Username={builder.Configuration["POSTGRES_USER"]};Password={builder.Configuration["POSTGRES_PASSWORD"]};Host={builder.Configuration["POSTGRES_HOST"]};Database={builder.Configuration["POSTGRES_DB"]};Port={builder.Configuration["POSTGRES_PORT"]}";
     builder.Services.AddDbContext<BeheerDbContext>(o => o.UseNpgsql(connStr));

@@ -16,21 +16,18 @@
 
     <template v-if="store.currentSearch">
       <application-message
-        v-if="zaken.error"
+        v-if="error"
         messageType="error"
         message="Er is een probleem opgetreden."
       ></application-message>
-      <simple-spinner v-else-if="zaken.loading"></simple-spinner>
-      <section class="resultaten-container" v-if="zaken.success">
+      <simple-spinner v-else-if="loading"></simple-spinner>
+      <section class="resultaten-container" v-if="zaken">
         <zaken-overzicht
-          :zaken="zaken.data.page"
+          :zaken="zaken"
           :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
         >
           <template #caption>
-            <SearchResultsCaption
-              :results="zaken.data"
-              :zoekTermen="undefined"
-            />
+            <SearchResultsCaption :results="zaken" :zoekTermen="undefined" />
           </template>
         </zaken-overzicht>
       </section>
@@ -39,8 +36,8 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, computed } from "vue";
-import { useZakenByZaaknummer } from "./service";
+import { watch, computed, ref } from "vue";
+import { fetchZakenByZaaknummer } from "./service";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import ZakenOverzicht from "./ZakenOverzicht.vue";
@@ -48,6 +45,10 @@ import { ensureState } from "@/stores/create-store"; //todo: niet in de stores m
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRouter } from "vue-router";
 import SearchResultsCaption from "../../components/SearchResultsCaption.vue";
+import { useLoader } from "@/services";
+import { useSystemen } from "@/services/environment/fetch-systemen";
+
+const submitted = ref(false);
 
 const contactmomentStore = useContactmomentStore();
 
@@ -61,19 +62,29 @@ const store = ensureState({
   },
 });
 
-const zaken = useZakenByZaaknummer(computed(() => store.value.currentSearch));
+const { systemen } = useSystemen();
+
+const {
+  data: zaken,
+  error,
+  loading,
+} = useLoader(() => {
+  if (systemen.value && store.value.currentSearch)
+    return fetchZakenByZaaknummer(systemen.value, store.value.currentSearch);
+});
 
 const zoekOpZaak = () => {
+  submitted.value = true;
   store.value.currentSearch = store.value.searchField;
 };
 
 const singleZaakUrl = computed(() => {
-  if (zaken.success && zaken.data.page.length === 1) {
-    const zaak = zaken.data.page[0];
+  if (zaken.value?.length === 1) {
+    const zaak = zaken.value[0];
     const zaaksysteemId = zaak.zaaksysteemId
       ? encodeURIComponent(zaak.zaaksysteemId)
       : "";
-    return `/zaken/${zaak.id}?zaaksysteemId=${zaaksysteemId}`;
+    return `/zaken/${zaak.url.split("/").pop()}?zaaksysteemId=${zaaksysteemId}`;
   }
   return "";
 });
@@ -81,7 +92,7 @@ const singleZaakUrl = computed(() => {
 const router = useRouter();
 
 watch(singleZaakUrl, (newId, oldId) => {
-  if (newId && newId !== oldId) {
+  if (newId && newId !== oldId && submitted.value) {
     router.push(newId);
   }
 });

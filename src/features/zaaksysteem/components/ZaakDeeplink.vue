@@ -7,19 +7,23 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ZaakDetails } from "../types";
-import { useZaaksysteemDeeplinkConfig } from "../service";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 const props = defineProps<{
   zaak: ZaakDetails;
+  systeemId: string;
 }>();
 
-const config = useZaaksysteemDeeplinkConfig(() => props.zaak.zaaksysteemId);
+const { systemen } = useSystemen();
+
+const systeem = computed(() =>
+  systemen.value?.find(({ identifier }) => identifier === props.systeemId),
+);
 
 const deeplink = computed(() => {
-  if (!config.success || !config.data) return null;
-  const property = (props.zaak as Record<string, unknown>)[
-    config.data.idProperty
-  ];
+  const { deeplinkProperty, deeplinkUrl } = systeem.value || {};
+  if (!deeplinkProperty || !deeplinkUrl) return null;
+  const property = (props.zaak as Record<string, unknown>)[deeplinkProperty];
   if (!property) return null;
-  return config.data.baseUrl + property;
+  return deeplinkUrl + property;
 });
 </script>

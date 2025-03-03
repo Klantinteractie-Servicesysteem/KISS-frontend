@@ -96,7 +96,7 @@
             vraag.zaken.length > 1 ? "Gerelateerde zaken" : "Gerelateerde zaak"
           }}</utrecht-heading>
           <ul>
-            <li v-for="record in vraag.zaken" :key="record.zaak.id">
+            <li v-for="record in vraag.zaken" :key="record.zaak.url">
               <label>
                 <span
                   >{{ record.zaak.identificatie }}
@@ -104,8 +104,30 @@
                 </span>
                 <input
                   title="Deze zaak opslaan bij het contactmoment"
-                  type="checkbox"
-                  v-model="record.shouldStore"
+                  type="radio"
+                  :name="idx + 'zaak'"
+                  :checked="record.shouldStore"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(record, vraag)
+                  "
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                <span>Geen </span>
+                <input
+                  title="Geen zaak opslaan bij het contactmoment"
+                  type="radio"
+                  :name="idx + 'zaak'"
+                  :checked="!vraag.zaken.some(({ shouldStore }) => shouldStore)"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(undefined, vraag)
+                  "
                 />
               </label>
             </li>
@@ -466,7 +488,6 @@ import {
 } from "@/services/environment/fetch-systemen";
 import { saveContactmoment } from "@/services/openklant1";
 import type { Contactmoment } from "@/services/openklant/types";
-import { getRegisterDetails } from "@/features/shared/systeemdetails";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -475,15 +496,7 @@ const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
 
-const gebruikKlantInteracatiesApi = ref<boolean>(false);
-const defaultSysteemId = ref<string | null>(null);
-
 onMounted(async () => {
-  const { useKlantInteractiesApi, defaultSystemId } =
-    await getRegisterDetails();
-  defaultSysteemId.value = defaultSystemId;
-  gebruikKlantInteracatiesApi.value = useKlantInteractiesApi;
-
   if (!contactmomentStore.huidigContactmoment) return;
 
   for (const vraag of contactmomentStore.huidigContactmoment.vragen) {
@@ -497,13 +510,14 @@ onMounted(async () => {
 });
 
 const zakenToevoegenAanContactmoment = async (
+  systeemId: string,
   vraag: Vraag,
   contactmomentId: string,
 ) => {
   for (const { zaak, shouldStore } of vraag.zaken) {
     if (shouldStore) {
       try {
-        await koppelZaakEnContactmoment(zaak, contactmomentId);
+        await koppelZaakEnContactmoment(systeemId, zaak, contactmomentId);
       } catch (e) {
         // zaken toevoegen aan een contactmoment en andersom retourneert soms een error terwijl de data meetal wel correct opgeslagen is.
         // toch maar verder gaan dus
@@ -523,7 +537,8 @@ const koppelKlanten = async (
       await koppelKlant({
         systemId,
         contactmomentId,
-        klantId: klant.url,
+        klant,
+        bronorganisatie: organisatieIds.value[0] || "",
       });
     }
   }
@@ -601,13 +616,17 @@ const saveBetrokkeneBijContactmoment = async (
 
 const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const systemen = await fetchSystemen();
-  const defaultSysteem = systemen.find(({ isDefault }) => isDefault);
-  if (!defaultSysteem) {
-    throw new Error("Geen default systeem gevonden");
+  const zaakSysteemId = vraag.zaken.find((x) => x.shouldStore)?.zaaksysteemId;
+  const systeem = systemen.find(
+    ({ isDefault, identifier }) =>
+      (!zaakSysteemId && isDefault) || identifier === zaakSysteemId,
+  );
+  if (!systeem) {
+    throw new Error("Geen systeem gevonden");
   }
-  const systemIdentifier = defaultSysteem.identifier;
+  const systemIdentifier = systeem.identifier;
   const useKlantInteractiesApi =
-    defaultSysteem.registryVersion === registryVersions.ok2;
+    systeem.registryVersion === registryVersions.ok2;
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
   const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
@@ -788,7 +807,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
     }
 
     // 7 ////////////////////////
-    vraag.zaken?.forEach((zaakinfo) => {
+    for (const zaakinfo of vraag.zaken ?? []) {
       // onderwerp object van het type zaak
       if (zaakinfo.shouldStore) {
         const onderwerpObject = {
@@ -797,7 +816,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
           },
           wasKlantcontact: null,
           onderwerpobjectidentificator: {
-            objectId: zaakinfo.zaak.id,
+            objectId: zaakinfo.zaak.url,
             codeObjecttype: "zgw-Zaak",
             codeRegister: "openzaak",
             codeSoortObjectId: "uuid",
@@ -805,7 +824,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
         };
 
         //voeg de zaak toe aan het contactmoment
-        postOnderwerpobject(onderwerpObject);
+        await postOnderwerpobject(systemIdentifier, onderwerpObject);
 
         //voeg het contactmoment toe aan de zaak
         //DIT WERKT NIET
@@ -817,7 +836,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
         //   zaakinfo.zaaksysteemId,
         // );
       }
-    });
+    }
 
     return savedContactverzoekResult || savedKlantContactResult;
   } else {
@@ -860,7 +879,11 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
 
     const promises = [
       writeContactmomentDetails(cmDetails, savedContactmoment.url),
-      zakenToevoegenAanContactmoment(vraag, savedContactmoment.url),
+      zakenToevoegenAanContactmoment(
+        systemIdentifier,
+        vraag,
+        savedContactmoment.url,
+      ),
     ];
 
     if (isContactverzoek && cvData) {
@@ -873,11 +896,9 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
       );
     }
 
-    if (defaultSysteemId.value) {
-      promises.push(
-        koppelKlanten(defaultSysteemId.value, vraag, savedContactmoment.url),
-      );
-    }
+    promises.push(
+      koppelKlanten(systemIdentifier, vraag, savedContactmoment.url),
+    );
 
     await Promise.all(promises);
 
@@ -1120,7 +1141,7 @@ onMounted(() => {
     }
   }
 
-  input[type="checkbox"] {
+  input:is([type="checkbox"], [type="radio"]) {
     margin: var(--spacing-extrasmall);
     scale: 1.5;
   }

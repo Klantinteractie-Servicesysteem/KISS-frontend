@@ -1,5 +1,5 @@
-import { throwIfNotOk } from "..";
-import { fetchLoggedIn, setHeader } from "../fetch-logged-in";
+import { parseJson, throwIfNotOk } from "..";
+import { fetchWithSysteemId } from "../fetch-with-systeem-id";
 import type { ZaakContactmoment } from "./types";
 
 const zaaksysteemProxyRoot = `/api/zaken`;
@@ -7,22 +7,11 @@ const zaaksysteemApiRoot = `/zaken/api/v1`;
 const zaaksysteemBaseUri = `${zaaksysteemProxyRoot}${zaaksysteemApiRoot}`;
 const zaakcontactmomentUrl = `${zaaksysteemBaseUri}/zaakcontactmomenten`;
 
-export function fetchWithZaaksysteemId(
-  zaaksysteemId: string | undefined,
-  url: string,
-  request: RequestInit = {},
-) {
-  if (zaaksysteemId) {
-    setHeader(request, "ZaaksysteemId", zaaksysteemId);
-  }
-  return fetchLoggedIn(url, request);
-}
-
 export const voegContactmomentToeAanZaak = (
   { contactmoment, zaak }: ZaakContactmoment,
   zaaksysteemId: string,
 ) =>
-  fetchWithZaaksysteemId(zaaksysteemId, zaakcontactmomentUrl, {
+  fetchWithSysteemId(zaaksysteemId, zaakcontactmomentUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -30,3 +19,15 @@ export const voegContactmomentToeAanZaak = (
     },
     body: JSON.stringify({ contactmoment, zaak }),
   }).then(throwIfNotOk);
+
+export const fetchZaakIdentificatieByUrlOrId = (
+  systeemId: string,
+  urlOrId: string,
+) => {
+  const id = urlOrId.split("/").at(-1) || urlOrId;
+
+  return fetchWithSysteemId(systeemId, `${zaaksysteemBaseUri}/zaken/${id}`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(({ identificatie }) => identificatie as string);
+};

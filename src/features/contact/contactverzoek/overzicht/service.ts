@@ -11,7 +11,6 @@ import {
   searchDigitaleAdressen,
   type Betrokkene,
   type BetrokkeneMetKlantContact,
-  type ContactmomentViewModel,
   type DigitaalAdresExpandedApiViewModel,
 } from "@/services/openklant2";
 import {
@@ -21,13 +20,17 @@ import {
 import type { ContactverzoekOverzichtItem } from "./types";
 import type { ContactmomentDetails } from "../../contactmoment";
 import { fullName } from "@/helpers/string";
-import type { KlantIdentificator } from "../../types";
+import type { ContactmomentViewModel, KlantIdentificator } from "../../types";
 import {
   registryVersions,
   type Systeem,
 } from "@/services/environment/fetch-systemen";
 import { fetchInternetakenByKlantIdFromObjecten } from "@/services/internetaak/service";
-import { getIdentificatorForOk1And2 } from "../../shared";
+import {
+  enrichContactmomentWithZaaknummer,
+  enrichOnderwerpObjectenWithZaaknummers,
+  getIdentificatorForOk1And2,
+} from "../../shared";
 
 function searchRecursive(urlStr: string, page = 1): Promise<any[]> {
   const url = new URL(urlStr);
@@ -88,7 +91,20 @@ export async function search(
       .then(filterOutContactmomenten)
       .then((page) => enrichBetrokkeneWithDigitaleAdressen(systeemId, page))
       .then((page) => enrichInterneTakenWithActoren(systeemId, page))
-      .then(mapKlantcontactToContactverzoekOverzichtItem)
+      .then((page) =>
+        Promise.all(
+          page.map(async (item) => ({
+            ...item,
+            zaaknummers: await enrichOnderwerpObjectenWithZaaknummers(
+              systeemId,
+              item.klantContact._expand.gingOverOnderwerpobjecten || [],
+            ),
+          })),
+        ),
+      )
+      .then((page) =>
+        mapKlantcontactToContactverzoekOverzichtItem(systeemId, page),
+      )
       .then(filterOutGeauthenticeerdeContactverzoeken);
   }
   /// OK1 heeft geen interne taak, dus gaan we naar de objecten registratie
@@ -105,11 +121,19 @@ export async function search(
       .then((x) =>
         Promise.all(
           x.map((obj) =>
-            enrichContactverzoekObjectWithContactmoment(obj, systeemId),
+            enrichContactverzoekObjectWithContactmoment(systeemId, obj)
+              .then(async (cm) => ({
+                ...cm,
+                contactmoment: await enrichContactmomentWithZaaknummer(
+                  systeemId,
+                  cm.contactmoment,
+                ),
+              }))
+              .then(mapObjectToContactverzoekOverzichtItem),
           ),
         ),
       )
-      .then((x) => x.map(mapObjectToContactverzoekOverzichtItem))
+
       .then(filterOutGeauthenticeerdeContactverzoeken);
   }
 }
@@ -121,10 +145,19 @@ function filterOutGeauthenticeerdeContactverzoeken(
 }
 
 function mapKlantcontactToContactverzoekOverzichtItem(
-  betrokkeneMetKlantcontact: BetrokkeneMetKlantContact[],
+  systeemId: string,
+  betrokkeneMetKlantcontact: (BetrokkeneMetKlantContact & {
+    zaaknummers: string[];
+  })[],
 ): ContactverzoekOverzichtItem[] {
   return betrokkeneMetKlantcontact.map(
-    ({ klantContact, contactnaam, expandedDigitaleAdressen, wasPartij }) => {
+    ({
+      klantContact,
+      contactnaam,
+      expandedDigitaleAdressen,
+      wasPartij,
+      zaaknummers,
+    }) => {
       const internetaak = klantContact._expand?.leiddeTotInterneTaken?.[0];
       if (!internetaak) {
         throw new Error("");
@@ -145,12 +178,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
           digitaleAdressen: expandedDigitaleAdressen || [],
           isGeauthenticeerd: !!wasPartij,
         },
-        objecten:
-          klantContact?._expand?.gingOverOnderwerpobjecten?.map((x) => ({
-            object: x.onderwerpobjectidentificator.objectId,
-            objectType: x.onderwerpobjectidentificator.codeObjecttype,
-            contactmoment: x.klantcontact.uuid,
-          })) || [],
+        zaaknummers,
       } satisfies ContactverzoekOverzichtItem;
     },
   );
@@ -190,7 +218,7 @@ function mapObjectToContactverzoekOverzichtItem({
       digitaleAdressen: data.betrokkene?.digitaleAdressen || [],
     },
     aangemaaktDoor: fullName(contactmoment?.medewerkerIdentificatie),
-    objecten: contactmoment?.objectcontactmomenten || [],
+    zaaknummers: contactmoment?.zaaknummers || [],
   } satisfies ContactverzoekOverzichtItem;
 }
 
@@ -220,9 +248,17 @@ export async function fetchContactverzoekenByKlantIdentificator(
           for (const obj of page) {
             result.push(
               await enrichContactverzoekObjectWithContactmoment(
-                obj,
                 systeem.identifier,
-              ).then(mapObjectToContactverzoekOverzichtItem),
+                obj,
+              )
+                .then(async ({ contactmoment, ...item }) => ({
+                  ...item,
+                  contactmoment: await enrichContactmomentWithZaaknummer(
+                    systeem.identifier,
+                    contactmoment,
+                  ),
+                }))
+                .then(mapObjectToContactverzoekOverzichtItem),
             );
           }
           return result;
@@ -251,7 +287,23 @@ export async function fetchContactverzoekenByKlantIdentificator(
               .then((page) =>
                 enrichInterneTakenWithActoren(systeem.identifier, page),
               )
-              .then(mapKlantcontactToContactverzoekOverzichtItem),
+              .then((page) =>
+                Promise.all(
+                  page.map(async (item) => ({
+                    ...item,
+                    zaaknummers: await enrichOnderwerpObjectenWithZaaknummers(
+                      systeem.identifier,
+                      item.klantContact._expand.gingOverOnderwerpobjecten || [],
+                    ),
+                  })),
+                ),
+              )
+              .then((page) =>
+                mapKlantcontactToContactverzoekOverzichtItem(
+                  systeem.identifier,
+                  page,
+                ),
+              ),
           ),
     );
   });

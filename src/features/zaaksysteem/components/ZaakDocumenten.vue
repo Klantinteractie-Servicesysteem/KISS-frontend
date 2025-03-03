@@ -1,7 +1,7 @@
 <template>
   <utrecht-heading :level="2" modelValue>Documenten</utrecht-heading>
 
-  <template v-if="zaak.documenten?.length">
+  <template v-if="documenten?.length">
     <table>
       <thead>
         <tr>
@@ -13,7 +13,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="document in zaak.documenten" :key="document.id">
+        <tr v-for="document in documenten" :key="document.id">
           <td class="wrap">{{ document.titel }}</td>
           <td>{{ formatBytes(document.bestandsomvang) }}</td>
           <td>{{ formatDateOnly(document.creatiedatum) }}</td>
@@ -33,28 +33,55 @@
     </table>
   </template>
 
-  <span v-if="!zaak.documenten?.length">Geen documenten gevonden.</span>
+  <span v-if="documenten?.length === 0">Geen documenten gevonden.</span>
 </template>
 
 <script setup lang="ts">
-import type { ZaakDetails, ZaakDocument } from "./../types";
+import type { ZaakDocument } from "./../types";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { formatDateOnly } from "@/helpers/date";
 import { formatBytes } from "@/helpers/formatBytes";
-import { throwIfNotOk } from "@/services";
+import { throwIfNotOk, useLoader } from "@/services";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
-import { fetchWithZaaksysteemId } from "@/services/openzaak";
+import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
+import { getDocumenten } from "../service";
+import { watchEffect } from "vue";
 
 const props = defineProps<{
-  zaak: ZaakDetails;
+  zaakUrl: string;
+  systeemId: string;
 }>();
+
+const emit = defineEmits<{
+  load: [data: ZaakDocument[]];
+  loading: [data: boolean];
+  error: [data: boolean];
+}>();
+
+const {
+  data: documenten,
+  loading,
+  error,
+} = useLoader(() => {
+  const { zaakUrl, systeemId } = props;
+  if (zaakUrl && systeemId)
+    return getDocumenten({
+      zaakUrl,
+      systeemId,
+    });
+});
+
+watchEffect(() => documenten.value && emit("load", documenten.value));
+watchEffect(() => emit("loading", loading.value));
+watchEffect(() => emit("error", error.value));
+
 // bij het implementeren van meerdere zaaksystemen is gekozen om de zaaksysteemid mee te geven in de header
 // zodat de requests en querystrings verder zo min mogelijk afwijken van de api standaard
 // dit betekent dat we het downloaden van documenten op een omslachtige manier moeten doen,
 // omdat je in een gewone link geen header mee kan geven.
 async function download(doc: ZaakDocument) {
   const url = doc.url + "/download";
-  const blob = await fetchWithZaaksysteemId(props.zaak.zaaksysteemId, url)
+  const blob = await fetchWithSysteemId(props.systeemId, url)
     .then(throwIfNotOk)
     .then((r) => r.blob());
   const objectUrl = URL.createObjectURL(blob);

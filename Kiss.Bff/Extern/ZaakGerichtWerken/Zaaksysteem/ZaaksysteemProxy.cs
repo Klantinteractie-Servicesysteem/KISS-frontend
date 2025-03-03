@@ -1,24 +1,10 @@
-﻿using System.Net.Http.Headers;
-using System.Text.Json.Nodes;
-using Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem.Shared;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 {
     [ApiController]
-    public class ZaaksysteemProxy : ControllerBase
+    public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger) : ControllerBase
     {
-        private readonly IEnumerable<ZaaksysteemConfig> _configs;
-        private readonly ILogger<ZaaksysteemProxy> _logger;
-
-        public ZaaksysteemProxy(
-            IEnumerable<ZaaksysteemConfig> zakenProxyConfigs,
-            ILogger<ZaaksysteemProxy> logger)
-        {
-            _configs = zakenProxyConfigs;
-            _logger = logger;
-        }
-
         /// <summary>
         /// Wordt gebruikt voor het proxien van alle zaaksysteem calls waarbij we al weten in welk zaaksysteem de gegevens zitten
         /// gebruik wanneer de bron niet bekend is een custom functie volgens het stramien van Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem.GetZaken
@@ -29,17 +15,16 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         [HttpGet("api/zaken/{**path}")]
         [HttpGet("api/documenten/{**path}")]
         public IActionResult Get(
-            string path,
-            [FromHeader(Name = "ZaaksysteemId")] string zaaksysteemId)
+            string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
         {
-            var config = _configs.FilterByZaakSysteemId(zaaksysteemId).SingleOrDefault();
+            var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
 
             if (config == null)
             {
-                _logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", zaaksysteemId);
+                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", systemIdentifier);
                 return Problem(
                     title: "Configuratieprobleem",
-                    detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + zaaksysteemId,
+                    detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
                     statusCode: 500
                 );
             }
@@ -48,11 +33,9 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             {
                 var url = $"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
                 var message = new HttpRequestMessage(HttpMethod.Get, url);
-                message.Headers.ApplyZaaksysteemHeaders(config, User);
+                config.ApplyHeaders(message.Headers, User);
                 return message;
             });
         }
-
-     
     }
 }

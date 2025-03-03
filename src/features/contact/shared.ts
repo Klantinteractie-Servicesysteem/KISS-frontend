@@ -1,4 +1,7 @@
-import type { KlantIdentificator } from "./types";
+import type { OnderwerpObjectPostModel } from "@/services/openklant2";
+import type { ContactmomentViewModel, KlantIdentificator } from "./types";
+import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
+import type { ContactmomentViewModelOk1 } from "@/services/contactmomenten/service";
 
 export const getIdentificatorForOk1And2 = ({
   bsn,
@@ -28,3 +31,25 @@ export const getIdentificatorForOk1And2 = ({
       return {};
   }
 };
+
+export const enrichOnderwerpObjectenWithZaaknummers = (
+  systeemId: string,
+  objecten: OnderwerpObjectPostModel[],
+) =>
+  Promise.all(
+    objecten.map(({ onderwerpobjectidentificator: { objectId } }) =>
+      fetchZaakIdentificatieByUrlOrId(systeemId, objectId),
+    ),
+  );
+
+export const enrichContactmomentWithZaaknummer = async (
+  systeemId: string,
+  { objectcontactmomenten, ...contactmoment }: ContactmomentViewModelOk1,
+): Promise<ContactmomentViewModel> => ({
+  ...contactmoment,
+  zaaknummers: await Promise.all(
+    objectcontactmomenten.map(({ object }) =>
+      fetchZaakIdentificatieByUrlOrId(systeemId, object),
+    ),
+  ),
+});

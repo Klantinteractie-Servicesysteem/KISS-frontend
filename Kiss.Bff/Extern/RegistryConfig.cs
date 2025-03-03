@@ -7,7 +7,7 @@ namespace Kiss.Bff.Extern
     public record RegistryConfig
     {
         public required IReadOnlyList<RegistrySystem> Systemen { get; init; }
-        public RegistrySystem? GetRegistrySystem(string? systemIdentifier) => Systemen.FirstOrDefault(x => x.Identifier == systemIdentifier);
+        public RegistrySystem? GetRegistrySystem(string systemIdentifier) => Systemen.FirstOrDefault(x => x.Identifier == systemIdentifier);
     }
 
     public record RegistrySystem
@@ -18,6 +18,7 @@ namespace Kiss.Bff.Extern
         public InternetaakRegistry? InterneTaakRegistry { get; init; }
         public ContactmomentRegistry? ContactmomentRegistry { get; init; }
         public KlantRegistry? KlantRegistry { get; init; }
+        public ZaaksysteemRegistry? ZaaksysteemRegistry { get; init; }
         public required string Identifier { get; init; }
     }
 
@@ -67,11 +68,28 @@ namespace Kiss.Bff.Extern
         }
     }
 
+    public record ZaaksysteemRegistry : RegistryBase
+    {
+        public override void ApplyHeaders(HttpRequestHeaders headers, System.Security.Claims.ClaimsPrincipal user)
+        {
+            var authHeaderProvider = new AuthenticationHeaderProvider(Token, ClientId, ClientSecret);
+            authHeaderProvider.ApplyAuthorizationHeader(headers, user);
+            headers.Add(CrsHeaderConstants.AcceptCrs, CrsHeaderConstants.Value);
+            headers.Add(CrsHeaderConstants.ContentCrs, CrsHeaderConstants.Value);
+        }
+        public string? DeeplinkUrl { get; init; }
+        public string? DeeplinkProperty { get; init; }
+    }
+
+    public static class CrsHeaderConstants
+    {
+        public const string Value = "EPSG:4326";
+        public const string ContentCrs = "Content-Crs";
+        public const string AcceptCrs = "Accept-Crs";
+    };
+
     public record InternetaakRegistry : RegistryBase
     {
-        private const string ContentCrsHeaderName = "Content-Crs";
-        private const string DefaultContentCrsHeaderValue = "EPSG:4326";
-
         public required string ObjectTypeUrl { get; init; }
         public required string ObjectTypeVersion { get; init; }
 
@@ -79,7 +97,7 @@ namespace Kiss.Bff.Extern
         {
             var authHeaderProvider = new AuthenticationHeaderProvider(Token, ClientId, ClientSecret);
             authHeaderProvider.ApplyAuthorizationHeader(headers, user);
-            headers.Add(ContentCrsHeaderName, DefaultContentCrsHeaderValue);
+            headers.Add(CrsHeaderConstants.ContentCrs, CrsHeaderConstants.Value);
         }
     }
 }

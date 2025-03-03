@@ -9,11 +9,14 @@ import {
   fetchBetrokkenen,
   enrichBetrokkeneWithKlantContact,
   KlantContactExpand,
-  mapKlantContactToContactmomentViewModel,
-  type ContactmomentViewModel,
 } from "@/services/openklant2";
-import type { KlantIdentificator } from "../types";
-import { getIdentificatorForOk1And2 } from "../shared";
+import type { ContactmomentViewModel, KlantIdentificator } from "../types";
+import {
+  enrichContactmomentWithZaaknummer,
+  enrichOnderwerpObjectenWithZaaknummers,
+  getIdentificatorForOk1And2,
+} from "../shared";
+import { mapKlantContactToContactmomentViewModel } from "./service";
 
 export async function fetchContactmomentenByKlantIdentificator(
   id: KlantIdentificator,
@@ -33,10 +36,18 @@ export async function fetchContactmomentenByKlantIdentificator(
           : fetchContactmomentenByKlantUrlOk1({
               systeemIdentifier: systeem.identifier,
               klantUrl: klant.url,
-            }).then(({ page }) => page),
+            }).then(({ page }) =>
+              Promise.all(
+                page.map((item) =>
+                  enrichContactmomentWithZaaknummer(systeem.identifier, item),
+                ),
+              ),
+            ),
       );
     }
+
     if (!klantidentificators.ok2) return [];
+
     return findKlantByIdentifier(
       systeem.identifier,
       klantidentificators.ok2,
@@ -56,8 +67,19 @@ export async function fetchContactmomentenByKlantIdentificator(
               ),
             )
             .then((page) =>
-              page.map(({ klantContact }) =>
-                mapKlantContactToContactmomentViewModel(klantContact),
+              Promise.all(
+                page.map(({ klantContact }) =>
+                  enrichOnderwerpObjectenWithZaaknummers(
+                    systeem.identifier,
+                    klantContact._expand.gingOverOnderwerpobjecten || [],
+                  ).then((zaaknummers) =>
+                    mapKlantContactToContactmomentViewModel(
+                      systeem.identifier,
+                      klantContact,
+                      zaaknummers,
+                    ),
+                  ),
+                ),
               ),
             ),
     );

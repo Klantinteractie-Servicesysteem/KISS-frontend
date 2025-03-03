@@ -34,22 +34,24 @@
           @load="setDisabled(!$event?.length)"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview :zaakurl="object.object" />
-          </template>
-        </contactmomenten-for-klant-identificator>
+        />
       </template>
     </tab-list-item>
 
-    <tab-list-data-item label="Zaken" :data="zaken" :disabled="(z) => !z.count">
-      <template #success="{ data }">
-        <zaken-overzicht
-          :zaken="data.page"
+    <tab-list-item label="Zaken">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <utrecht-heading :level="2"> Zaken </utrecht-heading>
+
+        <zaken-for-klant
+          v-if="bedrijf"
+          :klant-identificator="bedrijf"
           :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
         />
       </template>
-    </tab-list-data-item>
+    </tab-list-item>
 
     <tab-list-item label="Contactverzoeken">
       <template #default="{ setError, setLoading, setDisabled }">
@@ -59,11 +61,7 @@
           @load="setDisabled(!$event?.length)"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview v-if="object.object" :zaakurl="object.object" />
-          </template>
-        </contactverzoeken-for-klant-identificator>
+        />
       </template>
     </tab-list-item>
   </tab-list>
@@ -74,20 +72,14 @@ import { computed, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { KlantDetails } from "@/features/klant/klant-details";
-// import Pagination from "@/nl-design-system/components/Pagination.vue";
-import {
-  useZakenByKlantBedrijfIdentifier,
-  ZakenOverzicht,
-} from "@/features/zaaksysteem";
-import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
-import { TabList, TabListDataItem, TabListItem } from "@/components/tabs";
-
+import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
 import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
 import type { Klant } from "@/services/openklant/types";
+import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
 defineProps<{ bedrijfId: string }>();
 
@@ -121,17 +113,6 @@ const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
 };
 
 const bedrijfIdentifier = computed(getBedrijfIdentifier);
-
-const zaken = useZakenByKlantBedrijfIdentifier(() => {
-  if (!bedrijf.value?.kvkNummer) return undefined;
-  if (bedrijf.value.vestigingsnummer)
-    return { vestigingsnummer: bedrijf.value.vestigingsnummer };
-  if (bedrijf.value.rsin)
-    return {
-      rsin: bedrijf.value.rsin,
-      kvkNummer: bedrijf.value.kvkNummer,
-    };
-});
 
 watch(
   () =>

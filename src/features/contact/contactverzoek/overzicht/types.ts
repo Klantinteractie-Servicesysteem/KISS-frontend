@@ -25,9 +25,5 @@ export type ContactverzoekOverzichtItem = {
     }[];
   };
   vraag: string;
-  objecten: {
-    object: string;
-    objectType: string;
-    contactmoment: string;
-  }[];
+  zaaknummers: string[];
 };
