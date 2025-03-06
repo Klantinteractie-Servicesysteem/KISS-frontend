@@ -1,7 +1,6 @@
 type FetchArgs = Parameters<typeof fetch>;
 type FetchReturn = ReturnType<typeof fetch>;
 
- 
 const empty = () => {};
 
 const waitForLogin = {
@@ -25,18 +24,18 @@ export function handleLogin() {
   waitForLogin.resolve();
 }
 
-export function setHeader(init: RequestInit, key: string, value: string) {
-  if (!init.headers) {
-    init.headers = {};
+export function getHeader(init: RequestInit, key: string) {
+  if (!(init.headers && init.headers instanceof Headers)) {
+    init.headers = new Headers(init.headers);
   }
+  return init.headers.get(key);
+}
 
-  if (Array.isArray(init.headers)) {
-    init.headers.push([key, value]);
-  } else if (init.headers instanceof Headers) {
-    init.headers.set(key, value);
-  } else {
-    init.headers[key] = value;
+export function setHeader(init: RequestInit, key: string, value: string) {
+  if (!(init.headers && init.headers instanceof Headers)) {
+    init.headers = new Headers(init.headers);
   }
+  init.headers.set(key, value);
 }
 
 export function fetchLoggedIn(...args: FetchArgs): FetchReturn {

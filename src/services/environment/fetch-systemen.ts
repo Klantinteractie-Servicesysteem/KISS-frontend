@@ -16,23 +16,11 @@ export type Systeem = {
   deeplinkProperty?: string;
 };
 
-const _fetchSystemen = () =>
+export const fetchSystemen = () =>
   fetchLoggedIn("/api/environment/registers")
     .then(throwIfNotOk)
     .then(parseJson)
     .then(({ systemen }) => systemen as Systeem[]);
-
-const CACHE_LIFETIME_MS = 10_000;
-let currentSystemenPromise: Promise<Systeem[]> | undefined;
-
-export const fetchSystemen = () =>
-  currentSystemenPromise ||
-  (currentSystemenPromise = _fetchSystemen().then((systemen) => {
-    setTimeout(() => {
-      currentSystemenPromise = undefined;
-    }, CACHE_LIFETIME_MS);
-    return systemen;
-  }));
 
 export const useSystemen = () => {
   const { data: systemen, loading, error } = useLoader(fetchSystemen);

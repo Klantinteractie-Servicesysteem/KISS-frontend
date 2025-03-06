@@ -4,6 +4,8 @@ import router from "./router";
 import { createPinia } from "pinia";
 import { useIntersectionObserver } from "@vueuse/core";
 
+navigator.serviceWorker.register("/serviceworker.js", { scope: "/" });
+
 // warning if closing tab or refreshing
 if (import.meta.env.PROD) {
   addEventListener(
