@@ -313,7 +313,7 @@ import type {
   ContactVerzoekMedewerker,
 } from "@/stores/contactmoment";
 import { ActorType } from "@/stores/contactmoment";
-import { computed, ref, useModel, watch, type Directive } from "vue";
+import { computed, ref, useModel, watch, type Directive, nextTick } from "vue";
 import {
   FormFieldsetLegend,
   FormFieldset,
@@ -547,7 +547,8 @@ const vValidityHandler: Directive<
   mounted(el, binding) {
     const setCustomValidity = () => el.setCustomValidity(binding.value(el));
 
-    setCustomValidity(); // onmounted
+    // wait for the element to be in the DOM
+    nextTick(setCustomValidity); // onmounted
 
     el.addEventListener("input", setCustomValidity); // oninput
     el.onInputHandler = setCustomValidity;
