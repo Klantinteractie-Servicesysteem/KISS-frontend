@@ -19,4 +19,11 @@ spec:
                 name: kiss-secrets
             - configMapRef:
                 name: kiss-config
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              readOnlyRootFilesystem: true
+              runAsUser: 10000
+              capabilities:
+                drop: [ALL]
           restartPolicy: Never
