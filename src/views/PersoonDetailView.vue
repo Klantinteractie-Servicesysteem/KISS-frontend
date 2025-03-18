@@ -18,8 +18,9 @@
     <tab-list-item label="BRP gegevens">
       <template #default="{ setError, setLoading }">
         <brp-gegevens
-          v-if="klant?.bsn"
-          :bsn="klant.bsn"
+          v-if="klant?.bsn || internalKlantId"
+          :bsn="klant?.bsn"
+          :internalKlantId="internalKlantId"
           @load="persoon = $event"
           @loading="setLoading"
           @error="setError"
@@ -86,7 +87,7 @@ import type { Klant } from "@/services/openklant/types";
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-defineProps<{ persoonId: string }>();
+defineProps<{ persoonId: string; internalKlantId: string }>();
 
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
@@ -95,17 +96,17 @@ const klant = ref<Klant>();
 
 const persoon = ref<Persoon>();
 
-watch(
-  [() => klant.value, () => persoon.value],
-  ([k, p]) => {
-    if (!k) return;
-    contactmomentStore.setKlant({
-      ...k,
-      ...p,
-      hasContactInformation:
-        !!k.emailadressen.length || !!k.telefoonnummers.length,
-    });
-  },
-  { immediate: true },
-);
+// watch(
+//   [() => klant.value, () => persoon.value],
+//   ([k, p]) => {
+//     if (!k) return;
+//     contactmomentStore.setKlant({
+//       ...k,
+//       ...p,
+//       hasContactInformation:
+//         !!k.emailadressen.length || !!k.telefoonnummers.length,
+//     });
+//   },
+//   { immediate: true },
+// );
 </script>

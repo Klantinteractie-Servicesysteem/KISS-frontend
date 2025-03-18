@@ -39,6 +39,10 @@ export const useSystemen = () => {
   const defaultSysteem = computed(() => {
     const defaultSysteem = systemen.value?.find(({ isDefault }) => isDefault);
 
+    if (!defaultSysteem && !loading) {
+      throw new Error("Geen default register gevonden");
+    }
+
     return defaultSysteem;
   });
 
