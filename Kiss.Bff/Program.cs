@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,8 +67,8 @@ try
     //});
 
     builder.Services.AddKissProxy();
-    builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"]);
-    builder.Services.AddHaalCentraal(builder.Configuration["HAAL_CENTRAAL_BASE_URL"], builder.Configuration["HAAL_CENTRAAL_API_KEY"]);
+    builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"], builder.Configuration["KVK_USER_HEADER_NAME"], builder.Configuration.GetSection("KVK_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>());
+    builder.Services.AddHaalCentraal(builder.Configuration["HAAL_CENTRAAL_BASE_URL"], builder.Configuration["HAAL_CENTRAAL_API_KEY"], builder.Configuration["HAAL_CENTRAAL_USER_HEADER_NAME"], builder.Configuration.GetSection("HAAL_CENTRAAL_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>());
     builder.Services.AddZgwTokenProvider(builder.Configuration["ZAKEN_API_KEY"], builder.Configuration["ZAKEN_API_CLIENT_ID"]);
 
     builder.Services.AddHttpClient();
