@@ -47,7 +47,7 @@ import { useSystemen } from "@/services/environment/fetch-systemen";
 const { systemen, defaultSysteem } = useSystemen();
 
 const props = defineProps({
-  klantId: {
+  internalKlantId: {
     type: String,
     required: true,
   },
@@ -62,10 +62,14 @@ const {
   loading,
   error,
 } = useLoader(() => {
-  if (!props.klantId || !defaultSysteem.value || !systemen.value?.length)
+  if (
+    !props.internalKlantId ||
+    !defaultSysteem.value ||
+    !systemen.value?.length
+  )
     return;
   return fetchKlant({
-    id: props.klantId,
+    internalId: props.internalKlantId,
     systemen: systemen.value,
     defaultSysteem: defaultSysteem.value,
   });

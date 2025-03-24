@@ -62,11 +62,12 @@ const {
   loading,
   error,
 } = useLoader(() => {
-  if (props.bsn) {
-    return searchPersonen({ bsn: props.bsn }).then(enforceOneOrZero);
-  }
+  // if (props.bsn) {
+  //   return searchPersonen({ bsn: props.bsn }).then(enforceOneOrZero);
+  // }
   if (props.internalKlantId) {
     const klant = getPersoonFromStoreByInternalId(props.internalKlantId);
+    console.log(klant);
     if (klant && klant.bsn) {
       return searchPersonen({ bsn: klant.bsn }).then(enforceOneOrZero);
     }
@@ -86,6 +87,7 @@ watchEffect(() => emit("error", error.value));
 function getPersoonFromStoreByInternalId(
   internalKlantId: string,
 ): ContactmomentKlant | undefined {
+  console.log(internalKlantId, store.huidigContactmoment?.huidigeVraag.klanten);
   const x = store.huidigContactmoment?.huidigeVraag.klanten?.find(
     (x) => x.klant.internalId == internalKlantId,
   );

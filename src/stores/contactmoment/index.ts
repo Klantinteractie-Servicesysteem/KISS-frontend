@@ -363,24 +363,26 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
       const { contactverzoek } = huidigeVraag;
 
-      if (!klant.internalId) {
-        klant.internalId = nanoid();
-      }
-
-      const match = huidigeVraag.klanten.find(
-        (x) => x.klant.internalId === klant.internalId,
-      );
-
       huidigeVraag.klanten.forEach((x) => {
         x.shouldStore = false;
       });
 
       mapKlantToContactverzoek(klant, contactverzoek);
 
+      const match = huidigeVraag.klanten.find(
+        (x) =>
+          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+      );
+
       if (match) {
+        klant.internalId = match.klant.internalId;
         match.klant = klant;
         match.shouldStore = true;
         return;
+      }
+
+      if (!klant.internalId) {
+        klant.internalId = nanoid();
       }
 
       huidigeVraag.klanten.push({

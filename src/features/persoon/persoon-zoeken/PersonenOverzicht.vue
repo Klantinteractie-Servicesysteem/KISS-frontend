@@ -107,6 +107,7 @@ const navigate = async (persoon: Persoon) => {
     !systemen.error.value &&
     systemen.defaultSysteem.value
   ) {
+    //todo ook ok1????
     const klant = await fetchKlantByKlantIdentificatorOk2(
       systemen.defaultSysteem.value.identifier,
       { bsn: bsn },
@@ -116,7 +117,24 @@ const navigate = async (persoon: Persoon) => {
 
     if (klant) {
       await mutate(klant.id, klant);
-      await router.push(getKlantUrl(klant));
+      // await router.push(getKlantUrl(klant));
+
+      const existingKlant = <ContactmomentKlant>{
+        ...klant,
+
+        //verplichte velden... todo: alternatief voor id verzinnen?
+        id: klant.id,
+        telefoonnummers: klant.telefoonnummers,
+        emailadressen: klant.emailadressen,
+        hasContactInformation:
+          klant?.telefoonnummers?.length > 0 ||
+          klant?.emailadressen?.length > 0,
+      };
+
+      contactmomentStore.setKlant(existingKlant);
+
+      console.log("bekende klant gevodnen ", klant);
+      await router.push("/personen/brp/" + existingKlant.internalId);
     } else {
       //deze persoon is niet bekend in het klantregister. we slaan de gegevens uit het brp op in de store en maken de klant, met die gegevens, zonodig aan bij het opslaan van een contactmoment
 

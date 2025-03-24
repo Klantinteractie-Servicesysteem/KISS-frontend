@@ -39,4 +39,5 @@ const {
 watchEffect(() => contactmomenten.value && emit("load", contactmomenten.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
+watchEffect(() => console.log(error.value, 13));
 </script>

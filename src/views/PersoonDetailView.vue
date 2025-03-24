@@ -7,7 +7,7 @@
     <tab-list-item label="Contactgegevens">
       <template #default="{ setError, setLoading }">
         <klant-details
-          :klant-id="persoonId"
+          :internalKlantId="internalKlantId"
           @load="klant = $event"
           @loading="setLoading"
           @error="setError"
@@ -18,8 +18,6 @@
     <tab-list-item label="BRP gegevens">
       <template #default="{ setError, setLoading }">
         <brp-gegevens
-          v-if="klant?.bsn || internalKlantId"
-          :bsn="klant?.bsn"
           :internalKlantId="internalKlantId"
           @load="persoon = $event"
           @loading="setLoading"
@@ -87,7 +85,7 @@ import type { Klant } from "@/services/openklant/types";
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-defineProps<{ persoonId: string; internalKlantId: string }>();
+defineProps<{ internalKlantId: string }>();
 
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
