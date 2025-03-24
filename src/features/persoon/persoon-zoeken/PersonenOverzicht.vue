@@ -62,7 +62,10 @@ import {
   ensureOk2Klant,
   fetchKlantByKlantIdentificatorOk2,
 } from "@/services/openklant2";
-import { ensureOk1Klant } from "@/services/openklant1";
+import {
+  ensureOk1Klant,
+  fetchKlantByKlantIdentificatorOk1,
+} from "@/services/openklant1";
 import type { Klant } from "@/services/openklant/types";
 import {
   useContactmomentStore,
@@ -107,17 +110,28 @@ const navigate = async (persoon: Persoon) => {
     !systemen.error.value &&
     systemen.defaultSysteem.value
   ) {
-    //todo ook ok1????
-    const klant = await fetchKlantByKlantIdentificatorOk2(
-      systemen.defaultSysteem.value.identifier,
-      { bsn: bsn },
-    );
+    let klant = null;
+
+    if (
+      systemen.defaultSysteem.value.registryVersion === registryVersions.ok2
+    ) {
+      klant = await fetchKlantByKlantIdentificatorOk2(
+        systemen.defaultSysteem.value.identifier,
+        { bsn: bsn },
+      );
+    } else {
+      klant = await fetchKlantByKlantIdentificatorOk1(
+        systemen.defaultSysteem.value.identifier,
+        { bsn: bsn },
+      );
+    }
 
     await mutate("persoon" + bsn, persoon);
 
     if (klant) {
+      //ok2 with a persoon from Brp, who is allready stored in OpenKlant
+
       await mutate(klant.id, klant);
-      // await router.push(getKlantUrl(klant));
 
       const existingKlant = <ContactmomentKlant>{
         ...klant,
@@ -135,7 +149,8 @@ const navigate = async (persoon: Persoon) => {
 
       await router.push("/personen/brp/" + existingKlant.internalId);
     } else {
-      //deze persoon is niet bekend in het klantregister. we slaan de gegevens uit het brp op in de store en maken de klant, met die gegevens, zonodig aan bij het opslaan van een contactmoment
+      //ok1 with a persoon from Brp, who doesn't have a record in OpenKlant yet.
+      //Store the info from the Brp in the in memory store. When a contactmometn is saved,we will save this person in OpenKlant
 
       const newKlant = <ContactmomentKlant>{
         ...persoon,
