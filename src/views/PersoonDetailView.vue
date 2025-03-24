@@ -2,13 +2,17 @@
   <back-link />
 
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
-
+  {{ internalKlantId }}
   <tab-list v-model="activeTab">
     <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setLoading }">
+      <template #default="{ setError, setLoading, setDisabled }">
         <klant-details
           :internalKlantId="internalKlantId"
-          @load="klant = $event"
+          @no-data="setDisabled(true)"
+          @load="
+            klant = $event;
+            setDisabled(false);
+          "
           @loading="setLoading"
           @error="setError"
         />

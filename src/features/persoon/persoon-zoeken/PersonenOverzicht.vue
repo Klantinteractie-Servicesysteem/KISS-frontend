@@ -133,7 +133,6 @@ const navigate = async (persoon: Persoon) => {
 
       contactmomentStore.setKlant(existingKlant);
 
-      console.log("bekende klant gevodnen ", klant);
       await router.push("/personen/brp/" + existingKlant.internalId);
     } else {
       //deze persoon is niet bekend in het klantregister. we slaan de gegevens uit het brp op in de store en maken de klant, met die gegevens, zonodig aan bij het opslaan van een contactmoment

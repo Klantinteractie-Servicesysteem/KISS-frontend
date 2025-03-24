@@ -31,14 +31,14 @@ export const fetchKlant = async ({
   const knownKlant = klantenInHuidigeVraag?.find(
     (x) => x.klant.internalId == internalId,
   );
-  const externalklantId = knownKlant?.klant.id;
+  const openKlantId = knownKlant?.klant.id;
 
-  if (!externalklantId) {
-    throw new Error(`Onbekende klant ${internalId}`);
+  if (!openKlantId) {
+    return null;
   }
 
   //fetch klant form external registrie based on the externalId for the store
-  const klant = await fetchKlantById(externalklantId, defaultSysteem);
+  const klant = await fetchKlantById(openKlantId, defaultSysteem);
 
   if (heeftContactgegevens(klant)) return klant;
   if (!systemen.length) return klant;

@@ -51,8 +51,6 @@
           </div>
         </utrecht-heading>
 
-        todo: klanten worden niet getoond als het een bestaande klant betreft!
-
         <pre>{{ vraag.klanten }}</pre>
         --
 

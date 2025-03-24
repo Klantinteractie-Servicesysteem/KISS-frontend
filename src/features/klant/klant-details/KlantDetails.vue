@@ -68,6 +68,7 @@ const {
     !systemen.value?.length
   )
     return;
+
   return fetchKlant({
     internalId: props.internalKlantId,
     systemen: systemen.value,
@@ -79,9 +80,18 @@ const emit = defineEmits<{
   load: [data: Klant];
   loading: [data: boolean];
   error: [data: boolean];
+  noData: [];
 }>();
 
-watchEffect(() => klant.value && emit("load", klant.value));
+watchEffect(() => {
+  if (klant.value) {
+    emit("load", klant.value);
+  }
+
+  if (!loading.value && !error.value && !klant.value) {
+    emit("noData");
+  }
+});
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>
