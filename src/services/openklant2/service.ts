@@ -18,7 +18,6 @@ import {
   type DigitaalAdresApiViewModel,
   PartijTypes,
   identificatorTypes,
-  type IdentificatorType,
   type Contactnaam,
   type Partij,
   DigitaalAdresTypes,
@@ -537,11 +536,10 @@ export async function findKlantByIdentifier(
 ): Promise<Klant | null> {
   const expand = "digitaleAdressen";
 
-  let matchingKvkNummer = true;
-
   let soortPartij,
     partijIdentificator__codeSoortObjectId,
-    partijIdentificator__objectId;
+    partijIdentificator__objectId,
+    subIdentificatorMatch;
 
   if ("bsn" in query) {
     soortPartij = PartijTypes.persoon;
@@ -556,28 +554,17 @@ export async function findKlantByIdentifier(
         identificatorTypes.vestiging.codeSoortObjectId;
       partijIdentificator__objectId = query.vestigingsnummer;
 
-      const { subIdentificatorVan } = await findPartijIdentificator(
+      // WIP =========
+      const vestigingsIdentificator = await findPartijIdentificator(
         partijIdentificator__codeSoortObjectId,
         partijIdentificator__objectId,
       );
 
-      const {
-        partijIdentificator: { codeSoortObjectId, objectId },
-      } = (await getPartijIdentificator(
-        subIdentificatorVan.uuid,
-      )) as PartijIdentificator;
-
-      matchingKvkNummer =
-        codeSoortObjectId ===
-          identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId &&
-        objectId === query.kvkNummer;
-
-      console.log(`matchingKvkNummer`, matchingKvkNummer);
-
-      // } else if ("rsin" in query) {
-      //   partijIdentificator__codeSoortObjectId =
-      //     identificatorTypes.nietNatuurlijkPersoonRsin.codeSoortObjectId;
-      //   partijIdentificator__objectId = query.rsin;
+      subIdentificatorMatch = await matchSubIdentificator(
+        vestigingsIdentificator,
+        query.kvkNummer,
+      );
+      // =========
     } else {
       //toegeovegd om types te alignen.. is dee route wenselijk???
 
@@ -594,7 +581,7 @@ export async function findKlantByIdentifier(
     partijIdentificator__objectId,
   });
 
-  return matchingKvkNummer
+  return subIdentificatorMatch !== false
     ? fetchLoggedIn(`${klantinteractiesBaseUrl}/partijen?${searchParams}`)
         .then(throwIfNotOk)
         .then(parseJson)
@@ -603,15 +590,15 @@ export async function findKlantByIdentifier(
     : null;
 }
 
-// =========
-
+// WIP =========
 type PartijIdentificator = {
-  uuid: string;
+  uuid?: string;
   identificeerdePartij: {
+    url: string;
     uuid: string;
-  };
+  } | null;
   partijIdentificator: Identificator;
-  subIdentificatorVan: {
+  subIdentificatorVan?: {
     uuid: string;
   };
 };
@@ -619,7 +606,7 @@ type PartijIdentificator = {
 const findPartijIdentificator = async (
   partijIdentificatorCodeSoortObjectId: string,
   partijIdentificatorObjectId: string,
-) =>
+): Promise<PartijIdentificator | null> =>
   fetchLoggedIn(
     klantinteractiesBaseUrl +
       `/partij-identificatoren?${new URLSearchParams({
@@ -640,9 +627,25 @@ const findPartijIdentificator = async (
             p.partijIdentificator.codeSoortObjectId ===
               partijIdentificatorCodeSoortObjectId &&
             p.partijIdentificator.objectId === partijIdentificatorObjectId,
-        )[0],
+        )[0] || null,
     );
 
+const matchSubIdentificator = async (
+  subIdentificator: PartijIdentificator | null,
+  kvkNummer?: string,
+) => {
+  if (!subIdentificator?.subIdentificatorVan) return false;
+
+  const {
+    partijIdentificator: { codeSoortObjectId, objectId },
+  } = await getPartijIdentificator(subIdentificator.subIdentificatorVan.uuid);
+
+  return (
+    codeSoortObjectId ===
+      identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId &&
+    objectId === kvkNummer
+  );
+};
 // =========
 
 export async function createKlant(
@@ -662,12 +665,16 @@ export async function createKlant(
         kvkNummer: string;
       },
 ) {
-  let partijIdentificatie, partijIdentificator, soortPartij, kvkNummer;
+  let partijIdentificatie, partijIdentificator, soortPartij;
+
+  let kvkIdentificator: PartijIdentificator | null = null;
 
   if ("bsn" in parameters) {
     soortPartij = PartijTypes.persoon;
+
     // dit is de enige manier om een partij zonder contactnaam aan te maken
     partijIdentificatie = { contactnaam: null };
+
     partijIdentificator = {
       ...identificatorTypes.persoon,
       objectId: parameters.bsn,
@@ -677,21 +684,25 @@ export async function createKlant(
 
     // dit is de enige manier om een partij zonder naam aan te maken
     partijIdentificatie = { naam: "" };
+
     if ("vestigingsnummer" in parameters && parameters.vestigingsnummer) {
       partijIdentificator = {
         ...identificatorTypes.vestiging,
         objectId: parameters.vestigingsnummer,
       };
+    } else if (parameters.kvkNummer) {
+      partijIdentificator = {
+        ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
+        objectId: parameters.kvkNummer,
+      };
+    }
 
-      kvkNummer = parameters.kvkNummer;
-
-      // } else if ("rsin" in parameters && parameters.rsin) {
-      //   partijIdentificator = {
-      //     ...identificatorTypes.nietNatuurlijkPersoonRsin,
-      //     objectId: parameters.rsin,
-      //   };
-
-      //   kvkNummer = parameters.kvkNummer;
+    // WIP =========
+    if (parameters.kvkNummer) {
+      kvkIdentificator = await findPartijIdentificator(
+        identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId,
+        parameters.kvkNummer,
+      );
     }
   }
 
@@ -699,42 +710,78 @@ export async function createKlant(
 
   const partij = await createPartij(partijIdentificatie, soortPartij);
 
-  const identificators = [
-    await createPartijIdentificator({
-      identificeerdePartij: {
-        url: partij.url,
-        uuid: partij.uuid,
-      },
-      partijIdentificator,
-    }),
-  ];
+  // WIP =========
+  const identificators: PartijIdentificator[] = [];
 
-  if (kvkNummer) {
-    const kvkIdentificator = await createPartijIdentificator({
-      identificeerdePartij: {
-        url: partij.url,
-        uuid: partij.uuid,
-      },
-      partijIdentificator: {
-        ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
-        objectId: kvkNummer,
-      },
-    });
-    identificators.push(kvkIdentificator);
+  const identificatorPayload = {
+    identificeerdePartij: {
+      url: partij.url,
+      uuid: partij.uuid,
+    },
+    partijIdentificator,
+  };
+
+  if ("bsn" in parameters) {
+    identificators.push(await createPartijIdentificator(identificatorPayload));
+  } else if (
+    "vestigingsnummer" in parameters &&
+    parameters.vestigingsnummer &&
+    parameters.kvkNummer
+  ) {
+    // check / create kvkIdentificator to reference from vestigingsIdentificator.subIdentificatorVan
+    if (!kvkIdentificator) {
+      kvkIdentificator = await createPartijIdentificator({
+        identificeerdePartij: null,
+        partijIdentificator: {
+          ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
+          objectId: parameters.kvkNummer,
+        },
+      });
+    }
+
+    if (!kvkIdentificator.uuid) throw new Error("");
+
+    // create vestigingsIdentificator with subIdentificatorVan
+    identificators.push(
+      await createPartijIdentificator({
+        ...identificatorPayload,
+        subIdentificatorVan: {
+          uuid: kvkIdentificator.uuid,
+        },
+      }),
+    );
+  } else if ("kvkNummer" in parameters && parameters.kvkNummer) {
+    if (
+      kvkIdentificator &&
+      kvkIdentificator.uuid &&
+      kvkIdentificator.identificeerdePartij === null
+    ) {
+      // update kvkIdentificator with identificeerdePartij
+      identificators.push(
+        await updatePartijIdentificator(
+          kvkIdentificator.uuid,
+          identificatorPayload,
+        ),
+      );
+    } else {
+      // create kvkIdentificator
+      identificators.push(
+        await createPartijIdentificator(identificatorPayload),
+      );
+    }
   }
 
   return mapPartijToKlant(partij, identificators);
 }
 
-const createPartijIdentificator = (body: {
-  identificeerdePartij: {
-    url: string;
-    uuid: string;
-  };
-  partijIdentificator: IdentificatorType & {
-    objectId: string;
-  };
-}) =>
+const getPartijIdentificator = (uuid: string) =>
+  fetchLoggedIn(klantinteractiesBaseUrl + `/partij-identificatoren/${uuid}`)
+    .then(throwIfNotOk)
+    .then(parseJson);
+
+const createPartijIdentificator = (
+  body: PartijIdentificator,
+): Promise<PartijIdentificator> =>
   fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren", {
     body: JSON.stringify(body),
     method: "POST",
@@ -745,12 +792,21 @@ const createPartijIdentificator = (body: {
     .then(throwIfNotOk)
     .then(parseJson);
 
-const getPartijIdentificator = (uuid: string) =>
-  fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren/" + uuid)
+const updatePartijIdentificator = (
+  uuid: string,
+  body: PartijIdentificator,
+): Promise<PartijIdentificator> =>
+  fetchLoggedIn(klantinteractiesBaseUrl + `/partij-identificatoren/${uuid}`, {
+    body: JSON.stringify(body),
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+    },
+  })
     .then(throwIfNotOk)
     .then(parseJson);
 
-function createPartij(
+async function createPartij(
   partijIdentificatie: { naam: string } | { contactnaam: Contactnaam | null },
   soortPartij: PartijTypes,
 ) {
