@@ -50,10 +50,11 @@ export type BedrijfIdentifier =
   | {
       vestigingsnummer: string;
     }
-  | {
-      rsin: string;
-      kvkNummer?: string;
-    }
+  // Kan dit weg?
+  // | {
+  //     rsin: string;
+  //     kvkNummer?: string;
+  //   }
   | {
       kvkNummer: string;
     };
