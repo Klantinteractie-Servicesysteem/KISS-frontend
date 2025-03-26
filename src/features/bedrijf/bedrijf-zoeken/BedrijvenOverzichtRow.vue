@@ -96,7 +96,7 @@ const matchingKlant = useKlantByBedrijfIdentifier(() => {
 
   const { vestigingsnummer, kvkNummer } = props.item;
 
-  if (vestigingsnummer)
+  if (vestigingsnummer && kvkNummer)
     return {
       vestigingsnummer,
       kvkNummer,
