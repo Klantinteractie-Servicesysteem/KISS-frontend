@@ -650,8 +650,6 @@ export async function createKlant(
 
   const partij = await createPartij(partijIdentificatie, soortPartij);
 
-  const identificatoren: PartijIdentificator[] = [];
-
   const identificatorPayload = {
     identificeerdePartij: {
       url: partij.url,
@@ -660,6 +658,8 @@ export async function createKlant(
     partijIdentificator,
   };
 
+  const identificatoren: PartijIdentificator[] = [];
+
   // Create / update PartijIdentificatoren
   if ("bsn" in parameters) {
     // natuurlijk_persoon
@@ -667,27 +667,24 @@ export async function createKlant(
   } else {
     // vestiging / niet_natuurlijk_persoon
 
-    type StoredPartijIdentificator = PartijIdentificator &
-      Required<{ uuid: string }>;
-
-    let kvkIdentificator: StoredPartijIdentificator | null;
+    let kvkIdentificator: PartijIdentificator | null;
 
     // find kvkIdentificator, maybe null
-    kvkIdentificator = (await findPartijIdentificator(
+    kvkIdentificator = await findPartijIdentificator(
       identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId,
       parameters.kvkNummer,
-    )) as StoredPartijIdentificator | null;
+    );
 
     if ("vestigingsnummer" in parameters && parameters.vestigingsnummer) {
       // ensure kvkIdentificator to use for reference from subIdentificatorVan
       if (!kvkIdentificator) {
-        kvkIdentificator = (await createPartijIdentificator({
+        kvkIdentificator = await createPartijIdentificator({
           identificeerdePartij: null,
           partijIdentificator: {
             ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
             objectId: parameters.kvkNummer,
           },
-        })) as StoredPartijIdentificator;
+        });
       }
 
       // create vestigingsIdentificator with subIdentificatorVan
@@ -726,7 +723,7 @@ const getPartijIdentificator = (uuid: string): Promise<PartijIdentificator> =>
     .then(parseJson);
 
 const createPartijIdentificator = (
-  body: PartijIdentificator,
+  body: Omit<PartijIdentificator, "uuid">,
 ): Promise<PartijIdentificator> =>
   fetchLoggedIn(klantinteractiesBaseUrl + "/partij-identificatoren", {
     body: JSON.stringify(body),
@@ -740,7 +737,7 @@ const createPartijIdentificator = (
 
 const updatePartijIdentificator = (
   uuid: string,
-  body: PartijIdentificator,
+  body: Omit<PartijIdentificator, "uuid">,
 ): Promise<PartijIdentificator> =>
   fetchLoggedIn(klantinteractiesBaseUrl + `/partij-identificatoren/${uuid}`, {
     body: JSON.stringify(body),

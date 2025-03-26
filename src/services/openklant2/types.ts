@@ -247,7 +247,7 @@ export type OnderwerpObjectPostModel = {
 };
 
 export type PartijIdentificator = {
-  uuid?: string;
+  uuid: string;
   identificeerdePartij: {
     url: string;
     uuid: string;
