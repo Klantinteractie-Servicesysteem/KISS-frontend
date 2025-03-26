@@ -145,14 +145,6 @@ export type KlantBedrijfIdentifier =
   | {
       kvkNummer: string;
     };
-// rsin... ?
-// | {
-//     rsin: string;
-//   }
-// | {
-//     rsin: string;
-//     kvkNummer?: string;
-//   };
 
 ///////////////////////////////
 

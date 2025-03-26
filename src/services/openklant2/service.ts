@@ -758,13 +758,13 @@ const updatePartijIdentificator = (
 const findPartijIdentificator = async (
   partijIdentificatorCodeSoortObjectId: string,
   partijIdentificatorObjectId: string,
-  // pageSize: "99"
 ): Promise<PartijIdentificator | null> =>
   fetchLoggedIn(
     klantinteractiesBaseUrl +
       `/partij-identificatoren?${new URLSearchParams({
         partijIdentificatorCodeSoortObjectId,
         partijIdentificatorObjectId,
+        // pageSize: "499"
       })}`,
   )
     .then(throwIfNotOk)
@@ -860,7 +860,6 @@ async function mapPartijToKlant(
     bsn: getIdentificator(identificatorTypes.persoon),
     vestigingsnummer: getIdentificator(identificatorTypes.vestiging),
     kvkNummer: await getKvkIdentificator(),
-    rsin: getIdentificator(identificatorTypes.nietNatuurlijkPersoonRsin),
   };
 
   return ret;
@@ -914,8 +913,7 @@ export function searchKlantenByDigitaalAdres(
       // daarom filteren we hier handmatig
       .then((klanten) =>
         klanten.filter((klant) => {
-          const isBedrijf =
-            !!klant.kvkNummer || !!klant.vestigingsnummer || !!klant.rsin;
+          const isBedrijf = !!klant.kvkNummer || !!klant.vestigingsnummer;
           if (!isBedrijf) return false;
           const matchesEmail =
             key === DigitaalAdresTypes.email &&
