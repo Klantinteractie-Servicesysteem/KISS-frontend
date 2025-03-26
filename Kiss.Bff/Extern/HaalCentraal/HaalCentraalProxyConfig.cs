@@ -1,52 +1,76 @@
-﻿using Kiss;
-using Kiss.Bff;
-using Yarp.ReverseProxy.Transforms;
+﻿using System.Security.Claims;
+using System.Text.Json.Nodes;
+using Kiss;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class HaalCentraalExtensions
+    public class HaalCentraalConfig(IConfiguration config)
     {
-        public static IServiceCollection AddHaalCentraal(this IServiceCollection services, string baseUrl, string apiKey, string? userHeaderName, Dictionary<string, string>? customHeaders)
+        readonly string? _apiKey = config["HAAL_CENTRAAL_API_KEY"];
+        readonly string? _userHeaderName = config["HAAL_CENTRAAL_USER_HEADER_NAME"];
+        readonly Dictionary<string, string>? _generalHeaders = config.GetSection("HAAL_CENTRAAL_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>();
+        readonly Dictionary<string, Dictionary<string, string>>? _headersForSpecificTypeOfSearch = config.GetSection("HAAL_CENTRAAL_CUSTOM_HEADERS")?.Get<Dictionary<string, Dictionary<string, string>>>();
+
+        public string? BaseUrl { get; } = config["HAAL_CENTRAAL_BASE_URL"];
+
+        public Dictionary<string, string> GetHeaders(string type, ClaimsPrincipal user)
         {
-            services.AddSingleton<IKissProxyRoute>(new HaalCentraalProxyConfig(baseUrl, apiKey, userHeaderName, customHeaders));
-            return services;
-        }
-    }
+            var result = _generalHeaders?.ToDictionary() ?? [];
 
-    public class HaalCentraalProxyConfig(
-        string destination,
-        string apiKey,
-        string? userHeaderName,
-        Dictionary<string, string>? customHeaders) : IKissProxyRoute
-    {
-        public string Route => "haalcentraal";
-
-        public string Destination { get; } = destination;
-
-        public ValueTask ApplyRequestTransform(RequestTransformContext context)
-        {
-            if (!string.IsNullOrWhiteSpace(apiKey))
+            if (!string.IsNullOrWhiteSpace(_apiKey))
             {
-                context.ProxyRequest.Headers.Add("X-API-KEY", apiKey);
+                result["X-API-KEY"] = _apiKey;
             }
 
-            if (!string.IsNullOrWhiteSpace(userHeaderName))
+            if (!string.IsNullOrWhiteSpace(_userHeaderName))
             {
-                context.ProxyRequest.Headers.Add(userHeaderName, context.HttpContext.User.GetUserName());
+                result[_userHeaderName] = user.GetUserName() ?? "";
             }
 
-            if (customHeaders != null)
+            if (_headersForSpecificTypeOfSearch != null)
             {
-                foreach (var (key, value) in customHeaders)
+                foreach (var (headerName, valuesPerTypeOfSearch) in _headersForSpecificTypeOfSearch)
                 {
-                    if (!string.IsNullOrWhiteSpace(key) && !string.IsNullOrWhiteSpace(value))
+                    if (valuesPerTypeOfSearch.TryGetValue(type, out var headerValue) && !string.IsNullOrWhiteSpace(headerValue))
                     {
-                        context.ProxyRequest.Headers.Add(key, value);
+                        result[headerName] = headerValue;
                     }
                 }
             }
 
-            return new();
+            return result;
         }
+    }
+
+    public static class HaalCentraalExtensions
+    {
+        public static IServiceCollection AddHaalCentraal(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddSingleton(new HaalCentraalConfig(config));
+            return services;
+        }
+    }
+
+    [ApiController]
+    public class HaalCentraalCustomProxy(HaalCentraalConfig config) : ControllerBase
+    {
+        [HttpPost("/api/haalcentraal/brp/personen")]
+        public IActionResult Zoeken(JsonObject request) => new ProxyResult(() =>
+        {
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{config.BaseUrl.AsSpan().TrimEnd('/')}/brp/personen")
+            {
+                Content = JsonContent.Create(request)
+            };
+
+            httpRequestMessage.Content.Headers.ContentLength = Request.Headers.ContentLength;
+
+            foreach (var (key, value) in config.GetHeaders(request["type"]?.GetValue<string>() ?? "", User))
+            {
+                httpRequestMessage.Headers.Add(key, value);
+            }
+
+            return httpRequestMessage;
+        });
     }
 }
