@@ -849,6 +849,23 @@ async function mapPartijToKlant(
         x?.partijIdentificator?.codeSoortObjectId == type.codeSoortObjectId,
     )?.partijIdentificator?.objectId;
 
+  const getKvkIdentificator = async () => {
+    const kvkIdentificatorUuid = identificatoren?.find(
+      (x) =>
+        x.subIdentificatorVan &&
+        x.partijIdentificator.codeSoortObjectId ==
+          identificatorTypes.vestiging.codeSoortObjectId,
+    )?.subIdentificatorVan?.uuid;
+
+    return kvkIdentificatorUuid
+      ? (
+          (await getPartijIdentificator(
+            kvkIdentificatorUuid,
+          )) as PartijIdentificator
+        )?.partijIdentificator.objectId
+      : getIdentificator(identificatorTypes.nietNatuurlijkPersoonKvkNummer);
+  };
+
   const ret: Klant = {
     _typeOfKlant: "klant" as const,
     klantnummer: partij.nummer || "",
@@ -860,10 +877,7 @@ async function mapPartijToKlant(
     emailadressen: getDigitaalAdressen(DigitaalAdresTypes.email),
     bsn: getIdentificator(identificatorTypes.persoon),
     vestigingsnummer: getIdentificator(identificatorTypes.vestiging),
-    kvkNummer: getIdentificator(
-      identificatorTypes.nietNatuurlijkPersoonKvkNummer,
-    ),
-    // Kan weg... ??
+    kvkNummer: await getKvkIdentificator(),
     rsin: getIdentificator(identificatorTypes.nietNatuurlijkPersoonRsin),
   };
 
