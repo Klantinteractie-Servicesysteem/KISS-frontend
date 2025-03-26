@@ -43,6 +43,7 @@ export type BedrijfSearchOptions =
 export type BedrijfIdentifier =
   | {
       vestigingsnummer: string;
+      kvkNummer: string;
     }
   | {
       kvkNummer: string;

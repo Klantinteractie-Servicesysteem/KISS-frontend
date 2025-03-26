@@ -93,27 +93,37 @@ const contactmomentStore = useContactmomentStore();
 
 const klant = useKlantById(klantId, gebruikKlantInteracatiesApi);
 
-const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
+const klantUrl = computed(() => (klant.success ? (klant.data.url ?? "") : ""));
 const currentTab = ref("");
 
 //const contactverzoekenPage = ref(1);
 
 const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
   if (!klant.success || !klant.data) return undefined;
-  if (klant.data.vestigingsnummer)
+
+  if (klant.data.vestigingsnummer && klant.data.kvkNummer)
     return {
       vestigingsnummer: klant.data.vestigingsnummer,
+      kvkNummer: klant.data.kvkNummer,
     };
+
+  if (klant.data.kvkNummer)
+    return {
+      kvkNummer: klant.data.kvkNummer,
+    };
+
   // if (klant.data.rsin)
   //   return {
   //     rsin: klant.data.rsin,
   //     kvkNummer: klant.data.kvkNummer,
   //   };
+
   if (klant.data.nietNatuurlijkPersoonIdentifier)
     return {
       //gechoogel met params verschil ok1 en esuite
       rsin: klant.data.nietNatuurlijkPersoonIdentifier,
     };
+
   if (klant.data.rsin)
     return {
       //gechoogel met params verschil ok1 en esuite

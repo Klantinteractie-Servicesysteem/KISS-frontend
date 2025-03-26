@@ -68,7 +68,6 @@ const props = defineProps<{
   autoNavigate?: boolean;
 }>();
 
-// TODO: remove rsin where applicable
 type BedrijfIdentifierWithoutRsin = Exclude<
   BedrijfIdentifier,
   {
@@ -125,7 +124,7 @@ const naam = computed(() => bedrijf.value.data?.bedrijfsnaam || "");
 const bedrijfIdentifier = computed<BedrijfIdentifierWithoutRsin | undefined>(
   () => {
     const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
-    if (vestigingsnummer)
+    if (vestigingsnummer && kvkNummer)
       return {
         vestigingsnummer,
         kvkNummer,
