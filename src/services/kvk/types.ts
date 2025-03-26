@@ -48,7 +48,8 @@ export type BedrijfIdentifier =
   | {
       kvkNummer: string;
     }
+  // rsin... ?
   | {
       rsin: string;
-      kvkNummer?: string;
+      // kvkNummer?: string;
     };
