@@ -253,3 +253,15 @@ export type OnderwerpObjectPostModel = {
   wasKlantcontact: { uuid: string } | null;
   onderwerpobjectidentificator: Identificator;
 };
+
+export type PartijIdentificator = {
+  uuid?: string;
+  identificeerdePartij: {
+    url: string;
+    uuid: string;
+  } | null;
+  partijIdentificator: Identificator;
+  subIdentificatorVan?: {
+    uuid: string;
+  };
+};
