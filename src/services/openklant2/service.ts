@@ -609,15 +609,13 @@ export async function createKlant(
       }
     | {
         vestigingsnummer: string;
-        kvkNummer?: string;
+        kvkNummer: string;
       }
     | {
         kvkNummer: string;
       },
 ) {
   let partijIdentificatie, partijIdentificator, soortPartij;
-
-  let kvkIdentificator: PartijIdentificator | null = null;
 
   if ("bsn" in parameters) {
     soortPartij = PartijTypes.persoon;
@@ -640,18 +638,11 @@ export async function createKlant(
         ...identificatorTypes.vestiging,
         objectId: parameters.vestigingsnummer,
       };
-    } else if (parameters.kvkNummer) {
+    } else {
       partijIdentificator = {
         ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
         objectId: parameters.kvkNummer,
       };
-    }
-
-    if (parameters.kvkNummer) {
-      kvkIdentificator = await findPartijIdentificator(
-        identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId,
-        parameters.kvkNummer,
-      );
     }
   }
 
@@ -659,8 +650,7 @@ export async function createKlant(
 
   const partij = await createPartij(partijIdentificatie, soortPartij);
 
-  // WIP =========
-  const identificators: PartijIdentificator[] = [];
+  const identificatoren: PartijIdentificator[] = [];
 
   const identificatorPayload = {
     identificeerdePartij: {
@@ -670,57 +660,64 @@ export async function createKlant(
     partijIdentificator,
   };
 
+  // Create / update PartijIdentificatoren
   if ("bsn" in parameters) {
-    identificators.push(await createPartijIdentificator(identificatorPayload));
-  } else if (
-    "vestigingsnummer" in parameters &&
-    parameters.vestigingsnummer &&
-    parameters.kvkNummer
-  ) {
-    // check / create kvkIdentificator to reference from vestigingsIdentificator.subIdentificatorVan
-    if (!kvkIdentificator) {
-      kvkIdentificator = await createPartijIdentificator({
-        identificeerdePartij: null,
-        partijIdentificator: {
-          ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
-          objectId: parameters.kvkNummer,
-        },
-      });
-    }
+    // natuurlijk_persoon
+    identificatoren.push(await createPartijIdentificator(identificatorPayload));
+  } else {
+    // vestiging / niet_natuurlijk_persoon
 
-    if (!kvkIdentificator.uuid) throw new Error("");
+    type StoredPartijIdentificator = PartijIdentificator &
+      Required<{ uuid: string }>;
 
-    // create vestigingsIdentificator with subIdentificatorVan
-    identificators.push(
-      await createPartijIdentificator({
-        ...identificatorPayload,
-        subIdentificatorVan: {
-          uuid: kvkIdentificator.uuid,
-        },
-      }),
-    );
-  } else if ("kvkNummer" in parameters && parameters.kvkNummer) {
-    if (
-      kvkIdentificator &&
-      kvkIdentificator.uuid &&
-      kvkIdentificator.identificeerdePartij === null
-    ) {
-      // update kvkIdentificator with identificeerdePartij
-      identificators.push(
-        await updatePartijIdentificator(
-          kvkIdentificator.uuid,
-          identificatorPayload,
-        ),
+    let kvkIdentificator: StoredPartijIdentificator | null;
+
+    // find kvkIdentificator, maybe null
+    kvkIdentificator = (await findPartijIdentificator(
+      identificatorTypes.nietNatuurlijkPersoonKvkNummer.codeSoortObjectId,
+      parameters.kvkNummer,
+    )) as StoredPartijIdentificator | null;
+
+    if ("vestigingsnummer" in parameters && parameters.vestigingsnummer) {
+      // ensure kvkIdentificator to use for reference from subIdentificatorVan
+      if (!kvkIdentificator) {
+        kvkIdentificator = (await createPartijIdentificator({
+          identificeerdePartij: null,
+          partijIdentificator: {
+            ...identificatorTypes.nietNatuurlijkPersoonKvkNummer,
+            objectId: parameters.kvkNummer,
+          },
+        })) as StoredPartijIdentificator;
+      }
+
+      // create vestigingsIdentificator with subIdentificatorVan
+      identificatoren.push(
+        await createPartijIdentificator({
+          ...identificatorPayload,
+          subIdentificatorVan: { uuid: kvkIdentificator.uuid },
+        }),
       );
     } else {
-      // create kvkIdentificator
-      identificators.push(
-        await createPartijIdentificator(identificatorPayload),
-      );
+      // niet_natuurlijk_persoon
+
+      if (kvkIdentificator) {
+        // update kvkIdentificator with identificeerdePartij
+        identificatoren.push(
+          await updatePartijIdentificator(
+            kvkIdentificator.uuid,
+            identificatorPayload,
+          ),
+        );
+      } else {
+        // create kvkIdentificator
+        identificatoren.push(
+          await createPartijIdentificator(identificatorPayload),
+        );
+      }
     }
   }
 
-  return mapPartijToKlant(partij, identificators);
+  return mapPartijToKlant(partij, identificatoren);
 }
 
 const getPartijIdentificator = (uuid: string): Promise<PartijIdentificator> =>
