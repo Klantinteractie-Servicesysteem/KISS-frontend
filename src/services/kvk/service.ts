@@ -11,7 +11,6 @@ import type {
   Bedrijf,
   BedrijfIdentifier,
   BedrijfSearchOptions,
-  KvkNaamgeving,
   KvkPagination,
   KvkVestiging,
 } from "./types";
@@ -96,8 +95,7 @@ async function mapHandelsRegister(json: any): Promise<Bedrijf> {
 
   const { straatHuisnummer, postcodeWoonplaats } = buitenlandsAdres ?? {};
 
-  let vestiging: KvkVestiging | undefined;
-  let naamgeving: KvkNaamgeving | undefined;
+  let vestiging, rsin;
 
   if (vestigingsnummer) {
     try {
@@ -109,7 +107,7 @@ async function mapHandelsRegister(json: any): Promise<Bedrijf> {
     // als er geen verstiging is dan gaan we ervan uit dat het een
     // niet natuurlijk persoon betreft waarvan we de RSIN proberen te achterhalen
     try {
-      naamgeving = await fetchNaamgevingen(getNaamgevingenUrl(kvkNummer));
+      rsin = await fetchRsin(kvkNummer);
     } catch (e) {
       console.error(e);
     }
@@ -120,11 +118,11 @@ async function mapHandelsRegister(json: any): Promise<Bedrijf> {
     type,
     kvkNummer,
     vestigingsnummer,
-    bedrijfsnaam: naam,
     straatnaam: straatnaam || straatHuisnummer,
     woonplaats: plaats || postcodeWoonplaats,
     ...(vestiging ?? {}),
-    ...(naamgeving ?? {}),
+    rsin,
+    bedrijfsnaam: naam,
   };
 
   return merged;
@@ -162,27 +160,11 @@ const mapVestiging = ({
   };
 };
 
-//// KvK naamgevingen //////////////////////////////////////////
-
-const naamgevingenUrl = "/api/kvk/v1/naamgevingen/kvknummer/";
-
-const fetchNaamgevingen = (url: string) =>
-  fetchLoggedIn(url).then(throwIfNotOk).then(parseJson).then(mapNaamgeving);
-
-const getNaamgevingenUrl = (kvkNummer?: string) => {
-  if (!kvkNummer) return "";
-  return naamgevingenUrl + kvkNummer;
-};
-
-const mapNaamgeving = ({ rsin, kvkNummer, naam }: any): KvkNaamgeving => {
-  return {
-    rsin,
-    kvkNummer,
-    handelsnaam: naam,
-  };
-};
-
-////
+const fetchRsin = (kvkNummer: string) =>
+  fetchLoggedIn(`/api/kvk/v1/basisprofielen/${kvkNummer}/eigenaar`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(({ rsin = "" } = {}) => rsin as string);
 
 const hasFoutCode = (body: unknown, code: string) => {
   if (
