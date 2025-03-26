@@ -560,13 +560,6 @@ export async function findKlantByIdentifier(
         vestigingsIdentificator,
         query.kvkNummer,
       );
-
-      console.log(
-        `subIdentificatorMatch`,
-        subIdentificatorMatch,
-        partijIdentificator__codeSoortObjectId,
-        partijIdentificator__objectId,
-      );
       // =========
     } else {
       //toegeovegd om types te alignen.. is dee route wenselijk???
