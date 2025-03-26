@@ -526,10 +526,6 @@ export async function findKlantByIdentifier(
         vestigingsnummer: string;
         kvkNummer?: string;
       }
-    // | {
-    //     rsin: string;
-    //     kvkNummer?: string;
-    //   }
     | {
         kvkNummer: string;
       },
@@ -563,6 +559,13 @@ export async function findKlantByIdentifier(
       subIdentificatorMatch = await matchSubIdentificator(
         vestigingsIdentificator,
         query.kvkNummer,
+      );
+
+      console.log(
+        `subIdentificatorMatch`,
+        subIdentificatorMatch,
+        partijIdentificator__codeSoortObjectId,
+        partijIdentificator__objectId,
       );
       // =========
     } else {
@@ -657,10 +660,6 @@ export async function createKlant(
         vestigingsnummer: string;
         kvkNummer?: string;
       }
-    // | {
-    //     rsin: string;
-    //     kvkNummer?: string;
-    //   }
     | {
         kvkNummer: string;
       },

@@ -142,16 +142,9 @@ export type KlantBedrijfIdentifier =
       vestigingsnummer: string;
       kvkNummer?: string;
     }
-  // | {
-  //     rsin: string;
-  //   }
   | {
       kvkNummer: string;
     };
-// | {
-//     rsin: string;
-//     kvkNummer?: string;
-//   };
 
 ///////////////////////////////
 

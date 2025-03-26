@@ -68,6 +68,15 @@ const props = defineProps<{
   autoNavigate?: boolean;
 }>();
 
+// TODO: remove rsin where applicable
+type BedrijfIdentifierWithoutRsin = Exclude<
+  BedrijfIdentifier,
+  {
+    rsin: string;
+    kvkNummer?: string;
+  }
+>;
+
 // const matchingBedrijf = useBedrijfByIdentifier(() => {
 // wordt niet meer gebruikt, alleen relevant als we een klant hebben en kvkv gegevens erbij willen zoeken/
 // maar dat was alleen relevant toen een klant ook uit openklant gevonden kon worden adhv telefoonnumer en email, maar dat is momenteel niet meer mogelijk
@@ -113,27 +122,29 @@ const bedrijf = computed(() =>
 
 const naam = computed(() => bedrijf.value.data?.bedrijfsnaam || "");
 
-const bedrijfIdentifier = computed<BedrijfIdentifier | undefined>(() => {
-  const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
-  if (vestigingsnummer)
-    return {
-      vestigingsnummer,
-      kvkNummer,
-    };
+const bedrijfIdentifier = computed<BedrijfIdentifierWithoutRsin | undefined>(
+  () => {
+    const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
+    if (vestigingsnummer)
+      return {
+        vestigingsnummer,
+        kvkNummer,
+      };
 
-  // if (rsin)
-  //   return {
-  //     rsin,
-  //     kvkNummer,
-  //   };
+    // if (rsin)
+    //   return {
+    //     rsin,
+    //     kvkNummer,
+    //   };
 
-  if (kvkNummer)
-    return {
-      kvkNummer,
-    };
+    if (kvkNummer)
+      return {
+        kvkNummer,
+      };
 
-  return undefined;
-});
+    return undefined;
+  },
+);
 
 const router = useRouter();
 
@@ -148,7 +159,10 @@ const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
   }
 };
 
-async function navigate(bedrijf: Bedrijf, identifier: BedrijfIdentifier) {
+async function navigate(
+  bedrijf: Bedrijf,
+  identifier: BedrijfIdentifierWithoutRsin,
+) {
   const bedrijfsnaam = bedrijf.bedrijfsnaam;
   const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
 
