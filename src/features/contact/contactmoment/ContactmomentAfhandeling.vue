@@ -50,10 +50,6 @@
             />
           </div>
         </utrecht-heading>
-
-        <pre>{{ vraag.klanten }}</pre>
-        --
-
         <section v-if="vraag.klanten.length" class="gerelateerde-resources">
           <utrecht-heading :level="3">{{
             vraag.klanten.length > 1 ? "Klanten" : "Klant"

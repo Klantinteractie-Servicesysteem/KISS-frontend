@@ -129,14 +129,14 @@ const navigate = async (persoon: Persoon) => {
     await mutate("persoon" + bsn, persoon);
 
     if (klant) {
-      //ok2 with a persoon from Brp, who is allready stored in OpenKlant
+      //a persoon from Brp, who is allready stored in OpenKlant
 
       await mutate(klant.id, klant);
 
       const existingKlant = <ContactmomentKlant>{
         ...klant,
 
-        //verplichte velden... todo: alternatief voor id verzinnen?
+        //verplichte velden...
         id: klant.id,
         telefoonnummers: klant.telefoonnummers,
         emailadressen: klant.emailadressen,
@@ -147,15 +147,14 @@ const navigate = async (persoon: Persoon) => {
 
       contactmomentStore.setKlant(existingKlant);
 
-      await router.push("/personen/brp/" + existingKlant.internalId);
+      await router.push("/personen/" + existingKlant.internalId);
     } else {
-      //ok1 with a persoon from Brp, who doesn't have a record in OpenKlant yet.
+      //a persoon from Brp, who doesn't have a record in OpenKlant yet.
       //Store the info from the Brp in the in memory store. When a contactmometn is saved,we will save this person in OpenKlant
 
       const newKlant = <ContactmomentKlant>{
         ...persoon,
-
-        //verplichte velden... todo: alternatief voor id verzinnen?
+        //verplichte velden...
         id: "",
         telefoonnummers: [],
         emailadressen: [],
@@ -164,7 +163,7 @@ const navigate = async (persoon: Persoon) => {
 
       contactmomentStore.setKlant(newKlant);
 
-      await router.push("/personen/brp/" + newKlant.internalId);
+      await router.push("/personen/" + newKlant.internalId);
     }
   }
 };

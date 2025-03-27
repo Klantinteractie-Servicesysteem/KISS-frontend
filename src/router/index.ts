@@ -101,22 +101,13 @@ const router = createRouter({
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
     {
-      path: "/personen/:persoonId",
+      path: "/personen/:internalKlantId",
       name: "persoonDetail",
       props: true,
       component: PersoonDetailView,
       beforeEnter: guardContactMoment,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
-    {
-      path: "/personen/brp/:internalKlantId",
-      name: "persoonDetailBrp",
-      props: true,
-      component: PersoonDetailView,
-      beforeEnter: guardContactMoment,
-      meta: { showNav: true, showNotitie: true, showSearch: true },
-    },
-
     {
       path: "/bedrijven",
       name: "bedrijven",
