@@ -79,3 +79,4 @@ A redirectloop after log in is an idication the secret has expired
 1. go to certificates en secrets.
 1. Add a secret (the value is generated automatically) and copy the value.
 1. update de value of the OIDC_CLIENT_SECRET in your env.local (OIDC_CLIENT_ID is not affected)
+2. 
