@@ -23,9 +23,6 @@ export async function findBedrijfInHandelsRegister(query: BedrijfIdentifier) {
 
   if ("vestigingsnummer" in query && query.vestigingsnummer) {
     searchParams.set("vestigingsnummer", query.vestigingsnummer);
-    // niet nodig...?
-    // searchParams.set("type", "hoofdvestiging");
-    // searchParams.append("type", "nevenvestiging");
     searchParams.set("kvkNummer", query.kvkNummer);
   } else if ("kvkNummer" in query && query.kvkNummer) {
     searchParams.set("kvkNummer", query.kvkNummer);

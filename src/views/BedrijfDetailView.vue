@@ -112,12 +112,6 @@ const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
       kvkNummer: klant.data.kvkNummer,
     };
 
-  // if (klant.data.rsin)
-  //   return {
-  //     rsin: klant.data.rsin,
-  //     kvkNummer: klant.data.kvkNummer,
-  //   };
-
   if (klant.data.nietNatuurlijkPersoonIdentifier)
     return {
       //gechoogel met params verschil ok1 en esuite
