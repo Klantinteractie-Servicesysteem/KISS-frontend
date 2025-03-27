@@ -130,12 +130,6 @@ const bedrijfIdentifier = computed<BedrijfIdentifierWithoutRsin | undefined>(
         kvkNummer,
       };
 
-    // if (rsin)
-    //   return {
-    //     rsin,
-    //     kvkNummer,
-    //   };
-
     if (kvkNummer)
       return {
         kvkNummer,
