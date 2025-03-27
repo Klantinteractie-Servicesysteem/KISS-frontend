@@ -16,6 +16,7 @@ import type {
   TypeOrganisatorischeEenheid,
 } from "@/features/contact/components/types";
 import { fetchVragenSets } from "@/features/contact/contactverzoek/formulier/service";
+import { nanoid } from "nanoid";
 
 export type ContactmomentZaak = {
   zaak: ZaakDetails;
@@ -106,6 +107,7 @@ export type ContactmomentContactVerzoek = {
 };
 
 export type ContactmomentKlant = {
+  internalId?: string;
   id: string;
   voornaam?: string;
   voorvoegselAchternaam?: string;
@@ -361,18 +363,26 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
       const { contactverzoek } = huidigeVraag;
 
-      const match = huidigeVraag.klanten.find((x) => x.klant.id === klant.id);
-
       huidigeVraag.klanten.forEach((x) => {
         x.shouldStore = false;
       });
 
       mapKlantToContactverzoek(klant, contactverzoek);
 
+      const match = huidigeVraag.klanten.find(
+        (x) =>
+          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+      );
+
       if (match) {
+        klant.internalId = match.klant.internalId;
         match.klant = klant;
         match.shouldStore = true;
         return;
+      }
+
+      if (!klant.internalId) {
+        klant.internalId = nanoid();
       }
 
       huidigeVraag.klanten.push({
