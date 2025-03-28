@@ -29,7 +29,7 @@ import {
 
 import type { ContactverzoekData } from "../../features/contact/components/types";
 import type { Klant } from "../openklant/types";
-import type { Vraag } from "@/stores/contactmoment";
+import type { Vraag } from "@/stores/contactmoment"; 
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";
 const klantinteractiesApiRoot = "/api/v1";
@@ -356,34 +356,45 @@ export async function getActorById(identificatie: string): Promise<any> {
   return await response.json();
 }
 
-function mapActorType(
-  typeOrganisatorischeEenheid: "groep" | "afdeling" | undefined,
-) {
-  switch (typeOrganisatorischeEenheid) {
-    case "afdeling":
-      return {
-        codeObjecttype: "afd",
-        codeRegister: "obj",
-        codeSoortObjectId: "idf",
-        soortActor: "organisatorische_eenheid",
-      };
-    case "groep":
-      return {
-        codeObjecttype: "grp",
-        codeRegister: "obj",
-        codeSoortObjectId: "idf",
-        soortActor: "organisatorische_eenheid",
-      };
-    default:
-      return {
-        codeObjecttype: "mdw",
-        codeRegister: "obj",
-        codeSoortObjectId: "idf",
-        soortActor: "medewerker",
-      };
-  }
-}
+ 
+export type OrganizationalUnitType = "afdeling" | "groep"; 
 
+ 
+const organizationalUnitMap: Record<OrganizationalUnitType, { codeObjecttype: string; soortActor: string }> = {
+  afdeling: { codeObjecttype: "afd", soortActor: "organisatorische_eenheid" },
+  groep: { codeObjecttype: "grp", soortActor: "organisatorische_eenheid" }
+};
+
+async function mapActor({
+  fullName,
+  identificatie,
+  typeOrganisatorischeEenheid,
+}: {
+  fullName: string;
+  identificatie: string;
+  typeOrganisatorischeEenheid: OrganizationalUnitType | undefined;  
+}) {
+  const medewerkerEmailEnabled = await useMedewerkeremail();  
+ 
+  const codeRegister = medewerkerEmailEnabled ? "handmatig" : "obj";
+  const codeSoortObjectId = medewerkerEmailEnabled ? "email" : "idf";
+ 
+  const unitInfo = typeOrganisatorischeEenheid && organizationalUnitMap[typeOrganisatorischeEenheid] || 
+                  { codeObjecttype: "mdw", soortActor: "medewerker" };
+  
+  return {
+    naam: fullName,
+    soortActor: unitInfo.soortActor,
+    indicatieActief: true,
+    actoridentificator: {
+      objectId: identificatie,
+      codeObjecttype: unitInfo.codeObjecttype,
+      codeRegister,
+      codeSoortObjectId,
+    },
+  };
+}
+ 
 export async function postActor({
   fullName,
   identificatie,
@@ -391,28 +402,15 @@ export async function postActor({
 }: {
   fullName: string;
   identificatie: string;
-  typeOrganisatorischeEenheid: "afdeling" | "groep" | undefined;
+  typeOrganisatorischeEenheid: OrganizationalUnitType | undefined;
 }): Promise<string> {
-  const { codeObjecttype, codeRegister, codeSoortObjectId, soortActor } =
-    mapActorType(typeOrganisatorischeEenheid);
-
-  const parsedModel = {
-    naam: fullName,
-    soortActor,
-    indicatieActief: true,
-    actoridentificator: {
-      objectId: identificatie,
-      codeObjecttype,
-      codeRegister,
-      codeSoortObjectId,
-    },
-  };
+  const parsedModel = await mapActor({ fullName, identificatie, typeOrganisatorischeEenheid });
 
   const response = await fetchLoggedIn(klantinteractiesActoren, {
     method: "POST",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
     body: JSON.stringify(parsedModel),
   });
@@ -420,6 +418,7 @@ export async function postActor({
   throwIfNotOk(response);
   const jsonResponse = await response.json();
   return jsonResponse.uuid;
+
 }
 
 export const saveKlantContact = async (
@@ -865,10 +864,18 @@ export function fetchKlantcontacten({
   hadBetrokkene__uuid?: string;
   expand?: KlantContactExpand[];
 } = {}) {
-  const query = new URLSearchParams(
-    Object.entries(params).filter(([, value]) => value),
-  );
-  expand && query.append("expand", expand.join(","));
+  // Build query
+  const query = new URLSearchParams();
+  // Add all parameters to the query string
+  for (const [key, value] of Object.entries(params)) {
+    if (value) {
+      query.set(key, value);
+    }
+  }
+  // Add expand (if any)
+  if (expand?.length) {
+    query.set("expand", expand.join(","));
+  }
 
   return fetchLoggedIn(`${klantinteractiesKlantcontacten}?${query}`)
     .then(throwIfNotOk)
@@ -876,4 +883,10 @@ export function fetchKlantcontacten({
     .then((r) =>
       parsePagination(r, (x) => x as ExpandedKlantContactApiViewmodel),
     );
+}
+
+export async function useMedewerkeremail(): Promise<boolean> {
+  const response = await fetch("/api/environment/use-medewerkeremail");
+  const { useMedewerkeremail } = await response.json();
+  return useMedewerkeremail as boolean;
 }
