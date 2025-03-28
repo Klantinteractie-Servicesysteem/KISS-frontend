@@ -17,12 +17,6 @@ export type KvkPagination = {
   resultaten: any[];
 };
 
-export type KvkNaamgeving = {
-  rsin: string;
-  kvkNummer: string;
-  handelsnaam: string;
-};
-
 export interface Bedrijf {
   _typeOfKlant: "bedrijf";
   kvkNummer: string;
