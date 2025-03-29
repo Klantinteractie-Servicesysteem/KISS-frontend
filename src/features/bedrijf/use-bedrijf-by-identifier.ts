@@ -1,6 +1,6 @@
 import { ServiceResult, enforceOneOrZero } from "@/services";
 import {
-  searchBedrijvenInHandelsRegister,
+  findBedrijfInHandelsRegister,
   type BedrijfIdentifier,
 } from "@/services/kvk";
 
@@ -25,7 +25,7 @@ export const useBedrijfByIdentifier = (
       );
     }
 
-    return searchBedrijvenInHandelsRegister(id).then(enforceOneOrZero);
+    return findBedrijfInHandelsRegister(id).then(enforceOneOrZero);
   };
 
   return ServiceResult.fromFetcher("", fetcher, {
