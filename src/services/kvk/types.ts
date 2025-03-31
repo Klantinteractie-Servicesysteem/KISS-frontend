@@ -43,11 +43,11 @@ export type BedrijfSearchOptions =
 export type BedrijfIdentifier =
   | {
       vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-      kvkNummer?: string;
+      kvkNummer: string;
     }
   | {
       kvkNummer: string;
+    }
+  | {
+      rsin: string;
     };

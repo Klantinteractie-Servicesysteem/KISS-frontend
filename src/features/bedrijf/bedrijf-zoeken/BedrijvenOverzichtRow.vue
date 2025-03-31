@@ -1,61 +1,57 @@
 <template>
-    <tr class="row-link">
-        <th scope="row" class="wrap">
-            <div class="skeleton" v-if="bedrijf.loading" />
-            <template v-else-if="bedrijf.success">
-                {{
-        bedrijf.data?.bedrijfsnaam
-                }}
-            </template>
-        </th>
-        <td>
-            {{ bedrijf.data?.kvkNummer }}
-        </td>
-        <td>
-            <div class="skeleton" v-if="bedrijf.loading" />
-            <template v-if="bedrijf.success">
-                {{ bedrijf.data?.vestigingsnummer }}
-            </template>
-        </td>
+  <tr class="row-link">
+    <th scope="row" class="wrap">
+      <div class="skeleton" v-if="bedrijf.loading" />
+      <template v-else-if="bedrijf.success">
+        {{ bedrijf.data?.bedrijfsnaam }}
+      </template>
+    </th>
+    <td>
+      {{ bedrijf.data?.kvkNummer }}
+    </td>
+    <td>
+      <div class="skeleton" v-if="bedrijf.loading" />
+      <template v-if="bedrijf.success">
+        {{ bedrijf.data?.vestigingsnummer }}
+      </template>
+    </td>
 
-        <td>
-            <div class="skeleton" v-if="bedrijf.loading" />
-            <template v-if="bedrijf.success">
-                {{
-        [bedrijf.data?.postcode, bedrijf.data?.huisnummer].join(" ")
-                }}
-            </template>
-        </td>
-        <td class="wrap">
-            <div class="skeleton" v-if="matchingKlant.loading" />
-            <template v-if="matchingKlant.success">
-                {{
-        matchingKlant.data?.emailadressen?.join(", ")
-                }}
-            </template>
-        </td>
-        <td class="wrap">
-            <div class="skeleton" v-if="matchingKlant.loading" />
-            <template v-if="matchingKlant.success">
-                {{
-        matchingKlant.data?.telefoonnummers.join(", ")
-                }}
-            </template>
-        </td>
-        <td>
-            <div class="skeleton" v-if="matchingKlant.loading || bedrijf.loading" />
+    <td>
+      <div class="skeleton" v-if="bedrijf.loading" />
+      <template v-if="bedrijf.success">
+        {{ [bedrijf.data?.postcode, bedrijf.data?.huisnummer].join(" ") }}
+      </template>
+    </td>
+    <td class="wrap">
+      <div class="skeleton" v-if="matchingKlant.loading" />
+      <template v-if="matchingKlant.success">
+        {{ matchingKlant.data?.emailadressen?.join(", ") }}
+      </template>
+    </td>
+    <td class="wrap">
+      <div class="skeleton" v-if="matchingKlant.loading" />
+      <template v-if="matchingKlant.success">
+        {{ matchingKlant.data?.telefoonnummers.join(", ") }}
+      </template>
+    </td>
+    <td>
+      <div class="skeleton" v-if="matchingKlant.loading || bedrijf.loading" />
 
-            <template v-if="matchingKlant.success && matchingKlant.data">
-                <router-link :title="`Details ${naam}`"
-                             :to="getKlantUrl(matchingKlant.data)"
-                             @click="setCache(matchingKlant.data, bedrijf.data)" />
-            </template>
-            <button v-else-if="bedrijf.data && bedrijfIdentifier"
-                    type="button"
-                    title="Aanmaken"
-                    @click="navigate(bedrijf.data, bedrijfIdentifier)" />
-        </td>
-    </tr>
+      <template v-if="matchingKlant.success && matchingKlant.data">
+        <router-link
+          :title="`Details ${naam}`"
+          :to="getKlantUrl(matchingKlant.data)"
+          @click="setCache(matchingKlant.data, bedrijf.data)"
+        />
+      </template>
+      <button
+        v-else-if="bedrijf.data && bedrijfIdentifier"
+        type="button"
+        title="Aanmaken"
+        @click="navigate(bedrijf.data, bedrijfIdentifier)"
+      />
+    </td>
+  </tr>
 </template>
 <script lang="ts" setup>
 import { computed, watchEffect } from "vue";
@@ -71,6 +67,13 @@ const props = defineProps<{
   item: Bedrijf | Klant;
   autoNavigate?: boolean;
 }>();
+
+type BedrijfIdentifierWithoutRsin = Exclude<
+  BedrijfIdentifier,
+  {
+    rsin: string;
+  }
+>;
 
 // const matchingBedrijf = useBedrijfByIdentifier(() => {
 // wordt niet meer gebruikt, alleen relevant als we een klant hebben en kvkv gegevens erbij willen zoeken/
@@ -92,14 +95,17 @@ const matchingKlant = useKlantByBedrijfIdentifier(() => {
 
   const { vestigingsnummer, kvkNummer } = props.item;
 
-  if (vestigingsnummer)
+  if (vestigingsnummer && kvkNummer)
     return {
       vestigingsnummer,
+      kvkNummer,
     };
+
   // if (rsin)
   //   return {
   //     rsin, //openklant1 gebruikte rsin. esuite kvknummer.
   //   };
+
   if (kvkNummer)
     return {
       kvkNummer, //openklant1 gebruikte rsin. esuite kvknummer.
@@ -114,25 +120,23 @@ const bedrijf = computed(() =>
 
 const naam = computed(() => bedrijf.value.data?.bedrijfsnaam || "");
 
-const bedrijfIdentifier = computed<BedrijfIdentifier | undefined>(() => {
-  const { rsin, kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
-  if (vestigingsnummer)
-    return {
-      vestigingsnummer,
-    };
+const bedrijfIdentifier = computed<BedrijfIdentifierWithoutRsin | undefined>(
+  () => {
+    const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
+    if (vestigingsnummer && kvkNummer)
+      return {
+        vestigingsnummer,
+        kvkNummer,
+      };
 
-  if (rsin)
-    return {
-      rsin,
-      kvkNummer,
-    };
+    if (kvkNummer)
+      return {
+        kvkNummer,
+      };
 
-  if (kvkNummer)
-    return {
-      kvkNummer,
-    };
-  return undefined;
-});
+    return undefined;
+  },
+);
 
 const router = useRouter();
 
@@ -147,7 +151,10 @@ const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
   }
 };
 
-async function navigate(bedrijf: Bedrijf, identifier: BedrijfIdentifier) {
+async function navigate(
+  bedrijf: Bedrijf,
+  identifier: BedrijfIdentifierWithoutRsin,
+) {
   const bedrijfsnaam = bedrijf.bedrijfsnaam;
   const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
 
