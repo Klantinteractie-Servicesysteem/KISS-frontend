@@ -72,7 +72,6 @@ type BedrijfIdentifierWithoutRsin = Exclude<
   BedrijfIdentifier,
   {
     rsin: string;
-    kvkNummer?: string;
   }
 >;
 
