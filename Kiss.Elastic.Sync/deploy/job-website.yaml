@@ -6,22 +6,22 @@ spec:
   template:
     spec:
       containers:
-          - name: kiss-elastic-sync
-            image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
-            imagePullPolicy: Always
-            args:
-            - domain
-            - https://www.my-website.nl
-            envFrom:
-            - secretRef:
-                name: kiss-secrets
-            - configMapRef:
-                name: kiss-config
-            securityContext:
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              readOnlyRootFilesystem: true
-              runAsUser: 10000
-              capabilities:
-                drop: [ALL]
+        - name: kiss-elastic-sync
+          image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
+          imagePullPolicy: Always
+          args:
+          - domain
+          - https://www.my-website.nl
+          envFrom:
+          - secretRef:
+              name: kiss-secrets
+          - configMapRef:
+              name: kiss-config
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            runAsUser: 10000
+            capabilities:
+              drop: [ALL]
       restartPolicy: Never
