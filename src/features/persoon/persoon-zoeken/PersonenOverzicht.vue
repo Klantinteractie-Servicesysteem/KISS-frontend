@@ -53,20 +53,11 @@ import { useRouter } from "vue-router";
 import { mutate } from "swrv";
 import { watchEffect } from "vue";
 import {
-  fetchSystemen,
   registryVersions,
   useSystemen,
 } from "@/services/environment/fetch-systemen";
-import { useOrganisatieIds } from "@/stores/user";
-import {
-  ensureOk2Klant,
-  fetchKlantByKlantIdentificatorOk2,
-} from "@/services/openklant2";
-import {
-  ensureOk1Klant,
-  fetchKlantByKlantIdentificatorOk1,
-} from "@/services/openklant1";
-import type { Klant } from "@/services/openklant/types";
+import { fetchKlantByKlantIdentificatorOk2 } from "@/services/openklant2";
+import { fetchKlantByKlantIdentificatorOk1 } from "@/services/openklant1";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
@@ -80,30 +71,9 @@ const router = useRouter();
 const systemen = useSystemen();
 const contactmomentStore = useContactmomentStore();
 
-const getKlantUrl = (klant: Klant) => `/personen/${klant.id}`;
-
-// const ensureKlantForBsn = async (parameters: { bsn: string }) => {
-//   const systemen = await fetchSystemen();
-//   const defaultSysteem = systemen.find(({ isDefault }) => isDefault);
-
-//   if (!defaultSysteem) {
-//     throw new Error("Geen default register gevonden");
-//   }
-
-//   return defaultSysteem.registryVersion === registryVersions.ok2
-//     ? await ensureOk2Klant(defaultSysteem.identifier, parameters)
-//     : await ensureOk1Klant(
-//         defaultSysteem.identifier,
-//         parameters,
-//         useOrganisatieIds().value[0] || "",
-//       );
-// };
-
 const navigate = async (persoon: Persoon) => {
   const { bsn } = persoon;
   if (!bsn) throw new Error("BSN is required");
-
-  //const klant = await ensureKlantForBsn({ bsn });
 
   if (
     !systemen.loading.value &&
@@ -111,7 +81,6 @@ const navigate = async (persoon: Persoon) => {
     systemen.defaultSysteem.value
   ) {
     let klant = null;
-
     if (
       systemen.defaultSysteem.value.registryVersion === registryVersions.ok2
     ) {

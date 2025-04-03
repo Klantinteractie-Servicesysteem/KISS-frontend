@@ -35,22 +35,41 @@
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
   searchBedrijvenInHandelsRegister,
+  searchBedrijvenInHandelsRegisterByIdentifier,
   type Bedrijf,
   type BedrijfIdentifier,
 } from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { watchEffect } from "vue";
+import { useContactmomentStore } from "@/stores/contactmoment";
 
-const props = defineProps<{ bedrijfIdentifier: BedrijfIdentifier }>();
+const props = defineProps<{ internalKlantId: string }>();
+
+const store = useContactmomentStore();
+
 const {
   data: bedrijf,
   loading,
   error,
 } = useLoader(() => {
-  if (props.bedrijfIdentifier)
-    return searchBedrijvenInHandelsRegister(props.bedrijfIdentifier).then(
-      enforceOneOrZero,
-    );
+  console.log(props.internalKlantId);
+  const klant = store.getKlantByInternalId(props.internalKlantId);
+  if (klant && klant.bedrijfIdentifier) {
+    console.log(555);
+
+    const mappedBedrijfsIdentifier =
+      "vestigingsnummer" in klant.bedrijfIdentifier
+        ? { vestigingsnummer: klant.bedrijfIdentifier.vestigingsnummer }
+        : { rsin: klant.bedrijfIdentifier.nietNatuurlijkPersoonIdentifier };
+
+    return searchBedrijvenInHandelsRegisterByIdentifier(
+      mappedBedrijfsIdentifier,
+    ).then(enforceOneOrZero);
+  }
+  // if (props.bedrijfIdentifier)
+  //   return searchBedrijvenInHandelsRegister(props.bedrijfIdentifier).then(
+  //     enforceOneOrZero,
+  //   );
 });
 
 const emit = defineEmits<{
@@ -62,4 +81,8 @@ const emit = defineEmits<{
 watchEffect(() => bedrijf.value && emit("load", bedrijf.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
+
+function getPersoonFromStoreByInternalId(internalKlantId: string) {
+  throw new Error("Function not implemented.");
+}
 </script>

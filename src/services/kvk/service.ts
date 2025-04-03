@@ -20,7 +20,50 @@ const zoekenUrl = "/api/kvk/v2/zoeken";
 const vestigingsprofielenUrl = "/api/kvk/v1/vestigingsprofielen/";
 
 export function searchBedrijvenInHandelsRegister(
-  query: BedrijfIdentifier | BedrijfSearchOptions,
+  query: BedrijfSearchOptions,
+  page?: number,
+) {
+  const searchParams = new URLSearchParams();
+
+  if ("vestigingsnummer" in query && query.vestigingsnummer) {
+    searchParams.set("vestigingsnummer", query.vestigingsnummer);
+    searchParams.set("type", "hoofdvestiging");
+    searchParams.append("type", "nevenvestiging");
+  } else if ("postcodeHuisnummer" in query) {
+    const {
+      postcode: { numbers, digits },
+      huisnummer,
+    } = query.postcodeHuisnummer;
+    searchParams.set("postcode", numbers + digits);
+    searchParams.set("huisnummer", huisnummer);
+  } else if ("kvkNummer" in query && query.kvkNummer) {
+    searchParams.set("kvkNummer", query.kvkNummer);
+  } else if ("handelsnaam" in query) {
+    searchParams.set("naam", query.handelsnaam);
+  }
+
+  if (page) {
+    searchParams.set("pagina", page.toString());
+  }
+
+  const url = `${zoekenUrl}?${searchParams}`;
+
+  return fetchLoggedIn(url).then(async (r) => {
+    if (r.status === 404) {
+      const body = await r.json();
+      if (hasFoutCode(body, "IPD5200")) return defaultPagination([]);
+    }
+    if (r.status === 400) {
+      throw new FriendlyError("Invalide zoekopdracht");
+    }
+    throwIfNotOk(r);
+    const body = await r.json();
+    return parseKvkPagination(body);
+  });
+}
+
+export function searchBedrijvenInHandelsRegisterByIdentifier(
+  query: BedrijfIdentifier,
   page?: number,
 ) {
   const searchParams = new URLSearchParams();
@@ -39,17 +82,6 @@ export function searchBedrijvenInHandelsRegister(
     }
 
     searchParams.set("type", "rechtspersoon");
-  } else if ("postcodeHuisnummer" in query) {
-    const {
-      postcode: { numbers, digits },
-      huisnummer,
-    } = query.postcodeHuisnummer;
-    searchParams.set("postcode", numbers + digits);
-    searchParams.set("huisnummer", huisnummer);
-  } else if ("kvkNummer" in query && query.kvkNummer) {
-    searchParams.set("kvkNummer", query.kvkNummer);
-  } else if ("handelsnaam" in query) {
-    searchParams.set("naam", query.handelsnaam);
   }
 
   if (page) {

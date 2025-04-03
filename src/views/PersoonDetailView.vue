@@ -2,7 +2,6 @@
   <back-link />
 
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
-  {{ internalKlantId }}
   <tab-list v-model="activeTab">
     <tab-list-item label="Contactgegevens">
       <template #default="{ setError, setLoading, setDisabled }">
@@ -97,18 +96,4 @@ const contactmomentStore = useContactmomentStore();
 const klant = ref<Klant>();
 
 const persoon = ref<Persoon>();
-
-// watch(
-//   [() => klant.value, () => persoon.value],
-//   ([k, p]) => {
-//     if (!k) return;
-//     contactmomentStore.setKlant({
-//       ...k,
-//       ...p,
-//       hasContactInformation:
-//         !!k.emailadressen.length || !!k.telefoonnummers.length,
-//     });
-//   },
-//   { immediate: true },
-// );
 </script>
