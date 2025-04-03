@@ -10,6 +10,7 @@ export type User =
   | {
       isLoggedIn: true;
       isRedacteur: boolean;
+      isKcm: boolean;
       email: string;
       organisatieIds: string[];
     };
@@ -49,6 +50,6 @@ export const useUserStore = defineStore("user", {
 export const useOrganisatieIds = () => {
   const userStore = useUserStore();
   return computed(() =>
-    userStore.user.isLoggedIn ? userStore.user.organisatieIds : []
+    userStore.user.isLoggedIn ? userStore.user.organisatieIds : [],
   );
 };

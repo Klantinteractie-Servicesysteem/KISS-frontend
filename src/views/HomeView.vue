@@ -1,110 +1,125 @@
 <template>
   <div class="home">
     <seed-beheer />
-    <header>
-      <utrecht-heading :level="1">Startscherm</utrecht-heading>
-    </header>
-    <menu class="forms">
-      <li>
-        <form
-          ref="searchForm"
-          enctype="application/x-www-form-urlencoded"
-          method="get"
-          @submit="handleSubmit"
-          class="search-bar"
-        >
-          <label for="werkbericht-type-input">
-            Naar welk type bericht ben je op zoek?
-            <select
-              name="type"
-              id="werkbericht-type-input"
-              v-model="state.typeField"
-            >
-              <option :value="undefined">Alle</option>
-              <option
-                v-for="label in berichtTypes"
-                :key="`berichtTypes_${label}`"
-                :value="label"
+    <p
+      v-if="
+        userStore.user.isLoggedIn &&
+        !userStore.user.isKcm &&
+        !userStore.user.isRedacteur
+      "
+    >
+      Je hebt niet de juist rechten voor het gebruik van deze applicatie. Neem
+      contact op met Functioneel Beheer.
+    </p>
+    <template v-else-if="userStore.user.isLoggedIn">
+      <header>
+        <utrecht-heading :level="1">Startscherm</utrecht-heading>
+      </header>
+      <menu class="forms">
+        <li>
+          <form
+            ref="searchForm"
+            enctype="application/x-www-form-urlencoded"
+            method="get"
+            @submit="handleSubmit"
+            class="search-bar"
+          >
+            <label for="werkbericht-type-input">
+              Naar welk type bericht ben je op zoek?
+              <select
+                name="type"
+                id="werkbericht-type-input"
+                v-model="state.typeField"
               >
-                {{ label }}
-              </option>
-            </select>
-          </label>
-          <label for="search-input"
-            ><span>Zoek een werkinstructie of nieuwsbericht</span>
-            <input
-              type="search"
-              name="search"
-              id="search-input"
-              placeholder="Zoek een werkinstructie of nieuwsbericht..."
-              @search="handleSearch"
-              v-model="state.searchField"
-          /></label>
-          <button title="Zoeken">
-            <span>Zoeken</span>
-          </button>
-        </form>
-      </li>
-      <li>
-        <form
-          class="skills-form"
-          method="get"
-          v-if="skills.state === 'success'"
-        >
-          <multi-select
-            name="skillIds"
-            label="Filter op categorie"
-            :options="skills.data.entries"
-            v-model="userStore.preferences.skills"
-          />
-          <menu class="delete-skills-menu">
-            <li v-for="{ id, name } in selectedSkills" :key="'skills_cb_' + id">
-              <button
-                type="button"
-                class="remove-filter icon-after xmark"
-                @click="
-                  userStore.preferences.skills =
-                    userStore.preferences.skills.filter((x) => x !== id)
-                "
+                <option :value="undefined">Alle</option>
+                <option
+                  v-for="label in berichtTypes"
+                  :key="`berichtTypes_${label}`"
+                  :value="label"
+                >
+                  {{ label }}
+                </option>
+              </select>
+            </label>
+            <label for="search-input"
+              ><span>Zoek een werkinstructie of nieuwsbericht</span>
+              <input
+                type="search"
+                name="search"
+                id="search-input"
+                placeholder="Zoek een werkinstructie of nieuwsbericht..."
+                @search="handleSearch"
+                v-model="state.searchField"
+            /></label>
+            <button title="Zoeken">
+              <span>Zoeken</span>
+            </button>
+          </form>
+        </li>
+        <li>
+          <form
+            class="skills-form"
+            method="get"
+            v-if="skills.state === 'success'"
+          >
+            <multi-select
+              name="skillIds"
+              label="Filter op categorie"
+              :options="skills.data.entries"
+              v-model="userStore.preferences.skills"
+            />
+            <menu class="delete-skills-menu">
+              <li
+                v-for="{ id, name } in selectedSkills"
+                :key="'skills_cb_' + id"
               >
-                <span>Verwijder filter op </span><span>{{ name }}</span>
-              </button>
-            </li>
-          </menu>
-        </form>
-      </li>
-    </menu>
+                <button
+                  type="button"
+                  class="remove-filter icon-after xmark"
+                  @click="
+                    userStore.preferences.skills =
+                      userStore.preferences.skills.filter((x) => x !== id)
+                  "
+                >
+                  <span>Verwijder filter op </span><span>{{ name }}</span>
+                </button>
+              </li>
+            </menu>
+          </form>
+        </li>
+      </menu>
 
-    <werk-berichten
-      v-if="state.currentSearch"
-      :level="2"
-      page-param-name="werkberichtsearchpage"
-      :search="state.currentSearch"
-      :skill-ids="selectedSkillIds"
-      :type="state.currentType"
-      :current-page="state.searchPage"
-      @navigate="state.searchPage = $event"
-      header="Zoekresultaten"
-    />
-    <template v-else>
       <werk-berichten
+        v-if="state.currentSearch"
         :level="2"
-        header="Nieuws"
-        page-param-name="nieuwspage"
-        :type="'Nieuws'"
+        page-param-name="werkberichtsearchpage"
+        :search="state.currentSearch"
         :skill-ids="selectedSkillIds"
-        :current-page="state.nieuwsPage"
-        @navigate="state.nieuwsPage = $event"
+        :type="state.currentType"
+        :current-page="state.searchPage"
+        @navigate="state.searchPage = $event"
+        header="Zoekresultaten"
       />
-      <werk-berichten
-        :level="2"
-        header="Werkinstructies"
-        page-param-name="werkinstructiepage"
-        :type="'Werkinstructie'"
-        :skill-ids="selectedSkillIds"
-        :current-page="state.werkinstructiesPage"
-        @navigate="state.werkinstructiesPage = $event"
-      />
+      <template v-else>
+        <werk-berichten
+          :level="2"
+          header="Nieuws"
+          page-param-name="nieuwspage"
+          :type="'Nieuws'"
+          :skill-ids="selectedSkillIds"
+          :current-page="state.nieuwsPage"
+          @navigate="state.nieuwsPage = $event"
+        />
+        <werk-berichten
+          :level="2"
+          header="Werkinstructies"
+          page-param-name="werkinstructiepage"
+          :type="'Werkinstructie'"
+          :skill-ids="selectedSkillIds"
+          :current-page="state.werkinstructiesPage"
+          @navigate="state.werkinstructiesPage = $event"
+        />
+      </template>
     </template>
   </div>
 </template>

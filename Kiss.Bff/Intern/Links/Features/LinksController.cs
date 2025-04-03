@@ -9,6 +9,7 @@ namespace Kiss.Bff.Intern.Links.Features
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class LinksController : ControllerBase
     {
         private readonly BeheerDbContext _context;
