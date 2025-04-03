@@ -357,13 +357,48 @@ export async function getActorById(identificatie: string): Promise<any> {
 }
 
  
-export type OrganizationalUnitType = "afdeling" | "groep"; 
+export type BaseOrganizationalUnitType = "afdeling" | "groep" | "medewerker";
 
- 
-const organizationalUnitMap: Record<OrganizationalUnitType, { codeObjecttype: string; soortActor: string }> = {
-  afdeling: { codeObjecttype: "afd", soortActor: "organisatorische_eenheid" },
-  groep: { codeObjecttype: "grp", soortActor: "organisatorische_eenheid" }
-};
+/**
+ * Get actor configuration based on type and email settings
+ * @param type The organizational unit type
+ * @param config Configuration object with medewerker email settings
+ * @returns Configuration object with appropriate settings
+ */
+function getActorConfig(type: BaseOrganizationalUnitType | undefined, config: { medewerkerEmailEnabled: boolean }): { 
+  codeObjecttype: string; 
+  soortActor: string; 
+  codeRegister: string; 
+  codeSoortObjectId: string; 
+} {
+  switch (type) {
+    case "afdeling":
+      return { 
+        codeObjecttype: "afd", 
+        soortActor: "organisatorische_eenheid", 
+        codeRegister: "obj", 
+        codeSoortObjectId: "idf" 
+      };
+      
+    case "groep":
+      return { 
+        codeObjecttype: "grp", 
+        soortActor: "organisatorische_eenheid", 
+        codeRegister: "obj", 
+        codeSoortObjectId: "idf" 
+      };
+      
+    case "medewerker":
+    default:
+      // Handle medewerker with or without email enabled
+      return {
+        codeObjecttype: "mdw",
+        soortActor: "medewerker",
+        codeRegister: config.medewerkerEmailEnabled ? "handmatig" : "obj",
+        codeSoortObjectId: config.medewerkerEmailEnabled ? "email" : "idf"
+      };
+  }
+}
 
 async function mapActor({
   fullName,
@@ -372,15 +407,12 @@ async function mapActor({
 }: {
   fullName: string;
   identificatie: string;
-  typeOrganisatorischeEenheid: OrganizationalUnitType | undefined;  
+  typeOrganisatorischeEenheid: BaseOrganizationalUnitType | undefined;  
 }) {
-  const medewerkerEmailEnabled = await useMedewerkeremail();  
- 
-  const codeRegister = medewerkerEmailEnabled ? "handmatig" : "obj";
-  const codeSoortObjectId = medewerkerEmailEnabled ? "email" : "idf";
- 
-  const unitInfo = typeOrganisatorischeEenheid && organizationalUnitMap[typeOrganisatorischeEenheid] || 
-                  { codeObjecttype: "mdw", soortActor: "medewerker" };
+  const medewerkerEmailEnabled = await useMedewerkeremail();
+   
+  const unitInfo = getActorConfig(typeOrganisatorischeEenheid, {  medewerkerEmailEnabled });
+                  
   
   return {
     naam: fullName,
@@ -389,8 +421,8 @@ async function mapActor({
     actoridentificator: {
       objectId: identificatie,
       codeObjecttype: unitInfo.codeObjecttype,
-      codeRegister,
-      codeSoortObjectId,
+      codeRegister: unitInfo.codeRegister,
+      codeSoortObjectId: unitInfo.codeSoortObjectId,
     },
   };
 }
@@ -402,7 +434,7 @@ export async function postActor({
 }: {
   fullName: string;
   identificatie: string;
-  typeOrganisatorischeEenheid: OrganizationalUnitType | undefined;
+  typeOrganisatorischeEenheid: BaseOrganizationalUnitType | undefined;
 }): Promise<string> {
   const parsedModel = await mapActor({ fullName, identificatie, typeOrganisatorischeEenheid });
 
