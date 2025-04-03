@@ -45,16 +45,23 @@ import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DutchDate from "@/components/DutchDate.vue";
 import { enforceOneOrZero, useLoader } from "@/services";
 import { watchEffect } from "vue";
+import { useContactmomentStore } from "@/stores/contactmoment";
 
-const props = defineProps<{ bsn: string }>();
+const props = defineProps({
+  internalKlantId: { type: String, required: true },
+});
+
+const store = useContactmomentStore();
 
 const {
   data: persoon,
   loading,
   error,
 } = useLoader(() => {
-  if (props.bsn)
-    return searchPersonen({ bsn: props.bsn }).then(enforceOneOrZero);
+  const klant = store.getKlantByInternalId(props.internalKlantId);
+  if (klant && klant.bsn) {
+    return searchPersonen({ bsn: klant.bsn }).then(enforceOneOrZero);
+  }
 });
 
 const emit = defineEmits<{

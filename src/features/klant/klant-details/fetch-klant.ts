@@ -12,17 +12,33 @@ import {
 } from "@/services/environment/fetch-systemen";
 import type { Klant } from "@/services/openklant/types";
 import { mapKlantToKlantIdentifier } from "@/features/contact/shared";
+import { useContactmomentStore } from "@/stores/contactmoment";
 
 export const fetchKlant = async ({
-  id,
+  internalId,
   systemen,
   defaultSysteem,
 }: {
-  id: string;
+  internalId: string;
   systemen: Systeem[];
   defaultSysteem: Systeem;
 }): Promise<Klant | null> => {
-  const klant = await fetchKlantById(id, defaultSysteem);
+  const store = useContactmomentStore();
+
+  //fetch klant from store based on the internal in memory KISS id
+  const klantenInHuidigeVraag =
+    store.$state.huidigContactmoment?.huidigeVraag.klanten;
+  const knownKlant = klantenInHuidigeVraag?.find(
+    (x) => x.klant.internalId == internalId,
+  );
+  const openKlantId = knownKlant?.klant.id;
+
+  if (!openKlantId) {
+    return null;
+  }
+
+  //fetch klant form external registrie based on the externalId for the store
+  const klant = await fetchKlantById(openKlantId, defaultSysteem);
 
   if (heeftContactgegevens(klant)) return klant;
   if (!systemen.length) return klant;
