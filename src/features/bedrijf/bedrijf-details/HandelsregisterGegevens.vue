@@ -34,10 +34,9 @@
 <script setup lang="ts">
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
-  searchBedrijvenInHandelsRegister,
-  searchBedrijvenInHandelsRegisterByIdentifier,
+  searchBedrijvenInHandelsRegisterByRsin,
+  searchBedrijvenInHandelsRegisterByVestiging,
   type Bedrijf,
-  type BedrijfIdentifier,
 } from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { watchEffect } from "vue";
@@ -54,22 +53,18 @@ const {
 } = useLoader(() => {
   console.log(props.internalKlantId);
   const klant = store.getKlantByInternalId(props.internalKlantId);
-  if (klant && klant.bedrijfIdentifier) {
-    console.log(555);
-
-    const mappedBedrijfsIdentifier =
-      "vestigingsnummer" in klant.bedrijfIdentifier
-        ? { vestigingsnummer: klant.bedrijfIdentifier.vestigingsnummer }
-        : { rsin: klant.bedrijfIdentifier.nietNatuurlijkPersoonIdentifier };
-
-    return searchBedrijvenInHandelsRegisterByIdentifier(
-      mappedBedrijfsIdentifier,
-    ).then(enforceOneOrZero);
+  if (klant) {
+    if (klant.vestigingsnummer) {
+      return searchBedrijvenInHandelsRegisterByVestiging(
+        klant.vestigingsnummer,
+      ).then(enforceOneOrZero);
+    }
+    if (klant.rsin) {
+      return searchBedrijvenInHandelsRegisterByRsin(klant.rsin).then(
+        enforceOneOrZero,
+      );
+    }
   }
-  // if (props.bedrijfIdentifier)
-  //   return searchBedrijvenInHandelsRegister(props.bedrijfIdentifier).then(
-  //     enforceOneOrZero,
-  //   );
 });
 
 const emit = defineEmits<{
@@ -81,8 +76,4 @@ const emit = defineEmits<{
 watchEffect(() => bedrijf.value && emit("load", bedrijf.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
-
-function getPersoonFromStoreByInternalId(internalKlantId: string) {
-  throw new Error("Function not implemented.");
-}
 </script>

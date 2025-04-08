@@ -62,28 +62,42 @@ export function searchBedrijvenInHandelsRegister(
   });
 }
 
-export function searchBedrijvenInHandelsRegisterByIdentifier(
-  query: BedrijfIdentifier,
+export function searchBedrijvenInHandelsRegisterByVestiging(
+  vestigingsnummer: string,
   page?: number,
 ) {
   const searchParams = new URLSearchParams();
 
-  if ("vestigingsnummer" in query && query.vestigingsnummer) {
-    searchParams.set("vestigingsnummer", query.vestigingsnummer);
-    searchParams.set("type", "hoofdvestiging");
-    searchParams.append("type", "nevenvestiging");
-  } else if ("rsin" in query && query.rsin) {
-    if (query.rsin.length === 9) {
-      //ok2
-      searchParams.set("rsin", query.rsin);
-    } else {
-      //e-suite variant van ok1
-      searchParams.set("kvkNummer", query.rsin);
-    }
+  searchParams.set("vestigingsnummer", vestigingsnummer);
+  searchParams.set("type", "hoofdvestiging");
+  searchParams.append("type", "nevenvestiging");
 
-    searchParams.set("type", "rechtspersoon");
+  return searchBedrijfInHandelsRegister(page, searchParams);
+}
+
+export function searchBedrijvenInHandelsRegisterByRsin(
+  rsin: string,
+  page?: number,
+) {
+  const searchParams = new URLSearchParams();
+
+  if (rsin.length === 9) {
+    //ok2
+    searchParams.set("rsin", rsin);
+  } else {
+    //e-suite variant van ok1
+    searchParams.set("kvkNummer", rsin);
   }
 
+  searchParams.set("type", "rechtspersoon");
+
+  return searchBedrijfInHandelsRegister(page, searchParams);
+}
+
+function searchBedrijfInHandelsRegister(
+  page: number | undefined,
+  searchParams: URLSearchParams,
+) {
   if (page) {
     searchParams.set("pagina", page.toString());
   }
