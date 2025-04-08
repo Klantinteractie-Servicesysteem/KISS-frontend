@@ -47,7 +47,7 @@ import { useSystemen } from "@/services/environment/fetch-systemen";
 const { systemen, defaultSysteem } = useSystemen();
 
 const props = defineProps({
-  klantId: {
+  internalKlantId: {
     type: String,
     required: true,
   },
@@ -62,10 +62,15 @@ const {
   loading,
   error,
 } = useLoader(() => {
-  if (!props.klantId || !defaultSysteem.value || !systemen.value?.length)
+  if (
+    !props.internalKlantId ||
+    !defaultSysteem.value ||
+    !systemen.value?.length
+  )
     return;
+
   return fetchKlant({
-    id: props.klantId,
+    internalId: props.internalKlantId,
     systemen: systemen.value,
     defaultSysteem: defaultSysteem.value,
   });
@@ -75,9 +80,18 @@ const emit = defineEmits<{
   load: [data: Klant];
   loading: [data: boolean];
   error: [data: boolean];
+  noData: [];
 }>();
 
-watchEffect(() => klant.value && emit("load", klant.value));
+watchEffect(() => {
+  if (klant.value) {
+    emit("load", klant.value);
+  }
+
+  if (!loading.value && !error.value && !klant.value) {
+    emit("noData");
+  }
+});
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>

@@ -16,14 +16,14 @@ export const mapKlantToKlantIdentifier = (
     ? {
         bsn: klant.bsn,
         vestigingsnummer: klant.vestigingsnummer,
-        kvkNummer: klant.nietNatuurlijkPersoonIdentifier,
+        kvkNummer: klant.nietNatuurlijkPersoonIdentifier ?? klant.kvkNummer,
         //esuite doet niks met rsin
       }
     : {
         bsn: klant.bsn,
         vestigingsnummer: klant.vestigingsnummer,
         kvkNummer: klant.kvkNummer,
-        rsin: klant.rsin,
+        rsin: klant.rsin ?? klant.nietNatuurlijkPersoonIdentifier,
       };
 };
 

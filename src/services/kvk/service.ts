@@ -19,7 +19,7 @@ const zoekenUrl = "/api/kvk/v2/zoeken";
 const vestigingsprofielenUrl = "/api/kvk/v1/vestigingsprofielen/";
 
 export function searchBedrijvenInHandelsRegister(
-  query: BedrijfIdentifier | BedrijfSearchOptions,
+  query: BedrijfSearchOptions,
   page?: number,
 ) {
   const searchParams = new URLSearchParams();
@@ -28,16 +28,6 @@ export function searchBedrijvenInHandelsRegister(
     searchParams.set("vestigingsnummer", query.vestigingsnummer);
     searchParams.set("type", "hoofdvestiging");
     searchParams.append("type", "nevenvestiging");
-  } else if ("rsin" in query && query.rsin) {
-    if (query.rsin.length === 9) {
-      //ok2
-      searchParams.set("rsin", query.rsin);
-    } else {
-      //e-suite variant van ok1
-      searchParams.set("kvkNummer", query.rsin);
-    }
-
-    searchParams.set("type", "rechtspersoon");
   } else if ("postcodeHuisnummer" in query) {
     const {
       postcode: { numbers, digits },
@@ -51,6 +41,62 @@ export function searchBedrijvenInHandelsRegister(
     searchParams.set("naam", query.handelsnaam);
   }
 
+  if (page) {
+    searchParams.set("pagina", page.toString());
+  }
+
+  const url = `${zoekenUrl}?${searchParams}`;
+
+  return fetchLoggedIn(url).then(async (r) => {
+    if (r.status === 404) {
+      const body = await r.json();
+      if (hasFoutCode(body, "IPD5200")) return defaultPagination([]);
+    }
+    if (r.status === 400) {
+      throw new FriendlyError("Invalide zoekopdracht");
+    }
+    throwIfNotOk(r);
+    const body = await r.json();
+    return parseKvkPagination(body);
+  });
+}
+
+export function searchBedrijvenInHandelsRegisterByVestiging(
+  vestigingsnummer: string,
+  page?: number,
+) {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("vestigingsnummer", vestigingsnummer);
+  searchParams.set("type", "hoofdvestiging");
+  searchParams.append("type", "nevenvestiging");
+
+  return searchBedrijfInHandelsRegister(page, searchParams);
+}
+
+export function searchBedrijvenInHandelsRegisterByRsin(
+  rsin: string,
+  page?: number,
+) {
+  const searchParams = new URLSearchParams();
+
+  if (rsin.length === 9) {
+    //ok2
+    searchParams.set("rsin", rsin);
+  } else {
+    //e-suite variant van ok1
+    searchParams.set("kvkNummer", rsin);
+  }
+
+  searchParams.set("type", "rechtspersoon");
+
+  return searchBedrijfInHandelsRegister(page, searchParams);
+}
+
+function searchBedrijfInHandelsRegister(
+  page: number | undefined,
+  searchParams: URLSearchParams,
+) {
   if (page) {
     searchParams.set("pagina", page.toString());
   }

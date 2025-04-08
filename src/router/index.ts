@@ -101,7 +101,7 @@ const router = createRouter({
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
     {
-      path: "/personen/:persoonId",
+      path: "/personen/:internalKlantId",
       name: "persoonDetail",
       props: true,
       component: PersoonDetailView,
@@ -116,7 +116,7 @@ const router = createRouter({
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
     {
-      path: "/bedrijven/:bedrijfId",
+      path: "/bedrijven/:internalKlantId",
       name: "bedrijfDetail",
       props: true,
       component: BedrijfDetailView,
