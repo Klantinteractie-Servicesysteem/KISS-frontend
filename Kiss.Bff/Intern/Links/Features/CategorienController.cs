@@ -1,10 +1,12 @@
 ﻿using Kiss.Bff.Beheer.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kiss.Bff.Intern.Links.Features
 {
     [Route("api/[controller]")]
+    [Authorize(Policies.KcmOrRedactiePolicy)]
     [ApiController]
     public class CategorienController : ControllerBase
     {

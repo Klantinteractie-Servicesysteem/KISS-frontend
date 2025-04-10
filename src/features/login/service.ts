@@ -22,6 +22,7 @@ async function fetchUser(url: string): Promise<User> {
   const isLoggedIn = !!json?.isLoggedIn;
   const email = json?.email;
   const isRedacteur = !!json?.isRedacteur;
+  const isKcm = !!json?.isKcm;
 
   if (!isLoggedIn || typeof email !== "string" || !email) return anonymousUser;
 
@@ -34,6 +35,7 @@ async function fetchUser(url: string): Promise<User> {
     email,
     isRedacteur,
     organisatieIds,
+    isKcm,
   };
 }
 

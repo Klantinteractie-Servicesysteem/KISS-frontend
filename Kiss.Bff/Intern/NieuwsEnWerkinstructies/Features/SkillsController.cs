@@ -9,6 +9,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class SkillsController : ControllerBase
     {
         private readonly BeheerDbContext _context;

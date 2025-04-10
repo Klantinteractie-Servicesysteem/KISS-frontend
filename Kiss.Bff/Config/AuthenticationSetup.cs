@@ -1,13 +1,11 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Nodes;
-using AngleSharp.Io;
 using Duende.IdentityModel;
 using Kiss;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 
@@ -17,6 +15,7 @@ namespace Kiss
     {
         public const string RedactiePolicy = "RedactiePolicy";
         public const string ExternSysteemPolicy = "ExternSysteemPolicy";
+        public const string KcmOrRedactiePolicy = "KcmOrRedactiePolicy";
     }
 
     public static class KissClaimTypes
@@ -60,6 +59,7 @@ namespace Kiss
 namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate bool IsRedacteur(ClaimsPrincipal? user);
+    public delegate bool IsKcm(ClaimsPrincipal? user);
     public delegate JsonObject? GetMedewerkerIdentificatie();
 
     public class KissAuthOptions
@@ -93,6 +93,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
+            services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -192,6 +193,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     .RequireRole(klantcontactmedewerkerRole)
                     .Build();
 
+                options.AddPolicy(Policies.KcmOrRedactiePolicy, new AuthorizationPolicyBuilder()
+                    .RequireRole(klantcontactmedewerkerRole, redacteurRole)
+                    .Build());
+
                 options.AddPolicy(Policies.RedactiePolicy,
                     new AuthorizationPolicyBuilder()
                         .RequireRole(redacteurRole)
@@ -270,6 +275,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var isLoggedIn = httpContext.User.Identity?.IsAuthenticated ?? false;
             var email = httpContext.User.GetEmail();
+            var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
             
             var organisatieIds = httpContext.RequestServices
@@ -278,10 +284,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 ?.Split('/')
                 ?? Array.Empty<string>();
 
-            return new KissUser(email, isLoggedIn, isRedacteur, organisatieIds);
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, organisatieIds);
         }
 
-        private readonly record struct KissUser(string? Email, bool IsLoggedIn, bool IsRedacteur, IReadOnlyList<string> OrganisatieIds);
+        private readonly record struct KissUser(string? Email, bool IsLoggedIn, bool IsKcm, bool IsRedacteur, IReadOnlyList<string> OrganisatieIds);
 
 
         private static Task ChallengeAsync(HttpContext httpContext)
