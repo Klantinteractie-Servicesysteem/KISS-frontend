@@ -14,6 +14,7 @@ using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
 using Kiss.Bff.Extern;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
