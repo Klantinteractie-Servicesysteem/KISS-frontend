@@ -3,6 +3,19 @@
 ## vx.x.x
 
 ### New features
+- Meerdere Contactmomentregisters voor anonieme contactmomenten en contactverzoeken #862
+- Meerdere Contactmomentregisters voor contactmomenten en contactverzoeken bij een Klant #903
+- Contactmomenten en -verzoeken uit meerdere registers tonen #901
+- Anoniem contactmoment bij een zaak opslaan in het bijbehorende contactenregister #873
+- Contactmoment/verzoek van Klant bij ZAAK opslaan in het juiste contactenregister #904
+- Contactgegegevens tonen uit de klantenregisters #906
+- Contactmomenten bij een zaak tonen uit juiste register #875
+- Anonieme contactverzoeken kunnen zoeken in meerdere registers #1066
+- Zorgen voor uniciteit van Partij #944
+- Actor-info aanpassen bij handmatig ingevoerd e-mailadres #1111
+
+
+
 
 ### Warnings and deployment notes
 
@@ -82,5 +95,7 @@ USE_KLANTINTERACTIES
 ```
 
 ### Bugfixes
+- [PC-1045](https://dimpact.atlassian.net/browse/PC-1045) Issue: phone validation on field Telefoonnummer 1 is broken
+
 
 ### Maintenance
