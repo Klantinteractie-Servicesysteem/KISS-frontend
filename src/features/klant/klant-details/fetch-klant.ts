@@ -29,23 +29,28 @@ export const fetchKlant = async ({
   if (heeftContactgegevens(klant)) return klant;
   if (!systemen.length) return klant;
 
-  // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-  // depending on whether the default system is ok1 or ok2.
-  // To translate this to the other systems,
-  // we need BOTH. So we first need to fetch the company again.
-  const bedrijf = await findBedrijfInHandelsRegister({
-    kvkNummer: klant.kvkNummer || klant.nietNatuurlijkPersoonIdentifier || "",
-    vestigingsnummer: klant.vestigingsnummer || "",
-    rsin: klant.rsin || klant.nietNatuurlijkPersoonIdentifier,
-  }).then(enforceOneOrZero);
+  if (!klant.bsn) {
+    // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
+    // depending on whether the default system is ok1 or ok2.
+    // To translate this to the other systems,
+    // we need BOTH. So we first need to fetch the company again.
+    const bedrijf = await findBedrijfInHandelsRegister({
+      kvkNummer: klant.kvkNummer || klant.nietNatuurlijkPersoonIdentifier || "",
+      vestigingsnummer: klant.vestigingsnummer || "",
+      rsin: klant.rsin || klant.nietNatuurlijkPersoonIdentifier,
+    }).then(enforceOneOrZero);
 
-  if (!bedrijf) return klant;
+    if (!bedrijf) return klant;
+
+    klant.kvkNummer = bedrijf.kvkNummer;
+    klant.rsin = bedrijf.rsin;
+  }
 
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
     const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      bedrijf,
+      klant,
       nonDefaultSysteem,
     );
 
@@ -64,12 +69,21 @@ export const fetchKlant = async ({
 };
 
 const fetchKlantByNonDefaultSysteem = async (
-  bedrijf: Bedrijf,
+  klant: Klant | null,
   systeem: Systeem,
-): Promise<Klant | null> =>
-  systeem.registryVersion === registryVersions.ok1
-    ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, bedrijf)
-    : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, bedrijf);
+): Promise<Klant | null> => {
+  if (!klant) return null;
+
+  const identifier = mapKlantToKlantIdentifier(systeem.registryVersion, klant);
+  if (!identifier) return klant;
+
+  const gevondenKlant =
+    systeem.registryVersion === registryVersions.ok1
+      ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
+      : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
+
+  return gevondenKlant ? fetchKlantById(gevondenKlant.id, systeem) : klant;
+};
 
 const fetchKlantById = async (
   id: string,
@@ -86,5 +100,5 @@ const fetchKlantById = async (
   }
 };
 
-const heeftContactgegevens = (klant: Klant) =>
-  klant.emailadressen?.length || klant.telefoonnummers?.length;
+const heeftContactgegevens = (klant: Klant | null) =>
+  klant?.emailadressen?.length || klant?.telefoonnummers?.length;
