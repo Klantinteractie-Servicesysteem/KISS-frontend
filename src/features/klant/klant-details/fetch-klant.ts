@@ -69,7 +69,7 @@ export const fetchKlant = async ({
 };
 
 const fetchKlantByNonDefaultSysteem = async (
-  klant: Klant | null,
+  klant: Klant,
   systeem: Systeem,
 ): Promise<Klant | null> => {
   if (!klant) return null;
@@ -77,12 +77,9 @@ const fetchKlantByNonDefaultSysteem = async (
   const identifier = mapKlantToKlantIdentifier(systeem.registryVersion, klant);
   if (!identifier) return klant;
 
-  const gevondenKlant =
-    systeem.registryVersion === registryVersions.ok1
-      ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
-      : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
-
-  return gevondenKlant ? fetchKlantById(gevondenKlant.id, systeem) : klant;
+  return systeem.registryVersion === registryVersions.ok1
+    ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
+    : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
 };
 
 const fetchKlantById = async (
@@ -100,5 +97,5 @@ const fetchKlantById = async (
   }
 };
 
-const heeftContactgegevens = (klant: Klant | null) =>
-  klant?.emailadressen?.length || klant?.telefoonnummers?.length;
+const heeftContactgegevens = (klant: Klant) =>
+  klant.emailadressen?.length || klant.telefoonnummers?.length;
