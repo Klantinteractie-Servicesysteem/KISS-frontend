@@ -11,7 +11,7 @@ name: Code quality checks
 #############################
 on:
   pull_request:
-    branches: [main, '*.*.*']
+    branches: [main, "*.*.*", OudNaastNieuw]
 
 ###############
 # Set the Job #
@@ -44,12 +44,12 @@ jobs:
           # Full git history is needed to get a proper
           # list of changed files within `super-linter`
           fetch-depth: 0
-          
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm run lint --if-present
 
@@ -59,7 +59,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x.x'
+          dotnet-version: "8.x.x"
 
       - name: Install dotnet-format tool
         working-directory: ./Kiss.Bff

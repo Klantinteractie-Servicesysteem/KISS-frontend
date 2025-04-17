@@ -1,11 +1,4 @@
-import {
-  fetchLoggedIn,
-  parseJson,
-  parsePagination,
-  ServiceResult,
-  throwIfNotOk,
-  type PaginatedResult,
-} from "@/services";
+import { parseJson, parsePagination, throwIfNotOk } from "@/services";
 import type {
   Medewerker,
   NatuurlijkPersoon,
@@ -15,123 +8,99 @@ import type {
   Vestiging,
   ZaakDetails,
   ZaakDocument,
-  ZaakPreview,
   ZaakType,
 } from "./types";
-import type { Ref } from "vue";
-import { mutate } from "swrv";
-import { toRelativeProxyUrl } from "@/helpers/url";
-import { fetchWithZaaksysteemId } from "@/services/openzaak";
+import {
+  registryVersions,
+  type Systeem,
+} from "@/services/environment/fetch-systemen";
+import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
 
-const zakenProxyRoot = "/api/zaken";
+const zaaksysteemBaseUri = `/api/zaken/zaken/api/v1`;
+const documentenBaseUri = `/api/documenten/documenten/api/v1`;
 
-export const useZakenByBsn = (bsn: Ref<string>) => {
-  const getUrl = () => {
-    if (!bsn.value) return "";
-    const url = new URL(location.origin);
-    url.pathname = zaaksysteemBaseUri + "/zaken";
-    url.searchParams.set(
-      "rol__betrokkeneIdentificatie__natuurlijkPersoon__inpBsn",
-      bsn.value,
+const combineOverview = (multiple: ZaakDetails[][]) =>
+  multiple
+    .flat()
+    .sort(
+      (a, b) => (b.startdatum?.valueOf() || 0) - (a.startdatum?.valueOf() || 0),
     );
-    url.searchParams.set("ordering", "-startdatum");
-    return url.toString();
-  };
 
-  return ServiceResult.fromFetcher(getUrl, overviewFetcher);
-};
-
-export const fetchZakenPreviewByUrlOrId = (urlOrId: string) => {
-  const [url, zaaksysteemId] = urlOrId.includes("/")
-    ? // Als je de zaak zoekt bij een contactmoment (OK1), hebben we de volledige url van de zaak.
-      // daaruit kunnen we de zaaksysteemId afleiden
-      [
-        toRelativeProxyUrl(urlOrId, zakenProxyRoot) || "",
-        new URL(urlOrId).origin,
-      ]
-    : // als je de zaak zoekt bij een klantcontact (OK2), hebben we alleen een zaakId.
-      // dan hebben we dus ook geen zaaksysteemId
-      [getZaakUrl(urlOrId), ""];
-
-  return fetchWithZaaksysteemId(zaaksysteemId, url)
+const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
+  fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken?${query}`)
     .then(throwIfNotOk)
-    .then((x) => x.json())
+    .then(parseJson)
     .then((json) =>
-      mapZaakDetailsPreview({
-        ...json,
-        zaaksysteemId: json.zaaksysteemId || zaaksysteemId,
-      }),
-    );
-};
+      parsePagination(json, (x) =>
+        mapZaakDetails({ ...(x as any), zaaksysteemId: systeem.identifier }),
+      ),
+    )
+    .then(({ page }) => page);
 
-export const useZakenByZaaknummer = (zaaknummer: Ref<string>) => {
-  const getUrl = () => {
-    if (!zaaknummer.value) return "";
-    return `${zaaksysteemBaseUri}/zaken?identificatie=${zaaknummer.value}`;
-  };
-  return ServiceResult.fromFetcher(getUrl, overviewFetcher);
-};
+export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
+  const query = new URLSearchParams([
+    ["rol__betrokkeneIdentificatie__natuurlijkPersoon__inpBsn", bsn],
+    ["ordering", "-startdatum"],
+  ]);
+  return Promise.all(
+    systemen.map((systeem) => fetchZaakOverview(systeem, query)),
+  ).then(combineOverview);
+}
 
-const singleZaakFetcher = function fetcher(
-  url: string,
-  zaaksysteemId: string,
-): Promise<ZaakDetails> {
-  return fetchWithZaaksysteemId(zaaksysteemId, url)
-    .then(throwIfNotOk)
-    .then((x) => x.json())
-    .then((x) =>
-      mapZaakDetails({
-        ...x,
-        zaaksysteemId,
-      }),
-    );
-};
-
-export const useZaakById = (
-  id: Ref<string>,
-  zaaksysteemId: Ref<string | undefined>,
-) => {
-  const getUrl = () => getZaakUrl(id.value);
-  return ServiceResult.fromFetcher(getUrl, (u) =>
-    singleZaakFetcher(u, zaaksysteemId.value || ""),
+export function fetchZakenByZaaknummer(
+  systemen: Systeem[],
+  zaaknummer: string,
+) {
+  const query = new URLSearchParams({ identificatie: zaaknummer });
+  return Promise.all(systemen.map((s) => fetchZaakOverview(s, query))).then(
+    combineOverview,
   );
+}
+
+export const fetchZaakDetailsById = (id: string, systeem: Systeem) =>
+  fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken/${id}`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((x) => mapZaakDetails({ ...x, zaaksysteemId: systeem.identifier }));
+
+type ZaakBedrijfIdentifier = {
+  vestigingsnummer?: string;
+  rsin?: string;
+  kvkNummer: string;
 };
 
-type ZaakBedrijfIdentifier =
-  | {
-      vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-      kvkNummer: string;
-    };
+export const fetchZakenByKlantBedrijfIdentifier = (
+  systemen: Systeem[],
+  id: ZaakBedrijfIdentifier,
+) =>
+  Promise.all(
+    systemen.map(async (systeem) => {
+      const query = new URLSearchParams([["ordering", "-startdatum"]]);
 
-export const useZakenByKlantBedrijfIdentifier = (
-  getId: () => ZaakBedrijfIdentifier | undefined,
-) => {
-  const getUrl = () => {
-    const searchParam = getId();
-    if (!searchParam) return "";
-    const url = new URL(location.origin);
-    url.pathname = zaaksysteemBaseUri + "/zaken";
-    url.searchParams.set("ordering", "-startdatum");
+      // vestiging
+      if ("vestigingsnummer" in id && id.vestigingsnummer) {
+        query.set(
+          "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
+          id.vestigingsnummer,
+        );
+      }
+      // nnp
+      else if ("rsin" in id && id.rsin && id.kvkNummer) {
+        const nnpId =
+          systeem.registryVersion === registryVersions.ok1
+            ? id.kvkNummer
+            : id.rsin;
+        query.set(
+          "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
+          nnpId,
+        );
+      }
+      // not supported
+      else return [];
 
-    if ("vestigingsnummer" in searchParam) {
-      url.searchParams.set(
-        "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
-        searchParam.vestigingsnummer,
-      );
-    } else if ("rsin" in searchParam) {
-      // LET OP: deze query parameters zijn custom voor KISS. op de backend wordt per zaaksysteem gekozen uit rsin of kvkNummer.
-      // Deze wordt vervolgens in rol__betrokkeneIdentificatie__vestiging__vestigingsNummer gezet.
-      url.searchParams.set("rsin", searchParam.rsin);
-      url.searchParams.set("kvkNummer", searchParam.kvkNummer);
-    } else return "";
-    return url.toString();
-  };
-
-  return ServiceResult.fromFetcher(getUrl, overviewFetcher);
-};
+      return fetchZaakOverview(systeem, query);
+    }),
+  ).then(combineOverview);
 
 const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   const ONBEKEND = "Onbekend";
@@ -177,12 +146,18 @@ const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   return ONBEKEND;
 };
 
-const getStatus = async ({ status, zaaksysteemId }: any) => {
+const getStatus = async ({
+  status,
+  zaaksysteemId,
+}: {
+  status: string;
+  zaaksysteemId: string;
+}) => {
   const statusId = status?.split("/")?.pop();
 
   if (!statusId) return "";
 
-  const statusType = await fetchWithZaaksysteemId(
+  const statusType = await fetchWithSysteemId(
     zaaksysteemId,
     `${zaaksysteemBaseUri}/statussen/${statusId}`,
   )
@@ -196,7 +171,7 @@ const getStatus = async ({ status, zaaksysteemId }: any) => {
 
   const statusTypeUrl = `/api/zaken/catalogi/api/v1/statustypen/${statusTypeUuid}`;
 
-  const statusOmschrijving = await fetchWithZaaksysteemId(
+  const statusOmschrijving = await fetchWithSysteemId(
     zaaksysteemId,
     statusTypeUrl,
   )
@@ -207,13 +182,16 @@ const getStatus = async ({ status, zaaksysteemId }: any) => {
   return statusOmschrijving;
 };
 
-const getDocumenten = async ({
-  url,
-  zaaksysteemId,
-}: any): Promise<Array<ZaakDocument | null>> => {
-  const infoObjecten = await fetchWithZaaksysteemId(
-    zaaksysteemId,
-    `${zaaksysteemBaseUri}/zaakinformatieobjecten?zaak=${url}`,
+export const getDocumenten = async ({
+  zaakUrl,
+  systeemId,
+}: {
+  systeemId: string;
+  zaakUrl: string;
+}): Promise<Array<ZaakDocument>> => {
+  const infoObjecten = await fetchWithSysteemId(
+    systeemId,
+    `${zaaksysteemBaseUri}/zaakinformatieobjecten?${new URLSearchParams({ zaak: zaakUrl })}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json());
@@ -223,13 +201,13 @@ const getDocumenten = async ({
       const id = item.informatieobject.split("/").pop();
 
       const docUrl = `${documentenBaseUri}/enkelvoudiginformatieobjecten/${id}`;
-      return fetchWithZaaksysteemId(zaaksysteemId, docUrl)
+      return fetchWithSysteemId(systeemId, docUrl)
         .then(throwIfNotOk) //todo 404 afvanengen?
         .then((x) => x.json())
         .then((x) => mapDocument(x, docUrl));
     });
 
-    return await Promise.all(promises);
+    return await Promise.all(promises).then((r) => r.filter((x) => !!x));
   }
 
   return [];
@@ -238,7 +216,10 @@ const getDocumenten = async ({
 const getRollen = async ({
   url,
   zaaksysteemId,
-}: any): Promise<Array<RolType>> => {
+}: {
+  url: string;
+  zaaksysteemId: string;
+}): Promise<Array<RolType>> => {
   // rollen is een gepagineerd resultaat. we verwachten maar twee rollen.
   // het lijkt extreem onwaarschijnlijk dat er meer dan 1 pagina met rollen zal zijn.
   // we kijken dus (voorlopig) alleen naar de eerste pagina
@@ -248,7 +229,7 @@ const getRollen = async ({
   const rollenUrl = `${zaaksysteemBaseUri}/rollen?zaak=${url}`;
 
   const getPage = async (url: string) => {
-    const page = await fetchWithZaaksysteemId(zaaksysteemId, url)
+    const page = await fetchWithSysteemId(zaaksysteemId, url)
       .then(throwIfNotOk)
       .then((x) => x.json())
       .then((json) => parsePagination(json, async (x: any) => x as RolType));
@@ -266,11 +247,17 @@ const getRollen = async ({
   return rollen;
 };
 
-const getZaakType = ({ zaaktype, zaaksysteemId }: any): Promise<ZaakType> => {
+const getZaakType = ({
+  zaaktype,
+  zaaksysteemId,
+}: {
+  zaaktype: string;
+  zaaksysteemId: string;
+}): Promise<ZaakType> => {
   const zaaktypeid = zaaktype.split("/").pop();
   const url = `/api/zaken/catalogi/api/v1/zaaktypen/${zaaktypeid}`;
 
-  return fetchWithZaaksysteemId(zaaksysteemId, url)
+  return fetchWithSysteemId(zaaksysteemId, url)
     .then(throwIfNotOk)
     .then((x) => x.json())
     .then((json) => {
@@ -278,117 +265,38 @@ const getZaakType = ({ zaaktype, zaaksysteemId }: any): Promise<ZaakType> => {
     });
 };
 
-const getZaakUrl = (id: string) => {
-  if (!id) return "";
-  return `${zaaksysteemBaseUri}/zaken/${id}`;
-};
-
-const mapZaakDetails = async (zaak: any) => {
+const mapZaakDetails = async (zaak: {
+  uuid: string;
+  identificatie: string;
+  zaaksysteemId: string;
+  zaaktype: string;
+  toelichting: string;
+  startdatum: string | undefined;
+  url: string;
+  omschrijving: string;
+  status: string;
+}) => {
   const zaakzaaktype = await getZaakType(zaak);
 
   const startdatum = zaak.startdatum ? new Date(zaak.startdatum) : undefined;
 
-  // voorlopig disabled: openzaakbrondata is niet conform de standaard
-  // const doorlooptijd = parseInt(
-  //   zaakzaaktype.doorlooptijd
-  //     ? zaakzaaktype.doorlooptijd.replace(/^\D+/g, "")
-  //     : "0",
-  //   10
-  // );
-
-  // const servicenorm = parseInt(
-  //   zaakzaaktype.servicenorm
-  //     ? zaakzaaktype.servicenorm.replace(/^\D+/g, "")
-  //     : "0",
-  //   10
-  // );
-
-  // const fataleDatum =
-  //   startdatum &&
-  //   DateTime.fromJSDate(startdatum)
-  //     .plus({
-  //       days: isNaN(doorlooptijd) ? 0 : doorlooptijd,
-  //     })
-  //     .toJSDate();
-
-  // const streefDatum =
-  //   startdatum &&
-  //   DateTime.fromJSDate(startdatum)
-  //     .plus({
-  //       days: isNaN(servicenorm) ? 0 : servicenorm,
-  //     })
-  //     .toJSDate();
-
-  const documenten = await getDocumenten(zaak);
-
   const rollen = await getRollen(zaak);
 
-  const id = zaak.url.split("/").pop();
-
   return {
-    ...zaak,
-    id: id,
-    zaaktype: zaakzaaktype.id,
+    uuid: zaak.uuid,
+    identificatie: zaak.identificatie,
+    zaaksysteemId: zaak.zaaksysteemId,
+    toelichting: zaak.toelichting,
+    omschrijving: zaak.omschrijving,
     zaaktypeLabel: zaakzaaktype.onderwerp,
     zaaktypeOmschrijving: zaakzaaktype.omschrijving,
     status: await getStatus(zaak),
     behandelaar: getNamePerRoltype(rollen, "behandelaar"),
     aanvrager: getNamePerRoltype(rollen, "initiator"),
     startdatum,
-    // fataleDatum: fataleDatum, voorlopig niet tonen: openzaakbrondata is niet conform de standaard
-    // streefDatum: streefDatum, voorlopig niet tonen: openzaakbrondata is niet conform de standaard
-    indienDatum: zaak.publicatiedatum && new Date(zaak.publicatiedatum),
-    registratieDatum: zaak.registratiedatum && new Date(zaak.registratiedatum),
-    self: zaak.url,
-    documenten: documenten,
-    omschrijving: zaak.omschrijving,
+    url: zaak.url,
   } as ZaakDetails;
 };
-
-const mapZaakDetailsPreview = async (zaak: any) => {
-  const zaakzaaktype = await getZaakType(zaak);
-
-  return {
-    identificatie: zaak.identificatie,
-    zaaktypeLabel: zaakzaaktype.onderwerp,
-    status: await getStatus(zaak),
-  } as ZaakPreview;
-};
-
-const zaaksysteemBaseUri = `/api/zaken/zaken/api/v1`;
-const documentenBaseUri = `/api/documenten/documenten/api/v1`;
-
-const overviewFetcher = (url: string): Promise<PaginatedResult<ZaakDetails>> =>
-  fetchLoggedIn(url)
-    .then(throwIfNotOk)
-    .then((x) => x.json())
-    .then((json) => parsePagination(json, mapZaakDetails))
-    .then((zaken) => {
-      zaken.page.forEach((zaak) => {
-        mutate(getZaakUrl(zaak.id), zaak);
-      });
-      return zaken;
-    });
-
-export async function updateToelichting(
-  zaak: ZaakDetails,
-  toelichting: string,
-): Promise<void> {
-  const url = getZaakUrl(zaak.id);
-  const res = await fetchLoggedIn(url, {
-    method: "PATCH",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      toelichting: toelichting,
-    }),
-  });
-
-  if (!res.ok)
-    throw new Error(`Expected to update toelichting: ${res.status.toString()}`);
-}
 
 const mapDocument = (rawDocumenten: any, url: string): ZaakDocument | null => {
   if (!rawDocumenten) return null;
@@ -405,33 +313,3 @@ const mapDocument = (rawDocumenten: any, url: string): ZaakDocument | null => {
   };
   return doc;
 };
-
-export function useZaaksysteemDeeplinkConfig(getZaaksysteemId: () => string) {
-  const url = "/api/zaaksysteem/deeplinkconfig";
-  const getCacheKey = () => {
-    const zaaksysteemId = getZaaksysteemId();
-    return zaaksysteemId && url + zaaksysteemId;
-  };
-
-  return ServiceResult.fromFetcher(
-    url,
-    (u) =>
-      fetchWithZaaksysteemId(getZaaksysteemId(), u)
-        .then(throwIfNotOk)
-        .then(parseJson)
-        .then((r) =>
-          typeof r?.baseUrl === "string" &&
-          typeof r?.idProperty === "string" &&
-          r.baseUrl &&
-          r.idProperty
-            ? (r as {
-                baseUrl: string;
-                idProperty: string;
-              })
-            : null,
-        ),
-    {
-      getUniqueId: getCacheKey,
-    },
-  );
-}

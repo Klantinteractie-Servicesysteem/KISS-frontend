@@ -1,6 +1,6 @@
 <template>
-  <article class="details-block">
-    <utrecht-heading :level="2"> Gegevens Handelsregister</utrecht-heading>
+  <article class="details-block" v-if="bedrijf">
+    <utrecht-heading :level="2">Gegevens Handelsregister</utrecht-heading>
     <dl>
       <dt>Bedrijfsnaam</dt>
       <dd>{{ bedrijf.bedrijfsnaam }}</dd>
@@ -32,8 +32,34 @@
 </template>
 
 <script setup lang="ts">
-import type { Bedrijf } from "@/services/kvk";
+import { enforceOneOrZero, useLoader } from "@/services";
+import {
+  findBedrijfInHandelsRegister,
+  type Bedrijf,
+  type BedrijfIdentifier,
+} from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
+import { watchEffect } from "vue";
 
-defineProps<{ bedrijf: Bedrijf }>();
+const props = defineProps<{ bedrijfIdentifier: BedrijfIdentifier }>();
+const {
+  data: bedrijf,
+  loading,
+  error,
+} = useLoader(() => {
+  if (props.bedrijfIdentifier)
+    return findBedrijfInHandelsRegister(props.bedrijfIdentifier).then(
+      enforceOneOrZero,
+    );
+});
+
+const emit = defineEmits<{
+  load: [data: Bedrijf];
+  loading: [data: boolean];
+  error: [data: boolean];
+}>();
+
+watchEffect(() => bedrijf.value && emit("load", bedrijf.value));
+watchEffect(() => emit("loading", loading.value));
+watchEffect(() => emit("error", error.value));
 </script>

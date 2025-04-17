@@ -17,14 +17,20 @@ export interface Contactverzoek {
 
 export type BedrijfIdentifier =
   | {
-      vestigingsnummer: string;
-    }
+    vestigingsnummer: string;
+  }
   | {
-      nietNatuurlijkPersoonIdentifier: string;
-    };
+    nietNatuurlijkPersoonIdentifier: string;
+  };
 
 export interface ContactmomentObject {
   contactmoment: string;
   object: string;
   objectType: string;
 }
+
+
+export type SaveContactmomentResponseModel = {
+  data?: { url: string; gespreksId?: string };
+  errorMessage?: string;
+};

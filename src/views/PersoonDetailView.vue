@@ -4,114 +4,99 @@
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
 
   <tab-list v-model="activeTab">
-    <tab-list-data-item label="Contactgegevens" :data="klant">
-      <template #success="{ data }">
-        <klant-details :klant="data" />
+    <tab-list-item label="Contactgegevens">
+      <template #default="{ setError, setLoading }">
+        <klant-details
+          :klant-id="persoonId"
+          @load="klant = $event"
+          @loading="setLoading"
+          @error="setError"
+        />
       </template>
-    </tab-list-data-item>
+    </tab-list-item>
 
-    <tab-list-data-item label="BRP gegevens" :data="persoon">
-      <template #success="{ data }">
-        <brp-gegevens v-if="data" :persoon="data" />
+    <tab-list-item label="BRP gegevens">
+      <template #default="{ setError, setLoading }">
+        <brp-gegevens
+          v-if="klant?.bsn"
+          :bsn="klant.bsn"
+          @load="persoon = $event"
+          @loading="setLoading"
+          @error="setError"
+        />
       </template>
-    </tab-list-data-item>
+    </tab-list-item>
 
     <tab-list-item label="Contactmomenten">
       <template #default="{ setError, setLoading, setDisabled }">
         <utrecht-heading :level="2"> Contactmomenten </utrecht-heading>
 
-        <contactmomenten-for-klant-url
-          v-if="gebruikKlantInteracatiesApi != null"
-          :klant-url="klantUrl"
-          :gebruik-klant-interacties="gebruikKlantInteracatiesApi"
-          @load="setDisabled(!$event?.page?.length)"
+        <contactmomenten-for-klant-identificator
+          v-if="persoon"
+          :klant-identificator="persoon"
+          @load="setDisabled(!$event?.length)"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview :zaakurl="object.object" />
-          </template>
-        </contactmomenten-for-klant-url>
+        />
       </template>
     </tab-list-item>
 
-    <tab-list-data-item label="Zaken" :data="zaken" :disabled="(c) => !c.count">
-      <template #success="{ data }">
+    <tab-list-item label="Zaken">
+      <template #default="{ setError, setLoading, setDisabled }">
         <utrecht-heading :level="2"> Zaken </utrecht-heading>
 
-        <zaken-overzicht
-          :zaken="data.page"
+        <zaken-for-klant
+          v-if="persoon"
+          :klant-identificator="persoon"
           :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
         />
       </template>
-    </tab-list-data-item>
+    </tab-list-item>
 
     <tab-list-item label="Contactverzoeken">
       <template #default="{ setError, setLoading, setDisabled }">
         <utrecht-heading :level="2">Contactverzoeken</utrecht-heading>
 
-        <contactverzoeken-for-klant-url
-          v-if="gebruikKlantInteracatiesApi != null && klantUrl"
-          :klant-url="klantUrl"
-          :gebruik-klant-interacties="gebruikKlantInteracatiesApi"
-          @load="setDisabled(!$event?.page?.length)"
+        <contactverzoeken-for-klant-identificator
+          v-if="persoon"
+          :klant-identificator="persoon"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview v-if="object.object" :zaakurl="object.object" />
-          </template>
-        </contactverzoeken-for-klant-url>
+          @load="setDisabled(!$event.length)"
+        />
       </template>
     </tab-list-item>
   </tab-list>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
-import { KlantDetails, useKlantById } from "@/features/klant/klant-details";
-import { useZakenByBsn } from "@/features/zaaksysteem";
-import ZakenOverzicht from "@/features/zaaksysteem/ZakenOverzicht.vue";
-import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
-import { TabList, TabListDataItem, TabListItem } from "@/components/tabs";
+import { KlantDetails } from "@/features/klant/klant-details";
+import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
-import {
-  usePersoonByBsn,
-  BrpGegevens,
-} from "@/features/persoon/persoon-details";
-import { useOpenKlant2 } from "@/services/openklant2";
-import ContactverzoekenForKlantUrl from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantUrl.vue";
-import ContactmomentenForKlantUrl from "@/features/contact/contactmoment/ContactmomentenForKlantUrl.vue";
+import { BrpGegevens } from "@/features/persoon/persoon-details";
+import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
+import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
+import type { Klant } from "@/services/openklant/types";
+import type { Persoon } from "@/services/brp";
+import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-const props = defineProps<{ persoonId: string }>();
+defineProps<{ persoonId: string }>();
 
-const gebruikKlantInteracatiesApi = ref<boolean | null>(null);
 const activeTab = ref("");
-const klantId = computed(() => props.persoonId);
 const contactmomentStore = useContactmomentStore();
-const klant = useKlantById(klantId, gebruikKlantInteracatiesApi);
-const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
 
-onMounted(async () => {
-  gebruikKlantInteracatiesApi.value = await useOpenKlant2();
-});
+const klant = ref<Klant>();
 
-const getBsn = () =>
-  !klant.success ||
-  !klant.data.bsn ||
-  gebruikKlantInteracatiesApi.value === null
-    ? ""
-    : klant.data.bsn;
-
-const klantBsn = computed(getBsn);
-
-const zaken = useZakenByBsn(klantBsn);
-const persoon = usePersoonByBsn(getBsn);
+const persoon = ref<Persoon>();
 
 watch(
-  [() => klant.success && klant.data, () => persoon.success && persoon.data],
+  [() => klant.value, () => persoon.value],
   ([k, p]) => {
     if (!k) return;
     contactmomentStore.setKlant({

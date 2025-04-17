@@ -1,20 +1,7 @@
-import {
-  throwIfNotOk,
-  ServiceResult,
-  parsePagination,
-  parseJson,
-} from "@/services";
+import { throwIfNotOk, ServiceResult } from "@/services";
 import { fetchLoggedIn } from "@/services";
 
-import {
-  type Gespreksresultaat,
-  type Contactmoment,
-  type ObjectContactmoment,
-  type ContactmomentDetails,
-  type SaveContactmomentResponseModel,
-} from "./types";
-
-import { toRelativeProxyUrl } from "@/helpers/url";
+import { type Gespreksresultaat, type ContactmomentDetails } from "./types";
 
 import { formatIsoDate } from "@/helpers/date";
 import {
@@ -37,16 +24,12 @@ import {
 } from "../components/service";
 import {
   DigitaalAdresTypes,
-  enrichBetrokkeneWithKlantContact,
-  fetchBetrokkenen,
-  fetchKlantcontacten,
-  KlantContactExpand,
-  mapKlantContactToContactmomentViewModel,
-  type ContactmomentViewModel,
+  type ExpandedKlantContactApiViewmodel,
 } from "@/services/openklant2";
 import type { ZaakDetails } from "@/features/zaaksysteem/types";
-import { voegContactmomentToeAanZaak } from "@/services/openzaak";
 import { koppelObject } from "@/services/openklant1";
+import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
+import type { ContactmomentViewModel } from "../types";
 
 //obsolete. api calls altijd vanuit /src/services of /src/apis. hier alleen nog busniesslogica afhandelen
 const contactmomentenProxyRoot = "/api/contactmomenten";
@@ -54,29 +37,7 @@ const contactmomentenApiRoot = "/contactmomenten/api/v1";
 const contactmomentenBaseUrl = `${contactmomentenProxyRoot}${contactmomentenApiRoot}`;
 const contactmomentDetails = "/api/contactmomentdetails";
 
-const contactmomentenUrl = `${contactmomentenBaseUrl}/contactmomenten`;
 const klantcontactmomentenUrl = `${contactmomentenBaseUrl}/klantcontactmomenten`;
-
-export const saveContactmoment = async (
-  data: Contactmoment,
-): Promise<SaveContactmomentResponseModel> => {
-  const response = await postContactmoment(data);
-  const responseBody = await response.json();
-
-  throwIfNotOk(response);
-  return { data: responseBody };
-};
-
-const postContactmoment = (data: Contactmoment): Promise<Response> => {
-  return fetchLoggedIn(`/api/postcontactmomenten`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-};
 
 export const CONTACTVERZOEK_GEMAAKT = "Contactverzoek gemaakt";
 
@@ -109,54 +70,26 @@ export const useGespreksResultaten = () => {
   return ServiceResult.fromFetcher("/api/gespreksresultaten", fetchBerichten);
 };
 
-export function koppelKlant({
-  klantId,
+export async function koppelKlant({
+  systemId,
+  klantUrl,
   contactmomentId,
 }: {
-  klantId: string;
+  systemId: string;
+  klantUrl: string;
   contactmomentId: string;
 }) {
-  return fetchLoggedIn(klantcontactmomentenUrl, {
+  return fetchWithSysteemId(systemId, klantcontactmomentenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      klant: klantId,
+      klant: klantUrl,
       contactmoment: contactmomentId,
       rol: "gesprekspartner",
     }),
   }).then(throwIfNotOk) as Promise<void>;
-}
-
-export function fetchContactmomentenByKlantId(
-  id: string,
-  gebruikKlantinteractiesApi: boolean,
-) {
-  if (gebruikKlantinteractiesApi) {
-    return fetchBetrokkenen({ wasPartij__url: id, pageSize: "100" }).then(
-      async (paginated) => ({
-        ...paginated,
-        page: await enrichBetrokkeneWithKlantContact(paginated.page, [
-          KlantContactExpand.gingOverOnderwerpobjecten,
-        ]).then((page) =>
-          page.map(({ klantContact }) =>
-            mapKlantContactToContactmomentViewModel(klantContact),
-          ),
-        ),
-      }),
-    );
-  }
-
-  const searchParams = new URLSearchParams();
-  searchParams.set("klant", id);
-  searchParams.set("ordering", "-registratiedatum");
-  searchParams.set("expand", "objectcontactmomenten");
-
-  return fetchLoggedIn(`${contactmomentenUrl}?${searchParams.toString()}`)
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((p) => parsePagination(p, (x) => x as ContactmomentViewModel));
 }
 
 export const useContactmomentDetails = (url: () => string) =>
@@ -176,54 +109,13 @@ export const useContactmomentDetails = (url: () => string) =>
       }),
   );
 
-export function fetchContactmomentenByObjectUrl(
-  url: string,
-  gebruikKlantinteractiesApi: boolean,
-) {
-  if (gebruikKlantinteractiesApi) {
-    // OK2
-    const id = url.split("/").at(-1);
-    if (!id) return Promise.reject("missing id");
-
-    return fetchKlantcontacten({
-      onderwerpobject__onderwerpobjectidentificatorObjectId: id,
-      expand: [KlantContactExpand.gingOverOnderwerpobjecten],
-    }).then((paginated) => ({
-      ...paginated,
-      page: paginated.page.map(mapKlantContactToContactmomentViewModel),
-    }));
-  }
-
-  // OK1
-  const params = new URLSearchParams();
-  params.set("object", url);
-  params.set("ordering", "-registratiedatum");
-  params.set("expand", "objectcontactmomenten");
-
-  return fetchLoggedIn(`${contactmomentenUrl}?${params}`)
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((p) => parsePagination(p, (x) => x as ContactmomentViewModel));
-}
-
-export function useContactmomentObject(getUrl: () => string) {
-  return ServiceResult.fromFetcher(
-    () => {
-      const u = getUrl();
-      if (!u) return "";
-      return toRelativeProxyUrl(u, contactmomentenProxyRoot) || "";
-    },
-    (u) =>
-      fetchLoggedIn(u)
-        .then(throwIfNotOk)
-        .then(parseJson) as Promise<ObjectContactmoment>,
-  );
-}
-
+//te gebruiken om cotactverzoeken als internetaak op te slaan in een overige objecten register, wanneer er geen regiser compatibel met openklant 2 of hoger beschikbaar is.
 export function saveContactverzoek({
+  systemIdentifier,
   data,
   contactmomentUrl,
 }: {
+  systemIdentifier: string;
   data: Omit<ContactverzoekData, "contactmoment">;
   contactmomentUrl: string;
   klantUrl?: string;
@@ -242,7 +134,7 @@ export function saveContactverzoek({
     },
   };
 
-  return fetchLoggedIn(url, {
+  return fetchWithSysteemId(systemIdentifier, url, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -419,75 +311,41 @@ export function mapContactverzoekData({
 }
 
 export async function koppelZaakEnContactmoment(
+  systeemId: string,
   zaak: ZaakDetails,
   contactmomentUrl: string,
 ) {
-  // dit is voorlopige, hopelijk tijdelijke, code om uit te proberen of dit een nuttige manier is om met de instabiliteit van openzaak en openklant om te gaan
-  // derhalve bewust nog niet geoptimaliseerd
-  await addContactmomentToZaak(contactmomentUrl, zaak.url, zaak.zaaksysteemId);
-
-  // voorgaande gaat vaak mis, maar geeft dan bijna altijd ten onterechte een error response.
-  // de data is dan wel correct opgeslagen
-  // wellicht een timing issue. voor de zekerheid even wachten
   try {
-    setTimeout(
-      async () =>
-        await koppelObject({
-          contactmoment: contactmomentUrl,
-          object: zaak.self,
-          objectType: "zaak",
-        }),
-      1000,
-    );
+    await koppelObject(systeemId, {
+      contactmoment: contactmomentUrl,
+      object: zaak.url,
+      objectType: "zaak",
+    });
   } catch (e) {
     console.log("koppelZaakContactmoment in openklant", e);
   }
 }
-export async function addContactmomentToZaak(
-  contactmomentUrl: string,
-  zaakUrl: string,
-  zaaksysteemId: string,
+
+export function mapKlantContactToContactmomentViewModel(
+  systeemId: string,
+  klantContact: ExpandedKlantContactApiViewmodel,
+  zaaknummers: string[],
 ) {
-  try {
-    await voegContactmomentToeAanZaak(
-      {
-        contactmoment: contactmomentUrl,
-        zaak: zaakUrl,
-      },
-      zaaksysteemId,
-    );
-  } catch (e) {
-    try {
-      console.log(
-        "voegContactmomentToeAanZaak in openzaak attempt 1 failed",
-        e,
-      );
-      await voegContactmomentToeAanZaak(
-        {
-          contactmoment: contactmomentUrl,
-          zaak: zaakUrl,
-        },
-        zaaksysteemId,
-      );
-    } catch (e) {
-      try {
-        console.log(
-          "voegContactmomentToeAanZaak in openzaak attempt 2 failed",
-          e,
-        );
-        await voegContactmomentToeAanZaak(
-          {
-            contactmoment: contactmomentUrl,
-            zaak: zaakUrl,
-          },
-          zaaksysteemId,
-        );
-      } catch (e) {
-        console.log(
-          "voegContactmomentToeAanZaak in openzaak attempt 3 failed",
-          e,
-        );
-      }
-    }
-  }
+  const medewerker = klantContact.hadBetrokkenActoren?.find(
+    (x) => x.soortActor === "medewerker",
+  );
+  const vm: ContactmomentViewModel = {
+    url: klantContact.url,
+    registratiedatum: klantContact.plaatsgevondenOp,
+    kanaal: klantContact?.kanaal,
+    tekst: klantContact?.inhoud,
+    zaaknummers,
+    medewerkerIdentificatie: {
+      identificatie: medewerker?.actoridentificator?.objectId || "",
+      voorletters: "",
+      achternaam: medewerker?.naam || "",
+      voorvoegselAchternaam: "",
+    },
+  };
+  return vm;
 }

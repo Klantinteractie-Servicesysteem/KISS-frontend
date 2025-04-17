@@ -9,15 +9,19 @@ import {
   type ServiceData,
 } from "@/services";
 import { mutate } from "swrv";
-import type { ContactmomentObject, UpdateContactgegevensParams } from "./types";
+import type {
+  ContactmomentObject,
+  SaveContactmomentResponseModel,
+  UpdateContactgegevensParams,
+} from "./types";
 import { KlantType } from "./types";
-import type { Ref } from "vue";
 import { nanoid } from "nanoid";
 import type { BedrijfIdentifier as BedrijfIdentifierOpenKlant1 } from "./types";
-import type { BedrijvenQuery } from "@/features/bedrijf/bedrijf-zoeken/use-search-bedrijven.js";
 import type { KlantBedrijfIdentifier as BedrijfIdentifierOpenKlant2 } from "../openklant2/types.js";
-import type { Klant } from "../openklant/types";
+import type { Contactmoment, Klant } from "../openklant/types";
 import { toRelativeProxyUrl } from "@/helpers/url";
+import { fetchWithSysteemId } from "../fetch-with-systeem-id";
+import type { KlantIdentificator } from "@/features/contact/types";
 
 const klantenBaseUrl = "/api/klanten/api/v1/klanten";
 
@@ -25,59 +29,14 @@ const contactmomentenProxyRoot = "/api/contactmomenten";
 const contactmomentenApiRoot = "/contactmomenten/api/v1";
 const contactmomentenBaseUrl = `${contactmomentenProxyRoot}${contactmomentenApiRoot}`;
 const objectcontactmomentenUrl = `${contactmomentenBaseUrl}/objectcontactmomenten`;
-
-// type FieldParams = {
-//   email: string;
-//   telefoonnummer: string;
-// };
-
-type KlantSearchParameters = {
-  query: Ref<BedrijvenQuery | undefined>;
-  page: Ref<number | undefined>;
-  subjectType?: KlantType;
-};
-
 const klantRootUrl = new URL(document.location.href);
 klantRootUrl.pathname = klantenBaseUrl;
 
-function getKlantSearchUrl(
-  search: BedrijvenQuery | undefined,
-  subjectType: KlantType,
-  page: number | undefined,
-) {
-  if (!search) return "";
-
-  const url = new URL(klantRootUrl);
-  url.searchParams.set("page", page?.toString() ?? "1");
-  url.searchParams.append("subjectType", subjectType);
-
-  if ("email" in search) {
-    url.searchParams.set("emailadres", search.email);
-  }
-
-  if ("telefoonnummer" in search) {
-    url.searchParams.set("telefoonnummer", search.telefoonnummer);
-  }
-
-  return url.toString();
-}
-
-export function useSearchKlanten({
-  query,
-  page,
-  subjectType,
-}: KlantSearchParameters) {
-  const getUrl = () =>
-    getKlantSearchUrl(
-      query.value,
-      subjectType ?? KlantType.Persoon,
-      page.value,
-    );
-  return ServiceResult.fromFetcher(getUrl, searchKlanten);
-}
-
-function searchKlanten(url: string): Promise<PaginatedResult<Klant>> {
-  return fetchLoggedIn(url)
+function searchKlanten(
+  systeemId: string,
+  url: string,
+): Promise<PaginatedResult<Klant>> {
+  return fetchWithSysteemId(systeemId, url)
     .then(throwIfNotOk)
     .then(parseJson)
     .then((j) => parsePagination(j, mapKlant))
@@ -87,7 +46,7 @@ function searchKlanten(url: string): Promise<PaginatedResult<Klant>> {
         if (idUrl) {
           mutate(idUrl, klant);
         }
-        const bsnUrl = getKlantBsnUrl(klant.bsn);
+        const bsnUrl = getUrlVoorPersoon(klant.bsn);
 
         if (bsnUrl) {
           mutate(bsnUrl, klant);
@@ -121,32 +80,21 @@ function getKlantIdUrl(id?: string) {
   return url.toString();
 }
 
-function getKlantBsnUrl(bsn?: string) {
-  if (!bsn) return "";
-  const url = new URL(klantRootUrl);
-  url.searchParams.set("subjectNatuurlijkPersoon__inpBsn", bsn);
-  return url.toString();
-}
-
-const searchSingleKlant = (url: string) =>
-  searchKlanten(url).then(enforceOneOrZero);
+const searchSingleKlant = (systeemId: string, url: string) =>
+  searchKlanten(systeemId, url).then(enforceOneOrZero);
 
 const getSingleBsnSearchId = (bsn: string | undefined) => {
-  const url = getKlantBsnUrl(bsn);
+  const url = getUrlVoorPersoon(bsn);
   if (!url) return url;
   return url + "_single";
 };
 
-export function useKlantById(id: Ref<string>) {
-  return ServiceResult.fromFetcher(
-    () => getKlantIdUrl(id.value),
-    fetchKlantByIdOk1,
-  );
-}
-
-export function fetchKlantByIdOk1(id: string) {
+export function fetchKlantByIdOk1(systeemId: string, id: string) {
   const url = getKlantIdUrl(id);
-  return fetchLoggedIn(url).then(throwIfNotOk).then(parseJson).then(mapKlant);
+  return fetchWithSysteemId(systeemId, url)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(mapKlant);
 }
 
 const getValidIdentificatie = ({ subjectType, subjectIdentificatie }: any) => {
@@ -196,17 +144,8 @@ export function useUpdateContactGegevens() {
   return ServiceResult.fromSubmitter(updateContactgegevens);
 }
 
-export function useKlantByBsn(
-  getBsn: () => string | undefined,
-): ServiceData<Klant | null> {
-  const getUrl = () => getKlantBsnUrl(getBsn());
-
-  return ServiceResult.fromFetcher(getUrl, searchSingleKlant, {
-    getUniqueId: () => getSingleBsnSearchId(getBsn()),
-  });
-}
-
-export async function ensureKlantForBsn(
+export async function ensureOk1Klant(
+  systeemId: string,
   {
     bsn,
   }: {
@@ -214,12 +153,12 @@ export async function ensureKlantForBsn(
   },
   bronorganisatie: string,
 ) {
-  const bsnUrl = getKlantBsnUrl(bsn);
+  const bsnUrl = getUrlVoorPersoon(bsn);
   const singleBsnId = getSingleBsnSearchId(bsn);
 
   if (!bsnUrl || !singleBsnId) throw new Error();
 
-  const first = await searchSingleKlant(bsnUrl);
+  const first = await searchSingleKlant(systeemId, bsnUrl);
 
   if (first) {
     mutate(singleBsnId, first);
@@ -227,8 +166,7 @@ export async function ensureKlantForBsn(
     mutate(idUrl, first);
     return first;
   }
-
-  const response = await fetchLoggedIn(klantRootUrl, {
+  const response = await fetchWithSysteemId(systeemId, klantenBaseUrl, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -251,6 +189,7 @@ export async function ensureKlantForBsn(
   return newKlant;
 }
 
+//todo vervangen worden door getUrlVoorBedrijf
 const getUrlVoorGetKlantById = (
   bedrijfSearchParameter: BedrijfIdentifierOpenKlant1 | undefined,
 ) => {
@@ -287,11 +226,58 @@ const getUrlVoorGetKlantById = (
 };
 
 export const useKlantByIdentifier = async (
+  systeemId: string,
   getId: () => BedrijfIdentifierOpenKlant1 | undefined,
 ) => {
   const getUrl = () => getUrlVoorGetKlantById(getId());
 
-  return await searchSingleKlant(getUrl());
+  return await searchSingleKlant(systeemId, getUrl());
+};
+
+export const fetchKlantByKlantIdentificatorOk1 = (
+  systeemId: string,
+  klantidentificator: KlantIdentificator,
+) =>
+  searchSingleKlant(
+    systeemId,
+    klantidentificator.bsn
+      ? getUrlVoorPersoon(klantidentificator.bsn)
+      : getUrlVoorBedrijf(klantidentificator),
+  );
+
+function getUrlVoorPersoon(bsn?: string) {
+  if (!bsn) return "";
+  const url = new URL(klantRootUrl);
+  url.searchParams.set("subjectNatuurlijkPersoon__inpBsn", bsn);
+  return url.toString();
+}
+
+const getUrlVoorBedrijf = (klantIdentificator: KlantIdentificator) => {
+  if (!klantIdentificator) {
+    return "";
+  }
+
+  const url = new URL(klantRootUrl);
+
+  if (klantIdentificator.vestigingsnummer) {
+    url.searchParams.set(
+      "subjectVestiging__vestigingsNummer",
+      klantIdentificator.vestigingsnummer,
+    );
+    url.searchParams.set("subjectType", KlantType.Bedrijf);
+    return url.toString();
+  }
+
+  if (klantIdentificator.kvkNummer) {
+    url.searchParams.set(
+      "subjectNietNatuurlijkPersoon__innNnpId",
+      klantIdentificator.kvkNummer,
+    );
+    url.searchParams.set("subjectType", KlantType.NietNatuurlijkPersoon);
+    return url.toString();
+  }
+
+  return "";
 };
 
 export function mapBedrijfsIdentifier(
@@ -319,6 +305,7 @@ export function mapBedrijfsIdentifier(
 //maak een klant aan in het klanten register als die nog niet bestaat
 //bijvoorbeeld om een contactmoment voor een in de kvk opgezocht bedrijf op te kunnen slaan
 export async function ensureKlantForBedrijfIdentifier(
+  systeemId: string,
   {
     bedrijfsnaam,
     identifier,
@@ -333,7 +320,7 @@ export async function ensureKlantForBedrijfIdentifier(
 
   if (!url || !uniqueId) throw new Error();
 
-  const first = await searchSingleKlant(url);
+  const first = await searchSingleKlant(systeemId, url);
 
   if (first) {
     mutate(uniqueId, first);
@@ -364,20 +351,24 @@ export async function ensureKlantForBedrijfIdentifier(
     throw new Error("Kan geen klant aanmaken zonder identificatie");
   }
 
-  const response = await fetchLoggedIn(klantRootUrl, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
+  const response = await fetchWithSysteemId(
+    systeemId,
+    klantRootUrl.toString(),
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        bronorganisatie,
+        // TODO: WAT MOET HIER IN KOMEN?
+        klantnummer: nanoid(8),
+        subjectIdentificatie: subjectIdentificatie,
+        subjectType: subjectType, ///
+        bedrijfsnaam,
+      }),
     },
-    body: JSON.stringify({
-      bronorganisatie,
-      // TODO: WAT MOET HIER IN KOMEN?
-      klantnummer: nanoid(8),
-      subjectIdentificatie: subjectIdentificatie,
-      subjectType: subjectType, ///
-      bedrijfsnaam,
-    }),
-  });
+  );
 
   if (!response.ok) throw new Error();
 
@@ -424,8 +415,8 @@ export function createKlant({
     });
 }
 
-export const koppelObject = (data: ContactmomentObject) =>
-  fetchLoggedIn(objectcontactmomentenUrl, {
+export const koppelObject = (systeemId: string, data: ContactmomentObject) =>
+  fetchWithSysteemId(systeemId, objectcontactmomentenUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -443,14 +434,16 @@ const nullForStatusCodes =
   };
 
 export async function enrichContactverzoekObjectWithContactmoment(
+  systeemId: string,
   contactverzoekObject: any,
 ) {
   const url = contactverzoekObject.record.data.contactmoment;
   const [contactmoment, details, objects] = await Promise.all([
-    fetchContactmomentByUrl(url),
-    fetchDetailsByUrl(url),
-    fetchObjectsByContactmomentUrl(url),
+    fetchContactmomentByUrl(systeemId, url),
+    fetchDetailsByUrl(systeemId, url),
+    fetchObjectsByContactmomentUrl(systeemId, url),
   ]);
+
   return {
     contactverzoekObject,
     contactmoment: {
@@ -464,13 +457,14 @@ export async function enrichContactverzoekObjectWithContactmoment(
   };
 }
 
-function fetchContactmomentByUrl(url: string) {
+function fetchContactmomentByUrl(systeemId: string, url: string) {
   const path = toRelativeProxyUrl(url, contactmomentenProxyRoot);
   if (!path) {
     throw new Error();
   }
   return (
-    fetchLoggedIn(
+    fetchWithSysteemId(
+      systeemId,
       `${path}?${new URLSearchParams({ expand: "objectcontactmomenten" })}`,
     )
       // de esuite heeft een ingewikkelde autorisatiestructuur.
@@ -482,18 +476,45 @@ function fetchContactmomentByUrl(url: string) {
   );
 }
 
-function fetchDetailsByUrl(url: string) {
-  return fetchLoggedIn(
+function fetchDetailsByUrl(systeemId: string, url: string) {
+  return fetchWithSysteemId(
+    systeemId,
     `/api/contactmomentdetails?${new URLSearchParams({ id: url })}`,
   )
     .then(nullForStatusCodes(404))
     .then((r) => r?.json());
 }
 
-function fetchObjectsByContactmomentUrl(url: string) {
-  return fetchLoggedIn(
+function fetchObjectsByContactmomentUrl(systeemId: string, url: string) {
+  return fetchWithSysteemId(
+    systeemId,
     `${objectcontactmomentenUrl}?${new URLSearchParams({ contactmoment: url })}`,
   )
     .then((r) => r?.json())
     .then((x) => parsePagination(x, (o) => o as unknown));
 }
+
+export const saveContactmoment = async (
+  systemIdentifier: string,
+  data: Contactmoment,
+): Promise<SaveContactmomentResponseModel> => {
+  const response = await postContactmoment(systemIdentifier, data);
+  const responseBody = await response.json();
+
+  throwIfNotOk(response);
+  return { data: responseBody };
+};
+
+const postContactmoment = (
+  systemIdentifier: string,
+  data: Contactmoment,
+): Promise<Response> => {
+  return fetchWithSysteemId(systemIdentifier, `/api/postcontactmomenten`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+};

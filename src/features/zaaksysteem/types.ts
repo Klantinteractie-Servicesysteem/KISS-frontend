@@ -1,33 +1,16 @@
 export type ZaakDetails = {
-  id: string;
+  url: string;
+  uuid: string;
+  zaaksysteemId: string;
   identificatie: string;
-  toelichting: string;
   startdatum?: Date;
-  bronorganisatie: string;
-  verantwoordelijkeOrganisatie: string;
-  zaaktype: string;
-  zaaktypeLabel: string;
   zaaktypeOmschrijving: string;
   status: string;
   behandelaar: string;
   aanvrager: string;
-  fataleDatum?: Date;
-  streefDatum?: Date;
-  indienDatum?: Date;
-  registratieDatum?: Date;
-  self: string;
-  url: string;
-  documenten?: ZaakDocument[];
   omschrijving: string;
-  zaaksysteemId: string;
+  toelichting: string;
 };
-
-export interface ZaakPreview {
-  identificatie: string;
-  zaaktypeLabel: string;
-  status: string;
-  zaaksysteemId: string;
-}
 
 export interface ZaakDocument {
   id: string;
@@ -94,4 +77,3 @@ export type RolType = {
     | NietNatuurlijkPersoon
     | NatuurlijkPersoon;
 };
-

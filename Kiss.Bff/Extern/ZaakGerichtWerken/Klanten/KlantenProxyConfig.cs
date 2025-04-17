@@ -1,47 +1,42 @@
-﻿using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Security.Claims;
-using Microsoft.Extensions.Primitives;
-using Yarp.ReverseProxy.Transforms;
+﻿using Kiss.Bff.Extern;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.ZaakGerichtWerken.Klanten
 {
-    public static class KlantenProxyExtensions
+    [ApiController]
+    [Route("/api/klanten/{**path}")]
+    public class KlantenProxy(RegistryConfig registryConfig) : ControllerBase
     {
-        public static IServiceCollection AddKlantenProxy(this IServiceCollection services, string destination, string clientId, string apiKey)
+        private readonly RegistryConfig _registryConfig = registryConfig;
+
+        [HttpPost]
+        [HttpGet]
+        public IActionResult Handle([FromRoute] string path, [FromHeader(Name = "systemIdentifier")] string? systemIdentifier)
         {
-            var tokenProvider = new ZgwTokenProvider(apiKey, clientId);
-            var config = new KlantenProxyConfig(destination, tokenProvider);
-     
+            var registry = _registryConfig.Systemen.FirstOrDefault(x => x.Identifier == systemIdentifier)?.KlantRegistry;
 
-            services.AddSingleton<IKissProxyRoute>(config);
-            return services;
+            if (registry == null)
+            {
+                return BadRequest($"FOUT: Geen klantregistratie gevonden voor systemIdentifier '{systemIdentifier ?? "null"}'");
+            }
+
+            return new ProxyResult(() =>
+            {
+                var message = new HttpRequestMessage(new HttpMethod(Request.Method), GetUri(registry, path))
+                {
+                    Content = new StreamContent(Request.Body)
+                };
+
+                if (!string.IsNullOrWhiteSpace(Request.ContentType))
+                {
+                    message.Content.Headers.ContentType = new(Request.ContentType);
+                }
+
+                message.Content.Headers.ContentLength = Request.ContentLength;
+                registry.ApplyHeaders(message.Headers, User);
+                return message;
+            });
         }
-    }
-
-    public class KlantenProxyConfig : IKissProxyRoute
-    {
-        private readonly ZgwTokenProvider _tokenProvider;
-
-        public KlantenProxyConfig(string destination, ZgwTokenProvider tokenProvider)
-        {
-            Destination = destination;
-            _tokenProvider = tokenProvider;
-        }
-
-        public string Route => "klanten";
-
-        public string Destination { get; }
-
-   
-        public ValueTask ApplyRequestTransform(RequestTransformContext context)
-        {
-            var token = _tokenProvider.GenerateToken(context.HttpContext.User);
-
-            context.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-           
-            return new();
-        }
+        private Uri GetUri(KlantRegistry config, string path) => new Uri($"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}?{Request.QueryString}");
     }
 }
-

@@ -1,5 +1,5 @@
 <template>
-  <article class="details-block">
+  <article class="details-block" v-if="klant">
     <header class="heading-container">
       <utrecht-heading :level="level">
         <span class="heading">Contactgegevens</span>
@@ -37,13 +37,18 @@
 </template>
 
 <script lang="ts" setup>
-import { type PropType } from "vue";
+import { watchEffect, type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import type { Klant } from "@/services/openklant/types";
+import { useLoader } from "@/services";
+import { fetchKlant } from "./fetch-klant";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 
-defineProps({
-  klant: {
-    type: Object as PropType<Klant>,
+const { systemen, defaultSysteem } = useSystemen();
+
+const props = defineProps({
+  klantId: {
+    type: String,
     required: true,
   },
   level: {
@@ -51,6 +56,30 @@ defineProps({
     default: 2,
   },
 });
+
+const {
+  data: klant,
+  loading,
+  error,
+} = useLoader(() => {
+  if (!props.klantId || !defaultSysteem.value || !systemen.value?.length)
+    return;
+  return fetchKlant({
+    id: props.klantId,
+    systemen: systemen.value,
+    defaultSysteem: defaultSysteem.value,
+  });
+});
+
+const emit = defineEmits<{
+  load: [data: Klant];
+  loading: [data: boolean];
+  error: [data: boolean];
+}>();
+
+watchEffect(() => klant.value && emit("load", klant.value));
+watchEffect(() => emit("loading", loading.value));
+watchEffect(() => emit("error", error.value));
 </script>
 
 <style lang="scss" scoped>

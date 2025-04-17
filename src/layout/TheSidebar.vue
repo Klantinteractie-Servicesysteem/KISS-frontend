@@ -2,7 +2,9 @@
   <aside>
     <menu class="starter" v-if="route.meta.showSearch">
       <li>
-        <contactmoment-starter />
+        <contactmoment-starter
+          v-if="userStore.user.isLoggedIn && userStore.user.isKcm"
+        />
       </li>
       <li v-if="contactmomentStore.contactmomenten.length">
         <contactmoment-switcher />
@@ -80,6 +82,7 @@ import {
   ContactmomentSwitcher,
 } from "@/features/contact/contactmoment";
 import { TabList, TabListItem } from "@/components/tabs";
+import { useUserStore } from "@/stores/user";
 
 enum NotitieTabs {
   Regulier = "Reguliere notitie",
@@ -87,6 +90,7 @@ enum NotitieTabs {
 }
 const contactmomentStore = useContactmomentStore();
 const route = useRoute();
+const userStore = useUserStore();
 
 const state = ensureState({
   stateId: "Sidebar",

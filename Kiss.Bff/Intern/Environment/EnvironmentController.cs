@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Kiss.Bff.Extern;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Intern.Environment
@@ -7,25 +8,20 @@ namespace Kiss.Bff.Intern.Environment
     [ApiController]
     public class EnvironmentController : ControllerBase
     {
+        private readonly RegistryConfig _registryConfig;
         private readonly IConfiguration _configuration;
 
-        public EnvironmentController(IConfiguration configuration)
+        public EnvironmentController(RegistryConfig klantContactConfig, IConfiguration configuration)
         {
+            _registryConfig = klantContactConfig;
             _configuration = configuration;
-        }
-
-        [HttpGet("use-klantinteracties")]
-        public IActionResult GetUseKlantIneracties()
-        {
-            var useKlantInteracties = _configuration["USE_KLANTINTERACTIES"] ?? "false";
-            return Ok(new { useKlantInteracties = bool.Parse(useKlantInteracties) });
         }
 
         [HttpGet("use-vacs")]
         public IActionResult GetUseVacs()
         {
             return bool.TryParse(_configuration["USE_VACS"] ?? "false", out var useVacs) ?
-                (IActionResult) Ok(new { useVacs }) : Ok(new { useVacs = false });
+                (IActionResult)Ok(new { useVacs }) : Ok(new { useVacs = false });
         }
 
         [HttpGet("use-medewerkeremail")]
@@ -43,6 +39,26 @@ namespace Kiss.Bff.Intern.Environment
                 .InformationalVersion;
 
             return Ok(new { versienummer });
+        }
+
+        [HttpGet("registers")]
+        public IActionResult GetRegistrySystems()
+        {
+            var model = new
+            {
+                Systemen = _registryConfig.Systemen
+                    // don't expose secrets
+                    .Select((x) => new
+                    {
+                        x.IsDefault,
+                        x.Identifier,
+                        x.RegistryVersion,
+                        x.ZaaksysteemRegistry?.DeeplinkUrl,
+                        x.ZaaksysteemRegistry?.DeeplinkProperty
+                    })
+            };
+
+            return Ok(model);
         }
     }
 }

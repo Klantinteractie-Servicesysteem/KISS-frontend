@@ -18,16 +18,20 @@ import type {
 const zoekenUrl = "/api/kvk/v2/zoeken";
 const vestigingsprofielenUrl = "/api/kvk/v1/vestigingsprofielen/";
 
-export function searchBedrijvenInHandelsRegister(
-  query: BedrijfIdentifier | BedrijfSearchOptions,
-  page?: number,
-) {
+export async function findBedrijfInHandelsRegister(query: BedrijfIdentifier) {
   const searchParams = new URLSearchParams();
 
-  if ("vestigingsnummer" in query && query.vestigingsnummer) {
+  if (
+    "vestigingsnummer" in query &&
+    query.vestigingsnummer &&
+    "kvkNummer" in query &&
+    query.kvkNummer
+  ) {
     searchParams.set("vestigingsnummer", query.vestigingsnummer);
-    searchParams.set("type", "hoofdvestiging");
-    searchParams.append("type", "nevenvestiging");
+    searchParams.set("kvkNummer", query.kvkNummer);
+  } else if ("kvkNummer" in query && query.kvkNummer) {
+    searchParams.set("kvkNummer", query.kvkNummer);
+    searchParams.set("type", "rechtspersoon");
   } else if ("rsin" in query && query.rsin) {
     if (query.rsin.length === 9) {
       //ok2
@@ -38,6 +42,23 @@ export function searchBedrijvenInHandelsRegister(
     }
 
     searchParams.set("type", "rechtspersoon");
+  } else if ("vestigingsnummer" in query && query.vestigingsnummer) {
+    searchParams.set("vestigingsnummer", query.vestigingsnummer);
+  }
+
+  return await searchInHandelsRegister(searchParams);
+}
+
+export async function searchBedrijvenInHandelsRegister(
+  query: BedrijfIdentifier | BedrijfSearchOptions,
+  page?: number,
+) {
+  const searchParams = new URLSearchParams();
+
+  if ("vestigingsnummer" in query && query.vestigingsnummer) {
+    searchParams.set("vestigingsnummer", query.vestigingsnummer);
+    searchParams.set("type", "hoofdvestiging");
+    searchParams.append("type", "nevenvestiging");
   } else if ("postcodeHuisnummer" in query) {
     const {
       postcode: { numbers, digits },
@@ -55,6 +76,10 @@ export function searchBedrijvenInHandelsRegister(
     searchParams.set("pagina", page.toString());
   }
 
+  return await searchInHandelsRegister(searchParams);
+}
+
+async function searchInHandelsRegister(searchParams: URLSearchParams) {
   const url = `${zoekenUrl}?${searchParams}`;
 
   return fetchLoggedIn(url).then(async (r) => {

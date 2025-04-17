@@ -74,13 +74,15 @@
             <dt>Aangemaakt door</dt>
             <dd>{{ contactverzoek.aangemaaktDoor }}</dd>
           </template>
-          <slot
-            name="object"
-            :object="object"
-            v-for="(object, k) in contactverzoek.objecten ?? []"
-            :key="k"
+
+          <dt v-if="contactverzoek.zaaknummers.length">Zaaknummer</dt>
+          <dd
+            v-for="zaaknummer in contactverzoek.zaaknummers"
+            :key="zaaknummer"
           >
-          </slot>
+            {{ zaaknummer }}
+          </dd>
+
           <template v-if="contactverzoek?.vraag">
             <dt>Vraag</dt>
             <dd>{{ contactverzoek.vraag }}</dd>

@@ -1,13 +1,16 @@
 import { ServiceResult } from "@/services";
 import {
   mapBedrijfsIdentifier,
-  useKlantByIdentifier,
+  useKlantByIdentifier as useKlantByIdentifierOk1,
 } from "@/services/openklant1/service";
 import {
-  findKlantByIdentifier,
+  findKlantByIdentifierOpenKlant2,
   type KlantBedrijfIdentifier,
-  useOpenKlant2,
 } from "@/services/openklant2";
+import {
+  registryVersions,
+  fetchSystemen,
+} from "@/services/environment/fetch-systemen";
 
 export const useKlantByBedrijfIdentifier = (
   getId: () => KlantBedrijfIdentifier | undefined,
@@ -24,13 +27,18 @@ export const useKlantByBedrijfIdentifier = (
       throw new Error("Geen valide KlantBedrijfIdentifier");
     }
 
-    const isOpenKlant2 = await useOpenKlant2();
+    const systemen = await fetchSystemen();
+    const defaultSysteem = systemen.find(({ isDefault }) => isDefault);
 
-    if (isOpenKlant2) {
-      return findKlantByIdentifier(id);
+    if (!defaultSysteem) {
+      throw new Error("Geen default register gevonden");
+    }
+
+    if (defaultSysteem.registryVersion === registryVersions.ok2) {
+      return findKlantByIdentifierOpenKlant2(defaultSysteem.identifier, id);
     } else {
       const mappedId = mapBedrijfsIdentifier(id);
-      return useKlantByIdentifier(() => mappedId);
+      return useKlantByIdentifierOk1(defaultSysteem.identifier, () => mappedId);
     }
   };
 

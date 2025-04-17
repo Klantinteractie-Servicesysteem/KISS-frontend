@@ -10,6 +10,7 @@ using Kiss.Bff.Afdelingen;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Kiss.Bff.Extern.Klantinteracties;
+using Kiss.Bff.Extern;
 
 namespace Kiss.Bff.Test
 {
@@ -71,7 +72,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -79,7 +80,7 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var result = await _controller.GetActorId("test@example.com");
+            var result = await _controller.GetActorId(FakeRegistry(), "test@example.com");
 
             // Assert
             Assert.AreEqual(actorUuid, result);
@@ -105,7 +106,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -113,7 +114,7 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var result = await _controller.GetActorId("nonexistent@example.com");
+            var result = await _controller.GetActorId(FakeRegistry(), "nonexistent@example.com");
 
             // Assert
             Assert.IsNull(result);
@@ -162,7 +163,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -170,7 +171,7 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var result = await _controller.PostKlantContact(parsedModel);
+            var result = await _controller.PostKlantContact(FakeRegistry(), parsedModel);
             var resultUuid = result?["uuid"]?.ToString(); // Extract uuid as string
 
             // Assert
@@ -209,7 +210,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -217,7 +218,7 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var resultUuid = await _controller.PostActoren();
+            var resultUuid = await _controller.PostActoren(FakeRegistry());
 
             // Assert
             Assert.AreEqual(actorUuid, resultUuid); 
@@ -243,7 +244,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -251,7 +252,7 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var result = await _controller.LinkActorWithKlantContact(actorUuid, klantcontactUuid);
+            var result = await _controller.LinkActorWithKlantContact(FakeRegistry(), actorUuid, klantcontactUuid);
 
             // Assert
             Assert.IsTrue(result, "Expected LinkActorWithKlantContact to return true on successful link");
@@ -276,7 +277,7 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                new Extern.Klantinteracties.KlantinteractiesProxyConfig("https://fakeurl.com", "secret")
+                null!
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -284,12 +285,18 @@ namespace Kiss.Bff.Test
             };
 
             // Act
-            var result = await _controller.LinkActorWithKlantContact(actorUuid, klantcontactUuid);
+            var result = await _controller.LinkActorWithKlantContact(FakeRegistry(), actorUuid, klantcontactUuid);
 
             // Assert
             Assert.IsFalse(result, "Expected LinkActorWithKlantContact to return false on failed link");
 
             mockHttp.VerifyNoOutstandingExpectation();
         }
+
+        private KlantinteractieRegistry FakeRegistry() => new()
+        {
+            BaseUrl = "https://fakeurl.com",
+            Token = "FakeToken"
+        };
     }
 }

@@ -78,26 +78,6 @@ export type BetrokkeneMetKlantContact = Betrokkene & {
   expandedDigitaleAdressen?: DigitaalAdresApiViewModel[];
 };
 
-export interface MedewerkerIdentificatie {
-  identificatie: string;
-  achternaam: string;
-  voorletters: string;
-  voorvoegselAchternaam: string;
-}
-
-export interface ContactmomentViewModel {
-  url: string;
-  registratiedatum: string;
-  kanaal: string;
-  tekst: string;
-  objectcontactmomenten: {
-    object: string;
-    objectType: string;
-    contactmoment: string;
-  }[];
-  medewerkerIdentificatie: MedewerkerIdentificatie;
-}
-
 export interface InternetaakPostModel {
   nummer: string;
   gevraagdeHandeling: string;
@@ -134,22 +114,17 @@ export interface KlantContactPostmodel {
   plaatsgevondenOp: string; // 2019-08-24T14:15:22Z
 }
 
+//todo: KlantBedrijfIdentifier vervangen door KlantIdentificator
 export type KlantBedrijfIdentifier =
   | {
       bsn: string;
     }
   | {
       vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-    }
-  | {
       kvkNummer: string;
     }
   | {
-      rsin: string;
-      kvkNummer?: string;
+      kvkNummer: string;
     };
 
 ///////////////////////////////
@@ -173,15 +148,15 @@ export enum CodeRegister {
 }
 
 export enum CodeObjecttype {
-  natuurlijkPersoon = "natuurlijkPersoon",
+  natuurlijkPersoon = "natuurlijk_persoon",
   vestiging = "vestiging",
-  nietNatuurlijkPersoon = "nietNatuurlijkPersoon",
+  nietNatuurlijkPersoon = "niet_natuurlijk_persoon",
   overig = "overig",
 }
 
 export enum CodeSoortObjectId {
   bsn = "bsn",
-  kvkNummer = "kvkNummer",
+  kvkNummer = "kvk_nummer",
   rsin = "rsin",
   vestigingsnummer = "vestigingsnummer",
   overig = "overig",
@@ -250,4 +225,16 @@ export type OnderwerpObjectPostModel = {
   klantcontact: { uuid: string };
   wasKlantcontact: { uuid: string } | null;
   onderwerpobjectidentificator: Identificator;
+};
+
+export type PartijIdentificator = {
+  uuid: string;
+  identificeerdePartij: {
+    url: string;
+    uuid: string;
+  } | null;
+  partijIdentificator: Identificator;
+  subIdentificatorVan?: {
+    uuid: string;
+  };
 };

@@ -1,141 +1,133 @@
 <template>
   <back-link />
   <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
-
   <tab-list v-model="currentTab">
-    <tab-list-data-item
-      label="Contactgegevens"
-      :data="klant"
-      :disabled="(k) => !k"
-    >
-      <template #success="{ data }">
-        <klant-details :klant="data" />
-      </template>
-    </tab-list-data-item>
-    <tab-list-data-item
-      label="KvK-gegevens"
-      :data="bedrijf"
-      :disabled="(b) => !b"
-    >
-      <template #success="{ data }">
-        <handelsregister-gegevens v-if="data" :bedrijf="data" />
-      </template>
-    </tab-list-data-item>
-    <tab-list-item label="Contactmomenten">
-      <template #default="{ setError, setLoading, setDisabled }">
-        <contactmomenten-for-klant-url
-          v-if="gebruikKlantInteracatiesApi != null"
-          :klant-url="klantUrl"
-          :gebruik-klant-interacties="gebruikKlantInteracatiesApi"
-          @load="setDisabled(!$event?.page?.length)"
+    <tab-list-item label="Contactgegevens">
+      <template #default="{ setError, setLoading }">
+        <klant-details
+          :klant-id="bedrijfId"
+          @load="klant = $event"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview :zaakurl="object.object" />
-          </template>
-        </contactmomenten-for-klant-url>
-      </template>
-    </tab-list-item>
-    <tab-list-data-item label="Zaken" :data="zaken" :disabled="(z) => !z.count">
-      <template #success="{ data }">
-        <zaken-overzicht
-          :zaken="data.page"
-          :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
         />
       </template>
-    </tab-list-data-item>
-    <tab-list-item label="Contactverzoeken">
-      <template #default="{ setError, setLoading, setDisabled }">
-        <contactverzoeken-for-klant-url
-          v-if="gebruikKlantInteracatiesApi != null"
-          :klant-url="klantUrl"
-          :gebruik-klant-interacties="gebruikKlantInteracatiesApi"
-          @load="setDisabled(!$event?.page?.length)"
+    </tab-list-item>
+    <tab-list-item label="KvK-gegevens">
+      <template #default="{ setError, setLoading }">
+        <handelsregister-gegevens
+          v-if="bedrijfIdentifier"
+          :bedrijf-identifier="bedrijfIdentifier"
+          @load="bedrijf = $event"
           @loading="setLoading"
           @error="setError"
-        >
-          <template #object="{ object }">
-            <zaak-preview v-if="object.object" :zaakurl="object.object" />
-          </template>
-        </contactverzoeken-for-klant-url>
+        />
+      </template>
+    </tab-list-item>
+
+    <tab-list-item label="Contactmomenten">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <contactmomenten-for-klant-identificator
+          v-if="bedrijf"
+          :klant-identificator="bedrijf"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
+        />
+      </template>
+    </tab-list-item>
+
+    <tab-list-item label="Zaken">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <utrecht-heading :level="2"> Zaken </utrecht-heading>
+
+        <zaken-for-klant
+          v-if="bedrijf"
+          :klant-identificator="bedrijf"
+          :vraag="contactmomentStore.huidigContactmoment?.huidigeVraag"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
+        />
+      </template>
+    </tab-list-item>
+
+    <tab-list-item label="Contactverzoeken">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <contactverzoeken-for-klant-identificator
+          v-if="bedrijf"
+          :klant-identificator="bedrijf"
+          @load="setDisabled(!$event?.length)"
+          @loading="setLoading"
+          @error="setError"
+        />
       </template>
     </tab-list-item>
   </tab-list>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
-import { KlantDetails, useKlantById } from "@/features/klant/klant-details";
-// import Pagination from "@/nl-design-system/components/Pagination.vue";
-import {
-  useZakenByKlantBedrijfIdentifier,
-  ZakenOverzicht,
-} from "@/features/zaaksysteem";
-import ZaakPreview from "@/features/zaaksysteem/components/ZaakPreview.vue";
-import { TabList, TabListDataItem, TabListItem } from "@/components/tabs";
-
+import { KlantDetails } from "@/features/klant/klant-details";
+import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
-import { useBedrijfByIdentifier } from "@/features/bedrijf/use-bedrijf-by-identifier";
-import type { BedrijfIdentifier } from "@/services/kvk";
-import { useOpenKlant2 } from "@/services/openklant2/service";
-import ContactverzoekenForKlantUrl from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantUrl.vue";
-import ContactmomentenForKlantUrl from "@/features/contact/contactmoment/ContactmomentenForKlantUrl.vue";
+import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
+import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
+import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
+import type { Klant } from "@/services/openklant/types";
+import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-const props = defineProps<{ bedrijfId: string }>();
-const gebruikKlantInteracatiesApi = ref<boolean | null>(null);
+defineProps<{ bedrijfId: string }>();
 
-const klantId = computed(() => props.bedrijfId);
 const contactmomentStore = useContactmomentStore();
 
-const klant = useKlantById(klantId, gebruikKlantInteracatiesApi);
-
-const klantUrl = computed(() => (klant.success ? klant.data.url ?? "" : ""));
 const currentTab = ref("");
-
-//const contactverzoekenPage = ref(1);
+const klant = ref<Klant>();
+const bedrijf = ref<Bedrijf>();
 
 const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
-  if (!klant.success || !klant.data) return undefined;
-  if (klant.data.vestigingsnummer)
+  if (!klant.value) return undefined;
+
+  //todo: controleren of deze varant weer relevant is !!!!
+  if (klant.value.vestigingsnummer && klant.value.kvkNummer)
     return {
-      vestigingsnummer: klant.data.vestigingsnummer,
+      vestigingsnummer: klant.value.vestigingsnummer,
+      kvkNummer: klant.value.kvkNummer,
+    };
+
+  if (klant.value.vestigingsnummer)
+    return {
+      vestigingsnummer: klant.value.vestigingsnummer,
+    };
+
+  if (klant.value.kvkNummer)
+    return {
+      kvkNummer: klant.value.kvkNummer,
     };
   // if (klant.data.rsin)
   //   return {
   //     rsin: klant.data.rsin,
   //     kvkNummer: klant.data.kvkNummer,
   //   };
-  if (klant.data.nietNatuurlijkPersoonIdentifier)
+  if (klant.value.nietNatuurlijkPersoonIdentifier)
     return {
       //gechoogel met params verschil ok1 en esuite
-      rsin: klant.data.nietNatuurlijkPersoonIdentifier,
+      rsin: klant.value.nietNatuurlijkPersoonIdentifier,
     };
-  if (klant.data.rsin)
+  if (klant.value.rsin)
     return {
       //gechoogel met params verschil ok1 en esuite
-      rsin: klant.data.rsin,
+      rsin: klant.value.rsin,
     };
 };
 
-const bedrijf = useBedrijfByIdentifier(getBedrijfIdentifier);
-
-const zaken = useZakenByKlantBedrijfIdentifier(() => {
-  if (!bedrijf.success || !bedrijf.data?.kvkNummer) return undefined;
-  if (bedrijf.data.vestigingsnummer)
-    return { vestigingsnummer: bedrijf.data.vestigingsnummer };
-  if (bedrijf.data.rsin)
-    return { rsin: bedrijf.data.rsin, kvkNummer: bedrijf.data.kvkNummer };
-});
+const bedrijfIdentifier = computed(getBedrijfIdentifier);
 
 watch(
   () =>
-    klant.success && bedrijf.success
-      ? ([klant.data, bedrijf.data] as const)
-      : [],
+    klant.value && bedrijf.value ? ([klant.value, bedrijf.value] as const) : [],
   ([k, b]) => {
     if (!k || !b) return;
     contactmomentStore.setKlant({
@@ -148,8 +140,4 @@ watch(
   },
   { immediate: true },
 );
-
-onMounted(async () => {
-  gebruikKlantInteracatiesApi.value = await useOpenKlant2();
-});
 </script>

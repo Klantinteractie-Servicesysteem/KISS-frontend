@@ -1,21 +1,7 @@
 import { flushPromises } from "@vue/test-utils";
-import {
-  ServiceResult,
-  fetchLoggedIn,
-  mapServiceData,
-  parseJson,
-  throwIfNotOk,
-  type ServiceData,
-} from "@/services";
+import { ServiceResult, type ServiceData } from "@/services";
 
-import {
-  assertType,
-  describe,
-  expect,
-  expectTypeOf,
-  test,
-  type Test,
-} from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 
 describe("ServiceResult.fromPromise", () => {
   test("should return a ServiceData instance and put in in a success state after a promise is resolved.", async () => {
@@ -24,7 +10,7 @@ describe("ServiceResult.fromPromise", () => {
     };
 
     const fromPromiseResult = ServiceResult.fromPromise<TestType>(
-      Promise.resolve({ data: "value" } as TestType)
+      Promise.resolve({ data: "value" } as TestType),
     );
 
     expectTypeOf(fromPromiseResult).toMatchTypeOf<ServiceData<TestType>>();
@@ -41,7 +27,7 @@ describe("ServiceResult.fromPromise", () => {
     };
 
     const fromPromiseResult = ServiceResult.fromPromise<TestType>(
-      Promise.resolve({ data: "value" } as TestType)
+      Promise.resolve({ data: "value" } as TestType),
     );
 
     expectTypeOf(fromPromiseResult).toMatchTypeOf<ServiceData<TestType>>();
@@ -57,7 +43,7 @@ describe("ServiceResult.fromPromise", () => {
 
     let x;
     const y = ServiceResult.fromPromise<TestType>(
-      (x = Promise.reject<TestType>())
+      (x = Promise.reject<TestType>()),
     );
 
     await flushPromises();

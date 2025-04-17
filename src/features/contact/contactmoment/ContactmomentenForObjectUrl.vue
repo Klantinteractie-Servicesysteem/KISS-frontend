@@ -2,25 +2,20 @@
   <contactmomenten-overzicht
     v-if="contactmomenten?.page"
     :contactmomenten="contactmomenten.page"
-  >
-    <template v-for="(_, slotName) in $slots" #[slotName]="props">
-      <slot :name="slotName" v-bind="props"></slot>
-    </template>
-  </contactmomenten-overzicht>
+  />
 </template>
 <script setup lang="ts">
 import type { PaginatedResult } from "@/services";
-import type { ContactmomentViewModel } from "@/services/openklant2";
 import { useLoader } from "@/services/use-loader";
-import { watchEffect } from "vue";
+import { computed, watchEffect } from "vue";
 import ContactmomentenOverzicht from "./ContactmomentenOverzicht.vue";
-import { fetchContactmomentenByObjectUrl } from "./service";
-
-defineSlots();
+import { useSystemen } from "@/services/environment/fetch-systemen";
+import { fetchContactmomentenByObjectUrl } from "./fetch-contactmomenten-by-object-url";
+import type { ContactmomentViewModel } from "../types";
 
 const props = defineProps<{
   objectUrl: string;
-  gebruikKlantInteracties: boolean;
+  systeemId: string;
 }>();
 
 const emit = defineEmits<{
@@ -29,16 +24,18 @@ const emit = defineEmits<{
   error: [data: boolean];
 }>();
 
+const { systemen } = useSystemen();
+const systeem = computed(() =>
+  systemen.value?.find(({ identifier }) => identifier === props.systeemId),
+);
+
 const {
   data: contactmomenten,
   loading,
   error,
 } = useLoader(() => {
-  if (props.objectUrl)
-    return fetchContactmomentenByObjectUrl(
-      props.objectUrl,
-      props.gebruikKlantInteracties,
-    );
+  if (props.objectUrl && systeem.value)
+    return fetchContactmomentenByObjectUrl(systeem.value, props.objectUrl);
 });
 
 watchEffect(() => contactmomenten.value && emit("load", contactmomenten.value));

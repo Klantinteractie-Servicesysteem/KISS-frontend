@@ -1,38 +1,45 @@
-﻿using System.Net.Http.Headers;
-using System.Text.Json.Nodes;
-using System.Text.Json;
-using Kiss.Bff.Afdelingen;
+﻿using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Kiss.Bff.Extern.Klantinteracties
 {
+    /// <summary>
+    /// Since multiple combinations of registers can be used, 
+    /// it must be determined in real time which register is used for storing contactmomenten (klantcontacten).
+    /// A systemIdentifier header is sent from the client for this purpose.
+    /// This endpoint is used for registries that support the the klantineracties API (openklant 2 or higher).
+    /// A dedicated endpoint is used for contactmomenten instead of the KlantinteractiesProxy because in this case information about the logged in user must be added server side
+    /// </summary>
     [Route("api")]
     [ApiController]
     public class PostKlantContactenCustomProxy : ControllerBase
     {
         private readonly GetMedewerkerIdentificatie _getMedewerkerIdentificatie;
         private readonly HttpClient _httpClient;
-        private readonly KlantinteractiesProxyConfig _klantinteractiesProxyConfig;
+        private readonly RegistryConfig _registryConfig;
 
-        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, KlantinteractiesProxyConfig klantinteractiesProxyConfig)
+        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, RegistryConfig registryConfig)
         {
             _getMedewerkerIdentificatie = getMedewerkerIdentificatie;
             _httpClient = httpClient;
-            _klantinteractiesProxyConfig = klantinteractiesProxyConfig;
+            _registryConfig = registryConfig;
         }
 
         [HttpPost("postklantcontacten")]
-        public async Task<IActionResult> PostKlantContacten([FromBody] JsonObject parsedModel)
+        public async Task<IActionResult> PostKlantContacten([FromBody] JsonObject parsedModel, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
         {
+            var registry = _registryConfig.GetRegistrySystem(systemIdentifier)?.KlantinteractieRegistry;
+
+            if (registry == null) return BadRequest($"Geen Contactmomentregister gevonden voor deze systemIdentifier: '{systemIdentifier ?? "null"}'");
+
             var email = User?.GetEmail();
             var userRepresentation = User?.Identity?.Name;
 
-            var actorUuid = await GetActorId(email);
+            var actorUuid = await GetActorId(registry, email);
 
             if (actorUuid == null)
             {
-                actorUuid = await PostActoren();
+                actorUuid = await PostActoren(registry);
 
                 if (actorUuid == null)
                 {
@@ -40,9 +47,9 @@ namespace Kiss.Bff.Extern.Klantinteracties
                 }
             }
 
-            var klantcontact = await PostKlantContact(parsedModel);
+            var klantcontact = await PostKlantContact(registry, parsedModel);
 
-            var linkSuccessful = await LinkActorWithKlantContact(actorUuid, klantcontact["uuid"].ToString());
+            var linkSuccessful = await LinkActorWithKlantContact(registry, actorUuid, klantcontact["uuid"].ToString());
 
             if (!linkSuccessful)
             {
@@ -52,18 +59,17 @@ namespace Kiss.Bff.Extern.Klantinteracties
             return Ok(klantcontact);
         }
 
-
-
-        public async Task<JsonObject> PostKlantContact(JsonObject parsedModel)
+        [NonAction]
+        public async Task<JsonObject?> PostKlantContact(KlantinteractieRegistry registry, JsonObject parsedModel)
         {
-            var url = _klantinteractiesProxyConfig.Destination.TrimEnd('/') + "/api/v1/klantcontacten";
+            var url = registry.BaseUrl.TrimEnd('/') + "/api/v1/klantcontacten";
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = JsonContent.Create(parsedModel)
             };
 
-            _klantinteractiesProxyConfig.ApplyHeaders(request.Headers, User);
+            registry.ApplyHeaders(request.Headers, User);
 
             using var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -73,8 +79,8 @@ namespace Kiss.Bff.Extern.Klantinteracties
             return jsonResponse;
         }
 
-
-        public async Task<string> PostActoren()
+        [NonAction]
+        public async Task<string> PostActoren(KlantinteractieRegistry registry)
         {
             var email = User?.GetEmail();
             var firstName = User?.GetFirstName();
@@ -97,14 +103,14 @@ namespace Kiss.Bff.Extern.Klantinteracties
 
             parsedModel["medewerkerIdentificatie"] = _getMedewerkerIdentificatie();
 
-            var url = _klantinteractiesProxyConfig.Destination.TrimEnd('/') + "/api/v1/actoren";
+            var url = registry.BaseUrl.TrimEnd('/') + "/api/v1/actoren";
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = JsonContent.Create(parsedModel)
             };
 
-            _klantinteractiesProxyConfig.ApplyHeaders(request.Headers, User);
+            registry.ApplyHeaders(request.Headers, User);
 
             using var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -117,13 +123,14 @@ namespace Kiss.Bff.Extern.Klantinteracties
             return actorUuid ?? throw new Exception("Failed to retrieve actor UUID.");
         }
 
-        public async Task<string?> GetActorId(string email)
+        [NonAction]
+        public async Task<string?> GetActorId(KlantinteractieRegistry registry, string email)
         {
-            var url = $"{_klantinteractiesProxyConfig.Destination.TrimEnd('/')}/api/v1/actoren?actoridentificatorObjectId={email}";
+            var url = $"{registry.BaseUrl.TrimEnd('/')}/api/v1/actoren?actoridentificatorObjectId={email}";
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            _klantinteractiesProxyConfig.ApplyHeaders(request.Headers, User);
+            registry.ApplyHeaders(request.Headers, User);
 
             using var response = await _httpClient.SendAsync(request);
 
@@ -141,9 +148,10 @@ namespace Kiss.Bff.Extern.Klantinteracties
             return null;
         }
 
-        public async Task<bool> LinkActorWithKlantContact(string actorUuid, string klantcontactUuid)
+        [NonAction]
+        public async Task<bool> LinkActorWithKlantContact(KlantinteractieRegistry registry, string actorUuid, string klantcontactUuid)
         {
-            var url = _klantinteractiesProxyConfig.Destination.TrimEnd('/') + "/api/v1/actorklantcontacten";
+            var url = registry.BaseUrl.TrimEnd('/') + "/api/v1/actorklantcontacten";
 
             var payload = new JsonObject
             {
@@ -156,27 +164,11 @@ namespace Kiss.Bff.Extern.Klantinteracties
                 Content = JsonContent.Create(payload)
             };
 
-            _klantinteractiesProxyConfig.ApplyHeaders(request.Headers, User);
+            registry.ApplyHeaders(request.Headers, User);
 
             using var response = await _httpClient.SendAsync(request);
 
             return response.IsSuccessStatusCode;
         }
-
-        [HttpPost("postinternetaak")]
-        public IActionResult PostInterneTaak([FromBody] JsonObject parsedModel)
-        {
-            var url = _klantinteractiesProxyConfig.Destination.TrimEnd('/') + "/api/v1/internetaken";
-
-            return new ProxyResult(() =>
-            {
-                var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = JsonContent.Create(parsedModel) };
-                _klantinteractiesProxyConfig.ApplyHeaders(request.Headers, ControllerContext.HttpContext.User);
-                return request;
-            });
-        }
     }
 }
-
-
-

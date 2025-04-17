@@ -1,34 +1,42 @@
 import {
-  findKlantByIdentifier,
-  createKlant,
   type KlantBedrijfIdentifier,
+  ensureOk2Klant,
 } from "@/services/openklant2";
-import { ensureKlantForBedrijfIdentifier as ensureKlantForBedrijfIdentifierOk1 } from "@/services/openklant1/service";
-import { useOpenKlant2 } from "@/services/openklant2/service";
-import { mapBedrijfsIdentifier } from "@/services/openklant1/service";
+import {
+  ensureKlantForBedrijfIdentifier as ensureKlantForBedrijfIdentifierOk1,
+  mapBedrijfsIdentifier,
+} from "@/services/openklant1/service";
 import { useOrganisatieIds } from "@/stores/user";
+import {
+  registryVersions,
+  fetchSystemen,
+  type Systeem,
+} from "@/services/environment/fetch-systemen";
 
 export const ensureKlantForBedrijfIdentifier = async (
-  identifier: KlantBedrijfIdentifier,
+  klantbedrijfidentifier: KlantBedrijfIdentifier,
   bedrijfsnaam: string,
 ) => {
-  const isOpenKlant2 = await useOpenKlant2();
+  const systemen = await fetchSystemen();
+  const defaultSysteem = systemen.find((systeem) => systeem.isDefault);
 
-  if (isOpenKlant2) {
-    // Gebruik openklant2 implementatie
-    const klant = await findKlantByIdentifier(identifier);
-    return klant ?? (await createKlant(identifier));
+  if (!defaultSysteem) {
+    throw new Error("Geen default register gevonden");
+  }
+
+  if (defaultSysteem.registryVersion === registryVersions.ok2) {
+    return await ensureOk2Klant(
+      defaultSysteem.identifier,
+      klantbedrijfidentifier,
+    );
   } else {
-    // Gebruik openklant1 implementatie
-    const mappedIdentifier = mapBedrijfsIdentifier(identifier);
+    const mappedIdentifier = mapBedrijfsIdentifier(klantbedrijfidentifier);
     const organisatieIds = useOrganisatieIds();
     const organisatieId = organisatieIds.value[0] || "";
 
     return await ensureKlantForBedrijfIdentifierOk1(
-      {
-        bedrijfsnaam,
-        identifier: mappedIdentifier,
-      },
+      defaultSysteem.identifier,
+      { bedrijfsnaam, identifier: mappedIdentifier },
       organisatieId,
     );
   }

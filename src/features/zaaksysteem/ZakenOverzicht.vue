@@ -14,7 +14,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="zaak in zaken" :key="zaak.id" class="row-link">
+        <tr v-for="zaak in zaken" :key="zaak.url" class="row-link">
           <th scope="row">{{ zaak.identificatie }}</th>
           <td class="wrap">{{ zaak.aanvrager }}</td>
           <td class="wrap">{{ zaak.zaaktypeOmschrijving }}</td>
@@ -25,7 +25,7 @@
           </td>
           <td class="link">
             <router-link
-              :to="`/zaken/${zaak.id}?zaaksysteemId=${zaak.zaaksysteemId ? encodeURIComponent(zaak.zaaksysteemId) : ''}`"
+              :to="`/zaken/${zaak.url.split('/').pop()}?zaaksysteemId=${zaak.zaaksysteemId ? encodeURIComponent(zaak.zaaksysteemId) : ''}`"
               :title="`Details ${zaak.identificatie}`"
             ></router-link>
           </td>
@@ -36,13 +36,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { PropType } from "vue";
-import type { ZaakDetails } from "./types";
 import type { Vraag } from "@/stores/contactmoment";
 import TimeOrOnbekend from "./components/TimeOrOnbekend.vue";
+import type { ZaakDetails } from "./types";
 
-defineProps({
-  zaken: { type: Array as PropType<ZaakDetails[]>, required: true },
-  vraag: { type: Object as PropType<Vraag | undefined>, required: true },
-});
+defineProps<{
+  zaken: ZaakDetails[];
+  vraag: Vraag | undefined;
+}>();
 </script>

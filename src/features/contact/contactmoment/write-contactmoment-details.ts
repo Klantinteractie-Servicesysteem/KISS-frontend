@@ -1,5 +1,6 @@
 import { fetchLoggedIn, throwIfNotOk } from "@/services";
-import type { Contactmoment } from "./types";
+import type { Contactmoment } from "@/services/openklant/types";
+
 
 export type ContactmomentDetails = Pick<
   Contactmoment,

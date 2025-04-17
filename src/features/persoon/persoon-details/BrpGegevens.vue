@@ -1,5 +1,5 @@
 <template>
-  <article class="details-block">
+  <article class="details-block" v-if="persoon">
     <utrecht-heading :level="2"> Gegevens BRP</utrecht-heading>
     <dl>
       <dt>Naam</dt>
@@ -40,9 +40,30 @@
 </template>
 
 <script setup lang="ts">
-import type { Persoon } from "@/services/brp";
+import { searchPersonen, type Persoon } from "@/services/brp";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DutchDate from "@/components/DutchDate.vue";
+import { enforceOneOrZero, useLoader } from "@/services";
+import { watchEffect } from "vue";
 
-defineProps<{ persoon: Persoon }>();
+const props = defineProps<{ bsn: string }>();
+
+const {
+  data: persoon,
+  loading,
+  error,
+} = useLoader(() => {
+  if (props.bsn)
+    return searchPersonen({ bsn: props.bsn }).then(enforceOneOrZero);
+});
+
+const emit = defineEmits<{
+  load: [data: Persoon];
+  loading: [data: boolean];
+  error: [data: boolean];
+}>();
+
+watchEffect(() => persoon.value && emit("load", persoon.value));
+watchEffect(() => emit("loading", loading.value));
+watchEffect(() => emit("error", error.value));
 </script>

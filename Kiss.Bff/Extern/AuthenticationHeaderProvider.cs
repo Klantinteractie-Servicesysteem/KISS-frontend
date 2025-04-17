@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using Kiss.Bff.ZaakGerichtWerken;
-using Yarp.ReverseProxy.Transforms;
 
 namespace Kiss.Bff
 {
@@ -9,10 +7,10 @@ namespace Kiss.Bff
     public class AuthenticationHeaderProvider
     {
         public readonly AuthenticationHeaderValue? AuthHeader;
-        public readonly ZgwTokenProvider? TokenProvider; 
+        public readonly ZgwTokenProvider? TokenProvider;
 
-        public AuthenticationHeaderProvider(string token, string clientId, string clientSecret)
-        {    
+        public AuthenticationHeaderProvider(string? token, string? clientId, string? clientSecret)
+        {
 
             if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret))
             {
@@ -31,7 +29,7 @@ namespace Kiss.Bff
         {
             if (TokenProvider == null && AuthHeader == null)
             {
-                throw new Exception("Setting up a proxy for InterneTaak failed. A token or clientId/clientSecret combination should be provided");
+                throw new Exception("Setting up a proxy failed. A token or clientId/clientSecret combination should be provided");
             }
 
             if (AuthHeader != null)

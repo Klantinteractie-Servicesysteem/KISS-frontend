@@ -1,43 +1,38 @@
-﻿using System.Net.Http.Headers;
-using System.Security.Claims;
-using Yarp.ReverseProxy.Transforms;
+﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Kiss.Bff.ZaakGerichtWerken.Contactmomenten
+namespace Kiss.Bff.Extern.ZaakGerichtWerken.Contactmomenten
 {
-    public static class ContactmomentenProxyExtensions
+    [ApiController]
+    [Route("/api/contactmomenten/{**path}")]
+    public class ContactmomentenProxy(RegistryConfig registryConfig) : ControllerBase
     {
-        public static IServiceCollection AddContactmomentenProxy(this IServiceCollection services, string destination, string clientId, string apiKey)
+        private readonly RegistryConfig _registryConfig = registryConfig;
+
+        [HttpPost]
+        [HttpGet]
+        public IActionResult Handle([FromRoute] string path, [FromHeader(Name = "systemIdentifier")] string? systemIdentifier)
         {
-            var tokenProvider = new ZgwTokenProvider(apiKey, clientId);
-            var config = new ContactmomentenProxyConfig(destination, tokenProvider);
-            services.AddSingleton<IKissProxyRoute>(config);
-            return services;
+            var registry = _registryConfig.GetRegistrySystem(systemIdentifier)?.ContactmomentRegistry;
+
+            if (registry == null) return BadRequest($"Geen Contactmomentenregister gevonden voor deze systemIdentifier: '{systemIdentifier ?? "null"}'");
+
+
+            return new ProxyResult(() =>
+            {
+                var message = new HttpRequestMessage(new HttpMethod(Request.Method), GetUri(registry, path))
+                {
+                    Content = new StreamContent(Request.Body)
+                };
+                if (!string.IsNullOrWhiteSpace(Request.ContentType))
+                {
+                    message.Content.Headers.ContentType = new(Request.ContentType);
+                }
+                message.Content.Headers.ContentLength = Request.ContentLength;
+                registry.ApplyHeaders(message.Headers, User);
+                return message;
+            });
         }
-    }
 
-    //todo vervangen voor custom endpoint ivm medewerker identitifactie
-    public class ContactmomentenProxyConfig : IKissProxyRoute
-    {
-        private readonly ZgwTokenProvider _tokenProvider;
-
-        public ContactmomentenProxyConfig(string destination, ZgwTokenProvider tokenProvider)
-        {
-            Destination = destination;
-            _tokenProvider = tokenProvider;
-        }
-
-        public string Route => "contactmomenten";
-
-        public string Destination { get; }
-
-        public ValueTask ApplyRequestTransform(RequestTransformContext context)
-        {
-            var token = _tokenProvider.GenerateToken(context.HttpContext.User);
-
-            context.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            return new();
-        }
+        private Uri GetUri(ContactmomentRegistry config, string path) => new Uri($"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}?{Request.QueryString}");
     }
 }
-

@@ -115,6 +115,10 @@ export type ContactmomentKlant = {
   emailadressen: string[];
   hasContactInformation: boolean;
   url?: string;
+  bsn?: string;
+  vestigingsnummer?: string;
+  kvkNummer?: string;
+  rsin?: string;
 };
 
 export type Bron = {
@@ -315,33 +319,39 @@ export const useContactmomentStore = defineStore("contactmoment", {
       // start with an empty session. this is equivalent to resetting all state.
       createSession().enable();
     },
-    upsertZaak(
-      zaak: ZaakDetails,
-      vraag: Vraag,
-      shouldStore = true,
-      zaaksysteemId: string,
-    ) {
-      const existingZaak = vraag.zaken.find(
-        (contacmomentZaak) => contacmomentZaak.zaak.id === zaak.id,
+
+    upsertZaak(zaak: ZaakDetails, vraag: Vraag, zaaksysteemId: string) {
+      let existingZaak = vraag.zaken.find(
+        (contacmomentZaak) => contacmomentZaak.zaak.url === zaak.url,
       );
 
-      if (existingZaak) {
+      if (!existingZaak) {
+        //als de zaak nog niet gekoppeld was aan het contact moment dan voegen we hem eerst toe
+        existingZaak = {
+          zaak,
+          shouldStore: true,
+          zaaksysteemId,
+        };
+        vraag.zaken.push(existingZaak);
+      } else {
         existingZaak.zaak = zaak;
-        existingZaak.shouldStore = shouldStore;
+        existingZaak.shouldStore = true;
         existingZaak.zaaksysteemId = zaaksysteemId;
-        return;
       }
 
-      //als de zaak nog niet gekoppeld was aan het contact moment dan voegen we hem eerst toe
-      vraag.zaken.push({
-        zaak,
-        shouldStore,
-        zaaksysteemId,
-      });
+      this.selectZaak(existingZaak, vraag);
+    },
+    selectZaak(contactmomentZaak: ContactmomentZaak | undefined, vraag: Vraag) {
+      vraag.zaken = vraag.zaken.map((zaak) => ({
+        ...zaak,
+        shouldStore:
+          zaak.zaak.url === contactmomentZaak?.zaak.url &&
+          zaak.zaaksysteemId === contactmomentZaak.zaaksysteemId,
+      }));
     },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {
       return vraag.zaken.some(
-        ({ zaak, shouldStore }) => shouldStore && zaak.id === id,
+        ({ zaak, shouldStore }) => shouldStore && zaak.url === id,
       );
     },
 
