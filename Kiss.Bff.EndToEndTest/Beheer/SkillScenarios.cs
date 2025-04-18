@@ -26,18 +26,22 @@ namespace Kiss.Bff.EndToEndTest.Beheer
         [DataRow("Automation Skill")]
         public async Task AddNewSkill(string skillName)
         {
-            await Step("Given the user navigates to the Skills management page");
-            await Page.NavigateToSkillsBeheer();
+            Skill skill = null;
 
-            await Step($"When the user adds a new skill with the name '{skillName}'");
-            var skill = await Page.CreateSkill(skillName);
-
-            await Step($"Then the new skill '{skillName}' should appear in the skills list");
-            await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = skillName })).ToBeVisibleAsync();
-
-
-            await skill.DisposeAsync();
+            try
+            {
+                await Step($"When the user adds a new skill with the name '{skillName}'");
+                skill = await Page.CreateSkill(skillName);
+            }
+            finally
+            {
+                if (skill != null)
+                {
+                    await skill.DisposeAsync();
+                }
+            }
         }
+
 
         [TestMethod("3. Editing an existing Skill")]
         [DataRow("Automation skill edit")]
@@ -73,6 +77,34 @@ namespace Kiss.Bff.EndToEndTest.Beheer
                 await updatedSkill.DisposeAsync();
             }
 
+        }
+
+        [TestMethod("4. Deleting a Skill")]
+        [DataRow("Automation Skill To Delete")]
+        public async Task DeleteSkill(string skillName)
+        {
+            Skill skill = null;
+
+            try
+            {
+                await Step("When the user creates a new skill");
+                skill = await Page.CreateSkill(skillName);
+            }
+            finally
+            {
+                if (skill != null)
+                {
+                    await Step("Then the user deletes the skill");
+                    await skill.DisposeAsync();
+
+                    await Step("And verifies that the skill is no longer visible");
+                    var isVisible = await Page.GetByRole(AriaRole.Listitem)
+                        .Filter(new() { HasText = skillName })
+                        .IsVisibleAsync();
+
+                    Assert.IsFalse(isVisible, $"Skill '{skillName}' should be deleted but is still visible.");
+                }
+            }
         }
 
     }

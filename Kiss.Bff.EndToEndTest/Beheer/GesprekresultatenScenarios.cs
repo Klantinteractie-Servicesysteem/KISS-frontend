@@ -29,13 +29,23 @@ namespace Kiss.Bff.EndToEndTest.Beheer
         {
             string title = "Automation Gespreksresultaten";
 
-            await Step("Given user navigates to 'Gespreksresultaten' section");
-            await AddGespreksresultaatHelper(title);
+            try
+            {
+                await Step("Given user navigates to 'Gespreksresultaten' section");
+                await AddGespreksresultaatHelper(title);
 
-            await Step("Then the newly created Gespreksresultaat is displayed");
-            await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = title })).ToBeVisibleAsync();
-
-            await DeleteGespreksresultaatHelper(title);
+                await Step("Then the newly created Gespreksresultaat is displayed");
+                await Expect(Page.GetByRole(AriaRole.Listitem)
+                    .Filter(new() { HasText = title }))
+                    .ToBeVisibleAsync();
+            }
+            finally
+            {
+                if (await Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = title }).IsVisibleAsync())
+                {
+                    await DeleteGespreksresultaatHelper(title);
+                }
+            }
         }
 
 
@@ -69,7 +79,7 @@ namespace Kiss.Bff.EndToEndTest.Beheer
 
                 await Page.GetOpslaanButton().ClickAsync();
 
-                await Step($"And updated channel '{updatedGesprekresultaat}' is added to the list of Kanalen");
+                await Step($"And updated Gesprekresultaten '{updatedGesprekresultaat}' is added to the list of gespreksresultaten");
 
                 await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = updatedGesprekresultaat })).ToBeVisibleAsync();
             }
@@ -82,25 +92,38 @@ namespace Kiss.Bff.EndToEndTest.Beheer
         [TestMethod("4. Deleting a Gespreksresultaten")]
         public async Task Deletegespreksresultaat()
         {
-            await Step("Precondition: Automation Gesprekresultaten is created");
-            String Deletegespreksresultaat = "Automation Gesprekresultaten delete";
-            await AddGespreksresultaatHelper(Deletegespreksresultaat);
+            string testItemName = "Automation Gesprekresultaten delete";
 
             try
             {
-                await Step("When the user deletes the Gesprekresultaten");
-                await DeleteGespreksresultaatHelper(Deletegespreksresultaat);
+                await Step("Check if the Gespreksresultaat already exists");
+                var exists = await Page.GetByRole(AriaRole.Listitem)
+                    .Filter(new() { HasText = testItemName })
+                    .IsVisibleAsync();
+
+                if (exists)
+                {
+                    await Step("It exists, so delete it directly");
+                    await DeleteGespreksresultaatHelper(testItemName);
+                }
+                else
+                {
+                    await Step("It does not exist, so create and delete it");
+                    await AddGespreksresultaatHelper(testItemName);
+                    await DeleteGespreksresultaatHelper(testItemName);
+                }
+
+                var isStillVisible = await Page.GetByRole(AriaRole.Listitem)
+                    .Filter(new() { HasText = testItemName })
+                    .IsVisibleAsync();
+
+                Assert.IsFalse(isStillVisible, "Gespreksresultaat should be deleted but is still visible.");
             }
             finally
             {
-
-                var GespreksresultaatExists = await Page.GetByRole(AriaRole.Listitem)
-                    .Filter(new() { HasText = Deletegespreksresultaat })
-                    .IsVisibleAsync();
-
-                if (GespreksresultaatExists)
+                if (await Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = testItemName }).IsVisibleAsync())
                 {
-                    await DeleteGespreksresultaatHelper(Deletegespreksresultaat);
+                    await DeleteGespreksresultaatHelper(testItemName);
                 }
             }
         }
@@ -119,20 +142,20 @@ namespace Kiss.Bff.EndToEndTest.Beheer
             var existinggespreksresultaat = Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = Gespreksresultaat });
             if (await existinggespreksresultaat.CountAsync() > 0)
             {
-                await Step($"Channel '{Gespreksresultaat}' already exists. Skipping creation.");
+                await Step($"gespreksresultaat '{Gespreksresultaat}' already exists. Skipping creation.");
                 return; // Skip creating if it already exists
             }
 
             await Step("When user clicks on the add icon present at the bottom of the list");
             await Page.GetByRole(AriaRole.Button, new() { Name = "toevoegen" }).ClickAsync();
 
-            await Step("And enters the channel name in the 'Naam' field");
+            await Step("And enters the Gesprekresultaat name in the 'Naam' field");
             await Page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).FillAsync(Gespreksresultaat);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then the newly created channel is displayed in the channel list");
+            await Step("Then the newly created Gesprekresultaat is displayed in the Gesprekresultaten list");
             await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = Gespreksresultaat })).ToBeVisibleAsync();
         }
 
