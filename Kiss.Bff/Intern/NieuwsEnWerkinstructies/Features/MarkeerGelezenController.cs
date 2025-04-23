@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
-using Kiss.Bff.Beheer.Data;
+﻿using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -8,6 +8,7 @@ using Npgsql;
 namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 {
     [ApiController]
+    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class MarkeerGelezenController : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -18,11 +19,11 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
         }
 
         [HttpPut("api/berichten/{id}/read")]
-        public async Task<IActionResult> MarkeerGelezen([FromRoute]int id, [FromBody] MarkeerGelezenModel model, CancellationToken token)
+        public async Task<IActionResult> MarkeerGelezen([FromRoute] int id, [FromBody] MarkeerGelezenModel model, CancellationToken token)
         {
             var userId = User.GetId();
 
-            var entity = await _context.Gelezen.Where(x=> x.UserId == userId && x.BerichtId == id).FirstOrDefaultAsync(token);
+            var entity = await _context.Gelezen.Where(x => x.UserId == userId && x.BerichtId == id).FirstOrDefaultAsync(token);
 
             if (entity == null)
             {

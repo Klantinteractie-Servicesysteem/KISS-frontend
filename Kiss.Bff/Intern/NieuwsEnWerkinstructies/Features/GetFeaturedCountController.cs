@@ -1,11 +1,12 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 {
     [ApiController]
+    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class GetFeaturedCountController : ControllerBase
     {
         private readonly BeheerDbContext _context;

@@ -11,6 +11,7 @@ These tests are scheduled to run on Github Actions. [An html report](https://kla
     "TEST_USERNAME": "", // a valid username to login to Azure Entra Id
     "TEST_PASSWORD": "", // a valid password to login to Azure Entra Id
     "TEST_TOTP_SECRET": "" // a secret to generate 2 Factor Authentication codes for Azure Entra Id
+  
   }
 }
 ```

@@ -45,6 +45,7 @@ export async function fetchContactmomentenByKlantIdentificator(
       systeem.identifier,
       klantIndentificator,
     );
+
     if (!klant?.url) return [];
 
     const paginated = await fetchBetrokkenen({

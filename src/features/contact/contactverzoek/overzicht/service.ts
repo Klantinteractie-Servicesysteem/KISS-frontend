@@ -6,7 +6,6 @@ import {
   enrichInterneTakenWithActoren,
   fetchBetrokkenen,
   fetchKlantByKlantIdentificatorOk2,
-  fetchWithSysteemId,
   filterOutContactmomenten,
   KlantContactExpand,
   searchDigitaleAdressen,
@@ -31,6 +30,7 @@ import {
   enrichContactmomentWithZaaknummer,
   enrichOnderwerpObjectenWithZaaknummers,
 } from "../../shared";
+import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
 
 function searchRecursive(
   systeemId: string,

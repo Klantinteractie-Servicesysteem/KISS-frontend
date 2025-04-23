@@ -7,65 +7,75 @@
           'hide-sidebar': $route.meta.hideSidebar,
         }"
       >
-        <global-search class="search-bar" v-if="route.meta.showSearch" />
+        <global-search
+          class="search-bar"
+          v-if="isKcm && route.meta.showSearch"
+        />
 
         <nav>
           <ul>
-            <li
-              v-if="contactmomentStore.contactmomentLoopt && route.meta.showNav"
-            >
-              <router-link :to="{ name: 'contactverzoeken' }"
-                ><span>Contactverzoeken</span></router-link
+            <template v-if="isKcm">
+              <li
+                v-if="
+                  contactmomentStore.contactmomentLoopt && route.meta.showNav
+                "
               >
-            </li>
-
-            <li
-              v-if="contactmomentStore.contactmomentLoopt && route.meta.showNav"
-            >
-              <router-link :to="{ name: 'personen' }"
-                ><span>Personen</span></router-link
-              >
-            </li>
-
-            <li
-              v-if="contactmomentStore.contactmomentLoopt && route.meta.showNav"
-            >
-              <router-link :to="{ name: 'bedrijven' }"
-                ><span>Bedrijven</span></router-link
-              >
-            </li>
-
-            <li
-              v-if="contactmomentStore.contactmomentLoopt && route.meta.showNav"
-            >
-              <router-link :to="{ name: 'zaken' }"
-                ><span>Zaken</span></router-link
-              >
-            </li>
-
-            <li v-if="route.meta.showNav">
-              <router-link :to="{ name: 'home' }">
-                <span>Nieuws en werkinstructies</span>
-
-                <span
-                  v-if="
-                    featuredWerkberichtenCount.success &&
-                    featuredWerkberichtenCount.data > 0
-                  "
-                  class="featured-indicator"
-                  >{{
-                    featuredWerkberichtenCount.data < 10
-                      ? featuredWerkberichtenCount.data
-                      : "9+"
-                  }}</span
+                <router-link :to="{ name: 'contactverzoeken' }"
+                  ><span>Contactverzoeken</span></router-link
                 >
-              </router-link>
-            </li>
-            <li v-if="route.meta.showNav">
-              <router-link :to="{ name: 'links' }"
-                ><span>Links</span></router-link
+              </li>
+              <li
+                v-if="
+                  contactmomentStore.contactmomentLoopt && route.meta.showNav
+                "
               >
-            </li>
+                <router-link :to="{ name: 'personen' }"
+                  ><span>Personen</span></router-link
+                >
+              </li>
+              <li
+                v-if="
+                  contactmomentStore.contactmomentLoopt && route.meta.showNav
+                "
+              >
+                <router-link :to="{ name: 'bedrijven' }"
+                  ><span>Bedrijven</span></router-link
+                >
+              </li>
+              <li
+                v-if="
+                  contactmomentStore.contactmomentLoopt && route.meta.showNav
+                "
+              >
+                <router-link :to="{ name: 'zaken' }"
+                  ><span>Zaken</span></router-link
+                >
+              </li>
+            </template>
+            <template v-if="isKcm || isRedacteur">
+              <li v-if="route.meta.showNav">
+                <router-link :to="{ name: 'home' }">
+                  <span>Nieuws en werkinstructies</span>
+                  <span
+                    v-if="
+                      featuredWerkberichtenCount.success &&
+                      featuredWerkberichtenCount.data > 0
+                    "
+                    class="featured-indicator"
+                    >{{
+                      featuredWerkberichtenCount.data < 10
+                        ? featuredWerkberichtenCount.data
+                        : "9+"
+                    }}</span
+                  >
+                </router-link>
+              </li>
+              <li v-if="route.meta.showNav">
+                <router-link :to="{ name: 'links' }"
+                  ><span>Links</span></router-link
+                >
+              </li>
+            </template>
             <li
               v-if="
                 isRedacteur &&
@@ -109,6 +119,10 @@ const featuredWerkberichtenCount = useFeaturedWerkberichtenCount();
 
 const isRedacteur = computed(
   () => user.success && user.data.isLoggedIn && user.data.isRedacteur,
+);
+
+const isKcm = computed(
+  () => user.success && user.data.isLoggedIn && user.data.isKcm,
 );
 </script>
 

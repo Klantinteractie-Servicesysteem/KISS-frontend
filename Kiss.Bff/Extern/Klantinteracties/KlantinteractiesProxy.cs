@@ -14,6 +14,7 @@ namespace Kiss.Bff.Extern.Klantinteracties
     {
         [HttpPost]
         [HttpGet]
+        [HttpPut]
         public IActionResult Handle([FromRoute] string path, [FromHeader(Name = "systemIdentifier")] string? systemIdentifier)
         {
             var registry = registryConfig.GetRegistrySystem(systemIdentifier)?.KlantinteractieRegistry;

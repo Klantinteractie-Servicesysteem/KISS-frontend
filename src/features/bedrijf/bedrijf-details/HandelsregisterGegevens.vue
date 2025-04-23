@@ -1,6 +1,6 @@
 <template>
   <article class="details-block" v-if="bedrijf">
-    <utrecht-heading :level="2"> Gegevens Handelsregister</utrecht-heading>
+    <utrecht-heading :level="2">Gegevens Handelsregister</utrecht-heading>
     <dl>
       <dt>Bedrijfsnaam</dt>
       <dd>{{ bedrijf.bedrijfsnaam }}</dd>
@@ -51,7 +51,7 @@ const {
   loading,
   error,
 } = useLoader(() => {
-  console.log(props.internalKlantId);
+ 
   const klant = store.getKlantByInternalId(props.internalKlantId);
   if (klant) {
     if (klant.vestigingsnummer) {

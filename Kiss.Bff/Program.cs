@@ -1,18 +1,18 @@
 ﻿using System.Security.Claims;
+using Kiss.Bff;
 using Kiss.Bff.Afdelingen;
 using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.Config;
+using Kiss.Bff.Extern;
 using Kiss.Bff.Groepen;
-using Kiss.Bff;
+using Kiss.Bff.Intern.Seed.Features;
+using Kiss.Bff.Vacs;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Kiss.Bff.Intern.Seed.Features;
-using Kiss.Bff.Vacs;
-using Kiss.Bff.Extern;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +25,10 @@ Log.Information("Starting up");
 
 try
 {
+
+
+ 
+
     builder.WebHost.ConfigureKestrel(x =>
     {
         x.AddServerHeader = false;
@@ -34,7 +38,7 @@ try
     builder.Services.AddControllers();
 
     const string AuthorityKey = "OIDC_AUTHORITY";
-
+    
     var authority = builder.Configuration[AuthorityKey];
 
     if (string.IsNullOrWhiteSpace(authority))
@@ -42,7 +46,7 @@ try
         Log.Fatal("Environment variable {variableKey} is missing", AuthorityKey);
     }
 
-    builder.Services.AddKissAuth(options => 
+    builder.Services.AddKissAuth(options =>
     {
         options.Authority = authority;
         options.ClientId = builder.Configuration["OIDC_CLIENT_ID"];
@@ -50,7 +54,7 @@ try
         options.KlantcontactmedewerkerRole = builder.Configuration["OIDC_KLANTCONTACTMEDEWERKER_ROLE"];
         options.RedacteurRole = builder.Configuration["OIDC_REDACTEUR_ROLE"];
         options.MedewerkerIdentificatieClaimType = builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM"];
-        if(int.TryParse(builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE"], out var truncate))
+        if (int.TryParse(builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE"], out var truncate))
         {
             options.TruncateMedewerkerIdentificatie = truncate;
         }
@@ -63,8 +67,8 @@ try
     //});
 
     builder.Services.AddKissProxy();
-    builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"]);
-    builder.Services.AddHaalCentraal(builder.Configuration["HAAL_CENTRAAL_BASE_URL"], builder.Configuration["HAAL_CENTRAAL_API_KEY"]);
+    builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"], builder.Configuration["KVK_USER_HEADER_NAME"], builder.Configuration.GetSection("KVK_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>());
+    builder.Services.AddHaalCentraal(builder.Configuration);
     builder.Services.AddZgwTokenProvider(builder.Configuration["ZAKEN_API_KEY"], builder.Configuration["ZAKEN_API_CLIENT_ID"]);
 
     builder.Services.AddHttpClient();
@@ -116,7 +120,7 @@ try
     builder.Services.AddScoped<LinksService>();
     builder.Services.AddScoped<GespreksresultatenService>();
 
-    var app = builder.Build(); 
+    var app = builder.Build();
 
 
     // Configure the HTTP request pipeline.

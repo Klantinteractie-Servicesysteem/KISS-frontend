@@ -1,4 +1,4 @@
-import type { Directive } from "vue";
+import type { Directive, FunctionDirective } from "vue";
 import { watch } from "vue";
 
 function isValidPhoneNumber(val: string) {
@@ -169,32 +169,50 @@ export function validateWith<T>(validator: Validator<T>): ValidatorSetup<T> {
   };
 }
 
+type InputElementWithSetupRemoval = HTMLInputElement & {
+  removeValidatorSetup?: () => void;
+};
+
+type ValidatorSetupWithElement = ValidatorSetup & {
+  el?: InputElementWithSetupRemoval;
+};
+
+const setupValidation: FunctionDirective<
+  InputElementWithSetupRemoval,
+  ValidatorSetupWithElement
+> = (el, { value, oldValue }) => {
+  el.removeValidatorSetup?.();
+  oldValue?.el?.removeValidatorSetup?.();
+  const unwatch = watch(
+    () => value.current,
+    (i) => {
+      el.value = i;
+      const parsed = value.validator(i);
+      if (parsed instanceof Error) {
+        value.validated = undefined;
+        el.setCustomValidity(parsed.message);
+      } else {
+        el.setCustomValidity("");
+        value.validated = parsed;
+      }
+    },
+    { immediate: true },
+  );
+  function onInput() {
+    value.current = el.value;
+  }
+  el.addEventListener("input", onInput);
+  el.removeValidatorSetup = () => {
+    el.removeEventListener("input", onInput);
+    unwatch();
+    el.removeValidatorSetup = undefined;
+  };
+  value.el = el;
+};
+
 export const vValidate: Directive<HTMLInputElement, ValidatorSetup> = {
-  mounted(el, { value }) {
-    const unwatch = watch(
-      () => value.current,
-      (i) => {
-        el.value = i;
-        const parsed = value.validator(i);
-        if (parsed instanceof Error) {
-          value.validated = undefined;
-          el.setCustomValidity(parsed.message);
-        } else {
-          el.setCustomValidity("");
-          value.validated = parsed;
-        }
-      },
-      { immediate: true },
-    );
-    function onInput() {
-      value.current = el.value;
-    }
-    el.addEventListener("input", onInput);
-    (el as any).removeValidatorSetup = () => {
-      el.removeEventListener("input", onInput);
-      unwatch();
-    };
-  },
+  updated: setupValidation,
+  mounted: setupValidation,
   unmounted(el) {
     (el as any).removeValidatorSetup?.();
   },

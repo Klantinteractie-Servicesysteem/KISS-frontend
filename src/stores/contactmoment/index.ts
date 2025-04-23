@@ -379,7 +379,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       });
 
       mapKlantToContactverzoek(klant, contactverzoek);
-
+      console.log("setklant - huidigeVraag.klanten", huidigeVraag.klanten);
       const match = huidigeVraag.klanten.find(
         (x) =>
           x.klant.internalId === klant.internalId || x.klant.id === klant.id,

@@ -15,7 +15,6 @@
         />
       </template>
     </tab-list-item>
-
     <tab-list-item label="KvK-gegevens">
       <template #default="{ setError, setLoading }">
         <handelsregister-gegevens

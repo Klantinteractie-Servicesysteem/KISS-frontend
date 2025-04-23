@@ -45,6 +45,12 @@ namespace Microsoft.AspNetCore.Mvc
 
             using var client = factory.CreateClient("default");
             using var request = RequestFactory();
+
+            if(request.Content is JsonContent)
+            {
+                await request.Content.LoadIntoBufferAsync();
+            }
+
             using var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
 
             proxiedResponse.StatusCode = (int)responseMessage.StatusCode;

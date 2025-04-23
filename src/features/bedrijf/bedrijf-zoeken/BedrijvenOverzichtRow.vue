@@ -67,11 +67,15 @@ import {
   useSystemen,
 } from "@/services/environment/fetch-systemen";
 import { fetchKlantByKlantIdentificatorOk1 } from "@/services/openklant1";
-import { fetchKlantByKlantIdentificatorOk2 } from "@/services/openklant2";
+import {
+  fetchKlantByKlantIdentificatorOk2,
+  type KlantBedrijfIdentifier,
+} from "@/services/openklant2";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
+import type { KlantIdentificator } from "@/features/contact/types";
 
 const props = defineProps<{
   item: Bedrijf | Klant;
@@ -101,14 +105,17 @@ const matchingKlant = useKlantByBedrijfIdentifier(() => {
 
   const { vestigingsnummer, kvkNummer } = props.item;
 
-  if (vestigingsnummer)
+  if (vestigingsnummer && kvkNummer)
     return {
       vestigingsnummer,
+      kvkNummer,
     };
+
   // if (rsin)
   //   return {
   //     rsin, //openklant1 gebruikte rsin. esuite kvknummer.
   //   };
+
   if (kvkNummer)
     return {
       kvkNummer, //openklant1 gebruikte rsin. esuite kvknummer.
@@ -123,16 +130,11 @@ const bedrijf = computed(() =>
 
 const naam = computed(() => bedrijf.value.data?.bedrijfsnaam || "");
 
-const bedrijfIdentifier = computed<BedrijfIdentifier | undefined>(() => {
-  const { rsin, kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
-  if (vestigingsnummer)
+const bedrijfIdentifier = computed<KlantBedrijfIdentifier | undefined>(() => {
+  const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
+  if (vestigingsnummer && kvkNummer)
     return {
       vestigingsnummer,
-    };
-
-  if (rsin)
-    return {
-      rsin,
       kvkNummer,
     };
 
@@ -140,13 +142,14 @@ const bedrijfIdentifier = computed<BedrijfIdentifier | undefined>(() => {
     return {
       kvkNummer,
     };
+
   return undefined;
 });
 
 const router = useRouter();
 
-const getKlantUrl = (internalId: string | undefined) =>
-  `/bedrijven/${internalId}`;
+// const getKlantUrl = (internalId: string | undefined) =>
+//   `/bedrijven/${internalId}`;
 
 // const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
 //   mutate(klant.id, klant);
@@ -157,25 +160,23 @@ const getKlantUrl = (internalId: string | undefined) =>
 //   }
 // };
 
-async function navigate(bedrijf: Bedrijf, identifier: BedrijfIdentifier) {
-  //const bedrijfsnaam = bedrijf.bedrijfsnaam;
-  //const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
-
-  const klantIdentificator =
-    "vestigingsnummer" in identifier
-      ? { vestigingsnummer: identifier.vestigingsnummer }
-      : "rsin" in identifier
-        ? { rsin: identifier.rsin, kvkNummer: identifier.kvkNummer }
-        : { kvkNummer: identifier.kvkNummer };
-
+async function navigate(bedrijf: Bedrijf, identifier: KlantBedrijfIdentifier) {
+  //////////////////////
+  //do we now this klant already?
+  let klant = null;
   if (
     !systemen.loading.value &&
     !systemen.error.value &&
     systemen.defaultSysteem.value
   ) {
-    let klant = null;
+    const klantIdentificator: KlantIdentificator = {
+      vestigingsnummer:
+        "vestigingsnummer" in identifier
+          ? identifier.vestigingsnummer
+          : undefined,
+      kvkNummer: "kvkNummer" in identifier ? identifier.kvkNummer : undefined,
+    };
 
-    //todo: dit eerder doen, zodat we de klant gegevens (email/te nr al in de zoekresultaten lijst kunnen tonen)
     if (
       systemen.defaultSysteem.value.registryVersion === registryVersions.ok2
     ) {
@@ -189,42 +190,97 @@ async function navigate(bedrijf: Bedrijf, identifier: BedrijfIdentifier) {
         klantIdentificator,
       );
     }
-
-    if (klant) {
-      //  setCache(klant, bedrijf);
-
-      const existingKlant = <ContactmomentKlant>{
-        ...klant,
-        ...bedrijf,
-        //verplichte velden...
-        id: klant.id,
-        telefoonnummers: klant.telefoonnummers,
-        emailadressen: klant.emailadressen,
-        hasContactInformation:
-          klant?.telefoonnummers?.length > 0 ||
-          klant?.emailadressen?.length > 0,
-      };
-
-      // const x = {
-      //   ...existingKlant,
-      //   ...bedrijf,
-      //   hasContactInformation:
-      //     (klant.emailadressen && klant.emailadressen.length > 0) ||
-      //     (klant.telefoonnummers && klant.telefoonnummers.length > 0),
-      // };
-
-      contactmomentStore.setKlant(existingKlant);
-
-      const url = getKlantUrl(existingKlant.internalId);
-      await router.push(url);
-    } else {
-      //klant aanmaken  in store
-      //..
-      //..
-      //..
-      //..
-    }
   }
+
+  if (klant === null) {
+    //not an existing klant in the default reegistry
+    //create one for use during this session.
+    const newKlant = <ContactmomentKlant>{
+      ...bedrijf,
+      //verplichte velden...
+      id: "",
+      telefoonnummers: [],
+      emailadressen: [],
+      hasContactInformation: false,
+    };
+
+    //keep the klant in the store for now.
+    console.log("set klant newklant", newKlant);
+    contactmomentStore.setKlant(newKlant);
+    await router.push(`/bedrijven/${newKlant.internalId}`);
+  }
+
+  if (klant != null) {
+    //not an existing klant in the default reegistry
+    //create one for use during this session.
+    const existingKlant = <ContactmomentKlant>{
+      ...klant,
+      bedrijfsnaam: bedrijf.bedrijfsnaam, //om een of andere reden slaan we de bedrijfsnaam niet op in openklant. om deze wel te kunnen tonen op het afhandelscherm enmen we hem dan maar over uit het register.
+      id: klant.id,
+      telefoonnummers: klant.telefoonnummers,
+      emailadressen: klant.emailadressen,
+      hasContactInformation:
+        klant?.telefoonnummers?.length > 0 || klant?.emailadressen?.length > 0,
+    };
+
+    //keep the klant in the store for now.
+    console.log("set klant existingklant", existingKlant);
+    contactmomentStore.setKlant(existingKlant);
+    await router.push(`/bedrijven/${existingKlant.internalId}`);
+  }
+
+  //////////////////////////
+
+  // //const bedrijfsnaam = bedrijf.bedrijfsnaam;
+  // //const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
+
+  // const klantIdentificator =
+  //   "vestigingsnummer" in identifier
+  //     ? { vestigingsnummer: identifier.vestigingsnummer }
+  //     : "rsin" in identifier
+  //       ? { rsin: identifier.rsin }
+  //       : "kvkNummer" in identifier
+  //         ? { kvkNummer: identifier.kvkNummer }
+  //         : null;
+
+  // if (
+  //   !systemen.loading.value &&
+  //   !systemen.error.value &&
+  //   systemen.defaultSysteem.value
+  // ) {
+  //   let klant = null;
+
+  //   //todo: dit eerder doen, zodat we de klant gegevens (email/te nr al in de zoekresultaten lijst kunnen tonen)
+  //   if (
+  //     systemen.defaultSysteem.value.registryVersion === registryVersions.ok2
+  //   ) {
+  //     klant = await fetchKlantByKlantIdentificatorOk2(
+  //       systemen.defaultSysteem.value.identifier,
+  //       klantIdentificator,
+  //     );
+  //   } else {
+  //     klant = await fetchKlantByKlantIdentificatorOk1(
+  //       systemen.defaultSysteem.value.identifier,
+  //       klantIdentificator,
+  //     );
+  //   }
+
+  //   if (klant) {
+  //     //  setCache(klant, bedrijf);
+
+  //     const existingKlant = <ContactmomentKlant>{
+  //       ...klant,
+  //       ...bedrijf,
+  //       //verplichte velden...
+  //       id: klant.id,
+  //       telefoonnummers: klant.telefoonnummers,
+  //       emailadressen: klant.emailadressen,
+  //       hasContactInformation:
+  //         klant?.telefoonnummers?.length > 0 ||
+  //         klant?.emailadressen?.length > 0,
+  //     };
+  //   }
+  //}
 }
 
 watchEffect(() => {

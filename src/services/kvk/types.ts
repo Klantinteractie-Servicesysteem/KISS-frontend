@@ -17,12 +17,6 @@ export type KvkPagination = {
   resultaten: any[];
 };
 
-export type KvkNaamgeving = {
-  rsin: string;
-  kvkNummer: string;
-  handelsnaam: string;
-};
-
 export interface Bedrijf {
   _typeOfKlant: "bedrijf";
   kvkNummer: string;
@@ -49,11 +43,17 @@ export type BedrijfSearchOptions =
 export type BedrijfIdentifier =
   | {
       vestigingsnummer: string;
-    }
-  | {
-      rsin: string;
-      kvkNummer?: string;
+      kvkNummer: string;
     }
   | {
       kvkNummer: string;
+    }
+  | {
+      // kvkNummer?: string; //todo ????
+      rsin: string;
+    }
+  | {
+      //deze variant is nodig omdt we van de e-suite alleen het vestigingsnr terug krijkegen en niet het kvknummer.
+      //we moeten dus ook op basis vn alleen een vestiginsnummer gegevens kunnen opzoeken
+      vestigingsnummer: string;
     };

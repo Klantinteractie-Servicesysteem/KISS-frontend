@@ -1142,13 +1142,14 @@ const ensureKlanten = async (systeem: Systeem, vraag: Vraag) => {
         klantInSysteem = await ensureOk2Klant(systeem.identifier, {
           bsn: klant.bsn,
         });
-      } else if (klant.vestigingsnummer) {
+      } else if (klant.vestigingsnummer && klant.kvkNummer) {
         klantInSysteem = await ensureOk2Klant(systeem.identifier, {
           vestigingsnummer: klant.vestigingsnummer,
+          kvkNummer: klant.kvkNummer,
         });
-      } else if (klant.rsin) {
+      } else if (klant.kvkNummer) {
         klantInSysteem = await ensureOk2Klant(systeem.identifier, {
-          rsin: klant.rsin,
+          kvkNummer: klant.kvkNummer,
         });
       }
     }
