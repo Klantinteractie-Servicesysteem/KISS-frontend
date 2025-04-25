@@ -65,7 +65,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("And a checked checkbox is visible");
 
-            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "ZAAK-2023-001 (Zaaktype:" })).ToBeCheckedAsync();
+            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "ZAAK-2023-001" })).ToBeCheckedAsync();
         }
 
         [TestMethod("3. Register Contactmoment bij Zaak - II")]
