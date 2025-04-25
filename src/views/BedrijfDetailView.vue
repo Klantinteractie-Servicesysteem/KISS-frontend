@@ -3,10 +3,13 @@
   <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
   <tab-list v-model="currentTab">
     <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setLoading }">
+      <template #default="{ setError, setLoading, setDisabled }">
         <klant-details
-          :klant-id="bedrijfId"
-          @load="klant = $event"
+          :internalKlantId="internalKlantId"
+          @load="
+            klant = $event;
+            setDisabled($event == null);
+          "
           @loading="setLoading"
           @error="setError"
         />
@@ -15,8 +18,7 @@
     <tab-list-item label="KvK-gegevens">
       <template #default="{ setError, setLoading }">
         <handelsregister-gegevens
-          v-if="bedrijfIdentifier"
-          :bedrijf-identifier="bedrijfIdentifier"
+          :internalKlantId="internalKlantId"
           @load="bedrijf = $event"
           @loading="setLoading"
           @error="setError"
@@ -79,7 +81,7 @@ import ContactmomentenForKlantIdentificator from "@/features/contact/contactmome
 import type { Klant } from "@/services/openklant/types";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-defineProps<{ bedrijfId: string }>();
+defineProps<{ internalKlantId: string }>();
 
 const contactmomentStore = useContactmomentStore();
 
@@ -87,57 +89,44 @@ const currentTab = ref("");
 const klant = ref<Klant>();
 const bedrijf = ref<Bedrijf>();
 
-const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
-  if (!klant.value) return undefined;
+// const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
+//   if (!klant.value) return undefined;
+//   if (klant.value.vestigingsnummer)
+//     return {
+//       vestigingsnummer: klant.value.vestigingsnummer,
+//     };
+//   // if (klant.data.rsin)
+//   //   return {
+//   //     rsin: klant.data.rsin,
+//   //     kvkNummer: klant.data.kvkNummer,
+//   //   };
+//   if (klant.value.nietNatuurlijkPersoonIdentifier)
+//     return {
+//       //gechoogel met params verschil ok1 en esuite
+//       rsin: klant.value.nietNatuurlijkPersoonIdentifier,
+//     };
+//   if (klant.value.rsin)
+//     return {
+//       //gechoogel met params verschil ok1 en esuite
+//       rsin: klant.value.rsin,
+//     };
+// };
 
-  //todo: controleren of deze varant weer relevant is !!!!
-  if (klant.value.vestigingsnummer && klant.value.kvkNummer)
-    return {
-      vestigingsnummer: klant.value.vestigingsnummer,
-      kvkNummer: klant.value.kvkNummer,
-    };
+//const bedrijfIdentifier = computed(getBedrijfIdentifier);
 
-  if (klant.value.vestigingsnummer)
-    return {
-      vestigingsnummer: klant.value.vestigingsnummer,
-    };
-
-  if (klant.value.kvkNummer)
-    return {
-      kvkNummer: klant.value.kvkNummer,
-    };
-  // if (klant.data.rsin)
-  //   return {
-  //     rsin: klant.data.rsin,
-  //     kvkNummer: klant.data.kvkNummer,
-  //   };
-  if (klant.value.nietNatuurlijkPersoonIdentifier)
-    return {
-      //gechoogel met params verschil ok1 en esuite
-      rsin: klant.value.nietNatuurlijkPersoonIdentifier,
-    };
-  if (klant.value.rsin)
-    return {
-      //gechoogel met params verschil ok1 en esuite
-      rsin: klant.value.rsin,
-    };
-};
-
-const bedrijfIdentifier = computed(getBedrijfIdentifier);
-
-watch(
-  () =>
-    klant.value && bedrijf.value ? ([klant.value, bedrijf.value] as const) : [],
-  ([k, b]) => {
-    if (!k || !b) return;
-    contactmomentStore.setKlant({
-      ...k,
-      ...b,
-      hasContactInformation:
-        (k.emailadressen && k.emailadressen.length > 0) ||
-        (k.telefoonnummers && k.telefoonnummers.length > 0),
-    });
-  },
-  { immediate: true },
-);
+// watch(
+//   () =>
+//     klant.value && bedrijf.value ? ([klant.value, bedrijf.value] as const) : [],
+//   ([k, b]) => {
+//     if (!k || !b) return;
+//     contactmomentStore.setKlant({
+//       ...k,
+//       ...b,
+//       hasContactInformation:
+//         (k.emailadressen && k.emailadressen.length > 0) ||
+//         (k.telefoonnummers && k.telefoonnummers.length > 0),
+//     });
+//   },
+//   { immediate: true },
+// );
 </script>

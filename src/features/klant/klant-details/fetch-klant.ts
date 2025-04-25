@@ -12,40 +12,67 @@ import {
 } from "@/services/environment/fetch-systemen";
 import type { Klant } from "@/services/openklant/types";
 import { mapKlantToKlantIdentifier } from "@/features/contact/shared";
-import { findBedrijfInHandelsRegister, type Bedrijf } from "@/services/kvk";
+import { useContactmomentStore } from "@/stores/contactmoment";
+import {
+  searchBedrijvenInHandelsRegisterByRsin,
+  searchBedrijvenInHandelsRegisterByVestiging,
+  type Bedrijf,
+} from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
 export const fetchKlant = async ({
-  id,
+  internalId,
   systemen,
   defaultSysteem,
 }: {
-  id: string;
+  internalId: string;
   systemen: Systeem[];
   defaultSysteem: Systeem;
 }): Promise<Klant | null> => {
-  const klant = await fetchKlantById(id, defaultSysteem);
+  const store = useContactmomentStore();
+
+  //fetch klant from store based on the internal in memory KISS id
+  const klantenInHuidigeVraag =
+    store.$state.huidigContactmoment?.huidigeVraag.klanten;
+  const knownKlant = klantenInHuidigeVraag?.find(
+    (x) => x.klant.internalId == internalId,
+  );
+  const openKlantId = knownKlant?.klant.id;
+
+  if (!openKlantId) {
+    return null;
+  }
+
+  //fetch klant form external registrie based on the externalId for the store
+  const klant = await fetchKlantById(openKlantId, defaultSysteem);
   if (!klant) return null;
   if (heeftContactgegevens(klant)) return klant;
   if (!systemen.length) return klant;
 
-  // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-  // depending on whether the default system is ok1 or ok2.
-  // To translate this to the other systems,
-  // we need BOTH. So we first need to fetch the company again.
-  const bedrijf = await findBedrijfInHandelsRegister({
-    kvkNummer: klant.kvkNummer || klant.nietNatuurlijkPersoonIdentifier || "",
-    vestigingsnummer: klant.vestigingsnummer || "",
-    rsin: klant.rsin || klant.nietNatuurlijkPersoonIdentifier,
-  }).then(enforceOneOrZero);
+  if (!klant.bsn) {
+    // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
+    // depending on whether the default system is ok1 or ok2.
+    // To translate this to the other systems,
+    // we need BOTH. So we first need to fetch the company again.
 
-  if (!bedrijf) return klant;
+    const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
+      klant.rsin ||
+        klant.nietNatuurlijkPersoonIdentifier ||
+        klant.kvkNummer ||
+        "",
+    ).then(enforceOneOrZero);
+
+    if (!bedrijf) return klant;
+
+    klant.kvkNummer = bedrijf.kvkNummer;
+    klant.rsin = bedrijf.rsin;
+  }
 
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
     const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      bedrijf,
+      klant,
       nonDefaultSysteem,
     );
 
@@ -64,7 +91,7 @@ export const fetchKlant = async ({
 };
 
 const fetchKlantByNonDefaultSysteem = async (
-  bedrijf: Bedrijf,
+  bedrijf: Klant,
   systeem: Systeem,
 ): Promise<Klant | null> =>
   systeem.registryVersion === registryVersions.ok1
@@ -88,3 +115,10 @@ const fetchKlantById = async (
 
 const heeftContactgegevens = (klant: Klant) =>
   klant.emailadressen?.length || klant.telefoonnummers?.length;
+function searchBedrijfInHandelsRegister(arg0: {
+  kvkNummer: string;
+  vestigingsnummer: string;
+  rsin: string | undefined;
+}) {
+  throw new Error("Function not implemented.");
+}
