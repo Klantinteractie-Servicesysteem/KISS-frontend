@@ -41,7 +41,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await SearchForZaakInContactmoment();
 
             await Step("Given the user is on the 'Zaak ZAAK-2023-001' screen");
-             
+
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-001" })).ToBeVisibleAsync();
 
             await Step("When the user clicks Afronden in the Notes-Contactverzoek-Pane");
@@ -55,7 +55,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("Then the heading 'Gerelateerde zaak' appears under 'Vraag 1'");
 
-            var vraagHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Vraag 1" });            
+            var vraagHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Vraag 1" });
 
             await Expect(vraagHeading.Locator("..").GetByRole(AriaRole.Heading, new() { Name = "Gerelateerde zaak" })).ToBeVisibleAsync();
 
@@ -65,7 +65,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("And a checked checkbox is visible");
 
-            await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = "ZAAK-2023-001" })).ToBeCheckedAsync();
+            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "ZAAK-2023-001 (Zaaktype:" })).ToBeCheckedAsync();
         }
 
         [TestMethod("3. Register Contactmoment bij Zaak - II")]
@@ -104,7 +104,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" }).ClickAsync();
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
-           
+
             await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
@@ -157,6 +157,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await Expect(detailsList.ContactMomentDescription()).ToHaveTextAsync("Contactmoment bij ZAAK-2023-001");
         }
     }
-   
-    
+
+
 }
