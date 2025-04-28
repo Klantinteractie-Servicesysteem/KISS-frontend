@@ -37,6 +37,6 @@ namespace Kiss.Bff.ZaakGerichtWerken.Klanten
                 return message;
             });
         }
-        private Uri GetUri(KlantRegistry config, string path) => new Uri($"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}?{Request.QueryString}");
+        private Uri GetUri(KlantRegistry config, string path) => new Uri($"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}{Request.QueryString.Value}");
     }
 }
