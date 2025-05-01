@@ -41,7 +41,7 @@ import { watchEffect, type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import type { Klant } from "@/services/openklant/types";
 import { useLoader } from "@/services";
-import { fetchKlant } from "./fetch-klant";
+import { fetchKlantByInternalId } from "./fetch-klant";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 
 const { systemen, defaultSysteem } = useSystemen();
@@ -69,7 +69,7 @@ const {
   )
     return;
 
-  return fetchKlant({
+  return fetchKlantByInternalId({
     internalId: props.internalKlantId,
     systemen: systemen.value,
     defaultSysteem: defaultSysteem.value,

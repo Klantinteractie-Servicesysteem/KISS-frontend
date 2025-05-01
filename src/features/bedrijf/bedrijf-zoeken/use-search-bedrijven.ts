@@ -29,7 +29,7 @@ export function useSearchBedrijven(
       throw new Error("query wordt hierboven al gecheckt");
     }
 
-    const { page, query} = args;
+    const { page, query } = args;
 
     if ("email" in query || "telefoonnummer" in query) {
       throw new Error("Invalid query for searchBedrijvenInHandelsRegister");
