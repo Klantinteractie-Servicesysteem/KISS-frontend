@@ -49,7 +49,11 @@
 import { computed, watchEffect } from "vue";
 
 import { useKlantByBedrijfIdentifier } from "./use-klant-by-bedrijf-identifier";
-import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
+import {
+  searchBedrijvenInHandelsRegisterByRsin,
+  type Bedrijf,
+  type BedrijfIdentifier,
+} from "@/services/kvk";
 import { useRouter } from "vue-router";
 import { mutate } from "swrv";
 import { ensureKlantForBedrijfIdentifier } from "./ensure-klant-for-bedrijf-identifier";
@@ -69,8 +73,12 @@ import {
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
 import type { KlantIdentificator } from "@/features/contact/types";
-import { useLoader } from "@/services";
-import { fetchKlantByInternalId } from "@/features/klant/klant-details/fetch-klant";
+import { enforceOneOrZero, useLoader } from "@/services";
+import {
+  fetchKlantByInternalId,
+  fetchKlantByNonDefaultSysteem,
+  heeftContactgegevens,
+} from "@/features/klant/klant-details/fetch-klant";
 
 const props = defineProps<{
   item: Bedrijf;
@@ -124,7 +132,7 @@ const contactmomentStore = useContactmomentStore();
 //     : { success: false, loading: false },
 // );
 
-const internalId: string | null = null;
+let KlantRegisterKlantId: string | null = null;
 
 const {
   data: deKlantUitHetEigenRegisterMetCotnactgegevensUitAlleEigenRegisters,
@@ -135,6 +143,8 @@ const {
     !systemen.loading.value &&
     !systemen.error.value &&
     systemen.systemen.value?.length &&
+    !systemen.loading &&
+    !systemen.error &&
     systemen.defaultSysteem.value
   )
     return;
@@ -153,18 +163,70 @@ const {
     return;
   }
 
+  let klant = null;
+
   if (systemen.defaultSysteem.value.registryVersion === registryVersions.ok2) {
-    return await fetchKlantByKlantIdentificatorOk2(
+    klant = await fetchKlantByKlantIdentificatorOk2(
       systemen.defaultSysteem.value.identifier,
       klantIdentificator,
     );
   } else {
-    return await fetchKlantByKlantIdentificatorOk1(
+    klant = await fetchKlantByKlantIdentificatorOk1(
       systemen.defaultSysteem.value.identifier,
       klantIdentificator,
     );
   }
 
+  if (!klant) return null;
+
+  //important!, we only put the klant where we click on in the store. howwerver we need to find and storter the id of the klant in the klantregistry.
+  KlantRegisterKlantId = klant.id;
+
+  if (heeftContactgegevens(klant)) return klant;
+
+  // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
+  // depending on whether the default system is ok1 or ok2.
+  // To translate this to the other systems,
+  // we need BOTH. So we first need to fetch the company again.
+
+  const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
+    klant.rsin ||
+      klant.nietNatuurlijkPersoonIdentifier ||
+      klant.kvkNummer ||
+      "",
+  ).then(enforceOneOrZero);
+
+  if (!bedrijf) return klant;
+
+  klant.kvkNummer = bedrijf.kvkNummer;
+  klant.rsin = bedrijf.rsin;
+
+  if (!systemen.systemen.value?.length) return klant;
+
+  //todo todo todo
+  //to
+
+  //todo: make generic for personen
+  for (const nonDefaultSysteem of systemen.systemen.value.filter(
+    (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
+  )) {
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      klant,
+      nonDefaultSysteem,
+    );
+
+    //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
+    //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
+    if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
+      klant.telefoonnummer = fallbackKlant.telefoonnummer;
+      klant.telefoonnummers = fallbackKlant.telefoonnummers;
+      klant.emailadres = fallbackKlant.emailadres;
+      klant.emailadressen = fallbackKlant.emailadressen;
+      return klant;
+    }
+  }
+
+  return klant;
   // return fetchKlantFromExternalRegistryByExternalId({
   //   externalId: bedrijfIdentifier,
   //   systemen: systemen.systemen.value as Systeem[],
@@ -299,22 +361,32 @@ async function navigate() {
 
   const kvkklantInStore = klantenInStoreBijHuiduigeVraag?.find(
     (x) =>
-      x.klant.id === props.item.kvkNummer ||
-      x.klant.id === props.item.rsin ||
-      x.klant.id === props.item.vestigingsnummer,
+      (!props.item.kvkNummer || x.klant.kvkNummer === props.item.kvkNummer) &&
+      (!props.item.rsin || x.klant.rsin === props.item.rsin) &&
+      (!props.item.vestigingsnummer ||
+        x.klant.vestigingsnummer === props.item.vestigingsnummer),
   );
 
-  if (kvkklantInStore?.klant?.internalId) {
-    return fetchKlantByInternalId({
-      internalId: kvkklantInStore?.klant?.internalId,
-      systemen: systemen.systemen.value as Systeem[],
-      defaultSysteem: systemen.defaultSysteem.value as Systeem,
-    });
-  }
+  // //fetch klant data from Klant register
+  // if (kvkklantInStore?.klant?.internalId) {
+  //   return fetchKlantByInternalId({
+  //     internalId: kvkklantInStore?.klant?.internalId,
+  //     systemen: systemen.systemen.value as Systeem[],
+  //     defaultSysteem: systemen.defaultSysteem.value as Systeem,
+  //   });
+  // }
 
   //de klant is nog niet bekend in de inmemory store van dit contactmoment voeg toe
   //er wordt dan een tijdelijk id gegeenreerd om verdertijdens de afhandeling aan te refeeren
 
+  if (kvkklantInStore && KlantRegisterKlantId) {
+    kvkklantInStore.klant.id = KlantRegisterKlantId; //we hebben al alle klanten in openklant opgezocht, maar alleen de klant waar we op klikken zit in de store. het openklant id hebben we wel nodig. dus nog even vastleggen
+    await router.push(`/bedrijven/${kvkklantInStore.klant.internalId}`);
+    return;
+  }
+
+  //klan not yet in internal store.
+  //add the klant and navigate to details page with the generated internal id
   const newContactmomentKlant = <ContactmomentKlant>{
     ...props.item,
     //verplichte velden...
@@ -326,7 +398,7 @@ async function navigate() {
 
   contactmomentStore.setKlant(newContactmomentKlant);
 
-  await router.push(`/bedrijven/${internalId}`);
+  await router.push(`/bedrijven/${newContactmomentKlant.internalId}`);
 }
 
 //if (klant != null) {

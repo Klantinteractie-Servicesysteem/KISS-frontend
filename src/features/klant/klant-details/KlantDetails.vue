@@ -68,7 +68,7 @@ const {
     !systemen.value?.length
   )
     return;
-
+  console.log(defaultSysteem.value);
   return fetchKlantByInternalId({
     internalId: props.internalKlantId,
     systemen: systemen.value,

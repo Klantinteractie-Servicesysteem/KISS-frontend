@@ -51,7 +51,6 @@ const {
   loading,
   error,
 } = useLoader(() => {
- 
   const klant = store.getKlantByInternalId(props.internalKlantId);
   if (klant) {
     if (klant.vestigingsnummer) {

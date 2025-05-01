@@ -20,6 +20,7 @@ import {
   type Bedrijf,
 } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
+import type { KlantIdentificator } from "@/features/contact/types";
 
 // export const fetchKlantFromExternalRegistryByExternalId = async ({
 //   externalId,
@@ -147,7 +148,7 @@ export const fetchKlantByInternalId = async ({
   return klant;
 };
 
-const fetchKlantByNonDefaultSysteem = async (
+export const fetchKlantByNonDefaultSysteem = async (
   bedrijf: Klant,
   systeem: Systeem,
 ): Promise<Klant | null> =>
@@ -170,8 +171,9 @@ const fetchKlantById = async (
   }
 };
 
-const heeftContactgegevens = (klant: Klant) =>
+export const heeftContactgegevens = (klant: Klant) =>
   klant.emailadressen?.length || klant.telefoonnummers?.length;
+
 function searchBedrijfInHandelsRegister(arg0: {
   kvkNummer: string;
   vestigingsnummer: string;
