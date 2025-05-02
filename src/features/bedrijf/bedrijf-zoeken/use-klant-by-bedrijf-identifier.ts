@@ -49,12 +49,6 @@ export const useKlantByBedrijfIdentifier = (
       );
     }
     return klant;
-    // const x: ContactmomentKlant = {
-    //   ...klant,
-    //   internalId,
-    // };
-
-    // return x;
   };
 
   return ServiceResult.fromFetcher(getCacheKey(), findKlant, {

@@ -85,14 +85,6 @@ const router = createRouter({
       beforeEnter: guardContactMoment,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
-    // {
-    //   path: "/contactverzoeken/:contactId",
-    //   name: "contactverzoekDetail",
-    //   props: true,
-    //   component: ContactverzoekenDetailView,
-    //   beforeEnter: guardContactMoment,
-    //   meta: { showNav: true, showNotitie: true, showSearch: true },
-    // },
     {
       path: "/personen",
       name: "personen",

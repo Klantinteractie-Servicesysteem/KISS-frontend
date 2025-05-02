@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { KlantDetails } from "@/features/klant/klant-details";
@@ -89,11 +89,8 @@ import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
 defineProps<{ internalKlantId: string }>();
-
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
-
 const klant = ref<Klant>();
-
 const persoon = ref<Persoon>();
 </script>
