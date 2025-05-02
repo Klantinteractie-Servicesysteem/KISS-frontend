@@ -167,14 +167,13 @@ const zoekOpPostcodeHuisnummer = () => {
   }
 };
 
-const bedrijven = useSearchBedrijven(() => {
-  return (
+const bedrijven = useSearchBedrijven(
+  () =>
     store.value.query && {
       query: store.value.query,
       page: store.value.page,
-    }
-  );
-});
+    },
+);
 
 const navigate = (val: number) => {
   store.value.page = val;

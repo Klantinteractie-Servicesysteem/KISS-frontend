@@ -35,7 +35,7 @@
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
   searchBedrijvenInHandelsRegisterByRsin,
-  searchBedrijvenInHandelsRegisterByVestiging,
+  searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer,
   type Bedrijf,
 } from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
@@ -53,9 +53,10 @@ const {
 } = useLoader(() => {
   const klant = store.getKlantByInternalId(props.internalKlantId);
   if (klant) {
-    if (klant.vestigingsnummer) {
-      return searchBedrijvenInHandelsRegisterByVestiging(
+    if (klant.vestigingsnummer && klant.kvkNummer) {
+      return searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer(
         klant.vestigingsnummer,
+        klant.kvkNummer,
       ).then(enforceOneOrZero);
     }
     if (klant.rsin) {

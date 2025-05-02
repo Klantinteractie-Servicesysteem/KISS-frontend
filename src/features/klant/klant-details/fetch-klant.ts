@@ -64,24 +64,7 @@ export const fetchKlantByInternalId = async ({
     klant.rsin = bedrijf.rsin;
   }
 
-  for (const nonDefaultSysteem of systemen.filter(
-    (s) => s.identifier !== defaultSysteem.identifier,
-  )) {
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      klant,
-      nonDefaultSysteem,
-    );
-
-    //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
-    //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
-    if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
-      klant.telefoonnummer = fallbackKlant.telefoonnummer;
-      klant.telefoonnummers = fallbackKlant.telefoonnummers;
-      klant.emailadres = fallbackKlant.emailadres;
-      klant.emailadressen = fallbackKlant.emailadressen;
-      return klant;
-    }
-  }
+  await enrichKlantWithContactDetails(klant, systemen, defaultSysteem);
 
   return klant;
 };
@@ -111,3 +94,28 @@ const fetchKlantById = async (
 
 export const heeftContactgegevens = (klant: Klant) =>
   klant.emailadressen?.length || klant.telefoonnummers?.length;
+
+export const enrichKlantWithContactDetails = async (
+  klant: Klant,
+  systemen: Systeem[],
+  defaultSysteem: Systeem,
+) => {
+  for (const nonDefaultSysteem of systemen.filter(
+    (s) => s.identifier !== defaultSysteem.identifier,
+  )) {
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      klant,
+      nonDefaultSysteem,
+    );
+
+    //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
+    //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
+    if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
+      klant.telefoonnummer = fallbackKlant.telefoonnummer;
+      klant.telefoonnummers = fallbackKlant.telefoonnummers;
+      klant.emailadres = fallbackKlant.emailadres;
+      klant.emailadressen = fallbackKlant.emailadressen;
+      return klant;
+    }
+  }
+};

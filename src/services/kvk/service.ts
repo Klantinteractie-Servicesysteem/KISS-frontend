@@ -61,12 +61,13 @@ export async function searchBedrijvenInHandelsRegister(
   });
 }
 
-export function searchBedrijvenInHandelsRegisterByVestiging(
+export function searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer(
   vestigingsnummer: string,
+  kvkNummer: string,
   page?: number,
 ) {
   const searchParams = new URLSearchParams();
-
+  searchParams.set("kvkNummer", kvkNummer);
   searchParams.set("vestigingsnummer", vestigingsnummer);
   searchParams.set("type", "hoofdvestiging");
   searchParams.append("type", "nevenvestiging");

@@ -17,7 +17,7 @@
       <div v-if="loading" />
       <template v-if="!error">
         {{
-          deKlantUitHetEigenRegisterMetCotnactgegevensUitAlleEigenRegisters?.emailadressen?.join(
+          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.emailadressen?.join(
             ", ",
           )
         }}
@@ -27,7 +27,7 @@
       <div class="skeleton" v-if="loading" />
       <template v-if="!error">
         {{
-          deKlantUitHetEigenRegisterMetCotnactgegevensUitAlleEigenRegisters?.telefoonnummers.join(
+          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.telefoonnummers.join(
             ", ",
           )
         }}
@@ -59,7 +59,7 @@ import {
 import type { KlantIdentificator } from "@/features/contact/types";
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
-  fetchKlantByNonDefaultSysteem,
+  enrichKlantWithContactDetails,
   heeftContactgegevens,
 } from "@/features/klant/klant-details/fetch-klant";
 
@@ -71,30 +71,28 @@ const props = defineProps<{
 const systemen = useSystemen();
 const contactmomentStore = useContactmomentStore();
 
-//please note, the implementation for bedrijven is a litle more complex than for personen.
+//Please note, the implementation for bedrijven is a litle more complex than for personen.
 //for personen we only show brp data on the searchresult list.
-//we can get the klant from OpenKlant when we navigate to the details page
-//that's when this klant will be linked to the current contactmoment
+//We can get the klant from OpenKlant when we navigate to the details page
+//that's when the klant will be linked to the current contactmoment and
 //that's when we ensure its in the inmemory store of this website
-//for bedrijven however, we need to shwo contactdetails from OpenKlant in the results list
+//For bedrijven however, we need to show contactdetails from OpenKlant in the results list
 //therefore we need to fetch them from openKlant right away,
-//but we can only link the klant to the current contactmoment
-// and place the klatn in the website inmemory store when we navigate to the details page
+//but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
+//when we navigate to the details page
 
 let KlantRegisterKlantId: string | null = null;
 
 const {
-  data: deKlantUitHetEigenRegisterMetCotnactgegevensUitAlleEigenRegisters,
+  data: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters,
   loading,
   error,
 } = useLoader(async () => {
   if (
-    !systemen.loading.value &&
-    !systemen.error.value &&
-    systemen.systemen.value?.length &&
-    !systemen.loading &&
-    !systemen.error &&
-    systemen.defaultSysteem.value
+    systemen.loading.value ||
+    systemen.error.value ||
+    !systemen.systemen.value?.length ||
+    !systemen.defaultSysteem.value
   )
     return;
 
@@ -128,7 +126,6 @@ const {
 
   if (!klant) return null;
 
-  //important!
   //we need to now the id later on but we cant put the klant in the websites inMemory store yet
   //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
   //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
@@ -153,27 +150,11 @@ const {
   klant.kvkNummer = bedrijf.kvkNummer;
   klant.rsin = bedrijf.rsin;
 
-  if (!systemen.systemen.value?.length) return klant;
-
-  //todo: make generic, we do this for persons as well
-  for (const nonDefaultSysteem of systemen.systemen.value.filter(
-    (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
-  )) {
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      klant,
-      nonDefaultSysteem,
-    );
-
-    //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
-    //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
-    if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
-      klant.telefoonnummer = fallbackKlant.telefoonnummer;
-      klant.telefoonnummers = fallbackKlant.telefoonnummers;
-      klant.emailadres = fallbackKlant.emailadres;
-      klant.emailadressen = fallbackKlant.emailadressen;
-      return klant;
-    }
-  }
+  enrichKlantWithContactDetails(
+    klant,
+    systemen.systemen.value,
+    systemen.defaultSysteem.value,
+  );
 
   return klant;
 });
@@ -200,7 +181,7 @@ async function navigate() {
 
   //todo: do we still need caching???
 
-  //klant not yet in internal store.
+  //klant is not yet in website store.
   //add the klant and navigate to details page with the generated internal id
   const newContactmomentKlant = <ContactmomentKlant>{
     ...props.item,
