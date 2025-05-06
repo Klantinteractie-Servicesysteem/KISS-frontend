@@ -16,6 +16,8 @@ import { useContactmomentStore } from "@/stores/contactmoment";
 import { searchBedrijvenInHandelsRegisterByRsin } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
+import type { KlantIdentificator } from "@/features/contact/types";
+
 export const fetchKlantByInternalId = async ({
   internalId,
   systemen,
@@ -117,5 +119,22 @@ export const enrichKlantWithContactDetails = async (
       klant.emailadressen = fallbackKlant.emailadressen;
       return klant;
     }
+  }
+};
+
+export const fetchKlantByKlantIdentificatorOk = async (
+  klantIdentificator: KlantIdentificator,
+  defaultSysteem: Systeem,
+) => {
+  if (defaultSysteem.registryVersion === registryVersions.ok2) {
+    return await fetchKlantByKlantIdentificatorOk2(
+      defaultSysteem.identifier,
+      klantIdentificator,
+    );
+  } else {
+    return await fetchKlantByKlantIdentificatorOk1(
+      defaultSysteem.identifier,
+      klantIdentificator,
+    );
   }
 };

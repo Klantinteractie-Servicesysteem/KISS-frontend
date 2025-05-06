@@ -52,16 +52,12 @@ import type { Persoon } from "@/services/brp";
 import { useRouter } from "vue-router";
 import { mutate } from "swrv";
 import { watchEffect } from "vue";
-import {
-  registryVersions,
-  useSystemen,
-} from "@/services/environment/fetch-systemen";
-import { fetchKlantByKlantIdentificatorOk2 } from "@/services/openklant2";
-import { fetchKlantByKlantIdentificatorOk1 } from "@/services/openklant1";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
+import { fetchKlantByKlantIdentificatorOk } from "@/features/klant/klant-details/fetch-klant";
 
 const props = defineProps<{
   records: Persoon[];
@@ -80,20 +76,10 @@ const navigate = async (persoon: Persoon) => {
     !systemen.error.value &&
     systemen.defaultSysteem.value
   ) {
-    let klant = null;
-    if (
-      systemen.defaultSysteem.value.registryVersion === registryVersions.ok2
-    ) {
-      klant = await fetchKlantByKlantIdentificatorOk2(
-        systemen.defaultSysteem.value.identifier,
-        { bsn: bsn },
-      );
-    } else {
-      klant = await fetchKlantByKlantIdentificatorOk1(
-        systemen.defaultSysteem.value.identifier,
-        { bsn: bsn },
-      );
-    }
+    const klant = await fetchKlantByKlantIdentificatorOk(
+      { bsn: bsn },
+      systemen.defaultSysteem.value,
+    );
 
     await mutate("persoon" + bsn, persoon);
 

@@ -60,9 +60,10 @@ const {
       ).then(enforceOneOrZero);
     }
     if (klant.rsin) {
-      return searchBedrijvenInHandelsRegisterByRsin(klant.rsin).then(
-        enforceOneOrZero,
-      );
+      return searchBedrijvenInHandelsRegisterByRsin(
+        klant.rsin,
+        klant.kvkNummer,
+      ).then(enforceOneOrZero);
     }
   }
 });

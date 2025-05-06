@@ -256,7 +256,7 @@ const getUrlVoorBedrijf = (klantIdentificator: KlantIdentificator) => {
   if (!klantIdentificator) {
     return "";
   }
-
+  console.log("------", klantIdentificator, 234234);
   const url = new URL(klantRootUrl);
 
   if (klantIdentificator.vestigingsnummer) {

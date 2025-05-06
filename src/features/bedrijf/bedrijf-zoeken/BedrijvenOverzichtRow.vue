@@ -46,12 +46,7 @@ import {
   type Bedrijf,
 } from "@/services/kvk";
 import { useRouter } from "vue-router";
-import {
-  registryVersions,
-  useSystemen,
-} from "@/services/environment/fetch-systemen";
-import { fetchKlantByKlantIdentificatorOk1 } from "@/services/openklant1";
-import { fetchKlantByKlantIdentificatorOk2 } from "@/services/openklant2";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
@@ -60,6 +55,8 @@ import type { KlantIdentificator } from "@/features/contact/types";
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
   enrichKlantWithContactDetails,
+  fetchKlantByKlantIdentificatorOk,
+  fetchKlantByNonDefaultSysteem,
   heeftContactgegevens,
 } from "@/features/klant/klant-details/fetch-klant";
 
@@ -81,7 +78,7 @@ const contactmomentStore = useContactmomentStore();
 //but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
 //when we navigate to the details page
 
-let KlantRegisterKlantId: string | null = null;
+const KlantRegisterKlantId: string | null = null;
 
 const {
   data: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters,
@@ -96,7 +93,7 @@ const {
   )
     return;
 
-  // find the klant in OpenKlant
+  // find the klant in the Klant registry
 
   const klantIdentificator: KlantIdentificator = {
     vestigingsnummer:
@@ -110,51 +107,94 @@ const {
     return;
   }
 
-  let klant = null;
-
-  if (systemen.defaultSysteem.value.registryVersion === registryVersions.ok2) {
-    klant = await fetchKlantByKlantIdentificatorOk2(
-      systemen.defaultSysteem.value.identifier,
-      klantIdentificator,
-    );
-  } else {
-    klant = await fetchKlantByKlantIdentificatorOk1(
-      systemen.defaultSysteem.value.identifier,
-      klantIdentificator,
-    );
-  }
-
-  if (!klant) return null;
-
-  //we need to now the id later on but we cant put the klant in the websites inMemory store yet
-  //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
-  //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
-  KlantRegisterKlantId = klant.id;
-
-  if (heeftContactgegevens(klant)) return klant;
-
-  // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-  // depending on whether the default system is ok1 or ok2.
-  // To translate this to the other systems,
-  // we need BOTH. So we first need to fetch the company again.
-
-  const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
-    klant.rsin ||
-      klant.nietNatuurlijkPersoonIdentifier ||
-      klant.kvkNummer ||
-      "",
-  ).then(enforceOneOrZero);
-
-  if (!bedrijf) return klant;
-
-  klant.kvkNummer = bedrijf.kvkNummer;
-  klant.rsin = bedrijf.rsin;
-
-  enrichKlantWithContactDetails(
-    klant,
-    systemen.systemen.value,
+  const klant = await fetchKlantByKlantIdentificatorOk(
+    klantIdentificator,
     systemen.defaultSysteem.value,
   );
+
+  if (klant) {
+    //we need to now the id later on but we cant put the klant in the websites inMemory store yet
+    //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
+    //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
+    //  KlantRegisterKlantId = klant.id;
+
+    //return the Klant from the default registry if it has contactdetails
+    if (heeftContactgegevens(klant)) return klant;
+  }
+
+  //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
+  //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
+  for (const nonDefaultSysteem of systemen.systemen.value.filter(
+    (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
+  )) {
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      {
+        kvkNummer: props.item.kvkNummer,
+        vestigingsnummer: props.item.vestigingsnummer,
+        rsin: props.item.rsin,
+
+        //required fields
+        _typeOfKlant: "klant",
+        id: "",
+        klantnummer: "",
+        telefoonnummers: [],
+        emailadressen: [],
+        url: "",
+      },
+      nonDefaultSysteem,
+    );
+
+    return fallbackKlant;
+
+    // //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
+    // //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
+    // if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
+    //   klant.telefoonnummer = fallbackKlant.telefoonnummer;
+    //   klant.telefoonnummers = fallbackKlant.telefoonnummers;
+    //   klant.emailadres = fallbackKlant.emailadres;
+    //   klant.emailadressen = fallbackKlant.emailadressen;
+    //   return klant;
+    // }
+  }
+
+  // if (!klant) {
+  //   klant = {
+  //     _typeOfKlant: "klant",
+  //     id: "",
+  //     klantnummer: "",
+  //     telefoonnummers: [],
+  //     emailadressen: [],
+  //     url: "",
+
+  //     kvkNummer: props.item?.kvkNummer,
+  //     rsin: props.item?.rsin,
+  //     vestigingsnummer: props.item.vestigingsnummer,
+  //     nietNatuurlijkPersoonIdentifier: props.item.rsin,
+  //   };
+  // }
+
+  // // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
+  // // depending on whether the default system is ok1 or ok2.
+  // // To translate this to the other systems,
+  // // we need BOTH. So we first need to fetch the company again.
+
+  // const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
+  //   klant.rsin ||
+  //     klant.nietNatuurlijkPersoonIdentifier ||
+  //     klant.kvkNummer ||
+  //     "",
+  // ).then(enforceOneOrZero);
+
+  // if (!bedrijf) return klant;
+
+  // klant.kvkNummer = bedrijf.kvkNummer;
+  // klant.rsin = bedrijf.rsin;
+
+  // enrichKlantWithContactDetails(
+  //   klant,
+  //   systemen.systemen.value,
+  //   systemen.defaultSysteem.value,
+  // );
 
   return klant;
 });
@@ -165,7 +205,7 @@ async function navigate() {
   const klantenInStoreBijHuiduigeVraag =
     contactmomentStore.$state.huidigContactmoment?.huidigeVraag.klanten;
 
-  const kvkklantInStore = klantenInStoreBijHuiduigeVraag?.find(
+  const kvkKlantInStore = klantenInStoreBijHuiduigeVraag?.find(
     (x) =>
       (!props.item.kvkNummer || x.klant.kvkNummer === props.item.kvkNummer) &&
       (!props.item.rsin || x.klant.rsin === props.item.rsin) &&
@@ -173,9 +213,9 @@ async function navigate() {
         x.klant.vestigingsnummer === props.item.vestigingsnummer),
   );
 
-  if (kvkklantInStore && KlantRegisterKlantId) {
-    kvkklantInStore.klant.id = KlantRegisterKlantId; //we hebben al alle klanten in openklant opgezocht, maar alleen de klant waar we op klikken zit in de store. het openklant id hebben we wel nodig. dus nog even vastleggen
-    await router.push(`/bedrijven/${kvkklantInStore.klant.internalId}`);
+  if (kvkKlantInStore && KlantRegisterKlantId) {
+    kvkKlantInStore.klant.id = KlantRegisterKlantId; //we hebben al alle klanten in openklant opgezocht, maar alleen de klant waar we op klikken zit in de store. het openklant id hebben we wel nodig. dus nog even vastleggen
+    await router.push(`/bedrijven/${kvkKlantInStore.klant.internalId}`);
     return;
   }
 
@@ -185,8 +225,17 @@ async function navigate() {
   //add the klant and navigate to details page with the generated internal id
   const newContactmomentKlant = <ContactmomentKlant>{
     ...props.item,
+    // kvknr etc zouden allemaal in prop.item moeten zitten
+    // kvkNummer:
+    //   KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters.value
+    //     ?.kvkNummer,
+    // vestigingsnummer:
+    //   KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters.value
+    //     ?.vestigingsnummer,
+    // rsin: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters
+    //   .value?.rsin,
     //verplichte velden...
-    id: "",
+    id: KlantRegisterKlantId,
     telefoonnummers: [],
     emailadressen: [],
     hasContactInformation: false,
