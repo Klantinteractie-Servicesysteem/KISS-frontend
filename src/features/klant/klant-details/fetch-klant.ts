@@ -28,7 +28,6 @@ export const fetchKlantByInternalId = async ({
   defaultSysteem: Systeem;
 }): Promise<Klant | null> => {
   const store = useContactmomentStore();
-
   //fetch klant from store based on the internal in memory KISS id
   const klantenInHuidigeVraag =
     store.$state.huidigContactmoment?.huidigeVraag.klanten;

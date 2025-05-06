@@ -78,7 +78,7 @@ const contactmomentStore = useContactmomentStore();
 //but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
 //when we navigate to the details page
 
-const KlantRegisterKlantId: string | null = null;
+let KlantRegisterKlantId: string | null = null;
 
 const {
   data: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters,
@@ -116,9 +116,12 @@ const {
     //we need to now the id later on but we cant put the klant in the websites inMemory store yet
     //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
     //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
-    //  KlantRegisterKlantId = klant.id;
+    KlantRegisterKlantId = klant.id;
 
     //return the Klant from the default registry if it has contactdetails
+
+    if (props.autoNavigate) navigate();
+
     if (heeftContactgegevens(klant)) return klant;
   }
 
@@ -135,7 +138,7 @@ const {
 
         //required fields
         _typeOfKlant: "klant",
-        id: "",
+        id: klant?.id ?? "",
         klantnummer: "",
         telefoonnummers: [],
         emailadressen: [],
@@ -143,6 +146,8 @@ const {
       },
       nonDefaultSysteem,
     );
+
+    if (props.autoNavigate) navigate();
 
     return fallbackKlant;
 
@@ -246,11 +251,12 @@ async function navigate() {
   await router.push(`/bedrijven/${newContactmomentKlant.internalId}`);
 }
 
-watchEffect(() => {
-  if (props.autoNavigate) {
-    navigate();
-  }
-});
+// watchEffect(() => {
+//   if (props.autoNavigate) {
+
+//     navigate();
+//   }
+// });
 </script>
 
 <style scoped lang="scss">

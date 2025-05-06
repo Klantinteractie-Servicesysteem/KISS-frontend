@@ -88,7 +88,13 @@ watchEffect(() => {
     emit("load", klant.value);
   }
 
-  if (!loading.value && !error.value && !klant.value) {
+  if (
+    !loading.value &&
+    !error.value &&
+    (!klant.value ||
+      (!klant.value.emailadressen?.length &&
+        !klant.value.telefoonnummers?.length))
+  ) {
     emit("noData");
   }
 });

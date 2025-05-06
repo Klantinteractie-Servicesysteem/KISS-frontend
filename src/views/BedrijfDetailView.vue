@@ -6,6 +6,7 @@
       <template #default="{ setError, setLoading, setDisabled }">
         <klant-details
           :internalKlantId="internalKlantId"
+          @no-data="setDisabled(true)"
           @load="
             klant = $event;
             setDisabled($event == null);
