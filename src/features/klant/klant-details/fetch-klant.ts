@@ -36,38 +36,59 @@ export const fetchKlantByInternalId = async ({
   );
   const openKlantId = knownKlant?.klant.id;
 
-  if (!openKlantId) {
-    return null;
+  if (openKlantId) {
+    //fetch klant form default klantregister based on the externalId for the store
+    const klant = await fetchKlantById(openKlantId, defaultSysteem);
+    if (!klant) return null;
+    if (heeftContactgegevens(klant)) return klant;
+    if (!systemen.length) return klant;
+
+    if (!klant.bsn) {
+      // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
+      // depending on whether the default system is ok1 or ok2.
+      // To translate this to the other systems,
+      // we need BOTH. So we first need to fetch the company again.
+
+      const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
+        klant.rsin ||
+          klant.nietNatuurlijkPersoonIdentifier ||
+          klant.kvkNummer ||
+          "",
+      ).then(enforceOneOrZero);
+
+      if (!bedrijf) return klant;
+
+      klant.kvkNummer = bedrijf.kvkNummer;
+      klant.rsin = bedrijf.rsin;
+    }
+
+    await enrichKlantWithContactDetails(klant, systemen, defaultSysteem);
+
+    return klant;
   }
 
-  //fetch klant form external registrie based on the externalId for the store
-  const klant = await fetchKlantById(openKlantId, defaultSysteem);
-  if (!klant) return null;
-  if (heeftContactgegevens(klant)) return klant;
-  if (!systemen.length) return klant;
+  //Klant is not available in the default klantregister
 
-  if (!klant.bsn) {
-    // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-    // depending on whether the default system is ok1 or ok2.
-    // To translate this to the other systems,
-    // we need BOTH. So we first need to fetch the company again.
+  ///////////////////////
+  //todo: duplicate from bedrijvenoverzichtrow. clean up
+  //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
+  //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
 
-    const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
-      klant.rsin ||
-        klant.nietNatuurlijkPersoonIdentifier ||
-        klant.kvkNummer ||
-        "",
-    ).then(enforceOneOrZero);
+  const kvkNummer = knownKlant?.klant.kvkNummer;
+  const vestigingsnummer = knownKlant?.klant.vestigingsnummer;
+  const rsin = knownKlant?.klant.rsin;
+  const bsn = knownKlant?.klant.bsn;
+  const id = knownKlant?.klant.id ?? "";
 
-    if (!bedrijf) return klant;
-
-    klant.kvkNummer = bedrijf.kvkNummer;
-    klant.rsin = bedrijf.rsin;
-  }
-
-  await enrichKlantWithContactDetails(klant, systemen, defaultSysteem);
-
-  return klant;
+  return await fetchKlantFromNonDefaultSystems(
+    systemen,
+    defaultSysteem,
+    kvkNummer,
+    vestigingsnummer,
+    rsin,
+    bsn,
+    id,
+  );
 };
 
 export const fetchKlantByNonDefaultSysteem = async (
@@ -137,3 +158,38 @@ export const fetchKlantByKlantIdentificatorOk = async (
     );
   }
 };
+
+export async function fetchKlantFromNonDefaultSystems(
+  systemen: Systeem[],
+  defaultSysteem: Systeem,
+  kvkNummer: string | undefined,
+  vestigingsnummer: string | undefined,
+  rsin: string | undefined,
+  bsn: string | undefined,
+  id: string,
+): Promise<Klant | null> {
+  for (const nonDefaultSysteem of systemen.filter(
+    (s) => s.identifier !== defaultSysteem.identifier,
+  )) {
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      {
+        kvkNummer: kvkNummer,
+        vestigingsnummer: vestigingsnummer,
+        rsin: rsin,
+        bsn: bsn,
+
+        //required fields
+        _typeOfKlant: "klant",
+        id: id,
+        klantnummer: "",
+        telefoonnummers: [],
+        emailadressen: [],
+        url: "",
+      },
+      nonDefaultSysteem,
+    );
+
+    return fallbackKlant;
+  }
+  return null;
+}

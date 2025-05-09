@@ -39,12 +39,7 @@
   </tr>
 </template>
 <script lang="ts" setup>
-import { watchEffect } from "vue";
-
-import {
-  searchBedrijvenInHandelsRegisterByRsin,
-  type Bedrijf,
-} from "@/services/kvk";
+import { type Bedrijf } from "@/services/kvk";
 import { useRouter } from "vue-router";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
@@ -52,11 +47,10 @@ import {
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
 import type { KlantIdentificator } from "@/features/contact/types";
-import { enforceOneOrZero, useLoader } from "@/services";
+import { useLoader } from "@/services";
 import {
-  enrichKlantWithContactDetails,
   fetchKlantByKlantIdentificatorOk,
-  fetchKlantByNonDefaultSysteem,
+  fetchKlantFromNonDefaultSystems,
   heeftContactgegevens,
 } from "@/features/klant/klant-details/fetch-klant";
 
@@ -125,83 +119,45 @@ const {
     if (heeftContactgegevens(klant)) return klant;
   }
 
-  //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
-  //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
-  for (const nonDefaultSysteem of systemen.systemen.value.filter(
-    (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
-  )) {
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      {
-        kvkNummer: props.item.kvkNummer,
-        vestigingsnummer: props.item.vestigingsnummer,
-        rsin: props.item.rsin,
+  // //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
+  // //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
+  // for (const nonDefaultSysteem of systemen.systemen.value.filter(
+  //   (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
+  // )) {
+  //   const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+  //     {
+  //       kvkNummer: props.item.kvkNummer,
+  //       vestigingsnummer: props.item.vestigingsnummer,
+  //       rsin: props.item.rsin,
 
-        //required fields
-        _typeOfKlant: "klant",
-        id: klant?.id ?? "",
-        klantnummer: "",
-        telefoonnummers: [],
-        emailadressen: [],
-        url: "",
-      },
-      nonDefaultSysteem,
-    );
+  //       //required fields
+  //       _typeOfKlant: "klant",
+  //       id: klant?.id ?? "",
+  //       klantnummer: "",
+  //       telefoonnummers: [],
+  //       emailadressen: [],
+  //       url: "",
+  //     },
+  //     nonDefaultSysteem,
+  //   );
 
-    if (props.autoNavigate) navigate();
+  //   if (props.autoNavigate) navigate();
 
-    return fallbackKlant;
+  //   return fallbackKlant;
 
-    // //we nemen alleen de contactgegevens over als die niet in de default klant zitten, maar wel in een ander system zijn gevonden
-    // //alleen de contactgegevens, geen andere gegevens overnemen, de klant uit het default systeem is leidend!
-    // if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
-    //   klant.telefoonnummer = fallbackKlant.telefoonnummer;
-    //   klant.telefoonnummers = fallbackKlant.telefoonnummers;
-    //   klant.emailadres = fallbackKlant.emailadres;
-    //   klant.emailadressen = fallbackKlant.emailadressen;
-    //   return klant;
-    // }
-  }
-
-  // if (!klant) {
-  //   klant = {
-  //     _typeOfKlant: "klant",
-  //     id: "",
-  //     klantnummer: "",
-  //     telefoonnummers: [],
-  //     emailadressen: [],
-  //     url: "",
-
-  //     kvkNummer: props.item?.kvkNummer,
-  //     rsin: props.item?.rsin,
-  //     vestigingsnummer: props.item.vestigingsnummer,
-  //     nietNatuurlijkPersoonIdentifier: props.item.rsin,
-  //   };
   // }
 
-  // // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-  // // depending on whether the default system is ok1 or ok2.
-  // // To translate this to the other systems,
-  // // we need BOTH. So we first need to fetch the company again.
+  const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
+    systemen.systemen.value,
+    systemen.defaultSysteem.value,
+    props.item.kvkNummer,
+    props.item.vestigingsnummer,
+    props.item.rsin,
+    undefined,
+    klant?.id ?? "",
+  );
 
-  // const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
-  //   klant.rsin ||
-  //     klant.nietNatuurlijkPersoonIdentifier ||
-  //     klant.kvkNummer ||
-  //     "",
-  // ).then(enforceOneOrZero);
-
-  // if (!bedrijf) return klant;
-
-  // klant.kvkNummer = bedrijf.kvkNummer;
-  // klant.rsin = bedrijf.rsin;
-
-  // enrichKlantWithContactDetails(
-  //   klant,
-  //   systemen.systemen.value,
-  //   systemen.defaultSysteem.value,
-  // );
-
-  return klant;
+  return nonDefaultKlant ?? klant;
 });
 
 const router = useRouter();
