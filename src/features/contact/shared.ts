@@ -23,7 +23,7 @@ export const mapKlantToKlantIdentifier = (
         bsn: klant.bsn,
         vestigingsnummer: klant.vestigingsnummer,
         kvkNummer: klant.kvkNummer,
-        rsin: klant.rsin,
+        rsin: klant.rsin ?? klant.nietNatuurlijkPersoonIdentifier,
       };
 };
 

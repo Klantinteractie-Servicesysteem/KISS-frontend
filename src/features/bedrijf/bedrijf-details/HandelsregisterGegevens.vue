@@ -34,23 +34,38 @@
 <script setup lang="ts">
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
-  findBedrijfInHandelsRegister,
+  searchBedrijvenInHandelsRegisterByRsin,
+  searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer,
   type Bedrijf,
-  type BedrijfIdentifier,
 } from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { watchEffect } from "vue";
+import { useContactmomentStore } from "@/stores/contactmoment";
 
-const props = defineProps<{ bedrijfIdentifier: BedrijfIdentifier }>();
+const props = defineProps<{ internalKlantId: string }>();
+
+const store = useContactmomentStore();
+
 const {
   data: bedrijf,
   loading,
   error,
 } = useLoader(() => {
-  if (props.bedrijfIdentifier)
-    return findBedrijfInHandelsRegister(props.bedrijfIdentifier).then(
-      enforceOneOrZero,
-    );
+  const klant = store.getKlantByInternalId(props.internalKlantId);
+  if (klant) {
+    if (klant.vestigingsnummer && klant.kvkNummer) {
+      return searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer(
+        klant.vestigingsnummer,
+        klant.kvkNummer,
+      ).then(enforceOneOrZero);
+    }
+    if (klant.rsin) {
+      return searchBedrijvenInHandelsRegisterByRsin(
+        klant.rsin,
+        klant.kvkNummer,
+      ).then(enforceOneOrZero);
+    }
+  }
 });
 
 const emit = defineEmits<{

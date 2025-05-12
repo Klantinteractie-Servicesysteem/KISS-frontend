@@ -11,6 +11,7 @@ import {
   registryVersions,
   fetchSystemen,
 } from "@/services/environment/fetch-systemen";
+import type { ContactmomentKlant } from "@/stores/contactmoment";
 
 export const useKlantByBedrijfIdentifier = (
   getId: () => KlantBedrijfIdentifier | undefined,
@@ -22,6 +23,7 @@ export const useKlantByBedrijfIdentifier = (
   };
 
   const findKlant = async () => {
+    let klant = null;
     const id = getId();
     if (!id) {
       throw new Error("Geen valide KlantBedrijfIdentifier");
@@ -35,11 +37,18 @@ export const useKlantByBedrijfIdentifier = (
     }
 
     if (defaultSysteem.registryVersion === registryVersions.ok2) {
-      return findKlantByIdentifierOpenKlant2(defaultSysteem.identifier, id);
+      klant = await findKlantByIdentifierOpenKlant2(
+        defaultSysteem.identifier,
+        id,
+      );
     } else {
       const mappedId = mapBedrijfsIdentifier(id);
-      return useKlantByIdentifierOk1(defaultSysteem.identifier, () => mappedId);
+      klant = await useKlantByIdentifierOk1(
+        defaultSysteem.identifier,
+        () => mappedId,
+      );
     }
+    return klant;
   };
 
   return ServiceResult.fromFetcher(getCacheKey(), findKlant, {

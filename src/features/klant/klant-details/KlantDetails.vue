@@ -41,13 +41,13 @@ import { watchEffect, type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import type { Klant } from "@/services/openklant/types";
 import { useLoader } from "@/services";
-import { fetchKlant } from "./fetch-klant";
+import { fetchKlantByInternalId } from "./fetch-klant";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 
 const { systemen, defaultSysteem } = useSystemen();
 
 const props = defineProps({
-  klantId: {
+  internalKlantId: {
     type: String,
     required: true,
   },
@@ -62,10 +62,15 @@ const {
   loading,
   error,
 } = useLoader(() => {
-  if (!props.klantId || !defaultSysteem.value || !systemen.value?.length)
+  if (
+    !props.internalKlantId ||
+    !defaultSysteem.value ||
+    !systemen.value?.length
+  )
     return;
-  return fetchKlant({
-    id: props.klantId,
+
+  return fetchKlantByInternalId({
+    internalId: props.internalKlantId,
     systemen: systemen.value,
     defaultSysteem: defaultSysteem.value,
   });
@@ -75,9 +80,24 @@ const emit = defineEmits<{
   load: [data: Klant];
   loading: [data: boolean];
   error: [data: boolean];
+  noData: [];
 }>();
 
-watchEffect(() => klant.value && emit("load", klant.value));
+watchEffect(() => {
+  if (klant.value) {
+    emit("load", klant.value);
+  }
+
+  if (
+    !loading.value &&
+    !error.value &&
+    (!klant.value ||
+      (!klant.value.emailadressen?.length &&
+        !klant.value.telefoonnummers?.length))
+  ) {
+    emit("noData");
+  }
+});
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>

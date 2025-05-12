@@ -30,7 +30,6 @@ const klantInfo = computed(() =>
 
 <style lang="scss" scoped>
 article {
-  // padding-inline: var(--spacing-default);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
