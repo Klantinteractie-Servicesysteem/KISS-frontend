@@ -289,7 +289,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
 
-             var resultCount = await Page.SearchCompanyByPostalAndHuisNummer(postCode, huisNummer).CountAsync();
+            var resultCount = await Page.SearchCompanyByPostalAndHuisNummer(postCode, huisNummer).CountAsync();
 
             Assert.IsTrue(resultCount > 1, $"Expected multiple records associated with postcode '2352SZ' and huisnummer '37', but found {resultCount}.");
         }

@@ -94,10 +94,16 @@ export const fetchKlantByInternalId = async ({
 export const fetchKlantByNonDefaultSysteem = async (
   bedrijf: Klant,
   systeem: Systeem,
-): Promise<Klant | null> =>
-  systeem.registryVersion === registryVersions.ok1
-    ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, bedrijf)
-    : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, bedrijf);
+): Promise<Klant | null> => {
+  if (!klant) return null;
+
+  const identifier = mapKlantToKlantIdentifier(systeem.registryVersion, klant);
+  if (!identifier) return klant;
+
+  return systeem.registryVersion === registryVersions.ok1
+    ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
+    : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
+};
 
 const fetchKlantById = async (
   id: string,

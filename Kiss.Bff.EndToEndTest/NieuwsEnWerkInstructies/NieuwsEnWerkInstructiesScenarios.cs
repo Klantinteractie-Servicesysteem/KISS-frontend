@@ -306,7 +306,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("Given there is exactly 1 werkinstructie with this text in the title");
 
         await using var werkbericht = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Werkinstructie });
-       
+
         await Step("And there is exactly 1 nieuwsbericht with this text in the title");
 
         await using var nieuws = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
@@ -314,7 +314,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("And the user is on the HOME Page");
 
         await Page.GotoAsync("/");
-        
+
         await Step("When the user selects 'Nieuws' from the filter dropdown");
 
         await Page.GetWerkberichtTypeSelector().SelectOptionAsync("Nieuws");
@@ -333,7 +333,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Expect(Page.GetWerkinstructiesSection()).ToBeHiddenAsync();
 
-      
+
     }
 
     [TestMethod]
@@ -350,15 +350,15 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("And there is exactly 1 nieuwsbericht with this text in the title");
 
         await using var nieuws = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
-       
+
         await Step("And the user is on the HOME Page");
 
         await Page.GotoAsync("/");
 
         await Step("When the user selects 'Werkinstructie' from the filter dropdown");
-        
+
         await Page.GetWerkberichtTypeSelector().SelectOptionAsync("Werkinstructie");
- 
+
         await Step("And searches for the unique text");
 
         await Page.GetNieuwsAndWerkinstructiesSearch().FillAsync(uniqueTitle);
@@ -394,7 +394,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
 
         await Step("And there is exactly one werkinstructie related to the first skill");
-        
+
         uniqueTitle = Guid.NewGuid().ToString();
         await using var werkberichtWithSkill1 = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Werkinstructie, Skill = skill1 });
 
@@ -421,7 +421,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("And there is at least one nieuwsbericht without a relation to any skill");
 
         uniqueTitle = Guid.NewGuid().ToString();
-        await using var nieuwsWithSkill4 =  await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
+        await using var nieuwsWithSkill4 = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
 
         await Step("And there is at least one werkinstructie without a relation to any skill");
 
@@ -443,7 +443,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Page.GetSkillsFieldset().GetByRole(AriaRole.Checkbox, new() { Name = skill2 }).CheckAsync();
 
         await Step("Then only the two nieuwsberichten and werkinstructies related to the first and second skill are visible");
-        
+
         var nieuwsSection = Page.GetNieuwsSection();
         var werkinstructiesSection = Page.GetWerkinstructiesSection();
 
@@ -469,7 +469,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("Given there is exactly one nieuwsbericht with that text as the title");
 
         await using var nieuwsbericht = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
-        
+
         await Step("And there is exactly one werkinstructie with that text as the title");
 
         await using var werkinstructie = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Werkinstructie });
@@ -534,7 +534,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("When the user clicks on the close icon in the search bar");
 
         await Page.GetNieuwsAndWerkinstructiesSearch().ClearAsync();
-     
+
         await Step("Then at least two werkinstructies should be visible");
 
         Assert.IsTrue((await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two werkinstructies should be visible");
@@ -542,7 +542,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("And at least two nieuwsberichten should be visible");
 
         Assert.IsTrue((await Page.GetNieuwsSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two nieuwsberichten should be visible");
-        
+
 
     }
     [TestMethod]
@@ -556,7 +556,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
-        await using var nieuws = await Page.CreateBerichtAsync(new() { Title =  Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws });
+        await using var nieuws = await Page.CreateBerichtAsync(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws });
 
         await Step("And the user is on the Nieuws and werkinstructiesscreen available under Beheer");
 
@@ -581,8 +581,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("When user clicks on the delete icon of the nieuwsbericht in the list");
 
-        var nieuwsRow = Page.GetBeheerRowByValue(nieuws.Title);                  
-             
+        var nieuwsRow = Page.GetBeheerRowByValue(nieuws.Title);
+
         await Step("And confirms a pop-up window with the message ‘Weet u zeker dat u dit bericht wilt verwijderen?’");
 
         var deleteButton = nieuwsRow.GetByTitle("Verwijder").First;
@@ -594,7 +594,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Then the nieuwsbericht is no longer in the list");
 
-        var deletedRow = Page.GetBeheerRowByValue(nieuws.Title); 
+        var deletedRow = Page.GetBeheerRowByValue(nieuws.Title);
 
         await Expect(deletedRow).ToBeHiddenAsync();
 
@@ -613,7 +613,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await werkinstructie.DisposeAsync();
 
         await Step("Then the werkinstructie is no longer in the list");
-         
+
         await Expect(Page.GetBeheerRowByValue(werkinstructie.Title)).ToBeHiddenAsync();
 
     }
@@ -624,7 +624,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("Given there is at least 1 nieuwsbericht");
 
         await using var skill = await Page.CreateSkill(Guid.NewGuid().ToString());
-        await using var nieuw = await Page.CreateBerichtAsync(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill=skill.Naam , Body= Guid.NewGuid().ToString()});
+        await using var nieuw = await Page.CreateBerichtAsync(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill = skill.Naam, Body = Guid.NewGuid().ToString() });
 
         await Step("And the user is on the Nieuws and werkinstructiesscreen available under Beheer");
 
@@ -635,7 +635,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Page.GetBeheerRowByValue(nieuw.Title).GetByRole(AriaRole.Link).ClickAsync();
 
         await Step("Then the Type, Titel, Inhoud, Publicatiedatum, Publicatie-einddatum and Skills of the nieuwsbericht are visible in a details screen");
-        
+
         await Expect(Page.Locator("#titel")).ToHaveValueAsync(nieuw.Title);
         await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync();
         await Expect(Page.Locator("label:text('Inhoud') + div")).ToContainTextAsync(nieuw.Body);
@@ -648,7 +648,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     public async Task Scenario21()
     {
         await Step("Given there is at least 1 nieuwsbericht");
-       
+
         await using var skill = await Page.CreateSkill(Guid.NewGuid().ToString());
         await using var nieuws = await Page.CreateBerichtAsync(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws, Skill = skill.Naam });
 
@@ -669,9 +669,9 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("When the user updates the title section of news");
 
         nieuws.Title = Guid.NewGuid().ToString();
-       
+
         await Step("And clicks on the submit button");
-         
+
         await Page.UpdateBerichtAsync(nieuws);
 
         await Step("Then the updated news title is displayed in Berichten screen");
@@ -707,9 +707,9 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = skill.Naam })).ToBeCheckedAsync();
 
         await Step("When the user updates the Publicatiedatum section of the nieuwsbericht to a future date");
-       
-        nieuws.PublicatieDatum = nieuws.PublicatieDatum.AddDays(30); 
-               
+
+        nieuws.PublicatieDatum = nieuws.PublicatieDatum.AddDays(30);
+
         await Step("And clicks on the submit button");
 
         await Page.UpdateBerichtAsync(nieuws);
@@ -744,7 +744,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
 
         await Step("When the user checks the ‘belangrijk’ checkbox");
-        
+
         nieuws.IsImportant = true;
 
         await Step("And clicks on the submit button");
@@ -793,7 +793,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("Then the nieuwsbericht should be displayed");
 
         await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" })).ToHaveValueAsync(nieuws.Title);
-        await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync(); 
+        await Expect(Page.GetByText("Nieuws", new() { Exact = true })).ToBeCheckedAsync();
 
 
     }
@@ -807,7 +807,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Then the werkinstructie is displayed in Berichten");
 
-        await Expect(Page.GetBeheerTableCell(1, 1)).ToHaveTextAsync(werkinstructie.Title); 
+        await Expect(Page.GetBeheerTableCell(1, 1)).ToHaveTextAsync(werkinstructie.Title);
     }
 
     [TestMethod]
@@ -820,7 +820,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("And navigates to the page containing the werkinstructie created earlier ");
 
         await Page.GetBeheerRowByValue(werkbericht.Title).GetByRole(AriaRole.Link).ClickAsync();
- 
+
         await Step("Then the werkinstructie should be displayed");
 
         await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" })).ToHaveValueAsync(werkbericht.Title);
@@ -843,7 +843,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Then there is a table titled ‘Berichten’ with rows named as “Titel”, “Type”,”publicatiedatum”, “Aangemaakt op” and “ Gewijzigd op”");
 
-        await Expect(Page.GetBeheerTableCell(1,1)).ToHaveTextAsync(nieuws.Title);
+        await Expect(Page.GetBeheerTableCell(1, 1)).ToHaveTextAsync(nieuws.Title);
         await Expect(Page.GetBeheerTableCell(2, 1)).ToHaveTextAsync(nieuws.BerichtType.ToString());
         await Expect(Page.GetBeheerTableCell(3, 1)).ToHaveTextAsync(nieuws.PublicatieDatum.ToString("dd-MM-yyyy, HH:mm"));
 
@@ -868,8 +868,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("And browses through all pages of the Nieuws section");
 
-       Assert.AreEqual(false,await Page.IsBerichtVisibleOnAllPagesAsync(niewus));
-     
+        Assert.AreEqual(false, await Page.IsBerichtVisibleOnAllPagesAsync(niewus));
+
     }
 
     [TestMethod]
@@ -882,7 +882,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("When the user navigates to the HOME Page And the user browses through all pages of the Nieuws section");
 
         await Page.GotoAsync("/");
- 
+
 
         await Step("Then the nieuwsbericht should be visible");
 
@@ -904,8 +904,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("And browses through all pages of the Nieuws section and Then the nieuwsbericht should not be visible");
 
-        Assert.AreEqual(false, await Page.IsBerichtVisibleOnAllPagesAsync(nieuws)); 
-         
+        Assert.AreEqual(false, await Page.IsBerichtVisibleOnAllPagesAsync(nieuws));
+
     }
 
     [TestMethod]
@@ -921,7 +921,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("And browses through all pages of the Nieuws section and Then the nieuwsbericht should be visible");
 
-        Assert.AreEqual(true, await Page.IsBerichtVisibleOnAllPagesAsync(nieuws)); 
+        Assert.AreEqual(true, await Page.IsBerichtVisibleOnAllPagesAsync(nieuws));
 
     }
 
@@ -942,13 +942,13 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("And browses through all pages of the Nieuws section");
 
-         var article = await Page.GetBerichtOnAllPagesAsync(niewus);
+        var article = await Page.GetBerichtOnAllPagesAsync(niewus);
 
         await Step("Then the nieuwsbericht should be displayed with the corresponding skills as labels");
-       
+
         await Expect(article).ToBeVisibleAsync();
 
-        Assert.AreEqual(true, await Page.AreSkillsVisibleByNameAsync(article,new() { skill1.Naam, skill2.Naam, skill3.Naam }));
+        Assert.AreEqual(true, await Page.AreSkillsVisibleByNameAsync(article, new() { skill1.Naam, skill2.Naam, skill3.Naam }));
     }
 
     [TestMethod]
@@ -973,7 +973,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Expect(article).ToBeVisibleAsync();
 
-        Assert.AreEqual(true, await Page.AreSkillsVisibleByNameAsync(article,new() { skill1.Naam, skill2.Naam }));
+        Assert.AreEqual(true, await Page.AreSkillsVisibleByNameAsync(article, new() { skill1.Naam, skill2.Naam }));
 
 
     }
