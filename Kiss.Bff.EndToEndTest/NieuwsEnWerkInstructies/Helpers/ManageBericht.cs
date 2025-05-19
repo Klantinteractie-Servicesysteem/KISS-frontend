@@ -197,34 +197,31 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             return false;
         }
 
-        public static async Task<ILocator?> GetBerichtOnAllPagesAsync(this IPage page, Bericht bericht)
+        public static async Task<ILocator> GetBerichtOnAllPagesAsync(this IPage page, Bericht bericht)
         {
-            var section = bericht.BerichtType == BerichtType.Nieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
-            var nextPageButton = section.GetNextPageLink();
+            var isNieuws = bericht.BerichtType == BerichtType.Nieuws;
+            var section = isNieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
+            var title = bericht.Title;
 
             while (true)
             {
-                var article = section.GetByRole(AriaRole.Heading, new() { Name = bericht.Title });
+                var article = section.GetByRole(AriaRole.Heading, new() { Name = title });
                 if (await article.IsVisibleAsync())
                     return article;
 
-                if (await nextPageButton.IsVisibleAsync() && await nextPageButton.IsDisabledPageLink())
+                var nextPageButton = section.GetNextPageLink();
+
+                if (!await nextPageButton.IsVisibleAsync() || await nextPageButton.IsDisabledPageLink())
                     break;
 
-                if (await nextPageButton.IsVisibleAsync())
-                {
-                    await nextPageButton.ClickAsync();
-                    await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-                }
-                else
-                {
-                    break;
-                }
+                await nextPageButton.ClickAsync();
+                await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+                section = isNieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
             }
 
-            return null;
+            return section.GetByRole(AriaRole.Heading, new() { Name = title });
         }
-
 
         public static async Task<bool> AreSkillsVisibleByNameAsync(this IPage page, ILocator articleLocator, List<string> expectedSkillNames)
         {
