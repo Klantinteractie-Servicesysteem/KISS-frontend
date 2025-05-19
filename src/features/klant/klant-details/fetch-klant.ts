@@ -17,6 +17,7 @@ import { searchBedrijvenInHandelsRegisterByRsin } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
 import type { KlantIdentificator } from "@/features/contact/types";
+import { mapKlantToKlantIdentifier } from "@/features/contact/shared";
 
 export const fetchKlantByInternalId = async ({
   internalId,
@@ -92,7 +93,7 @@ export const fetchKlantByInternalId = async ({
 };
 
 export const fetchKlantByNonDefaultSysteem = async (
-  bedrijf: Klant,
+  klant: Klant,
   systeem: Systeem,
 ): Promise<Klant | null> => {
   if (!klant) return null;
