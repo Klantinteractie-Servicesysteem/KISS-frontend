@@ -32,9 +32,14 @@ export const enrichOnderwerpObjectenWithZaaknummers = (
   objecten: OnderwerpObjectPostModel[],
 ) =>
   Promise.all(
-    objecten.map(({ onderwerpobjectidentificator: { objectId } }) =>
-      fetchZaakIdentificatieByUrlOrId(systeemId, objectId),
-    ),
+    objecten
+      .filter(
+        ({ onderwerpobjectidentificator: { codeObjecttype, objectId } = {} }) =>
+          codeObjecttype === "zaak" && !!objectId,
+      )
+      .map(({ onderwerpobjectidentificator: { objectId } }) =>
+        fetchZaakIdentificatieByUrlOrId(systeemId, objectId),
+      ),
   );
 
 export const enrichContactmomentWithZaaknummer = async (

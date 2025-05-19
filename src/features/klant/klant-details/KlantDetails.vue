@@ -37,47 +37,40 @@
 </template>
 
 <script lang="ts" setup>
-import { watchEffect, type PropType } from "vue";
+import { computed, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import type { Klant } from "@/services/openklant/types";
 import { useLoader } from "@/services";
 import { fetchKlant } from "./fetch-klant";
 import { useSystemen } from "@/services/environment/fetch-systemen";
+import type { KlantIdentificatie } from "@/stores/contactmoment";
 
-const { systemen, defaultSysteem } = useSystemen();
+const { systemen } = useSystemen();
 
-const props = defineProps({
-  klantId: {
-    type: String,
-    required: true,
-  },
-  level: {
-    type: Number as PropType<1 | 2 | 3 | 4 | 5>,
-    default: 2,
-  },
-});
+const { klantId, level = 2 } = defineProps<{
+  klantId: KlantIdentificatie;
+  level?: 1 | 2 | 3 | 4 | 5;
+}>();
 
 const {
   data: klant,
   loading,
   error,
 } = useLoader(() => {
-  if (!props.klantId || !defaultSysteem.value || !systemen.value?.length)
-    return;
+  if (!klantId || !systemen.value) return;
   return fetchKlant({
-    id: props.klantId,
+    id: klantId,
     systemen: systemen.value,
-    defaultSysteem: defaultSysteem.value,
   });
 });
 
 const emit = defineEmits<{
-  load: [data: Klant];
+  load: [data: Klant | null];
   loading: [data: boolean];
   error: [data: boolean];
 }>();
 
-watchEffect(() => klant.value && emit("load", klant.value));
+watchEffect(() => klant.value !== undefined && emit("load", klant.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>

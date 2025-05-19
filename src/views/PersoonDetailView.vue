@@ -3,24 +3,31 @@
 
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
 
-  <tab-list v-model="activeTab">
-    <tab-list-item label="Contactgegevens">
+  <tab-list
+    v-model="activeTab"
+    v-if="contactmomentStore.klantVoorHuidigeVraag?.bsn"
+  >
+    <tab-list-item label="BRP gegevens">
       <template #default="{ setError, setLoading }">
-        <klant-details
-          :klant-id="persoonId"
-          @load="klant = $event"
+        <brp-gegevens
+          :bsn="contactmomentStore.klantVoorHuidigeVraag.bsn"
+          @load="persoon = $event"
           @loading="setLoading"
           @error="setError"
         />
       </template>
     </tab-list-item>
 
-    <tab-list-item label="BRP gegevens">
-      <template #default="{ setError, setLoading }">
-        <brp-gegevens
-          v-if="klant?.bsn"
-          :bsn="klant.bsn"
-          @load="persoon = $event"
+    <tab-list-item label="Contactgegevens">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <klant-details
+          :klant-id="{ bsn: contactmomentStore.klantVoorHuidigeVraag.bsn }"
+          @load="
+            klant = $event || undefined;
+            setDisabled(
+              !$event?.emailadressen.length && !$event?.telefoonnummers.length,
+            );
+          "
           @loading="setLoading"
           @error="setError"
         />
@@ -86,8 +93,6 @@ import type { Klant } from "@/services/openklant/types";
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
-defineProps<{ persoonId: string }>();
-
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
 
@@ -96,14 +101,12 @@ const klant = ref<Klant>();
 const persoon = ref<Persoon>();
 
 watch(
-  [() => klant.value, () => persoon.value],
-  ([k, p]) => {
-    if (!k) return;
+  klant,
+  (k) => {
+    if (!k || !contactmomentStore.klantVoorHuidigeVraag) return;
     contactmomentStore.setKlant({
+      ...contactmomentStore.klantVoorHuidigeVraag,
       ...k,
-      ...p,
-      hasContactInformation:
-        !!k.emailadressen.length || !!k.telefoonnummers.length,
     });
   },
   { immediate: true },

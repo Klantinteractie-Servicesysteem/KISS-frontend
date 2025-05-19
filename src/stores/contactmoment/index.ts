@@ -16,6 +16,7 @@ import type {
   TypeOrganisatorischeEenheid,
 } from "@/features/contact/components/types";
 import { fetchVragenSets } from "@/features/contact/contactverzoek/formulier/service";
+import type { KlantIdentificatie } from "./types";
 
 export type ContactmomentZaak = {
   zaak: ZaakDetails;
@@ -105,20 +106,9 @@ export type ContactmomentContactVerzoek = {
   isActive?: boolean;
 };
 
-export type ContactmomentKlant = {
-  id: string;
-  voornaam?: string;
-  voorvoegselAchternaam?: string;
-  achternaam?: string;
-  bedrijfsnaam?: string;
+export type ContactmomentKlant = KlantIdentificatie & {
   telefoonnummers: string[];
   emailadressen: string[];
-  hasContactInformation: boolean;
-  url?: string;
-  bsn?: string;
-  vestigingsnummer?: string;
-  kvkNummer?: string;
-  rsin?: string;
 };
 
 export type Bron = {
@@ -178,6 +168,14 @@ interface ContactmomentenState {
   vragenSets: ContactVerzoekVragenSet[];
   loading: boolean;
 }
+
+const isMatch = (a: ContactmomentKlant, b: ContactmomentKlant) =>
+  (a.bsn && a.bsn === b.bsn) ||
+  (a.vestigingsnummer &&
+    a.kvkNummer &&
+    a.vestigingsnummer === b.vestigingsnummer &&
+    a.kvkNummer === b.kvkNummer) ||
+  (a.kvkNummer && a.rsin && a.rsin === b.rsin && a.kvkNummer === b.kvkNummer);
 
 export const useContactmomentStore = defineStore("contactmoment", {
   state: () => {
@@ -361,7 +359,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
       const { contactverzoek } = huidigeVraag;
 
-      const match = huidigeVraag.klanten.find((x) => x.klant.id === klant.id);
+      const match = huidigeVraag.klanten.find((x) => isMatch(klant, x.klant));
 
       huidigeVraag.klanten.forEach((x) => {
         x.shouldStore = false;
@@ -379,22 +377,6 @@ export const useContactmomentStore = defineStore("contactmoment", {
         shouldStore: true,
         klant,
       });
-    },
-
-    setKlantHasContactgegevens(klantId: string) {
-      const { huidigContactmoment } = this;
-
-      if (!huidigContactmoment) return;
-
-      const { huidigeVraag } = huidigContactmoment;
-
-      const targetKlantIndex = huidigeVraag.klanten.findIndex(
-        (k) => k.klant.id === klantId,
-      );
-
-      if (targetKlantIndex === -1) return;
-
-      huidigeVraag.klanten[targetKlantIndex].klant.hasContactInformation = true;
     },
 
     addMedewerker(medewerker: any, url: string) {

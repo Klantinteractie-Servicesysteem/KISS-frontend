@@ -55,7 +55,14 @@
             vraag.klanten.length > 1 ? "Klanten" : "Klant"
           }}</utrecht-heading>
           <ul>
-            <li v-for="record in vraag.klanten" :key="record.klant.id">
+            <li
+              v-for="record in vraag.klanten"
+              :key="
+                record.klant.bsn ||
+                record.klant.vestigingsnummer ||
+                record.klant.rsin
+              "
+            >
               <label>
                 <span
                   v-if="
@@ -646,7 +653,9 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const klanten = await ensureKlanten(systeem, vraag);
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
-  const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
+  const isAnoniem = !vraag.klanten.some(
+    (x) => x.shouldStore && (x.klant.bsn || x.klant.kvkNummer),
+  );
   const isNietAnoniemContactmoment = !isContactverzoek && !isAnoniem;
 
   // gedeeld contactmoment voor contactmomentdetails

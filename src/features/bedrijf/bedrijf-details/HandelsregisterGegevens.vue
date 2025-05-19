@@ -33,15 +33,17 @@
 
 <script setup lang="ts">
 import { enforceOneOrZero, useLoader } from "@/services";
-import {
-  findBedrijfInHandelsRegister,
-  type Bedrijf,
-  type BedrijfIdentifier,
-} from "@/services/kvk";
+import { findBedrijfInHandelsRegister, type Bedrijf } from "@/services/kvk";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { watchEffect } from "vue";
 
-const props = defineProps<{ bedrijfIdentifier: BedrijfIdentifier }>();
+const props = defineProps<{
+  bedrijfIdentifier: {
+    kvkNummer: string;
+    vestigingsnummer?: string;
+    rsin?: string;
+  };
+}>();
 const {
   data: bedrijf,
   loading,

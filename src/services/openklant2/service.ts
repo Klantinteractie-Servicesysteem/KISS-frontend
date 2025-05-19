@@ -412,8 +412,8 @@ function getActorConfig(
       return {
         codeObjecttype: "mdw",
         soortActor: "medewerker",
-        codeRegister: config.medewerkerEmailEnabled ? "handmatig" : "obj",
-        codeSoortObjectId: config.medewerkerEmailEnabled ? "email" : "idf",
+        codeRegister: "obj",
+        codeSoortObjectId: "idf",
       };
   }
 }

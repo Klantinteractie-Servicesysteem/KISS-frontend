@@ -1,23 +1,28 @@
 <template>
   <back-link />
   <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
-  <tab-list v-model="currentTab">
-    <tab-list-item label="Contactgegevens">
+  <tab-list v-model="currentTab" v-if="bedrijfIdentifier">
+    <tab-list-item label="KvK-gegevens">
       <template #default="{ setError, setLoading }">
-        <klant-details
-          :klant-id="bedrijfId"
-          @load="klant = $event"
+        <handelsregister-gegevens
+          :bedrijf-identifier="bedrijfIdentifier"
+          @load="bedrijf = $event"
           @loading="setLoading"
           @error="setError"
         />
       </template>
     </tab-list-item>
-    <tab-list-item label="KvK-gegevens">
-      <template #default="{ setError, setLoading }">
-        <handelsregister-gegevens
-          v-if="bedrijfIdentifier"
-          :bedrijf-identifier="bedrijfIdentifier"
-          @load="bedrijf = $event"
+
+    <tab-list-item label="Contactgegevens">
+      <template #default="{ setError, setLoading, setDisabled }">
+        <klant-details
+          :klant-id="bedrijfIdentifier"
+          @load="
+            klant = $event || undefined;
+            setDisabled(
+              !$event?.emailadressen.length && !$event?.telefoonnummers.length,
+            );
+          "
           @loading="setLoading"
           @error="setError"
         />
@@ -73,13 +78,11 @@ import { KlantDetails } from "@/features/klant/klant-details";
 import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
 import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
-import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
+import type { Bedrijf } from "@/services/kvk";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
 import type { Klant } from "@/services/openklant/types";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
-
-defineProps<{ bedrijfId: string }>();
 
 const contactmomentStore = useContactmomentStore();
 
@@ -87,55 +90,20 @@ const currentTab = ref("");
 const klant = ref<Klant>();
 const bedrijf = ref<Bedrijf>();
 
-const getBedrijfIdentifier = (): BedrijfIdentifier | undefined => {
-  if (!klant.value) return undefined;
-
-  //todo: controleren of deze varant weer relevant is !!!!
-  if (klant.value.vestigingsnummer && klant.value.kvkNummer)
-    return {
-      vestigingsnummer: klant.value.vestigingsnummer,
-      kvkNummer: klant.value.kvkNummer,
-    };
-
-  if (klant.value.vestigingsnummer)
-    return {
-      vestigingsnummer: klant.value.vestigingsnummer,
-    };
-
-  if (klant.value.kvkNummer)
-    return {
-      kvkNummer: klant.value.kvkNummer,
-    };
-  // if (klant.data.rsin)
-  //   return {
-  //     rsin: klant.data.rsin,
-  //     kvkNummer: klant.data.kvkNummer,
-  //   };
-  if (klant.value.nietNatuurlijkPersoonIdentifier)
-    return {
-      //gechoogel met params verschil ok1 en esuite
-      rsin: klant.value.nietNatuurlijkPersoonIdentifier,
-    };
-  if (klant.value.rsin)
-    return {
-      //gechoogel met params verschil ok1 en esuite
-      rsin: klant.value.rsin,
-    };
-};
-
-const bedrijfIdentifier = computed(getBedrijfIdentifier);
+const bedrijfIdentifier = computed(() => {
+  const { kvkNummer, vestigingsnummer, rsin } =
+    contactmomentStore.klantVoorHuidigeVraag ?? {};
+  if (!kvkNummer) return undefined;
+  return { kvkNummer, vestigingsnummer, rsin };
+});
 
 watch(
-  () =>
-    klant.value && bedrijf.value ? ([klant.value, bedrijf.value] as const) : [],
-  ([k, b]) => {
-    if (!k || !b) return;
+  klant,
+  (k) => {
+    if (!k || !contactmomentStore.klantVoorHuidigeVraag) return;
     contactmomentStore.setKlant({
+      ...contactmomentStore.klantVoorHuidigeVraag,
       ...k,
-      ...b,
-      hasContactInformation:
-        (k.emailadressen && k.emailadressen.length > 0) ||
-        (k.telefoonnummers && k.telefoonnummers.length > 0),
     });
   },
   { immediate: true },
