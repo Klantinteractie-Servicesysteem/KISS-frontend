@@ -36,7 +36,7 @@ export const enrichOnderwerpObjectenWithZaaknummers = (
       .filter(({ onderwerpobjectidentificator }) => {
         // Check if this is a zaak-type object
         return (
-          onderwerpobjectidentificator.codeObjecttype === "zgw-Zaak" ||
+          onderwerpobjectidentificator.codeObjecttype === "zgw-Zaak" &&
           onderwerpobjectidentificator.codeRegister === "openzaak"
         );
       })
