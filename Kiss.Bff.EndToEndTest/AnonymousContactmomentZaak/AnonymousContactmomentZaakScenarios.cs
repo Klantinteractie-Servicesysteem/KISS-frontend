@@ -2,7 +2,6 @@
 
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
-using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 {
