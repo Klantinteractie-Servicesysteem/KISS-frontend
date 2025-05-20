@@ -87,7 +87,9 @@ watchEffect(() => {
   if (klant.value) {
     emit("load", klant.value);
   }
+});
 
+watchEffect(() => {
   if (
     !loading.value &&
     !error.value &&
