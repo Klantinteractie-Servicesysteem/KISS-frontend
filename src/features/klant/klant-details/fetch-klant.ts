@@ -12,34 +12,27 @@ import {
 } from "@/services/environment/fetch-systemen";
 import type { Klant } from "@/services/openklant/types";
 
-import { useContactmomentStore } from "@/stores/contactmoment";
 import { searchBedrijvenInHandelsRegisterByRsin } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
 import type { KlantIdentificator } from "@/features/contact/types";
 import { mapKlantToKlantIdentifier } from "@/features/contact/shared";
+import type { ContactmomentKlant } from "@/stores/contactmoment";
 
 export const fetchKlantByInternalId = async ({
-  internalId,
+  internalKlant,
   systemen,
   defaultSysteem,
 }: {
-  internalId: string;
+  internalKlant: ContactmomentKlant;
   systemen: Systeem[];
   defaultSysteem: Systeem;
 }): Promise<Klant | null> => {
-  const store = useContactmomentStore();
   //fetch klant from store based on the internal in memory KISS id
-  const klantenInHuidigeVraag =
-    store.$state.huidigContactmoment?.huidigeVraag.klanten;
-  const knownKlant = klantenInHuidigeVraag?.find(
-    (x) => x.klant.internalId == internalId,
-  );
-  const openKlantId = knownKlant?.klant.id;
 
-  if (openKlantId) {
+  if (internalKlant.id) {
     //fetch klant form default klantregister based on the externalId for the store
-    const klant = await fetchKlantById(openKlantId, defaultSysteem);
+    const klant = await fetchKlantById(internalKlant.id, defaultSysteem);
     if (!klant) return null;
     if (heeftContactgegevens(klant)) return klant;
     if (!systemen.length) return klant;
@@ -75,11 +68,11 @@ export const fetchKlantByInternalId = async ({
   //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
   //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
 
-  const kvkNummer = knownKlant?.klant.kvkNummer;
-  const vestigingsnummer = knownKlant?.klant.vestigingsnummer;
-  const rsin = knownKlant?.klant.rsin;
-  const bsn = knownKlant?.klant.bsn;
-  const id = knownKlant?.klant.id ?? "";
+  const kvkNummer = internalKlant?.kvkNummer;
+  const vestigingsnummer = internalKlant?.vestigingsnummer;
+  const rsin = internalKlant?.rsin;
+  const bsn = internalKlant?.bsn;
+  const id = internalKlant?.id ?? "";
 
   return await fetchKlantFromNonDefaultSystems(
     systemen,

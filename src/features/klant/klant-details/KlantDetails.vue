@@ -43,9 +43,10 @@ import type { Klant } from "@/services/openklant/types";
 import { useLoader } from "@/services";
 import { fetchKlantByInternalId } from "./fetch-klant";
 import { useSystemen } from "@/services/environment/fetch-systemen";
+import { useContactmomentStore } from "@/stores/contactmoment";
 
 const { systemen, defaultSysteem } = useSystemen();
-
+const store = useContactmomentStore();
 const props = defineProps({
   internalKlantId: {
     type: String,
@@ -69,11 +70,15 @@ const {
   )
     return;
 
-  return fetchKlantByInternalId({
-    internalId: props.internalKlantId,
-    systemen: systemen.value,
-    defaultSysteem: defaultSysteem.value,
-  });
+  const internalKlant = store.getKlantByInternalId(props.internalKlantId);
+
+  if (internalKlant) {
+    return fetchKlantByInternalId({
+      internalKlant: internalKlant,
+      systemen: systemen.value,
+      defaultSysteem: defaultSysteem.value,
+    });
+  }
 });
 
 const emit = defineEmits<{
