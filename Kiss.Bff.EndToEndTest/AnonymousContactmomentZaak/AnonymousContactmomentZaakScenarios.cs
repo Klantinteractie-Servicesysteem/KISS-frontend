@@ -144,6 +144,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("Then the first Contactmoment should contain the details as entered in Scenario: Register Contactmoment bij Zaak – II");
 
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             var firstContactMomentSummary = Page.FirstContactMomentSummary();
 
             await Expect(firstContactMomentSummary.GespreksresultaatHeader()).ToHaveTextAsync("Zelfstandig afgehandeld");
