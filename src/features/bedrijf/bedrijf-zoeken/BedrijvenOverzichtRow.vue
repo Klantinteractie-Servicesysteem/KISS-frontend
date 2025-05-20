@@ -119,34 +119,6 @@ const {
     if (heeftContactgegevens(klant)) return klant;
   }
 
-  // //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
-  // //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
-  // for (const nonDefaultSysteem of systemen.systemen.value.filter(
-  //   (s) => s.identifier !== systemen.defaultSysteem.value?.identifier,
-  // )) {
-  //   const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-  //     {
-  //       kvkNummer: props.item.kvkNummer,
-  //       vestigingsnummer: props.item.vestigingsnummer,
-  //       rsin: props.item.rsin,
-
-  //       //required fields
-  //       _typeOfKlant: "klant",
-  //       id: klant?.id ?? "",
-  //       klantnummer: "",
-  //       telefoonnummers: [],
-  //       emailadressen: [],
-  //       url: "",
-  //     },
-  //     nonDefaultSysteem,
-  //   );
-
-  //   if (props.autoNavigate) navigate();
-
-  //   return fallbackKlant;
-
-  // }
-
   const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
     systemen.systemen.value,
     systemen.defaultSysteem.value,
@@ -180,22 +152,10 @@ async function navigate() {
     return;
   }
 
-  //todo: do we still need caching???
-
   //klant is not yet in website store.
   //add the klant and navigate to details page with the generated internal id
   const newContactmomentKlant = <ContactmomentKlant>{
     ...props.item,
-    // kvknr etc zouden allemaal in prop.item moeten zitten
-    // kvkNummer:
-    //   KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters.value
-    //     ?.kvkNummer,
-    // vestigingsnummer:
-    //   KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters.value
-    //     ?.vestigingsnummer,
-    // rsin: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters
-    //   .value?.rsin,
-    //verplichte velden...
     id: KlantRegisterKlantId,
     telefoonnummers: [],
     emailadressen: [],
@@ -206,13 +166,6 @@ async function navigate() {
 
   await router.push(`/bedrijven/${newContactmomentKlant.internalId}`);
 }
-
-// watchEffect(() => {
-//   if (props.autoNavigate) {
-
-//     navigate();
-//   }
-// });
 </script>
 
 <style scoped lang="scss">
