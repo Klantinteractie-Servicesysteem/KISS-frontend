@@ -124,7 +124,6 @@ const {
     systemen.defaultSysteem.value,
     props.item.kvkNummer,
     props.item.vestigingsnummer,
-    props.item.rsin,
     undefined,
     klant?.id ?? "",
   );
@@ -141,7 +140,6 @@ async function navigate() {
   const kvkKlantInStore = klantenInStoreBijHuiduigeVraag?.find(
     (x) =>
       (!props.item.kvkNummer || x.klant.kvkNummer === props.item.kvkNummer) &&
-      (!props.item.rsin || x.klant.rsin === props.item.rsin) &&
       (!props.item.vestigingsnummer ||
         x.klant.vestigingsnummer === props.item.vestigingsnummer),
   );

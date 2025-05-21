@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { enforceOneOrZero, useLoader } from "@/services";
 import {
-  searchBedrijvenInHandelsRegisterByRsin,
+  searchBedrijvenInHandelsRegisterByKvkNummer,
   searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer,
   type Bedrijf,
 } from "@/services/kvk";
@@ -59,11 +59,10 @@ const {
         klant.kvkNummer,
       ).then(enforceOneOrZero);
     }
-    if (klant.rsin) {
-      return searchBedrijvenInHandelsRegisterByRsin(
-        klant.rsin,
-        klant.kvkNummer,
-      ).then(enforceOneOrZero);
+    if (klant.kvkNummer) {
+      return searchBedrijvenInHandelsRegisterByKvkNummer(klant.kvkNummer).then(
+        enforceOneOrZero,
+      );
     }
   }
 });

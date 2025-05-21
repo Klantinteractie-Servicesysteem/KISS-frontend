@@ -13,7 +13,6 @@ export interface Klant {
   vestigingsnummer?: string;
   rsin?: string;
   kvkNummer?: string;
-  nietNatuurlijkPersoonIdentifier?: string; //todo: moet weg en overal naar kvkNummer mappen, want nietNatuurlijkPersoonIdentifier is gewoon de kvk, uiteindelijker alleen kvknummer naar nietNatuurlijkPersoonIdentifier mappen in url tijdens fetch naar esuite
   url: string;
 }
 

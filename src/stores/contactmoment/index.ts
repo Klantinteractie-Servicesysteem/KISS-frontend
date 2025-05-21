@@ -122,7 +122,6 @@ export type ContactmomentKlant = {
   bsn?: string;
   vestigingsnummer?: string;
   kvkNummer?: string;
-  rsin?: string;
 };
 
 export type Bron = {

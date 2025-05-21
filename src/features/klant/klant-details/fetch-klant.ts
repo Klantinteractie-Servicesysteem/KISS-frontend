@@ -12,7 +12,7 @@ import {
 } from "@/services/environment/fetch-systemen";
 import type { Klant } from "@/services/openklant/types";
 
-import { searchBedrijvenInHandelsRegisterByRsin } from "@/services/kvk";
+import { searchBedrijvenInHandelsRegisterByKvkNummer } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
 import type { KlantIdentificator } from "@/features/contact/types";
@@ -37,22 +37,17 @@ export const fetchKlantByInternalId = async ({
     if (heeftContactgegevens(klant)) return klant;
     if (!systemen.length) return klant;
 
-    if (!klant.bsn) {
-      // For non-natural persons, we have EITHER an RSIN OR a Chamber of Commerce number (kvknummer),
-      // depending on whether the default system is ok1 or ok2.
-      // To translate this to the other systems,
-      // we need BOTH. So we first need to fetch the company again.
+    if (!klant.bsn && !klant.vestigingsnummer && klant.kvkNummer) {
+      //als we zaken zoeken in een zgw zaaksysteeem (behalve de esuite), dan hebben we daar de rsin voor nodig.
+      //voor een nietnatuurlijk persoon zoeken we adhv het kvkNummer.
+      //dit hoeft dus niet als er een vestigingsnummer is.
 
-      const bedrijf = await searchBedrijvenInHandelsRegisterByRsin(
-        klant.rsin ||
-          klant.nietNatuurlijkPersoonIdentifier ||
-          klant.kvkNummer ||
-          "",
+      const bedrijf = await searchBedrijvenInHandelsRegisterByKvkNummer(
+        klant.kvkNummer,
       ).then(enforceOneOrZero);
 
       if (!bedrijf) return klant;
 
-      klant.kvkNummer = bedrijf.kvkNummer;
       klant.rsin = bedrijf.rsin;
     }
 
@@ -63,14 +58,8 @@ export const fetchKlantByInternalId = async ({
 
   //Klant is not available in the default klantregister
 
-  ///////////////////////
-  //todo: duplicate from bedrijvenoverzichtrow. clean up
-  //If there is no Klant yet in the default Klant registry, or it there is but it doesn't have any contactgegevens...
-  //look in any other Klant registry to find any contactgevens for this Bedrijf from the KvK
-
   const kvkNummer = internalKlant?.kvkNummer;
   const vestigingsnummer = internalKlant?.vestigingsnummer;
-  const rsin = internalKlant?.rsin;
   const bsn = internalKlant?.bsn;
   const id = internalKlant?.id ?? "";
 
@@ -79,7 +68,6 @@ export const fetchKlantByInternalId = async ({
     defaultSysteem,
     kvkNummer,
     vestigingsnummer,
-    rsin,
     bsn,
     id,
   );
@@ -164,7 +152,6 @@ export async function fetchKlantFromNonDefaultSystems(
   defaultSysteem: Systeem,
   kvkNummer: string | undefined,
   vestigingsnummer: string | undefined,
-  rsin: string | undefined,
   bsn: string | undefined,
   id: string,
 ): Promise<Klant | null> {
@@ -175,7 +162,6 @@ export async function fetchKlantFromNonDefaultSystems(
       {
         kvkNummer: kvkNummer,
         vestigingsnummer: vestigingsnummer,
-        rsin: rsin,
         bsn: bsn,
 
         //required fields

@@ -75,24 +75,12 @@ export function searchBedrijvenInHandelsRegisterByVestigingEnKvkNummer(
   return searchBedrijfInHandelsRegister(page, searchParams);
 }
 
-export function searchBedrijvenInHandelsRegisterByRsin(
-  rsin: string,
-  kvkNummer?: string,
+export function searchBedrijvenInHandelsRegisterByKvkNummer(
+  kvkNummer: string,
   page?: number,
 ) {
   const searchParams = new URLSearchParams();
-
-  if (rsin.length === 9) {
-    //ok2
-    searchParams.set("rsin", rsin);
-    if (kvkNummer) {
-      searchParams.set("kvkNummer", kvkNummer);
-    }
-  } else {
-    //e-suite variant van ok1
-    searchParams.set("kvkNummer", rsin);
-  }
-
+  searchParams.set("kvkNummer", kvkNummer);
   searchParams.set("type", "rechtspersoon");
 
   return searchBedrijfInHandelsRegister(page, searchParams);
