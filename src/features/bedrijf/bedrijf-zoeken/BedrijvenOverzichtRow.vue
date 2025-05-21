@@ -113,11 +113,10 @@ const {
     KlantRegisterKlantId = klant.id;
 
     //return the Klant from the default registry if it has contactdetails
-
-    if (props.autoNavigate) navigate();
-
     if (heeftContactgegevens(klant)) return klant;
   }
+
+  if (props.autoNavigate) navigate();
 
   const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
     systemen.systemen.value,
