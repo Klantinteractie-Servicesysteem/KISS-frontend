@@ -1,5 +1,4 @@
-﻿using System;
-using Kiss.Bff.EndToEndTest.Helpers;
+﻿using Kiss.Bff.EndToEndTest.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
 {
@@ -53,7 +52,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             await page.NavigateToNieuwsWerkinstructiesBeheer();
             var toevoegenLink = page.GetByRole(AriaRole.Link, new() { Name = "Toevoegen" });
             await toevoegenLink.ClickAsync();
-           
+
             await page.WaitForPageAndSpinnerAsync(); // Wait until the page loads completely
 
             await page.GetByRole(AriaRole.Radio, new() { Name = request.BerichtType.ToString() }).CheckAsync();
@@ -61,7 +60,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             await page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).FillAsync(request.Title);
 
             var richTextEditor = page.GetByRole(AriaRole.Textbox, new() { Name = "Rich Text Editor" });
-             await richTextEditor.FillAsync(request.Body);
+            await richTextEditor.FillAsync(request.Body);
 
             if (request.IsImportant)
             {
@@ -168,13 +167,13 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
 
         public static async Task<bool> IsBerichtVisibleOnAllPagesAsync(this IPage page, Bericht bericht)
         {
-          
+
             var section = bericht.BerichtType == BerichtType.Nieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
             var nextPageButton = section.GetNextPageLink();
 
             while (true)
             {
-                    await page.WaitForPageAndSpinnerAsync(); // Wait until the page loads completely
+                await page.WaitForPageAndSpinnerAsync(); // Wait until the page loads completely
 
                 if (await section.GetByRole(AriaRole.Heading, new() { Name = bericht.Title }).IsVisibleAsync())
                     return true;
@@ -197,34 +196,31 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             return false;
         }
 
-        public static async Task<ILocator?> GetBerichtOnAllPagesAsync(this IPage page, Bericht bericht)
+        public static async Task<ILocator> GetBerichtOnAllPagesAsync(this IPage page, Bericht bericht)
         {
-            var section = bericht.BerichtType == BerichtType.Nieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
-            var nextPageButton = section.GetNextPageLink();
+            var isNieuws = bericht.BerichtType == BerichtType.Nieuws;
+            var section = isNieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
+            var title = bericht.Title;
 
             while (true)
             {
-                var article = section.GetByRole(AriaRole.Heading, new() { Name = bericht.Title });
+                var article = section.GetByRole(AriaRole.Heading, new() { Name = title });
                 if (await article.IsVisibleAsync())
                     return article;
 
-                if (await nextPageButton.IsVisibleAsync() && await nextPageButton.IsDisabledPageLink())
+                var nextPageButton = section.GetNextPageLink();
+
+                if (!await nextPageButton.IsVisibleAsync() || await nextPageButton.IsDisabledPageLink())
                     break;
 
-                if (await nextPageButton.IsVisibleAsync())
-                {
-                    await nextPageButton.ClickAsync();
-                    await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-                }
-                else
-                {
-                    break;
-                }
+                await nextPageButton.ClickAsync();
+                await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+                section = isNieuws ? page.GetNieuwsSection() : page.GetWerkinstructiesSection();
             }
 
-            return null;
+            return section.GetByRole(AriaRole.Heading, new() { Name = title });
         }
-
 
         public static async Task<bool> AreSkillsVisibleByNameAsync(this IPage page, ILocator articleLocator, List<string> expectedSkillNames)
         {
@@ -249,17 +245,17 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
         {
             // Wait for the loader spinner to disappear
             await page.WaitForSelectorAsync("div.loader", new PageWaitForSelectorOptions { State = WaitForSelectorState.Hidden });
-             
+
         }
 
-      
+
     }
 
 
-    internal class Bericht :  IAsyncDisposable
+    internal class Bericht : IAsyncDisposable
     {
         private readonly IPage _page;
-        
+
         public Bericht(IPage page)
         {
             _page = page;
@@ -274,7 +270,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
         public new BerichtType BerichtType { get; set; }
         public new TimeSpan? PublishDateOffset { get; set; }
 
-    
+
         public async ValueTask DisposeAsync()
         {
             await _page.Context.Tracing.GroupEndAsync();
@@ -282,13 +278,13 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             await _page.NavigateToNieuwsWerkinstructiesBeheer();
             var nieuwsRows = _page.GetByRole(AriaRole.Row)
                 .Filter(new()
-                { 
+                {
                     Has = _page.GetByRole(AriaRole.Cell, new() { Name = BerichtType.ToString(), Exact = true }).First
                 })
                  .Filter(new()
                  {
                      Has = _page.GetByRole(AriaRole.Cell, new() { Name = Title, Exact = true }).First,
-                   });
+                 });
 
             var deleteButton = nieuwsRows.GetByTitle("Verwijder").First;
             using (var _ = _page.AcceptAllDialogs())
