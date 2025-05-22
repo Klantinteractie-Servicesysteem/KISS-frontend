@@ -68,7 +68,7 @@ function mapKlant(obj: any): Klant {
     bsn: inpBsn,
     vestigingsnummer: vestigingsNummer,
     url: url,
-    nietNatuurlijkPersoonIdentifier: innNnpId,
+    kvkNummer: innNnpId,
     emailadressen: emailadres ? [emailadres] : [],
     telefoonnummers: telefoonnummer ? [telefoonnummer] : [],
   };
@@ -211,12 +211,12 @@ const getUrlVoorGetKlantById = (
     return url.toString();
   }
   if (
-    "nietNatuurlijkPersoonIdentifier" in bedrijfSearchParameter &&
-    bedrijfSearchParameter.nietNatuurlijkPersoonIdentifier
+    "kvkNummer" in bedrijfSearchParameter &&
+    bedrijfSearchParameter.kvkNummer
   ) {
     url.searchParams.set(
       "subjectNietNatuurlijkPersoon__innNnpId",
-      bedrijfSearchParameter.nietNatuurlijkPersoonIdentifier,
+      bedrijfSearchParameter.kvkNummer,
     );
     url.searchParams.set("subjectType", KlantType.NietNatuurlijkPersoon);
     return url.toString();
@@ -290,15 +290,10 @@ export function mapBedrijfsIdentifier(
         : "",
 
     //als esuite dan kvk nr gebruiken
-    nietNatuurlijkPersoonIdentifier:
+    kvkNummer:
       "kvkNummer" in bedrijfIdentifierOpenKlant2
         ? bedrijfIdentifierOpenKlant2.kvkNummer
         : "",
-
-    // nietNatuurlijkPersoonIdentifier:
-    //   "rsin" in bedrijfIdentifierOpenKlant2
-    //     ? bedrijfIdentifierOpenKlant2.rsin
-    //     : "",
   };
 }
 
@@ -335,15 +330,12 @@ export async function ensureKlantForBedrijfIdentifier(
   if ("vestigingsnummer" in identifier && identifier.vestigingsnummer) {
     subjectType = KlantType.Bedrijf;
     subjectIdentificatie = { vestigingsNummer: identifier.vestigingsnummer };
-  } else if (
-    "nietNatuurlijkPersoonIdentifier" in identifier &&
-    identifier.nietNatuurlijkPersoonIdentifier
-  ) {
+  } else if ("kvkNummer" in identifier && identifier.kvkNummer) {
     //als we niet te maken hebben met een vestiging
     //dan gebruiken we afhankelijk van de mogelijkheden van de gerbuite registers
     subjectType = KlantType.NietNatuurlijkPersoon;
     subjectIdentificatie = {
-      innNnpId: identifier.nietNatuurlijkPersoonIdentifier,
+      innNnpId: identifier.kvkNummer,
     };
   }
 

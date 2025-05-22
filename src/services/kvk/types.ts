@@ -49,9 +49,6 @@ export type BedrijfIdentifier =
       kvkNummer: string;
     }
   | {
-      rsin: string;
-    }
-  | {
       //deze variant is nodig omdt we van de e-suite alleen het vestigingsnr terug krijkegen en niet het kvknummer.
       //we moeten dus ook op basis vn alleen een vestiginsnummer gegevens kunnen opzoeken
       vestigingsnummer: string;

@@ -16,6 +16,8 @@ import type {
   TypeOrganisatorischeEenheid,
 } from "@/features/contact/components/types";
 import { fetchVragenSets } from "@/features/contact/contactverzoek/formulier/service";
+import { nanoid } from "nanoid";
+import type { BedrijfIdentifier } from "@/services/openklant1";
 
 export type ContactmomentZaak = {
   zaak: ZaakDetails;
@@ -106,6 +108,8 @@ export type ContactmomentContactVerzoek = {
 };
 
 export type ContactmomentKlant = {
+  bedrijfIdentifier?: BedrijfIdentifier;
+  internalId?: string;
   id: string;
   voornaam?: string;
   voorvoegselAchternaam?: string;
@@ -118,7 +122,6 @@ export type ContactmomentKlant = {
   bsn?: string;
   vestigingsnummer?: string;
   kvkNummer?: string;
-  rsin?: string;
 };
 
 export type Bron = {
@@ -190,6 +193,15 @@ export const useContactmomentStore = defineStore("contactmoment", {
     } as ContactmomentenState;
   },
   getters: {
+    getKlantByInternalId(state) {
+      return (internalKlantId: string): ContactmomentKlant | undefined => {
+        const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
+          (x: { klant: ContactmomentKlant; shouldStore: boolean }) =>
+            x.klant.internalId == internalKlantId,
+        );
+        return x?.klant;
+      };
+    },
     klantVoorHuidigeVraag(state): ContactmomentKlant | undefined {
       return state.huidigContactmoment?.huidigeVraag.klanten
         ?.filter((x) => x.shouldStore)
@@ -361,18 +373,26 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
       const { contactverzoek } = huidigeVraag;
 
-      const match = huidigeVraag.klanten.find((x) => x.klant.id === klant.id);
-
       huidigeVraag.klanten.forEach((x) => {
         x.shouldStore = false;
       });
 
       mapKlantToContactverzoek(klant, contactverzoek);
 
+      const match = huidigeVraag.klanten.find(
+        (x) =>
+          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+      );
+
       if (match) {
+        klant.internalId = match.klant.internalId;
         match.klant = klant;
         match.shouldStore = true;
         return;
+      }
+
+      if (!klant.internalId) {
+        klant.internalId = nanoid();
       }
 
       huidigeVraag.klanten.push({

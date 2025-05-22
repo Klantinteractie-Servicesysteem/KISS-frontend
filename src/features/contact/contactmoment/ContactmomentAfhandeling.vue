@@ -1131,7 +1131,7 @@ const ensureKlanten = async (systeem: Systeem, vraag: Vraag) => {
         klantInSysteem = await ensureKlantForBedrijfIdentifier(
           systeem.identifier,
           {
-            identifier: { nietNatuurlijkPersoonIdentifier: klant.kvkNummer },
+            identifier: { kvkNummer: klant.kvkNummer },
             bedrijfsnaam: "",
           },
           bronorganisatie,
