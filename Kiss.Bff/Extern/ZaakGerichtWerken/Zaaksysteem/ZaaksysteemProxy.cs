@@ -21,7 +21,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             if (config == null)
             {
-                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", systemIdentifier);
+                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", systemIdentifier[..(systemIdentifier.Length < 15 ? systemIdentifier.Length - 1 : 15)] + "..." );
                 return Problem(
                     title: "Configuratieprobleem",
                     detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
