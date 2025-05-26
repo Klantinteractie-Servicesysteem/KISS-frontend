@@ -111,23 +111,25 @@ const {
     //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
     //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
     KlantRegisterKlantId = klant.id;
-
-    //return the Klant from the default registry if it has contactdetails
-    if (heeftContactgegevens(klant)) return klant;
   }
 
   if (props.autoNavigate) navigate();
 
-  const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
-    systemen.systemen.value,
-    systemen.defaultSysteem.value,
-    props.item.kvkNummer,
-    props.item.vestigingsnummer,
-    undefined,
-    klant?.id ?? "",
-  );
+  //return the Klant from the default registry if it has contactdetails
+  if (klant && heeftContactgegevens(klant)) {
+    return klant;
+  } else {
+    const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
+      systemen.systemen.value,
+      systemen.defaultSysteem.value,
+      props.item.kvkNummer,
+      props.item.vestigingsnummer,
+      undefined,
+      klant?.id ?? "",
+    );
 
-  return nonDefaultKlant ?? klant;
+    return nonDefaultKlant ?? klant;
+  }
 });
 
 const router = useRouter();
