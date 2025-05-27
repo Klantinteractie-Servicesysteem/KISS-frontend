@@ -11,6 +11,31 @@ RUN addgroup --group kiss --gid 2000 \
     "kiss" 
 RUN chown kiss:kiss  /app
 
+# Security updates - upgrade kwetsbare packages naar nieuwste beschikbare versies
+# Note: zlib1g CVE-2023-45853 is gemarkeerd als "ignored" door het Debian security team
+# omdat het het MiniZip component betreft dat niet wordt gebouwd/geleverd met het zlib1g package die wij gebruiken
+# Bron: https://security-tracker.debian.org/tracker/CVE-2023-45853
+RUN apt-get update && \
+   apt-get upgrade -y \
+       zlib1g \
+       libc-bin \
+       libc6 \
+       perl-base \
+       util-linux \
+       tar \
+       libsystemd0 \
+       passwd \
+       libpam0g \
+       libtinfo6 \
+       libgcrypt20 \
+       libgnutls30 \
+       gpgv \
+       libstdc++6 \
+       coreutils \
+       apt && \
+   apt-get clean && \
+   rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnetbuild
 WORKDIR /src
 COPY ["Kiss.Bff/Kiss.Bff.csproj", "Kiss.Bff/"]
