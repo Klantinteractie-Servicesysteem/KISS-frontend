@@ -98,6 +98,10 @@ const navigate = async (persoon: Persoon) => {
         hasContactInformation:
           klant?.telefoonnummers?.length > 0 ||
           klant?.emailadressen?.length > 0,
+
+        achternaam: persoon.achternaam,
+        voornaam: persoon.voornaam,
+        voorvoegselAchternaam: persoon.voorvoegselAchternaam,
       };
 
       contactmomentStore.setKlant(existingKlant);
