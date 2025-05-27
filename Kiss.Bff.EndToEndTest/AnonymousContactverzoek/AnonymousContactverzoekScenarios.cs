@@ -62,12 +62,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the Zoeken button");
             await Page.GetZoekenButton().ClickAsync();
-            await Task.Delay(5000);
 
             await Step("And contactverzoek details are displayed");
-            await Page.GetByText("automation test").ClickAsync();
-
-            await Task.Delay(2000);
+            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617138555");
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
