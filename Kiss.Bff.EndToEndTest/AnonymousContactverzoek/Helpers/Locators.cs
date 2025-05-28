@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+﻿using System.Reflection.Metadata.Ecma335;
+using Microsoft.Playwright;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
@@ -13,6 +14,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
         public static ILocator GetGroupRadioButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Radio, new() { Name = "Groep" });
+        }
+
+        public static ILocator GetMedewerkerRadioButton(this IPage page)
+        {
+            return page.GetByRole(AriaRole.Radio, new() { Name = "Medewerker" });
         }
 
         public static ILocator GetAfdelingCombobox(this IPage page)
@@ -46,6 +52,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
             return page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" });
         }
 
+        public static ILocator GetAfdelingTextbox(this IPage page)
+        {
+            return page.GetByLabel("Afdeling / groep Afdeling:");
+        }
+
+
         public static ILocator GetAfrondenButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Button, new() { Name = "Afronden" });
@@ -59,6 +71,16 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
         public static ILocator GetTelefoonnummer1field(this IPage page)
         {
             return page.GetByLabel("Telefoonnummer 1");
+        }
+
+        public static ILocator GetTelefoonnummer2field(this IPage page)
+        {
+            return page.GetByLabel("Telefoonnummer 2", new() { Exact = true });
+        }
+
+        public static ILocator GetEmailfield(this IPage page)
+        {
+            return page.GetByLabel("E-mailadres");
         }
         public static ILocator GetContactverzoekenLink(this IPage page)
         {
@@ -74,6 +96,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
         public static ILocator GetZoekenButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Main).GetByRole(AriaRole.Button, new() { Name = "Zoeken" });
+        }
+
+        public static ILocator GetContactVerzoekSuccessToast(this IPage page)
+        {
+            return page.Locator("output[role='status'].confirm");
         }
     }
 }
