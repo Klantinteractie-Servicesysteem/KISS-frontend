@@ -1,6 +1,6 @@
 export interface Klant {
   _typeOfKlant: "klant";
-  id: string;
+  id?: string;
   klantnummer: string;
   telefoonnummers: string[];
   emailadressen: string[];

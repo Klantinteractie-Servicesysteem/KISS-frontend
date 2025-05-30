@@ -61,7 +61,6 @@ export const fetchKlantByInternalId = async ({
   const kvkNummer = internalKlant?.kvkNummer;
   const vestigingsnummer = internalKlant?.vestigingsnummer;
   const bsn = internalKlant?.bsn;
-  const id = internalKlant?.id ?? "";
 
   return await fetchKlantFromNonDefaultSystems(
     systemen,
@@ -69,19 +68,13 @@ export const fetchKlantByInternalId = async ({
     kvkNummer,
     vestigingsnummer,
     bsn,
-    id,
   );
 };
 
 export const fetchKlantByNonDefaultSysteem = async (
-  klant: Klant,
+  identifier: KlantIdentificator,
   systeem: Systeem,
 ): Promise<Klant | null> => {
-  if (!klant) return null;
-
-  const identifier = mapKlantToKlantIdentifier(systeem.registryVersion, klant);
-  if (!identifier) return klant;
-
   return systeem.registryVersion === registryVersions.ok1
     ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
     : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
@@ -113,8 +106,14 @@ export const enrichKlantWithContactDetails = async (
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+    const identifier = mapKlantToKlantIdentifier(
+      nonDefaultSysteem.registryVersion,
       klant,
+    );
+    if (!identifier) return klant;
+
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      identifier,
       nonDefaultSysteem,
     );
 
@@ -153,12 +152,13 @@ export async function fetchKlantFromNonDefaultSystems(
   kvkNummer: string | undefined,
   vestigingsnummer: string | undefined,
   bsn: string | undefined,
-  id: string,
+  //id: string,
 ): Promise<Klant | null> {
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+    const identifier = mapKlantToKlantIdentifier(
+      nonDefaultSysteem.registryVersion,
       {
         kvkNummer: kvkNummer,
         vestigingsnummer: vestigingsnummer,
@@ -166,12 +166,18 @@ export async function fetchKlantFromNonDefaultSystems(
 
         //required fields
         _typeOfKlant: "klant",
-        id: id,
+        // id: id,
         klantnummer: "",
         telefoonnummers: [],
         emailadressen: [],
         url: "",
       },
+    );
+
+    if (!identifier) return null;
+
+    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
+      identifier,
       nonDefaultSysteem,
     );
 

@@ -9,8 +9,8 @@
           :internalKlantId="internalKlantId"
           @no-data="setDisabled(true)"
           @load="
-            klant = $event;
-            setDisabled(false);
+            //   updateKlantInStore($event);
+            setDisabled(false)
           "
           @loading="setLoading"
           @error="setError"
@@ -84,13 +84,27 @@ import BackLink from "@/components/BackLink.vue";
 import { BrpGegevens } from "@/features/persoon/persoon-details";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
-import type { Klant } from "@/services/openklant/types";
+
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
+import type { Klant } from "@/services/openklant/types";
 
 defineProps<{ internalKlantId: string }>();
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
-const klant = ref<Klant>();
+
 const persoon = ref<Persoon>();
+
+// const updateKlantInStore = (klant: Klant) => {
+//   // the klantdetails component loads the contactdetails from
+//   // het emailadres wordt getoond in de contactmoment selectielijst
+//   const huidigeKlant =
+//     contactmomentStore.huidigContactmoment?.huidigeVraag.klanten.find(
+//       (k) => k.klant.internalId === props.internalKlantId,
+//     );
+//   if (huidigeKlant) {
+//     huidigeKlant.klant.emailadressen = klant.emailadressen;
+//     huidigeKlant.klant.telefoonnummers = klant.telefoonnummers;
+//   }
+// };
 </script>
