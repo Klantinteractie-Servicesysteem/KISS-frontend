@@ -13,9 +13,9 @@
             {{ email }}
           </li>
         </ul>
-        <ul v-else-if="klant.emailadres">
+        <ul v-else-if="klant.emailadressen">
           <li>
-            {{ klant.emailadres }}
+            {{ klant.emailadressen[0] }}
           </li>
         </ul>
       </dd>
@@ -26,9 +26,9 @@
             {{ telefoon }}
           </li>
         </ul>
-        <ul v-else-if="klant.telefoonnummer">
+        <ul v-else-if="klant.telefoonnummers">
           <li>
-            {{ klant.telefoonnummer }}
+            {{ klant.telefoonnummers[0] }}
           </li>
         </ul>
       </dd>
@@ -37,15 +37,13 @@
 </template>
 
 <script lang="ts" setup>
-import { watchEffect, type PropType } from "vue";
+import { onMounted, ref, watchEffect, type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import type { Klant } from "@/services/openklant/types";
-import { useLoader } from "@/services";
-import { fetchKlantByInternalId } from "./fetch-klant";
-import { useSystemen } from "@/services/environment/fetch-systemen";
-import { useContactmomentStore } from "@/stores/contactmoment";
+import {
+  useContactmomentStore,
+  type ContactmomentKlant,
+} from "@/stores/contactmoment";
 
-const { systemen, defaultSysteem } = useSystemen();
 const store = useContactmomentStore();
 const props = defineProps({
   internalKlantId: {
@@ -58,54 +56,33 @@ const props = defineProps({
   },
 });
 
-const {
-  data: klant,
-  loading,
-  error,
-} = useLoader(() => {
-  if (
-    !props.internalKlantId ||
-    !defaultSysteem.value ||
-    !systemen.value?.length
-  )
-    return;
+const klant = ref<ContactmomentKlant | undefined>(undefined);
+const error = ref<boolean>(false);
 
-  const internalKlant = store.getKlantByInternalId(props.internalKlantId);
-
-  if (internalKlant) {
-    return fetchKlantByInternalId({
-      internalKlant: internalKlant,
-      systemen: systemen.value,
-      defaultSysteem: defaultSysteem.value,
-    });
+onMounted(() => {
+  try {
+    klant.value = store.getKlantByInternalId(props.internalKlantId);
+    emit("load");
+  } catch {
+    error.value = true;
   }
 });
 
 const emit = defineEmits<{
-  load: [data: Klant];
-  loading: [data: boolean];
   error: [data: boolean];
+  load: [];
   noData: [];
 }>();
 
 watchEffect(() => {
-  if (klant.value) {
-    emit("load", klant.value);
-  }
-});
-
-watchEffect(() => {
   if (
-    !loading.value &&
-    !error.value &&
-    (!klant.value ||
-      (!klant.value.emailadressen?.length &&
-        !klant.value.telefoonnummers?.length))
+    !klant.value ||
+    (!klant.value.emailadressen?.length && !klant.value.telefoonnummers?.length)
   ) {
     emit("noData");
   }
 });
-watchEffect(() => emit("loading", loading.value));
+
 watchEffect(() => emit("error", error.value));
 </script>
 

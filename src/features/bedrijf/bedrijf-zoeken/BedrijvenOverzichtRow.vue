@@ -101,7 +101,8 @@ const { loading, error } = useLoader(async () => {
 
   //return the Klant from the default registry if it has contactdetails
   if (klant.value && heeftContactgegevens(klant.value)) {
-    return klant.value;
+    telefoonnummers.value = klant.value.telefoonnummers;
+    emailadressen.value = klant.value.emailadressen;
   } else {
     const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
       systemen.systemen.value,

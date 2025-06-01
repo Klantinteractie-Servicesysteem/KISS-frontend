@@ -50,7 +50,7 @@
 import DutchDate from "@/components/DutchDate.vue";
 import type { Persoon } from "@/services/brp";
 import { useRouter } from "vue-router";
-import { watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
   useContactmomentStore,
@@ -96,8 +96,8 @@ const navigate = async (persoon: Persoon) => {
         systemen.defaultSysteem.value,
       );
 
-      let telefoonnummers: string[] = klant?.telefoonnummers ?? [];
-      let emailadressen: string[] = klant?.telefoonnummers ?? [];
+      const telefoonnummers = ref<string[]>(klant?.telefoonnummers ?? []);
+      const emailadressen = ref<string[]>(klant?.emailadressen ?? []);
 
       // if the klant is not found in the default registry
       // or if the klant doesn't have contactdetausl in the default registry
@@ -114,18 +114,18 @@ const navigate = async (persoon: Persoon) => {
           // als er een fallback klant gevonden is
           // dan nemen we daar de contactgegevens van over
           if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
-            telefoonnummers = fallbackKlant.telefoonnummers;
-            emailadressen = fallbackKlant.emailadressen;
+            telefoonnummers.value = fallbackKlant.telefoonnummers;
+            emailadressen.value = fallbackKlant.emailadressen;
           }
         }
       }
 
       const storeKlant = <ContactmomentKlant>{
         id: klant?.id,
-        telefoonnummers: telefoonnummers,
-        emailadressen: emailadressen,
+        telefoonnummers: telefoonnummers.value,
+        emailadressen: emailadressen.value,
         hasContactInformation:
-          telefoonnummers?.length > 0 || emailadressen?.length > 0,
+          telefoonnummers.value?.length > 0 || emailadressen.value?.length > 0,
         achternaam: persoon.achternaam,
         voornaam: persoon.voornaam,
         voorvoegselAchternaam: persoon.voorvoegselAchternaam,

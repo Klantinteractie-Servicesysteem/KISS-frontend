@@ -4,15 +4,11 @@
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
   <tab-list v-model="activeTab">
     <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setLoading, setDisabled }">
+      <template #default="{ setError, setDisabled }">
         <klant-details
           :internalKlantId="internalKlantId"
           @no-data="setDisabled(true)"
-          @load="
-            //   updateKlantInStore($event);
-            setDisabled(false)
-          "
-          @loading="setLoading"
+          @load="setDisabled(false)"
           @error="setError"
         />
       </template>
