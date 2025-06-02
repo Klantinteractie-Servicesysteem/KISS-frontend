@@ -2,6 +2,7 @@
 using Kiss.Bff.EndToEndTest.AnonymousContactmoment.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
+using Kiss.Bff.EndToEndTest.Common.Helpers.Api;
 
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
@@ -44,7 +45,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -58,7 +59,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the Zoeken button");
             await Page.GetZoekenButton().ClickAsync();
-
+            Page.HandleResponseStatus();
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
             await latestRequest.PressAsync("Enter");
@@ -103,7 +104,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -116,7 +117,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetEmailTextbox().FillAsync("testautomation@info.nl");
 
             await Step("And clicks the Zoeken button");
+
             await Page.GetZoekenButton().ClickAsync();
+            Page.HandleResponseStatus();
 
             await Step("And contactverzoek details are displayed");
 
@@ -162,7 +165,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -175,7 +178,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetContactverzoekSearchBar().FillAsync("0617138556");
 
             await Step("And clicks the Zoeken button");
+
             await Page.GetZoekenButton().ClickAsync();
+            Page.HandleResponseStatus();
+
             await Step("And contactverzoek details are displayed");
 
             await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
@@ -219,7 +225,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -232,7 +238,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetEmailTextbox().FillAsync("testautomation@example.com");
 
             await Step("And clicks the Zoeken button");
+
             await Page.GetZoekenButton().ClickAsync();
+            Page.HandleResponseStatus();
 
             await Step("And contactverzoek details are displayed");
 
@@ -275,7 +283,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -316,7 +324,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -376,7 +384,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "balie" } });
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -465,7 +473,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetContactverzoekSearchBar().FillAsync("0617178888");
 
             await Step("And clicks the Zoeken button");
+
             await Page.GetZoekenButton().ClickAsync();
+            Page.HandleResponseStatus();
 
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
