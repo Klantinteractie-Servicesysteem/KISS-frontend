@@ -15,14 +15,14 @@
     </td>
     <td class="wrap">
       <div v-if="loading" />
-      <template v-if="!error">
-        {{ emailadressen?.join(", ") }}
+      <template v-if="!error && data">
+        {{ data.emailadressen?.join(", ") }}
       </template>
     </td>
     <td class="wrap">
       <div class="skeleton" v-if="loading" />
-      <template v-if="!error">
-        {{ telefoonnummers.join(", ") }}
+      <template v-if="!error && data">
+        {{ data.telefoonnummers.join(", ") }}
       </template>
     </td>
     <td>
@@ -39,7 +39,7 @@ import {
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
 import { useLoader } from "@/services";
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 import type { Klant, KlantIdentificator } from "@/services/openklant/types";
 import {
   fetchKlantByKlantIdentificatorOk,
@@ -67,10 +67,8 @@ const klant = ref<Klant | null>();
 //but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
 //when we navigate to the details page
 
-const telefoonnummers = ref<string[]>([]);
-const emailadressen = ref<string[]>([]);
 
-const { loading, error } = useLoader(async () => {
+const { loading, error, data } = useLoader(async () => {
   if (
     systemen.loading.value ||
     systemen.error.value ||
@@ -78,6 +76,11 @@ const { loading, error } = useLoader(async () => {
     !systemen.defaultSysteem.value
   )
     return;
+
+  const data: { telefoonnummers: string[]; emailadressen: string[] } = {
+    telefoonnummers: [],
+    emailadressen: [],
+  };
 
   // find the klant in the Klant registry
 
@@ -100,8 +103,8 @@ const { loading, error } = useLoader(async () => {
 
   //return the Klant from the default registry if it has contactdetails
   if (klant.value && heeftContactgegevens(klant.value)) {
-    telefoonnummers.value = klant.value.telefoonnummers;
-    emailadressen.value = klant.value.emailadressen;
+    data.telefoonnummers = klant.value.telefoonnummers;
+    data.emailadressen = klant.value.emailadressen;
   } else {
     const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
       systemen.systemen.value,
@@ -112,19 +115,21 @@ const { loading, error } = useLoader(async () => {
     );
 
     if (nonDefaultKlant) {
-      telefoonnummers.value = nonDefaultKlant.telefoonnummers;
-      emailadressen.value = nonDefaultKlant.emailadressen;
+      data.telefoonnummers = nonDefaultKlant.telefoonnummers;
+      data.emailadressen = nonDefaultKlant.emailadressen;
     }
   }
 
-  if (props.autoNavigate) navigate();
-
-  return klant.value;
+  return data;
 });
 
 const router = useRouter();
 
 async function navigate() {
+  if (!data.value) {
+    return;
+  }
+
   const klantFromInternalStore = contactmomentStore.getBedrijfsKlant(
     props.item.kvkNummer,
     props.item.vestigingsnummer,
@@ -146,10 +151,11 @@ async function navigate() {
 
     const storeKlant = <ContactmomentKlant>{
       id: klant.value?.id,
-      telefoonnummers: telefoonnummers.value,
-      emailadressen: emailadressen.value,
+      telefoonnummers: data.value.telefoonnummers,
+      emailadressen: data.value.emailadressen,
       hasContactInformation:
-        telefoonnummers.value?.length > 0 || emailadressen.value?.length > 0,
+        data.value.telefoonnummers?.length > 0 ||
+        data.value.emailadressen?.length > 0,
       bedrijfsnaam: props.item.bedrijfsnaam,
       vestigingsnummer: props.item.vestigingsnummer,
       kvkNummer: props.item.kvkNummer,
@@ -160,6 +166,10 @@ async function navigate() {
     await router.push("/bedrijven/" + storeKlant.internalId);
   }
 }
+
+watchEffect(() => {
+  if (data && props.autoNavigate) navigate();
+});
 </script>
 
 <style scoped lang="scss">
