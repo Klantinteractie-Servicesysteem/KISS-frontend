@@ -3,23 +3,24 @@
 
     public static class PageApiResponseExtension
     {
-
-        public static void HandleResponseStatus(this IPage page, int expectedStatus = 200)
+        public static void EnsureSystemIsUp(this IPage page)
         {
+           
             page.Response += (_, response) =>
             {
                 var request = response.Request;
                 var requestHeaders = request.Headers;
 
-                if (response.Status != expectedStatus)
+                if (response.Status >= 500 && response.Status < 600)
                 {
-                    var errorMessage = $"Request failed:\n" +
+                    var errorMessage = $"Server error:\n" +
                         $"  Method: {request.Method}\n" +
-                        $"  URL: {request.Url}\n" + 
-                        $"  Expected status: {expectedStatus}, but got {response.Status}";
-                    throw new  Exception(errorMessage);
-                }
+                        $"  URL: {request.Url}\n" +
+                        $"  Response status: {response.Status}";
+                    throw new Exception(errorMessage); 
+                } 
             };
-        }
+
+              }
     }
 }

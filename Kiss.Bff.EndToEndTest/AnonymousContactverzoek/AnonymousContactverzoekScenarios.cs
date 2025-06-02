@@ -59,7 +59,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the Zoeken button");
             await Page.GetZoekenButton().ClickAsync();
-            Page.HandleResponseStatus();
+            Page.EnsureSystemIsUp();
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
             await latestRequest.PressAsync("Enter");
@@ -119,7 +119,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.HandleResponseStatus();
+            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -180,7 +180,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.HandleResponseStatus();
+            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -240,7 +240,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.HandleResponseStatus();
+            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -475,7 +475,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.HandleResponseStatus();
+            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
