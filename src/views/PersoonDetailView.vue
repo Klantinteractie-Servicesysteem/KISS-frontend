@@ -83,24 +83,9 @@ import ContactverzoekenForKlantIdentificator from "@/features/contact/contactver
 
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
-import type { Klant } from "@/services/openklant/types";
 
 defineProps<{ internalKlantId: string }>();
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
-
 const persoon = ref<Persoon>();
-
-// const updateKlantInStore = (klant: Klant) => {
-//   // the klantdetails component loads the contactdetails from
-//   // het emailadres wordt getoond in de contactmoment selectielijst
-//   const huidigeKlant =
-//     contactmomentStore.huidigContactmoment?.huidigeVraag.klanten.find(
-//       (k) => k.klant.internalId === props.internalKlantId,
-//     );
-//   if (huidigeKlant) {
-//     huidigeKlant.klant.emailadressen = klant.emailadressen;
-//     huidigeKlant.klant.telefoonnummers = klant.telefoonnummers;
-//   }
-// };
 </script>

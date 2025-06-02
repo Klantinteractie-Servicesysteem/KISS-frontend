@@ -5,25 +5,6 @@ import {
   fetchObjectContactmomenten,
   type ContactmomentViewModelOk1,
 } from "@/services/contactmomenten/service";
-import type { Klant } from "@/services/openklant/types";
-import { registryVersions } from "@/services/environment/fetch-systemen";
-
-export const mapKlantToKlantIdentifier = (
-  registryVersion: string,
-  klant: Klant,
-): KlantIdentificator => {
-  return registryVersion === registryVersions.ok1
-    ? {
-        bsn: klant.bsn,
-        vestigingsnummer: klant.vestigingsnummer,
-        kvkNummer: klant.kvkNummer,
-      }
-    : {
-        bsn: klant.bsn,
-        vestigingsnummer: klant.vestigingsnummer,
-        kvkNummer: klant.kvkNummer,
-      };
-};
 
 export const enrichOnderwerpObjectenWithZaaknummers = (
   systeemId: string,

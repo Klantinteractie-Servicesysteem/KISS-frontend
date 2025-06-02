@@ -16,7 +16,6 @@ import { searchBedrijvenInHandelsRegisterByKvkNummer } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
 
 import type { KlantIdentificator } from "@/features/contact/types";
-import { mapKlantToKlantIdentifier } from "@/features/contact/shared";
 import type { ContactmomentKlant } from "@/stores/contactmoment";
 
 export const fetchKlantByInternalId = async ({
@@ -106,10 +105,12 @@ export const enrichKlantWithContactDetails = async (
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
-    const identifier = mapKlantToKlantIdentifier(
-      nonDefaultSysteem.registryVersion,
-      klant,
-    );
+    const identifier = {
+      bsn: klant.bsn,
+      vestigingsnummer: klant.vestigingsnummer,
+      kvkNummer: klant.kvkNummer,
+    };
+
     if (!identifier) return klant;
 
     const fallbackKlant = await fetchKlantByNonDefaultSysteem(
@@ -157,22 +158,11 @@ export async function fetchKlantFromNonDefaultSystems(
   for (const nonDefaultSysteem of systemen.filter(
     (s) => s.identifier !== defaultSysteem.identifier,
   )) {
-    const identifier = mapKlantToKlantIdentifier(
-      nonDefaultSysteem.registryVersion,
-      {
-        kvkNummer: kvkNummer,
-        vestigingsnummer: vestigingsnummer,
-        bsn: bsn,
-
-        //required fields
-        _typeOfKlant: "klant",
-        // id: id,
-        klantnummer: "",
-        telefoonnummers: [],
-        emailadressen: [],
-        url: "",
-      },
-    );
+    const identifier = {
+      bsn: bsn,
+      vestigingsnummer: vestigingsnummer,
+      kvkNummer: kvkNummer,
+    };
 
     if (!identifier) return null;
 

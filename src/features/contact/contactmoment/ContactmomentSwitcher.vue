@@ -53,10 +53,7 @@ const closeDetails = () => {
 };
 
 const moments = computed(() => {
-  console.log("reeval");
-
   return contactmomentStore.contactmomenten.map((moment) => {
-    console.log("reeval", moment);
     return {
       description: getKlantInfo(moment),
       isCurrent: moment === contactmomentStore.huidigContactmoment,
