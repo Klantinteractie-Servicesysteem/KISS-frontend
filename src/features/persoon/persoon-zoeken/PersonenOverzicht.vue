@@ -50,7 +50,7 @@
 import DutchDate from "@/components/DutchDate.vue";
 import type { Persoon } from "@/services/brp";
 import { useRouter } from "vue-router";
-import { ref, watchEffect } from "vue";
+import { watchEffect } from "vue";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
   useContactmomentStore,
@@ -60,7 +60,7 @@ import {
   fetchKlantByKlantIdentificatorOk,
   fetchKlantFromNonDefaultSystems,
   heeftContactgegevens,
-} from "@/features/klant/klant-details/fetch-klant";
+} from "@/services/openklant/service";
 
 const props = defineProps<{
   records: Persoon[];
@@ -96,8 +96,8 @@ const navigate = async (persoon: Persoon) => {
         systemen.defaultSysteem.value,
       );
 
-      const telefoonnummers = ref<string[]>(klant?.telefoonnummers ?? []);
-      const emailadressen = ref<string[]>(klant?.emailadressen ?? []);
+      let telefoonnummers = klant?.telefoonnummers ?? [];
+      let emailadressen = klant?.emailadressen ?? [];
 
       // if the klant is not found in the default registry
       // or if the klant doesn't have contactdetausl in the default registry
@@ -114,18 +114,18 @@ const navigate = async (persoon: Persoon) => {
           // als er een fallback klant gevonden is
           // dan nemen we daar de contactgegevens van over
           if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
-            telefoonnummers.value = fallbackKlant.telefoonnummers;
-            emailadressen.value = fallbackKlant.emailadressen;
+            telefoonnummers = fallbackKlant.telefoonnummers;
+            emailadressen = fallbackKlant.emailadressen;
           }
         }
       }
 
       const storeKlant = <ContactmomentKlant>{
         id: klant?.id,
-        telefoonnummers: telefoonnummers.value,
-        emailadressen: emailadressen.value,
+        telefoonnummers: telefoonnummers,
+        emailadressen: emailadressen,
         hasContactInformation:
-          telefoonnummers.value?.length > 0 || emailadressen.value?.length > 0,
+          telefoonnummers?.length > 0 || emailadressen?.length > 0,
         achternaam: persoon.achternaam,
         voornaam: persoon.voornaam,
         voorvoegselAchternaam: persoon.voorvoegselAchternaam,

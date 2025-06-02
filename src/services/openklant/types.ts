@@ -39,3 +39,9 @@ export interface Contactmoment {
   gespreksId?: string;
   verantwoordelijkeAfdeling?: string;
 }
+
+export type KlantIdentificator = {
+  bsn?: string;
+  kvkNummer?: string;
+  vestigingsnummer?: string;
+};

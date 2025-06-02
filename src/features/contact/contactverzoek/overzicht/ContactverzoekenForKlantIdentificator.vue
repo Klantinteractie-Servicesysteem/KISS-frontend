@@ -15,8 +15,8 @@ import { watchEffect } from "vue";
 import ContactverzoekenOverzicht from "./ContactverzoekenOverzicht.vue";
 import { fetchContactverzoekenByKlantIdentificator } from "./service";
 import type { ContactverzoekOverzichtItem } from "./types";
-import type { KlantIdentificator } from "../../types";
 import { useSystemen } from "@/services/environment/fetch-systemen";
+import type { KlantIdentificator } from "@/services/openklant/types";
 
 defineSlots();
 

@@ -38,15 +38,14 @@ import {
   useContactmomentStore,
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
-import type { KlantIdentificator } from "@/features/contact/types";
 import { useLoader } from "@/services";
+import { ref } from "vue";
+import type { Klant, KlantIdentificator } from "@/services/openklant/types";
 import {
   fetchKlantByKlantIdentificatorOk,
   fetchKlantFromNonDefaultSystems,
   heeftContactgegevens,
-} from "@/features/klant/klant-details/fetch-klant";
-import { ref } from "vue";
-import type { Klant } from "@/services/openklant/types";
+} from "@/services/openklant/service";
 
 const props = defineProps<{
   item: Bedrijf;

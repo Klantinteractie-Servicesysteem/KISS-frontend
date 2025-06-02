@@ -6,7 +6,6 @@ import {
   throwIfNotOk,
   ServiceResult,
   type PaginatedResult,
-  type ServiceData,
 } from "@/services";
 import { mutate } from "swrv";
 import type {
@@ -18,10 +17,13 @@ import { KlantType } from "./types";
 import { nanoid } from "nanoid";
 import type { BedrijfIdentifier as BedrijfIdentifierOpenKlant1 } from "./types";
 import type { KlantBedrijfIdentifier as BedrijfIdentifierOpenKlant2 } from "../openklant2/types.js";
-import type { Contactmoment, Klant } from "../openklant/types";
+import type {
+  Contactmoment,
+  Klant,
+  KlantIdentificator,
+} from "../openklant/types";
 import { toRelativeProxyUrl } from "@/helpers/url";
 import { fetchWithSysteemId } from "../fetch-with-systeem-id";
-import type { KlantIdentificator } from "@/features/contact/types";
 
 const klantenBaseUrl = "/api/klanten/api/v1/klanten";
 

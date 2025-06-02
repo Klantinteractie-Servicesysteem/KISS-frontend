@@ -1,22 +1,18 @@
-import {
-  fetchKlantByIdOk2,
-  fetchKlantByKlantIdentificatorOk2,
-} from "@/services/openklant2";
-import {
-  fetchKlantByIdOk1,
-  fetchKlantByKlantIdentificatorOk1,
-} from "@/services/openklant1";
+import { fetchKlantByIdOk2 } from "@/services/openklant2";
+import { fetchKlantByIdOk1 } from "@/services/openklant1";
 import {
   registryVersions,
   type Systeem,
 } from "@/services/environment/fetch-systemen";
 import type { Klant } from "@/services/openklant/types";
-
 import { searchBedrijvenInHandelsRegisterByKvkNummer } from "@/services/kvk";
 import { enforceOneOrZero } from "@/services";
-
-import type { KlantIdentificator } from "@/features/contact/types";
 import type { ContactmomentKlant } from "@/stores/contactmoment";
+import {
+  fetchKlantByNonDefaultSysteem,
+  fetchKlantFromNonDefaultSystems,
+  heeftContactgegevens,
+} from "@/services/openklant/service";
 
 export const fetchKlantByInternalId = async ({
   internalKlant,
@@ -70,15 +66,6 @@ export const fetchKlantByInternalId = async ({
   );
 };
 
-export const fetchKlantByNonDefaultSysteem = async (
-  identifier: KlantIdentificator,
-  systeem: Systeem,
-): Promise<Klant | null> => {
-  return systeem.registryVersion === registryVersions.ok1
-    ? await fetchKlantByKlantIdentificatorOk1(systeem.identifier, identifier)
-    : await fetchKlantByKlantIdentificatorOk2(systeem.identifier, identifier);
-};
-
 const fetchKlantById = async (
   id: string,
   systeem: Systeem,
@@ -93,9 +80,6 @@ const fetchKlantById = async (
     return null;
   }
 };
-
-export const heeftContactgegevens = (klant: Klant) =>
-  klant.emailadressen?.length || klant.telefoonnummers?.length;
 
 export const enrichKlantWithContactDetails = async (
   klant: Klant,
@@ -129,49 +113,3 @@ export const enrichKlantWithContactDetails = async (
     }
   }
 };
-
-export const fetchKlantByKlantIdentificatorOk = async (
-  klantIdentificator: KlantIdentificator,
-  defaultSysteem: Systeem,
-) => {
-  if (defaultSysteem.registryVersion === registryVersions.ok2) {
-    return await fetchKlantByKlantIdentificatorOk2(
-      defaultSysteem.identifier,
-      klantIdentificator,
-    );
-  } else {
-    return await fetchKlantByKlantIdentificatorOk1(
-      defaultSysteem.identifier,
-      klantIdentificator,
-    );
-  }
-};
-
-export async function fetchKlantFromNonDefaultSystems(
-  systemen: Systeem[],
-  defaultSysteem: Systeem,
-  kvkNummer: string | undefined,
-  vestigingsnummer: string | undefined,
-  bsn: string | undefined,
-  //id: string,
-): Promise<Klant | null> {
-  for (const nonDefaultSysteem of systemen.filter(
-    (s) => s.identifier !== defaultSysteem.identifier,
-  )) {
-    const identifier = {
-      bsn: bsn,
-      vestigingsnummer: vestigingsnummer,
-      kvkNummer: kvkNummer,
-    };
-
-    if (!identifier) return null;
-
-    const fallbackKlant = await fetchKlantByNonDefaultSysteem(
-      identifier,
-      nonDefaultSysteem,
-    );
-
-    return fallbackKlant;
-  }
-  return null;
-}

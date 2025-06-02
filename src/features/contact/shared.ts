@@ -1,5 +1,5 @@
 import type { OnderwerpObjectPostModel } from "@/services/openklant2";
-import type { ContactmomentViewModel, KlantIdentificator } from "./types";
+import type { ContactmomentViewModel } from "./types";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 import {
   fetchObjectContactmomenten,

@@ -29,10 +29,9 @@ import {
 } from "./types";
 
 import type { ContactverzoekData } from "../../features/contact/components/types";
-import type { Klant } from "../openklant/types";
+import type { Klant, KlantIdentificator } from "../openklant/types";
 import type { Vraag } from "@/stores/contactmoment";
 import { fetchWithSysteemId } from "../fetch-with-systeem-id";
-import type { KlantIdentificator } from "@/features/contact/types";
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";
 const klantinteractiesApiRoot = "/api/v1";

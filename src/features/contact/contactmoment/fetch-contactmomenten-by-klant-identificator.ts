@@ -10,12 +10,13 @@ import {
   KlantContactExpand,
   fetchKlantByKlantIdentificatorOk2,
 } from "@/services/openklant2";
-import type { ContactmomentViewModel, KlantIdentificator } from "../types";
+import type { ContactmomentViewModel } from "../types";
 import {
   enrichContactmomentWithZaaknummer,
   enrichOnderwerpObjectenWithZaaknummers,
 } from "../shared";
 import { mapKlantContactToContactmomentViewModel } from "./service";
+import type { KlantIdentificator } from "@/services/openklant/types";
 
 export async function fetchContactmomentenByKlantIdentificator(
   klantIndentificator: KlantIdentificator,

@@ -196,8 +196,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     getKlantByInternalId(state) {
       return (internalKlantId: string): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x: { klant: ContactmomentKlant; shouldStore: boolean }) =>
-            x.klant.internalId == internalKlantId,
+          (x) => x.klant.internalId == internalKlantId,
         );
         return x?.klant;
       };
@@ -205,8 +204,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
     getBrpKlant(state) {
       return (bsn: string): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x: { klant: ContactmomentKlant; shouldStore: boolean }) =>
-            x.klant.bsn == bsn,
+          (x) => x.klant.bsn == bsn,
         );
         return x?.klant;
       };
@@ -216,15 +214,13 @@ export const useContactmomentStore = defineStore("contactmoment", {
         kvkNummer: string,
         vestigingsnummer?: string,
       ): ContactmomentKlant | undefined => {
-        const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x: { klant: ContactmomentKlant; shouldStore: boolean }) => {
-            return (
-              (!vestigingsnummer ||
-                x.klant.vestigingsnummer === vestigingsnummer) &&
-              x.klant.kvkNummer == kvkNummer
-            );
-          },
-        );
+        const x = state.huidigContactmoment?.huidigeVraag.klanten?.find((x) => {
+          return (
+            (!vestigingsnummer ||
+              x.klant.vestigingsnummer === vestigingsnummer) &&
+            x.klant.kvkNummer == kvkNummer
+          );
+        });
         return x?.klant;
       };
     },
