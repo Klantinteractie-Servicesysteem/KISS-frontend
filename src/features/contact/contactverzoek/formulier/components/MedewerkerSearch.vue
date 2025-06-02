@@ -11,6 +11,7 @@
       :disabled="isDisabled"
       ref="searchCombo"
       :loading="isLoading"
+      :show-description="false"
     />
   </div>
 </template>
