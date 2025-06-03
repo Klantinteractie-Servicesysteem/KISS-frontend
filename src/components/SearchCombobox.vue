@@ -41,7 +41,7 @@
     >
       <article>
         <header>{{ r.value }}</header>
-        <p v-if="r.description">{{ r.description }}</p>
+        <p v-if="r.description && showDescription">{{ r.description }}</p>
       </article>
     </li>
   </ul>
@@ -64,8 +64,8 @@ export type DatalistItem = {
   value: string;
   description?: string;
 };
-
-const props = defineProps<{
+ 
+    const props = withDefaults(defineProps<{
   modelValue: string | undefined;
   listItems: DatalistItem[];
   exactMatch: boolean;
@@ -74,7 +74,10 @@ const props = defineProps<{
   loading: boolean;
   placeholder?: string;
   id?: string;
-}>();
+  showDescription?: boolean;
+}>(), {
+  showDescription: true
+});
 
 const generatedLabelId = nanoid();
 const inputId = computed(() => generatedLabelId);
