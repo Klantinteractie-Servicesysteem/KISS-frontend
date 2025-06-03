@@ -59,7 +59,13 @@ const props = defineProps({
 const klant = ref<ContactmomentKlant | undefined>(undefined);
 const error = ref<boolean>(false);
 
-onMounted(() => {
+const emit = defineEmits<{
+  error: [data: boolean];
+  load: [];
+  noData: [];
+}>();
+
+watchEffect(() => {
   try {
     klant.value = store.getKlantByInternalId(props.internalKlantId);
     emit("load");
@@ -67,12 +73,6 @@ onMounted(() => {
     error.value = true;
   }
 });
-
-const emit = defineEmits<{
-  error: [data: boolean];
-  load: [];
-  noData: [];
-}>();
 
 watchEffect(() => {
   if (
