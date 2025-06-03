@@ -1,6 +1,4 @@
-﻿
-using System.Runtime.InteropServices;
-using Kiss.Bff.EndToEndTest.Helpers;
+﻿using Kiss.Bff.EndToEndTest.Helpers;
 using Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies;
@@ -536,6 +534,9 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Page.GetNieuwsAndWerkinstructiesSearch().ClearAsync();
 
         await Step("Then at least two werkinstructies should be visible");
+
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
 
         Assert.IsTrue((await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two werkinstructies should be visible");
 
