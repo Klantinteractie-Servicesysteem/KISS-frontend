@@ -52,50 +52,75 @@ import type { Persoon } from "@/services/brp";
 import { useRouter } from "vue-router";
 import { mutate } from "swrv";
 import { watchEffect } from "vue";
+import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
-  fetchSystemen,
-  registryVersions,
-} from "@/services/environment/fetch-systemen";
-import { useOrganisatieIds } from "@/stores/user";
-import { ensureOk2Klant } from "@/services/openklant2";
-import { ensureOk1Klant } from "@/services/openklant1";
-import type { Klant } from "@/services/openklant/types";
+  useContactmomentStore,
+  type ContactmomentKlant,
+} from "@/stores/contactmoment";
+import { fetchKlantByKlantIdentificatorOk } from "@/features/klant/klant-details/fetch-klant";
 
 const props = defineProps<{
   records: Persoon[];
   navigateOnSingleResult?: boolean;
 }>();
 const router = useRouter();
-
-const getKlantUrl = (klant: Klant) => `/personen/${klant.id}`;
-
-const ensureKlantForBsn = async (parameters: { bsn: string }) => {
-  const systemen = await fetchSystemen();
-  const defaultSysteem = systemen.find(({ isDefault }) => isDefault);
-
-  if (!defaultSysteem) {
-    throw new Error("Geen default register gevonden");
-  }
-
-  return defaultSysteem.registryVersion === registryVersions.ok2
-    ? await ensureOk2Klant(defaultSysteem.identifier, parameters)
-    : await ensureOk1Klant(
-        defaultSysteem.identifier,
-        parameters,
-        useOrganisatieIds().value[0] || "",
-      );
-};
+const systemen = useSystemen();
+const contactmomentStore = useContactmomentStore();
 
 const navigate = async (persoon: Persoon) => {
   const { bsn } = persoon;
   if (!bsn) throw new Error("BSN is required");
 
-  const klant = await ensureKlantForBsn({ bsn });
+  if (
+    !systemen.loading.value &&
+    !systemen.error.value &&
+    systemen.defaultSysteem.value
+  ) {
+    const klant = await fetchKlantByKlantIdentificatorOk(
+      { bsn: bsn },
+      systemen.defaultSysteem.value,
+    );
 
-  await mutate("persoon" + bsn, persoon);
-  await mutate(klant.id, klant);
+    await mutate("persoon" + bsn, persoon);
 
-  await router.push(getKlantUrl(klant));
+    if (klant) {
+      //a persoon from Brp, who is allready stored in OpenKlant
+
+      await mutate(klant.id, klant);
+
+      const existingKlant = <ContactmomentKlant>{
+        ...klant,
+
+        //verplichte velden...
+        id: klant.id,
+        telefoonnummers: klant.telefoonnummers,
+        emailadressen: klant.emailadressen,
+        hasContactInformation:
+          klant?.telefoonnummers?.length > 0 ||
+          klant?.emailadressen?.length > 0,
+      };
+
+      contactmomentStore.setKlant(existingKlant);
+
+      await router.push("/personen/" + existingKlant.internalId);
+    } else {
+      //a persoon from Brp, who doesn't have a record in OpenKlant yet.
+      //Store the info from the Brp in the in memory store. When a contactmometn is saved,we will save this person in OpenKlant
+
+      const newKlant = <ContactmomentKlant>{
+        ...persoon,
+        //verplichte velden...
+        id: "",
+        telefoonnummers: [],
+        emailadressen: [],
+        hasContactInformation: false,
+      };
+
+      contactmomentStore.setKlant(newKlant);
+
+      await router.push("/personen/" + newKlant.internalId);
+    }
+  }
 };
 
 watchEffect(async () => {

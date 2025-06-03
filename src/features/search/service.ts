@@ -18,7 +18,6 @@ export function mapResult(obj: any): SearchResult {
   const content = obj?._source?.body_content;
   const url = parseValidUrl(obj?._source?.url);
   const documentUrl = new URL(location.origin);
-  // documentUrl.pathname = searchUrl;
   documentUrl.searchParams.set("query", id);
 
   const jsonObject = obj?._source?.[source] ?? null;

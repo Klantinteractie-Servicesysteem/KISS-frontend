@@ -1,7 +1,6 @@
 type FetchArgs = Parameters<typeof fetch>;
 type FetchReturn = ReturnType<typeof fetch>;
 
- 
 const empty = () => {};
 
 const waitForLogin = {

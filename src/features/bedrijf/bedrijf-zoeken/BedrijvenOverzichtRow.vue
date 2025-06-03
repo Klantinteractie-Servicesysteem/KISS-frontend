@@ -1,168 +1,170 @@
 <template>
-  <tr class="row-link">
+  <tr class="row-link" v-if="item">
     <th scope="row" class="wrap">
-      <div class="skeleton" v-if="bedrijf.loading" />
-      <template v-else-if="bedrijf.success">
-        {{ bedrijf.data?.bedrijfsnaam }}
-      </template>
+      {{ item.bedrijfsnaam }}
     </th>
     <td>
-      {{ bedrijf.data?.kvkNummer }}
+      {{ item?.kvkNummer }}
     </td>
     <td>
-      <div class="skeleton" v-if="bedrijf.loading" />
-      <template v-if="bedrijf.success">
-        {{ bedrijf.data?.vestigingsnummer }}
-      </template>
+      {{ item.vestigingsnummer }}
     </td>
 
     <td>
-      <div class="skeleton" v-if="bedrijf.loading" />
-      <template v-if="bedrijf.success">
-        {{ [bedrijf.data?.postcode, bedrijf.data?.huisnummer].join(" ") }}
+      {{ [item.postcode, item.huisnummer].join(" ") }}
+    </td>
+    <td class="wrap">
+      <div v-if="loading" />
+      <template v-if="!error">
+        {{
+          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.emailadressen?.join(
+            ", ",
+          )
+        }}
       </template>
     </td>
     <td class="wrap">
-      <div class="skeleton" v-if="matchingKlant.loading" />
-      <template v-if="matchingKlant.success">
-        {{ matchingKlant.data?.emailadressen?.join(", ") }}
-      </template>
-    </td>
-    <td class="wrap">
-      <div class="skeleton" v-if="matchingKlant.loading" />
-      <template v-if="matchingKlant.success">
-        {{ matchingKlant.data?.telefoonnummers.join(", ") }}
+      <div class="skeleton" v-if="loading" />
+      <template v-if="!error">
+        {{
+          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.telefoonnummers.join(
+            ", ",
+          )
+        }}
       </template>
     </td>
     <td>
-      <div class="skeleton" v-if="matchingKlant.loading || bedrijf.loading" />
-
-      <template v-if="matchingKlant.success && matchingKlant.data">
-        <router-link
-          :title="`Details ${naam}`"
-          :to="getKlantUrl(matchingKlant.data)"
-          @click="setCache(matchingKlant.data, bedrijf.data)"
-        />
-      </template>
-      <button
-        v-else-if="bedrijf.data && bedrijfIdentifier"
-        type="button"
-        title="Aanmaken"
-        @click="navigate(bedrijf.data, bedrijfIdentifier)"
-      />
+      <button v-if="item" type="button" title="Details" @click="navigate()" />
     </td>
   </tr>
 </template>
 <script lang="ts" setup>
-import { computed, watchEffect } from "vue";
-
-import { useKlantByBedrijfIdentifier } from "./use-klant-by-bedrijf-identifier";
-import type { Bedrijf, BedrijfIdentifier } from "@/services/kvk";
+import { type Bedrijf } from "@/services/kvk";
 import { useRouter } from "vue-router";
-import { mutate } from "swrv";
-import { ensureKlantForBedrijfIdentifier } from "./ensure-klant-for-bedrijf-identifier";
-import type { Klant } from "@/services/openklant/types";
-import type { KlantBedrijfIdentifier } from "@/services/openklant2";
+import { useSystemen } from "@/services/environment/fetch-systemen";
+import {
+  useContactmomentStore,
+  type ContactmomentKlant,
+} from "@/stores/contactmoment";
+import type { KlantIdentificator } from "@/features/contact/types";
+import { useLoader } from "@/services";
+import {
+  fetchKlantByKlantIdentificatorOk,
+  fetchKlantFromNonDefaultSystems,
+  heeftContactgegevens,
+} from "@/features/klant/klant-details/fetch-klant";
 
 const props = defineProps<{
-  item: Bedrijf | Klant;
+  item: Bedrijf;
   autoNavigate?: boolean;
 }>();
 
-// const matchingBedrijf = useBedrijfByIdentifier(() => {
-// wordt niet meer gebruikt, alleen relevant als we een klant hebben en kvkv gegevens erbij willen zoeken/
-// maar dat was alleen relevant toen een klant ook uit openklant gevonden kon worden adhv telefoonnumer en email, maar dat is momenteel niet meer mogelijk
-//   if (props.item._typeOfKlant === "bedrijf") return undefined;
-//   const { vestigingsnummer, rsin } = props.item;
-//   if (vestigingsnummer)
-//     return {
-//       vestigingsnummer,
-//     };
-//   if (rsin)
-//     return {
-//       rsin,
-//     };
-// });
+const systemen = useSystemen();
+const contactmomentStore = useContactmomentStore();
 
-const matchingKlant = useKlantByBedrijfIdentifier(() => {
-  if (props.item._typeOfKlant === "klant") return undefined;
+//Please note, the implementation for bedrijven is a litle more complex than for personen.
+//for personen we only show brp data on the searchresult list.
+//We can get the klant from OpenKlant when we navigate to the details page
+//that's when the klant will be linked to the current contactmoment and
+//that's when we ensure its in the inmemory store of this website
+//For bedrijven however, we need to show contactdetails from OpenKlant in the results list
+//therefore we need to fetch them from openKlant right away,
+//but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
+//when we navigate to the details page
 
-  const { vestigingsnummer, kvkNummer } = props.item;
+let KlantRegisterKlantId: string | null = null;
 
-  if (vestigingsnummer && kvkNummer)
-    return {
-      vestigingsnummer,
-      kvkNummer,
-    };
+const {
+  data: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters,
+  loading,
+  error,
+} = useLoader(async () => {
+  if (
+    systemen.loading.value ||
+    systemen.error.value ||
+    !systemen.systemen.value?.length ||
+    !systemen.defaultSysteem.value
+  )
+    return;
 
-  // if (rsin)
-  //   return {
-  //     rsin, //openklant1 gebruikte rsin. esuite kvknummer.
-  //   };
+  // find the klant in the Klant registry
 
-  if (kvkNummer)
-    return {
-      kvkNummer, //openklant1 gebruikte rsin. esuite kvknummer.
-    };
-});
+  const klantIdentificator: KlantIdentificator = {
+    vestigingsnummer:
+      "vestigingsnummer" in props.item
+        ? props.item.vestigingsnummer
+        : undefined,
+    kvkNummer: "kvkNummer" in props.item ? props.item.kvkNummer : undefined,
+  };
 
-const bedrijf = computed(() =>
-  props.item._typeOfKlant === "bedrijf"
-    ? { data: props.item, success: true, loading: false, error: false }
-    : { success: false, loading: false },
-);
+  if (!systemen.defaultSysteem.value) {
+    return;
+  }
 
-const naam = computed(() => bedrijf.value.data?.bedrijfsnaam || "");
+  const klant = await fetchKlantByKlantIdentificatorOk(
+    klantIdentificator,
+    systemen.defaultSysteem.value,
+  );
 
-const bedrijfIdentifier = computed<KlantBedrijfIdentifier | undefined>(() => {
-  const { kvkNummer, vestigingsnummer } = bedrijf.value.data ?? {};
-  if (vestigingsnummer && kvkNummer)
-    return {
-      vestigingsnummer,
-      kvkNummer,
-    };
+  if (klant) {
+    //we need to now the id later on but we cant put the klant in the websites inMemory store yet
+    //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
+    //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
+    KlantRegisterKlantId = klant.id;
+  }
 
-  if (kvkNummer)
-    return {
-      kvkNummer,
-    };
+  if (props.autoNavigate) navigate();
 
-  return undefined;
+  //return the Klant from the default registry if it has contactdetails
+  if (klant && heeftContactgegevens(klant)) {
+    return klant;
+  } else {
+    const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
+      systemen.systemen.value,
+      systemen.defaultSysteem.value,
+      props.item.kvkNummer,
+      props.item.vestigingsnummer,
+      undefined,
+      klant?.id ?? "",
+    );
+
+    return nonDefaultKlant ?? klant;
+  }
 });
 
 const router = useRouter();
 
-const getKlantUrl = (klant: Klant) => `/bedrijven/${klant.id}`;
+async function navigate() {
+  const klantenInStoreBijHuiduigeVraag =
+    contactmomentStore.$state.huidigContactmoment?.huidigeVraag.klanten;
 
-const setCache = (klant: Klant, bedrijf?: Bedrijf | null) => {
-  mutate(klant.id, klant);
-  const bedrijfId = bedrijf?.vestigingsnummer || bedrijf?.rsin;
+  const kvkKlantInStore = klantenInStoreBijHuiduigeVraag?.find(
+    (x) =>
+      (!props.item.kvkNummer || x.klant.kvkNummer === props.item.kvkNummer) &&
+      (!props.item.vestigingsnummer ||
+        x.klant.vestigingsnummer === props.item.vestigingsnummer),
+  );
 
-  if (bedrijfId) {
-    mutate("bedrijf" + bedrijfId, bedrijf);
+  if (kvkKlantInStore && KlantRegisterKlantId) {
+    kvkKlantInStore.klant.id = KlantRegisterKlantId; //we hebben al alle klanten in openklant opgezocht, maar alleen de klant waar we op klikken zit in de store. het openklant id hebben we wel nodig. dus nog even vastleggen
+    await router.push(`/bedrijven/${kvkKlantInStore.klant.internalId}`);
+    return;
   }
-};
 
-async function navigate(bedrijf: Bedrijf, identifier: KlantBedrijfIdentifier) {
-  const bedrijfsnaam = bedrijf.bedrijfsnaam;
-  const klant = await ensureKlantForBedrijfIdentifier(identifier, bedrijfsnaam);
+  //klant is not yet in website store.
+  //add the klant and navigate to details page with the generated internal id
+  const newContactmomentKlant = <ContactmomentKlant>{
+    ...props.item,
+    id: KlantRegisterKlantId,
+    telefoonnummers: [],
+    emailadressen: [],
+    hasContactInformation: false,
+  };
 
-  setCache(klant, bedrijf);
+  contactmomentStore.setKlant(newContactmomentKlant);
 
-  const url = getKlantUrl(klant);
-  await router.push(url);
+  await router.push(`/bedrijven/${newContactmomentKlant.internalId}`);
 }
-
-watchEffect(() => {
-  if (
-    props.autoNavigate &&
-    matchingKlant.success &&
-    bedrijf.value.data &&
-    bedrijfIdentifier.value
-  ) {
-    navigate(bedrijf.value.data, bedrijfIdentifier.value);
-  }
-});
 </script>
 
 <style scoped lang="scss">

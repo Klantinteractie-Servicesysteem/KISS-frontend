@@ -535,15 +535,16 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Then at least two werkinstructies should be visible");
 
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        var werkinstructiesCount = await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync();
 
-        Assert.IsTrue((await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two werkinstructies should be visible");
+        Assert.IsTrue((werkinstructiesCount) >= 2, $"at least two werkinstructies should be visible but found {werkinstructiesCount}");
+
 
         await Step("And at least two nieuwsberichten should be visible");
 
-        Assert.IsTrue((await Page.GetNieuwsSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two nieuwsberichten should be visible");
+        var nieuwsCount = await Page.GetNieuwsSection().GetByRole(AriaRole.Article).CountAsync();
 
+        Assert.IsTrue(nieuwsCount >= 2, $"at least two nieuwsberichten should be visible but found {nieuwsCount}");
 
     }
     [TestMethod]

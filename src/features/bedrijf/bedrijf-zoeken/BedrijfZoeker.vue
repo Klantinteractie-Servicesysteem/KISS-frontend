@@ -146,10 +146,10 @@ const zoekOpKvkOfVestigingsnummer = () => {
 
 const zoekOpBedrijfsnaam = () => {
   if (store.value.bedrijfsnaam.validated) {
-    (store.value.query = {
+    store.value.query = {
       handelsnaam: store.value.bedrijfsnaam.validated,
-    }),
-      (store.value.page = 1);
+    };
+    store.value.page = 1;
     navigateOnSingleResult.value = true;
   }
 };

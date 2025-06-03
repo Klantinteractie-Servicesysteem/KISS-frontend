@@ -2,7 +2,6 @@
 
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
-using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 {
@@ -144,6 +143,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
 
             await Step("Then the first Contactmoment should contain the details as entered in Scenario: Register Contactmoment bij Zaak – II");
+
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             var firstContactMomentSummary = Page.FirstContactMomentSummary();
 
