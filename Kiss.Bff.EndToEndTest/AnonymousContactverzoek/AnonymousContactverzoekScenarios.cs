@@ -287,6 +287,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("message as vul minimal een telefoonnummer of een e-mailadres in is displayed");
             await Expect(Page.GetTelefoonnummer1field()).ToHaveJSPropertyAsync("validationMessage", "Vul minimaal een telefoonnummer of een e-mailadres in");
@@ -328,6 +329,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("message as vul minimal een telefoonnummer of een e-mailadres in is displayed");
             await Expect(Page.GetTelefoonnummer1field()).ToHaveJSPropertyAsync("validationMessage", "Vul minimaal een telefoonnummer of een e-mailadres in");
@@ -379,6 +381,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And click on afronden");
             await Page.GetAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And user fills in 'Hoe gaat het' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
@@ -446,7 +449,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
-            await Task.Delay(2000);
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("error message as 'Please select an item in the list.' is displayed for the field Afdeling / groep.");
             await Expect(Page.GetAfdelingTextbox()).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
