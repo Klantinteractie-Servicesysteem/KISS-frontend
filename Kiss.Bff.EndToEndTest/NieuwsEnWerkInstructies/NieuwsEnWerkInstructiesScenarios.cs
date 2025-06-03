@@ -466,8 +466,6 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Given there is exactly one nieuwsbericht with that text as the title");
 
-        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-
         await using var nieuwsbericht = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
 
         await Step("And there is exactly one werkinstructie with that text as the title");
@@ -540,16 +538,12 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
 
-        var werkinstructiesCount = await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync();
-
-        Assert.IsTrue((werkinstructiesCount) >= 2, $"at least two werkinstructies should be visible but found {werkinstructiesCount}");
-
+        Assert.IsTrue((await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two werkinstructies should be visible");
 
         await Step("And at least two nieuwsberichten should be visible");
 
-        var nieuwsCount = await Page.GetNieuwsSection().GetByRole(AriaRole.Article).CountAsync();
+        Assert.IsTrue((await Page.GetNieuwsSection().GetByRole(AriaRole.Article).CountAsync()) >= 2, "at least two nieuwsberichten should be visible");
 
-        Assert.IsTrue(nieuwsCount >= 2, $"at least two nieuwsberichten should be visible but found {nieuwsCount}");
 
     }
     [TestMethod]
