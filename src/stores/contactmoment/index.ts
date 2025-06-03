@@ -196,9 +196,31 @@ export const useContactmomentStore = defineStore("contactmoment", {
     getKlantByInternalId(state) {
       return (internalKlantId: string): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x: { klant: ContactmomentKlant; shouldStore: boolean }) =>
-            x.klant.internalId == internalKlantId,
+          (x) => x.klant.internalId == internalKlantId,
         );
+        return x?.klant;
+      };
+    },
+    getBrpKlant(state) {
+      return (bsn: string): ContactmomentKlant | undefined => {
+        const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
+          (x) => x.klant.bsn == bsn,
+        );
+        return x?.klant;
+      };
+    },
+    getBedrijfsKlant(state) {
+      return (
+        kvkNummer: string,
+        vestigingsnummer?: string,
+      ): ContactmomentKlant | undefined => {
+        const x = state.huidigContactmoment?.huidigeVraag.klanten?.find((x) => {
+          return (
+            (!vestigingsnummer ||
+              x.klant.vestigingsnummer === vestigingsnummer) &&
+            x.klant.kvkNummer == kvkNummer
+          );
+        });
         return x?.klant;
       };
     },
@@ -367,6 +389,34 @@ export const useContactmomentStore = defineStore("contactmoment", {
       );
     },
 
+    setAsActiveKlant(klant: ContactmomentKlant) {
+      //this is a temporary hack. There is currently no real tracking of the active klant.
+      //this will be addressed in https://dimpact.atlassian.net/browse/PC-1308
+      //currently the first item is considered the active klant who will be displayed
+      //in the contactmoment switcher dropdown at the top left
+      //we'll just move the item there
+
+      const { huidigContactmoment } = this;
+      if (!huidigContactmoment) return;
+      const { huidigeVraag } = huidigContactmoment;
+
+      const match = huidigeVraag.klanten.find(
+        (x) =>
+          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+      );
+
+      if (match) {
+        huidigeVraag.klanten.forEach((x) => {
+          x.shouldStore = false;
+        });
+
+        match.shouldStore = true;
+        const currentIndex = huidigeVraag.klanten.indexOf(match);
+        huidigeVraag.klanten.splice(currentIndex, 1);
+        huidigeVraag.klanten.splice(0, 0, match);
+      }
+    },
+
     setKlant(klant: ContactmomentKlant) {
       const { huidigContactmoment } = this;
       if (!huidigContactmoment) return;
@@ -388,6 +438,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
         klant.internalId = match.klant.internalId;
         match.klant = klant;
         match.shouldStore = true;
+
         return;
       }
 
@@ -395,7 +446,12 @@ export const useContactmomentStore = defineStore("contactmoment", {
         klant.internalId = nanoid();
       }
 
-      huidigeVraag.klanten.push({
+      //this is a temporary hack. There is currently no real tracking of the active klant.
+      //this will be addressed in https://dimpact.atlassian.net/browse/PC-1308
+      //currently the first item is considered the active klant who will be displayed
+      //in the contactmoment switcher dropdown at the top left
+      //we'll just insert the item there
+      huidigeVraag.klanten.unshift({
         shouldStore: true,
         klant,
       });

@@ -4,15 +4,11 @@
   <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
   <tab-list v-model="activeTab">
     <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setLoading, setDisabled }">
+      <template #default="{ setError, setDisabled }">
         <klant-details
           :internalKlantId="internalKlantId"
           @no-data="setDisabled(true)"
-          @load="
-            klant = $event;
-            setDisabled(false);
-          "
-          @loading="setLoading"
+          @load="setDisabled(false)"
           @error="setError"
         />
       </template>
@@ -84,13 +80,12 @@ import BackLink from "@/components/BackLink.vue";
 import { BrpGegevens } from "@/features/persoon/persoon-details";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
-import type { Klant } from "@/services/openklant/types";
+
 import type { Persoon } from "@/services/brp";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
 defineProps<{ internalKlantId: string }>();
 const activeTab = ref("");
 const contactmomentStore = useContactmomentStore();
-const klant = ref<Klant>();
 const persoon = ref<Persoon>();
 </script>

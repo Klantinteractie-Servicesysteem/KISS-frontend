@@ -11,6 +11,10 @@ export function getKlantInfo(contactmoment: ContactmomentState) {
 
   const infos = klanten.map(_getKlantInfo);
 
+  // it just rturns the first one.
+  // due to circumstances that's almost always the right one
+  // however not always. this should be replaced with
+  // a proper mechanism to get the info of the 'current' klant
   return infos.find((info) => info.name || info.contact);
 }
 

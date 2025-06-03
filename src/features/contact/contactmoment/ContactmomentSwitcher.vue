@@ -52,8 +52,8 @@ const closeDetails = () => {
   el.removeAttribute("open");
 };
 
-const moments = computed(() =>
-  contactmomentStore.contactmomenten.map((moment) => {
+const moments = computed(() => {
+  return contactmomentStore.contactmomenten.map((moment) => {
     return {
       description: getKlantInfo(moment),
       isCurrent: moment === contactmomentStore.huidigContactmoment,
@@ -69,8 +69,8 @@ const moments = computed(() =>
         closeDetails();
       },
     };
-  }),
-);
+  });
+});
 
 const detailsEl = ref();
 

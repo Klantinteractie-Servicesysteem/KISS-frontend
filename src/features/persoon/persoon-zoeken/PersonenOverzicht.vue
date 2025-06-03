@@ -50,14 +50,17 @@
 import DutchDate from "@/components/DutchDate.vue";
 import type { Persoon } from "@/services/brp";
 import { useRouter } from "vue-router";
-import { mutate } from "swrv";
 import { watchEffect } from "vue";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
-import { fetchKlantByKlantIdentificatorOk } from "@/features/klant/klant-details/fetch-klant";
+import {
+  fetchKlantByKlantIdentificatorOk,
+  fetchKlantFromNonDefaultSystems,
+  heeftContactgegevens,
+} from "@/services/openklant/service";
 
 const props = defineProps<{
   records: Persoon[];
@@ -68,57 +71,70 @@ const systemen = useSystemen();
 const contactmomentStore = useContactmomentStore();
 
 const navigate = async (persoon: Persoon) => {
-  const { bsn } = persoon;
-  if (!bsn) throw new Error("BSN is required");
+  if (!persoon.bsn) throw new Error("BSN is required");
 
-  if (
-    !systemen.loading.value &&
-    !systemen.error.value &&
-    systemen.defaultSysteem.value
-  ) {
-    const klant = await fetchKlantByKlantIdentificatorOk(
-      { bsn: bsn },
-      systemen.defaultSysteem.value,
-    );
+  const klantFromInternalStore = contactmomentStore.getBrpKlant(persoon.bsn);
 
-    await mutate("persoon" + bsn, persoon);
+  if (klantFromInternalStore) {
+    // deze klant is al bekend in de applicatie store.
+    // maak hem de actieve klant
+    // en navigeer naar de detailpagina
+    contactmomentStore.setAsActiveKlant(klantFromInternalStore);
+    await router.push("/personen/" + klantFromInternalStore.internalId);
+  } else {
+    // als de klant nog niet in de in memory application store bekend is,
+    // dan nu de gegevens opzoeken en toevoegen
+    // en navigeer naar de detailpagina
+    if (
+      !systemen.loading.value &&
+      !systemen.error.value &&
+      systemen.defaultSysteem.value
+    ) {
+      // zoek de klant in het defaultregister.
+      const klant = await fetchKlantByKlantIdentificatorOk(
+        { bsn: persoon.bsn },
+        systemen.defaultSysteem.value,
+      );
 
-    if (klant) {
-      //a persoon from Brp, who is allready stored in OpenKlant
+      let telefoonnummers = klant?.telefoonnummers ?? [];
+      let emailadressen = klant?.emailadressen ?? [];
 
-      await mutate(klant.id, klant);
+      // if the klant is not found in the default registry
+      // or if the klant doesn't have contactdetausl in the default registry
+      // we will attempt to find those in any of the other registries
+      if (!klant || !heeftContactgegevens(klant)) {
+        if (systemen.systemen.value) {
+          const fallbackKlant = await fetchKlantFromNonDefaultSystems(
+            systemen.systemen.value,
+            systemen.defaultSysteem.value,
+            undefined,
+            undefined,
+            persoon.bsn,
+          );
+          // als er een fallback klant gevonden is
+          // dan nemen we daar de contactgegevens van over
+          if (fallbackKlant && heeftContactgegevens(fallbackKlant)) {
+            telefoonnummers = fallbackKlant.telefoonnummers;
+            emailadressen = fallbackKlant.emailadressen;
+          }
+        }
+      }
 
-      const existingKlant = <ContactmomentKlant>{
-        ...klant,
-
-        //verplichte velden...
-        id: klant.id,
-        telefoonnummers: klant.telefoonnummers,
-        emailadressen: klant.emailadressen,
+      const storeKlant = <ContactmomentKlant>{
+        id: klant?.id,
+        telefoonnummers: telefoonnummers,
+        emailadressen: emailadressen,
         hasContactInformation:
-          klant?.telefoonnummers?.length > 0 ||
-          klant?.emailadressen?.length > 0,
+          telefoonnummers?.length > 0 || emailadressen?.length > 0,
+        achternaam: persoon.achternaam,
+        voornaam: persoon.voornaam,
+        voorvoegselAchternaam: persoon.voorvoegselAchternaam,
+        bsn: persoon.bsn,
       };
 
-      contactmomentStore.setKlant(existingKlant);
-
-      await router.push("/personen/" + existingKlant.internalId);
-    } else {
-      //a persoon from Brp, who doesn't have a record in OpenKlant yet.
-      //Store the info from the Brp in the in memory store. When a contactmometn is saved,we will save this person in OpenKlant
-
-      const newKlant = <ContactmomentKlant>{
-        ...persoon,
-        //verplichte velden...
-        id: "",
-        telefoonnummers: [],
-        emailadressen: [],
-        hasContactInformation: false,
-      };
-
-      contactmomentStore.setKlant(newKlant);
-
-      await router.push("/personen/" + newKlant.internalId);
+      contactmomentStore.setKlant(storeKlant);
+      contactmomentStore.setAsActiveKlant(storeKlant);
+      await router.push("/personen/" + storeKlant.internalId);
     }
   }
 };

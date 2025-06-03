@@ -20,7 +20,7 @@ import {
 import type { ContactverzoekOverzichtItem } from "./types";
 import type { ContactmomentDetails } from "../../contactmoment";
 import { fullName } from "@/helpers/string";
-import type { ContactmomentViewModel, KlantIdentificator } from "../../types";
+import type { ContactmomentViewModel } from "../../types";
 import {
   registryVersions,
   type Systeem,
@@ -31,6 +31,7 @@ import {
   enrichOnderwerpObjectenWithZaaknummers,
 } from "../../shared";
 import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
+import type { KlantIdentificator } from "@/services/openklant/types";
 
 function searchRecursive(
   systeemId: string,

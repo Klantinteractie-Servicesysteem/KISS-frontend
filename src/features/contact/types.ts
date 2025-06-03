@@ -1,9 +1,3 @@
-export type KlantIdentificator = {
-  bsn?: string;
-  kvkNummer?: string;
-  vestigingsnummer?: string;
-};
-
 export interface ContactmomentViewModel {
   url: string;
   registratiedatum: string;

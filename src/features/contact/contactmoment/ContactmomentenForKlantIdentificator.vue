@@ -10,7 +10,8 @@ import { watchEffect } from "vue";
 import ContactmomentenOverzicht from "./ContactmomentenOverzicht.vue";
 import { fetchContactmomentenByKlantIdentificator } from "./fetch-contactmomenten-by-klant-identificator";
 import { useSystemen } from "@/services/environment/fetch-systemen";
-import type { ContactmomentViewModel, KlantIdentificator } from "../types";
+import type { ContactmomentViewModel } from "../types";
+import type { KlantIdentificator } from "@/services/openklant/types";
 
 const props = defineProps<{
   klantIdentificator: KlantIdentificator;

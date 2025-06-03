@@ -15,22 +15,14 @@
     </td>
     <td class="wrap">
       <div v-if="loading" />
-      <template v-if="!error">
-        {{
-          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.emailadressen?.join(
-            ", ",
-          )
-        }}
+      <template v-if="!error && data">
+        {{ data.emailadressen?.join(", ") }}
       </template>
     </td>
     <td class="wrap">
       <div class="skeleton" v-if="loading" />
-      <template v-if="!error">
-        {{
-          KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters?.telefoonnummers.join(
-            ", ",
-          )
-        }}
+      <template v-if="!error && data">
+        {{ data.telefoonnummers.join(", ") }}
       </template>
     </td>
     <td>
@@ -46,13 +38,14 @@ import {
   useContactmomentStore,
   type ContactmomentKlant,
 } from "@/stores/contactmoment";
-import type { KlantIdentificator } from "@/features/contact/types";
 import { useLoader } from "@/services";
+import { ref, watchEffect } from "vue";
+import type { Klant, KlantIdentificator } from "@/services/openklant/types";
 import {
   fetchKlantByKlantIdentificatorOk,
   fetchKlantFromNonDefaultSystems,
   heeftContactgegevens,
-} from "@/features/klant/klant-details/fetch-klant";
+} from "@/services/openklant/service";
 
 const props = defineProps<{
   item: Bedrijf;
@@ -61,6 +54,8 @@ const props = defineProps<{
 
 const systemen = useSystemen();
 const contactmomentStore = useContactmomentStore();
+
+const klant = ref<Klant | null>();
 
 //Please note, the implementation for bedrijven is a litle more complex than for personen.
 //for personen we only show brp data on the searchresult list.
@@ -72,13 +67,8 @@ const contactmomentStore = useContactmomentStore();
 //but we can only link the klant to the current contactmoment and place the klant in the website inmemory store
 //when we navigate to the details page
 
-let KlantRegisterKlantId: string | null = null;
 
-const {
-  data: KlantUitdefaultKlantRegisterMetContactgegevensUitAlleKlantRegisters,
-  loading,
-  error,
-} = useLoader(async () => {
+const { loading, error, data } = useLoader(async () => {
   if (
     systemen.loading.value ||
     systemen.error.value ||
@@ -86,6 +76,11 @@ const {
     !systemen.defaultSysteem.value
   )
     return;
+
+  const data: { telefoonnummers: string[]; emailadressen: string[] } = {
+    telefoonnummers: [],
+    emailadressen: [],
+  };
 
   // find the klant in the Klant registry
 
@@ -101,23 +96,15 @@ const {
     return;
   }
 
-  const klant = await fetchKlantByKlantIdentificatorOk(
+  klant.value = await fetchKlantByKlantIdentificatorOk(
     klantIdentificator,
     systemen.defaultSysteem.value,
   );
 
-  if (klant) {
-    //we need to now the id later on but we cant put the klant in the websites inMemory store yet
-    //since only the selected klant is linked to the current contactmoment and saved in the inMemory store
-    //to prevent an other lookup in OpenKlant when we navigate, we'll store the id in a variable for now
-    KlantRegisterKlantId = klant.id;
-  }
-
-  if (props.autoNavigate) navigate();
-
   //return the Klant from the default registry if it has contactdetails
-  if (klant && heeftContactgegevens(klant)) {
-    return klant;
+  if (klant.value && heeftContactgegevens(klant.value)) {
+    data.telefoonnummers = klant.value.telefoonnummers;
+    data.emailadressen = klant.value.emailadressen;
   } else {
     const nonDefaultKlant = await fetchKlantFromNonDefaultSystems(
       systemen.systemen.value,
@@ -125,46 +112,64 @@ const {
       props.item.kvkNummer,
       props.item.vestigingsnummer,
       undefined,
-      klant?.id ?? "",
     );
 
-    return nonDefaultKlant ?? klant;
+    if (nonDefaultKlant) {
+      data.telefoonnummers = nonDefaultKlant.telefoonnummers;
+      data.emailadressen = nonDefaultKlant.emailadressen;
+    }
   }
+
+  return data;
 });
 
 const router = useRouter();
 
 async function navigate() {
-  const klantenInStoreBijHuiduigeVraag =
-    contactmomentStore.$state.huidigContactmoment?.huidigeVraag.klanten;
-
-  const kvkKlantInStore = klantenInStoreBijHuiduigeVraag?.find(
-    (x) =>
-      (!props.item.kvkNummer || x.klant.kvkNummer === props.item.kvkNummer) &&
-      (!props.item.vestigingsnummer ||
-        x.klant.vestigingsnummer === props.item.vestigingsnummer),
-  );
-
-  if (kvkKlantInStore && KlantRegisterKlantId) {
-    kvkKlantInStore.klant.id = KlantRegisterKlantId; //we hebben al alle klanten in openklant opgezocht, maar alleen de klant waar we op klikken zit in de store. het openklant id hebben we wel nodig. dus nog even vastleggen
-    await router.push(`/bedrijven/${kvkKlantInStore.klant.internalId}`);
+  if (!data.value) {
     return;
   }
 
-  //klant is not yet in website store.
-  //add the klant and navigate to details page with the generated internal id
-  const newContactmomentKlant = <ContactmomentKlant>{
-    ...props.item,
-    id: KlantRegisterKlantId,
-    telefoonnummers: [],
-    emailadressen: [],
-    hasContactInformation: false,
-  };
+  const klantFromInternalStore = contactmomentStore.getBedrijfsKlant(
+    props.item.kvkNummer,
+    props.item.vestigingsnummer,
+  );
 
-  contactmomentStore.setKlant(newContactmomentKlant);
+  if (klantFromInternalStore) {
+    // deze klant is al bekend in de applicatie store.
+    // maak hem de actieve klant
+    // en navigeer naar de detailpagina
+    contactmomentStore.setAsActiveKlant(klantFromInternalStore);
+    await router.push("/bedrijven/" + klantFromInternalStore.internalId);
+  } else {
+    // als de klant nog niet in de in memory application store bekend is,
+    // dan nu de gegevens opzoeken en toevoegen
+    // en navigeer naar de detailpagina
 
-  await router.push(`/bedrijven/${newContactmomentKlant.internalId}`);
+    // in tegenstelling tot wat we bij personen doen, hoeven we de klant hier niet meer op te zoeken
+    // omdat de contactgegevens in de zoekresultten tabel getoond worden, hebben we de klant en eventuele contactgegevens uit andere rgisteres al opgehaald
+
+    const storeKlant = <ContactmomentKlant>{
+      id: klant.value?.id,
+      telefoonnummers: data.value.telefoonnummers,
+      emailadressen: data.value.emailadressen,
+      hasContactInformation:
+        data.value.telefoonnummers?.length > 0 ||
+        data.value.emailadressen?.length > 0,
+      bedrijfsnaam: props.item.bedrijfsnaam,
+      vestigingsnummer: props.item.vestigingsnummer,
+      kvkNummer: props.item.kvkNummer,
+    };
+
+    contactmomentStore.setKlant(storeKlant);
+    contactmomentStore.setAsActiveKlant(storeKlant);
+    await router.push("/bedrijven/" + storeKlant.internalId);
+  }
 }
+
+watchEffect(() => {
+  if (data && props.autoNavigate) navigate();
+});
 </script>
 
 <style scoped lang="scss">

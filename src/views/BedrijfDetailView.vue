@@ -7,10 +7,7 @@
         <klant-details
           :internalKlantId="internalKlantId"
           @no-data="setDisabled(true)"
-          @load="
-            klant = $event;
-            setDisabled($event == null);
-          "
+          @load="setDisabled(false)"
           @loading="setLoading"
           @error="setError"
         />
@@ -79,12 +76,10 @@ import { HandelsregisterGegevens } from "@/features/bedrijf/bedrijf-details";
 import type { Bedrijf } from "@/services/kvk";
 import ContactverzoekenForKlantIdentificator from "@/features/contact/contactverzoek/overzicht/ContactverzoekenForKlantIdentificator.vue";
 import ContactmomentenForKlantIdentificator from "@/features/contact/contactmoment/ContactmomentenForKlantIdentificator.vue";
-import type { Klant } from "@/services/openklant/types";
 import ZakenForKlant from "@/features/zaaksysteem/ZakenForKlant.vue";
 
 defineProps<{ internalKlantId: string }>();
 const contactmomentStore = useContactmomentStore();
 const currentTab = ref("");
-const klant = ref<Klant>();
 const bedrijf = ref<Bedrijf>();
 </script>
