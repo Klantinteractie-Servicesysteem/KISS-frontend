@@ -466,6 +466,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Step("Given there is exactly one nieuwsbericht with that text as the title");
 
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
         await using var nieuwsbericht = await Page.CreateBerichtAsync(new() { Title = uniqueTitle, BerichtType = BerichtType.Nieuws });
 
         await Step("And there is exactly one werkinstructie with that text as the title");
@@ -534,6 +536,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Page.GetNieuwsAndWerkinstructiesSearch().ClearAsync();
 
         await Step("Then at least two werkinstructies should be visible");
+
+
 
         var werkinstructiesCount = await Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).CountAsync();
 

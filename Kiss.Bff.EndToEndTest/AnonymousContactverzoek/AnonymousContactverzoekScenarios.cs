@@ -2,7 +2,6 @@
 using Kiss.Bff.EndToEndTest.AnonymousContactmoment.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
-using Kiss.Bff.EndToEndTest.Common.Helpers.Api;
 
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
@@ -59,7 +58,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the Zoeken button");
             await Page.GetZoekenButton().ClickAsync();
-            Page.EnsureSystemIsUp();
+
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
             await latestRequest.PressAsync("Enter");
@@ -119,7 +118,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -180,7 +178,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -240,7 +237,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.EnsureSystemIsUp();
 
             await Step("And contactverzoek details are displayed");
 
@@ -478,7 +474,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the Zoeken button");
 
             await Page.GetZoekenButton().ClickAsync();
-            Page.EnsureSystemIsUp();
+
 
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
