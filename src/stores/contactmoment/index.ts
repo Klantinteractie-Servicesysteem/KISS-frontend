@@ -216,7 +216,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       ): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find((x) => {
           return (
-            (!vestigingsnummer ||
+            ((!vestigingsnummer && !x.klant.vestigingsnummer) ||
               x.klant.vestigingsnummer === vestigingsnummer) &&
             x.klant.kvkNummer == kvkNummer
           );
