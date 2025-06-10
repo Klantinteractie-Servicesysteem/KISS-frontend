@@ -14,6 +14,8 @@ namespace Kiss.Bff.Test.Hacks
             Environment.SetEnvironmentVariable("REGISTERS__0__REGISTRY_VERSION", "OpenKlant2");
             Environment.SetEnvironmentVariable("REGISTERS__0__KLANTINTERACTIE_BASE_URL", "http://unittest.local");
             Environment.SetEnvironmentVariable("REGISTERS__0__KLANTINTERACTIE_TOKEN", "unittest-token");
+            Environment.SetEnvironmentVariable("ELASTICSEARCH_SEARCH_PATTERN", "hack");
+            Environment.SetEnvironmentVariable("ENTERPRISE_SEARCH_EXPLAIN_PATTERN", "hack");
         }
     }
 }
