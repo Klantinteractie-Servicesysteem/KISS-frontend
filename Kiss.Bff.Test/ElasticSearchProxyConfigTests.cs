@@ -27,7 +27,7 @@ namespace Kiss.Bff.Test
         public void Init()
         {
            
-            _config = new ElasticsearchProxyConfig(_baseUrl, _username, _password, _pattern);
+            _config = new ElasticsearchProxyConfig(_baseUrl, _username, _password);
         }
 
         private static RequestTransformContext CreateContext(string method, string path)
