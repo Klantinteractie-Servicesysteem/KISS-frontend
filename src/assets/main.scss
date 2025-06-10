@@ -230,7 +230,9 @@ menu {
   margin-inline-start: var(--spacing-default);
 }
 
-details {
+table.overview details,
+ul.overview details,
+.expandable-table-list details {
   display: flex;
 
   summary {
@@ -252,6 +254,32 @@ details {
   summary + * {
     margin-block-start: 1px;
   }
+}
+
+.htmlcontent details {
+  margin-block: var(--spacing-small);
+
+  summary {
+    cursor: pointer;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      display: inline;
+      margin: 0;
+    }
+  }
+
+  summary + * {
+    margin-block-start: var(--spacing-small);
+  }
+}
+
+figure {
+  margin-inline: var(--spacing-small) var(--spacing-default);
 }
 
 /*
