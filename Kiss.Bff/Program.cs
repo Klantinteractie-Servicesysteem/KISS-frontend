@@ -76,7 +76,7 @@ try
 
     var connStr = $"Username={builder.Configuration["POSTGRES_USER"]};Password={builder.Configuration["POSTGRES_PASSWORD"]};Host={builder.Configuration["POSTGRES_HOST"]};Database={builder.Configuration["POSTGRES_DB"]};Port={builder.Configuration["POSTGRES_PORT"]}";
     builder.Services.AddDbContext<BeheerDbContext>(o => o.UseNpgsql(connStr));
-    builder.Services.AddEnterpriseSearch(builder.Configuration["ENTERPRISE_SEARCH_BASE_URL"], builder.Configuration["ENTERPRISE_SEARCH_PRIVATE_API_KEY"]);
+    builder.Services.AddEnterpriseSearch(builder.Configuration["ENTERPRISE_SEARCH_BASE_URL"], builder.Configuration["ENTERPRISE_SEARCH_PRIVATE_API_KEY"],builder.Configuration["ENTERPRISE_SEARCH_EXPLAIN_PATTERN"]);
 
     if(int.TryParse(builder.Configuration["EMAIL_PORT"], out var emailPort)) 
     {
@@ -105,7 +105,7 @@ try
 
     builder.Services.AddHealthChecks();
 
-    builder.Services.AddElasticsearch(builder.Configuration["ELASTIC_BASE_URL"], builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"]);
+    builder.Services.AddElasticsearch(builder.Configuration["ELASTIC_BASE_URL"], builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"], builder.Configuration["ELASTICSEARCH_SEARCH_PATTERN"]);
     builder.Services.AddAfdelingenProxy(builder.Configuration["AFDELINGEN_BASE_URL"], builder.Configuration["AFDELINGEN_TOKEN"], builder.Configuration["AFDELINGEN_OBJECT_TYPE_URL"], builder.Configuration["AFDELINGEN_CLIENT_ID"], builder.Configuration["AFDELINGEN_CLIENT_SECRET"]);
     builder.Services.AddGroepenProxy(builder.Configuration["GROEPEN_BASE_URL"], builder.Configuration["GROEPEN_TOKEN"], builder.Configuration["GROEPEN_OBJECT_TYPE_URL"], builder.Configuration["GROEPEN_CLIENT_ID"], builder.Configuration["GROEPEN_CLIENT_SECRET"]);
     builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
