@@ -154,11 +154,11 @@ try
 catch (Exception ex)
 {
     var type = ex.GetType().Name;
-    if (!type.Equals("StopTheHostException", StringComparison.Ordinal))
+    if (type.Equals("StopTheHostException", StringComparison.Ordinal))
     {
-        Log.Fatal(ex, "Unhandled exception");
+        throw;
     }
-    throw;
+    Log.Fatal(ex, "Unhandled exception");
 }
 finally
 {
