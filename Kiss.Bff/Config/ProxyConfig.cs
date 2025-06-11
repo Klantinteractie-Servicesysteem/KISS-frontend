@@ -127,54 +127,106 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public ProxyConfigProvider(IEnumerable<IKissProxyRoute> proxyRoutes)
         {
-            var routes = proxyRoutes.Select(x => new RouteConfig
+            var allRoutes = new List<RouteConfig>();
+            var clusters = new List<ClusterConfig>();
+
+            foreach (var proxyRoute in proxyRoutes)
             {
-                RouteId = x.Route,
-                ClusterId = x.Route,
-                Match = new RouteMatch { Path = $"/api/{x.Route.Trim('/')}/{{*any}}" },
-
-                Transforms = new[]
+                // Create cluster for each proxy route
+                clusters.Add(new ClusterConfig
                 {
-                    new Dictionary<string, string>
+                    ClusterId = proxyRoute.Route,
+                    Destinations = new Dictionary<string, DestinationConfig>
                     {
-                        ["PathRemovePrefix"] = $"/api/{x.Route.Trim('/')}",
+                        [proxyRoute.Route] = new DestinationConfig
+                        {
+                            Address = proxyRoute.Destination
+                        }
                     },
-                    new Dictionary<string, string>
+                    // TODO: discuss if we need to get a valid certificate for Enterprise Search
+                    HttpClient = proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE || proxyRoute.Route == ElasticsearchProxyConfig.ROUTE
+                    ? new HttpClientConfig
                     {
-                        ["RequestHeaderRemove"] = "Cookie",
-                    },
-                    //   new Dictionary<string, string>
-                    //{
-                    //    ["QueryValueParameter"] = "klant",
-                    //    ["Append"] = "bar"
-                    //}
-                }
-
-
-            }).ToArray();
-
-            var clusters = proxyRoutes.Select(x => new ClusterConfig
-            {
-                ClusterId = x.Route,
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    [x.Route] = new DestinationConfig
-                    {
-                        Address = x.Destination
+                        DangerousAcceptAnyServerCertificate = true
                     }
-                },
-                // TODO: discuss if we need to get a valid certificate for Enterprise Search
-                HttpClient = x.Route == EnterpriseSearchProxyConfig.ROUTE || x.Route == ElasticsearchProxyConfig.ROUTE
-                ? new HttpClientConfig
+                    : null
+                });
+
+                // Create specific routes based on the proxy route type
+                if (proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE)
                 {
-                    DangerousAcceptAnyServerCertificate = true
+                    // Only allow POST to search_explain endpoint
+                    allRoutes.Add(new RouteConfig
+                    {
+                        RouteId = $"{proxyRoute.Route}-search-explain",
+                        ClusterId = proxyRoute.Route,
+                        Match = new RouteMatch 
+                        { 
+                            Path = "/api/enterprisesearch/api/as/v1/engines/{engine}/search_explain",
+                            Methods = new[] { "POST" }
+                        },
+                        Transforms = new[]
+                        {
+                            new Dictionary<string, string>
+                            {
+                                ["PathRemovePrefix"] = "/api/enterprisesearch",
+                            },
+                            new Dictionary<string, string>
+                            {
+                                ["RequestHeaderRemove"] = "Cookie",
+                            }
+                        }
+                    });
                 }
-                : null
+                else if (proxyRoute.Route == ElasticsearchProxyConfig.ROUTE)
+                {
+                    // Only allow POST to _search endpoint
+                    allRoutes.Add(new RouteConfig
+                    {
+                        RouteId = $"{proxyRoute.Route}-search",
+                        ClusterId = proxyRoute.Route,
+                        Match = new RouteMatch 
+                        { 
+                            Path = "/api/elasticsearch/{index}/_search",
+                            Methods = new[] { "POST" }
+                        },
+                        Transforms = new[]
+                        {
+                            new Dictionary<string, string>
+                            {
+                                ["PathRemovePrefix"] = "/api/elasticsearch",
+                            },
+                            new Dictionary<string, string>
+                            {
+                                ["RequestHeaderRemove"] = "Cookie",
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    // For all other proxy routes, use the original wildcard pattern
+                    allRoutes.Add(new RouteConfig
+                    {
+                        RouteId = proxyRoute.Route,
+                        ClusterId = proxyRoute.Route,
+                        Match = new RouteMatch { Path = $"/api/{proxyRoute.Route.Trim('/')}/{{*any}}" },
+                        Transforms = new[]
+                        {
+                            new Dictionary<string, string>
+                            {
+                                ["PathRemovePrefix"] = $"/api/{proxyRoute.Route.Trim('/')}",
+                            },
+                            new Dictionary<string, string>
+                            {
+                                ["RequestHeaderRemove"] = "Cookie",
+                            }
+                        }
+                    });
+                }
+            }
 
-            }).ToArray();
-
-            _config = new SimpleProxyConfig(routes, clusters);
-
+            _config = new SimpleProxyConfig(allRoutes, clusters);
         }
 
         public IProxyConfig GetConfig() => _config;

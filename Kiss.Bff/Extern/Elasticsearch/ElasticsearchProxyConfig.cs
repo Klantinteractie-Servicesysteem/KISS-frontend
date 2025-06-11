@@ -37,6 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 
         public ValueTask ApplyRequestTransform(RequestTransformContext context)
+
         {
             context.ProxyRequest.SetBasicAuthentication(_username, _password);
 
@@ -44,3 +45,4 @@ namespace Microsoft.Extensions.DependencyInjection
         }
     }
 }
+
