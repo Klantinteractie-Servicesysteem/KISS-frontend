@@ -267,7 +267,8 @@ ul.overview details,
     h3,
     h4,
     h5,
-    h6 {
+    h6,
+    p {
       display: inline;
       margin: 0;
     }
@@ -279,6 +280,7 @@ ul.overview details,
 }
 
 figure {
+  margin-block: var(--spacing-small);
   margin-inline: var(--spacing-small) var(--spacing-default);
 }
 
