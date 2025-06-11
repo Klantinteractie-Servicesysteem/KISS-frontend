@@ -6,6 +6,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ElasticsearchExtensions
     {
+
+
         public static IServiceCollection AddElasticsearch(this IServiceCollection services, string baseUrl, string username, string password)
         {
             services.AddSingleton<IKissProxyRoute>(new ElasticsearchProxyConfig(baseUrl, username, password));
@@ -20,6 +22,8 @@ namespace Microsoft.Extensions.DependencyInjection
         private readonly string _username;
         private readonly string _password;
 
+
+
         public ElasticsearchProxyConfig(string destination, string username, string password)
         {
             Destination = destination;
@@ -31,10 +35,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public string Destination { get; }
 
+
         public ValueTask ApplyRequestTransform(RequestTransformContext context)
+
         {
             context.ProxyRequest.SetBasicAuthentication(_username, _password);
-            return new();
+
+            return new ValueTask();
         }
     }
 }
+

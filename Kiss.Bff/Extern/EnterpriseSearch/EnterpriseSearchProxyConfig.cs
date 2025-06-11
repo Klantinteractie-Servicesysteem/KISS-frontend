@@ -23,6 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Destination = destination;
             _apiKey = apiKey;
+
         }
 
         public string Route => ROUTE;
@@ -31,8 +32,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public ValueTask ApplyRequestTransform(RequestTransformContext context)
         {
+
             context.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            return new();
+
+            return new ValueTask();
         }
     }
 }
