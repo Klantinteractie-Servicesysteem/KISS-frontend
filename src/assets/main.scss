@@ -230,9 +230,7 @@ menu {
   margin-inline-start: var(--spacing-default);
 }
 
-table.overview details,
-ul.overview details,
-.expandable-table-list details {
+ul > li > details {
   display: flex;
 
   summary {
