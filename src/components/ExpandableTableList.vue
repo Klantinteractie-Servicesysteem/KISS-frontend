@@ -7,7 +7,7 @@
     <li class="header-row" ref="headerRef">
       <slot name="header"></slot>
     </li>
-    <li v-for="item in items" :key="item[itemKey]" class="expandable-item">
+    <li v-for="item in items" :key="item[itemKey]">
       <details @click="toggleDetails">
         <slot name="item" :item="item"></slot>
       </details>
