@@ -230,7 +230,7 @@ menu {
   margin-inline-start: var(--spacing-default);
 }
 
-ul.overview.expandable-list > li.expandable-item > details {
+.expandable-list details {
   summary {
     @extend .icon-after;
     @extend .chevron-down;
