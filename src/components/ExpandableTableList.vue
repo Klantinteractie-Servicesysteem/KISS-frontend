@@ -1,9 +1,13 @@
 <template>
-  <ul v-if="items.length" class="overview" :data-column-count="columnCount">
+  <ul
+    v-if="items.length"
+    class="overview expandable-list"
+    :data-column-count="columnCount"
+  >
     <li class="header-row" ref="headerRef">
       <slot name="header"></slot>
     </li>
-    <li v-for="item in items" :key="item[itemKey]">
+    <li v-for="item in items" :key="item[itemKey]" class="expandable-item">
       <details @click="toggleDetails">
         <slot name="item" :item="item"></slot>
       </details>

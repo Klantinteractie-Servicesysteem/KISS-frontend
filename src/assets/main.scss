@@ -230,9 +230,7 @@ menu {
   margin-inline-start: var(--spacing-default);
 }
 
-ul > li > details {
-  display: flex;
-
+ul.overview.expandable-list > li.expandable-item > details {
   summary {
     @extend .icon-after;
     @extend .chevron-down;
@@ -258,21 +256,20 @@ ul > li > details {
   margin-block: var(--spacing-small);
 
   summary {
+    font-weight: 800;
     cursor: pointer;
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    p {
+    * {
       display: inline;
       margin: 0;
+      font-weight: inherit;
     }
   }
 
-  summary + * {
+  > p,
+  > strong,
+  > div {
+    display: block;
     margin-block-start: var(--spacing-small);
   }
 }
