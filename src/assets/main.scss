@@ -256,6 +256,7 @@ ul.overview.expandable-list > li.expandable-item > details {
   margin-block: var(--spacing-small);
 
   summary {
+    margin-block: var(--spacing-small);
     font-weight: 800;
     cursor: pointer;
 
@@ -264,13 +265,6 @@ ul.overview.expandable-list > li.expandable-item > details {
       margin: 0;
       font-weight: inherit;
     }
-  }
-
-  > p,
-  > strong,
-  > div {
-    display: block;
-    margin-block-start: var(--spacing-small);
   }
 }
 
