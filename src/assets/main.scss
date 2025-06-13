@@ -230,9 +230,7 @@ menu {
   margin-inline-start: var(--spacing-default);
 }
 
-details {
-  display: flex;
-
+.expandable-list details {
   summary {
     @extend .icon-after;
     @extend .chevron-down;
@@ -252,6 +250,27 @@ details {
   summary + * {
     margin-block-start: 1px;
   }
+}
+
+.htmlcontent details {
+  margin-block: var(--spacing-small);
+
+  summary {
+    margin-block: var(--spacing-small);
+    font-weight: 800;
+    cursor: pointer;
+
+    * {
+      display: inline;
+      margin: 0;
+      font-weight: inherit;
+    }
+  }
+}
+
+figure {
+  margin-block: var(--spacing-small);
+  margin-inline: var(--spacing-small) var(--spacing-default);
 }
 
 /*

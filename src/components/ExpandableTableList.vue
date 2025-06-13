@@ -1,5 +1,9 @@
 <template>
-  <ul v-if="items.length" class="overview" :data-column-count="columnCount">
+  <ul
+    v-if="items.length"
+    class="overview expandable-list"
+    :data-column-count="columnCount"
+  >
     <li class="header-row" ref="headerRef">
       <slot name="header"></slot>
     </li>
