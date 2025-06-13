@@ -28,7 +28,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the search button");
 
             await Page.PersonenThird_SearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/personen/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle)
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
@@ -79,7 +79,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the search button");
 
             await Page.PersonenThird_SearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/personen/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
@@ -122,7 +122,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the search button");
 
             await Page.PersonenThird_SearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/personen/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
@@ -155,7 +155,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/bedrijven/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
@@ -198,7 +198,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/bedrijven/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
@@ -236,7 +236,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/bedrijven/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("user is navigated to Bedrijfinformatie page of Test BV Donald Nevenvestiging");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
@@ -266,7 +266,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the search button");
 
             await Page.PersonenThird_SearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/personen/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
@@ -327,7 +327,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            await Page.WaitForURLAsync("**/bedrijven/*");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
