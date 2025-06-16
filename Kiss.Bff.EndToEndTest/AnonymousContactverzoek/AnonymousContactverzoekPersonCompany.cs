@@ -95,7 +95,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user selects 'parkeren' from dropdown list of field afdeling");
             await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation contactverzoek");
@@ -167,7 +167,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user selects 'parkeren' from dropdown list of field afdeling");
             await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
@@ -210,7 +210,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user selects 'parkeren' from dropdown list of field afdeling");
             await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
@@ -282,7 +282,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user selects 'parkeren' from dropdown list of field afdeling");
             await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation contactverzoek");
@@ -339,7 +339,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And user selects 'parkeren' from dropdown list of field afdeling");
             await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
