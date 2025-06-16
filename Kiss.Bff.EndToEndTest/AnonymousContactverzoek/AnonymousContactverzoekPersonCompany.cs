@@ -28,7 +28,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And clicks the search button");
 
             await Page.PersonenThird_SearchButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle)
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
