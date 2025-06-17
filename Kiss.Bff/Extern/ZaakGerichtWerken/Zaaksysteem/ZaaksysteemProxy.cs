@@ -6,33 +6,33 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
     public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger) : ControllerBase
     {
         /// <summary>
-        /// Proxies zaken API calls to the appropriate zaaksysteem endpoint
+        /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint
         /// </summary>
         [HttpGet("api/zaken/{**path}")]
         public IActionResult GetZaken(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
             => ProxyToEndpoint(path, systemIdentifier, "zaken");
 
         /// <summary>
-        /// Proxies catalogi API calls to the appropriate zaaksysteem endpoint
+        /// Proxyt catalogi API calls naar het juiste zaaksysteem endpoint
         /// </summary>
         [HttpGet("api/catalogi/{**path}")]
         public IActionResult GetCatalogi(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
             => ProxyToEndpoint(path, systemIdentifier, "catalogi");
 
         /// <summary>
-        /// Proxies documenten API calls to the appropriate zaaksysteem endpoint
+        /// Proxyt documenten API calls naar het juiste zaaksysteem endpoint
         /// </summary>
         [HttpGet("api/documenten/{**path}")]
         public IActionResult GetDocumenten(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
             => ProxyToEndpoint(path, systemIdentifier, "documenten");
 
         /// <summary>
-        /// Generic proxy method that routes to the correct zaaksysteem endpoint based on API type
-        /// Supports both OpenZaak format (single BaseUrl) and Rx.Mission format (separate endpoints)
+        /// Generieke proxy methode die routeert naar het juiste zaaksysteem endpoint gebaseerd op API type
+        /// Ondersteunt zowel OpenZaak formaat (enkele BaseUrl) als Rx.Mission formaat (aparte endpoints)
         /// </summary>
-        /// <param name="path">The API path to proxy</param>
-        /// <param name="systemIdentifier">The system identifier from the header</param>
-        /// <param name="apiType">The type of API (zaken, catalogi, documenten)</param>
+        /// <param name="path">Het API pad om te proxyen</param>
+        /// <param name="systemIdentifier">De systeem identifier uit de header</param>
+        /// <param name="apiType">Het type API (zaken, catalogi, documenten)</param>
         /// <returns></returns>
         private IActionResult ProxyToEndpoint(string path, string systemIdentifier, string apiType)
         {
@@ -40,7 +40,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             if (config == null)
             {
-                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", 
+                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}",
                     systemIdentifier[..(systemIdentifier.Length < 15 ? systemIdentifier.Length - 1 : 15)] + "...");
                 return Problem(
                     title: "Configuratieprobleem",
@@ -61,12 +61,12 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         }
 
         /// <summary>
-        /// Determines the base URL for the specified API type.
-        /// Falls back to legacy OpenZaak format if specific URLs are not configured.
+        /// Bepaalt de base URL voor het opgegeven API type.
+        /// Valt terug naar OpenZaak formaat als specifieke URLs niet zijn geconfigureerd.
         /// </summary>
-        /// <param name="config">The zaaksysteem registry configuration</param>
-        /// <param name="apiType">The API type (zaken, catalogi, documenten)</param>
-        /// <returns>The base URL for the API type</returns>
+        /// <param name="config">De zaaksysteem registry configuratie</param>
+        /// <param name="apiType">Het API type (zaken, catalogi, documenten)</param>
+        /// <returns>De base URL voor het API type</returns>
         private string GetBaseUrlForApiType(ZaaksysteemRegistry config, string apiType)
         {
             return apiType switch
