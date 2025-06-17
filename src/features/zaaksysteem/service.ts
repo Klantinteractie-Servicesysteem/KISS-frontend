@@ -16,8 +16,9 @@ import {
 } from "@/services/environment/fetch-systemen";
 import { fetchWithSysteemId } from "@/services/fetch-with-systeem-id";
 
-const zaaksysteemBaseUri = `/api/zaken/zaken/api/v1`;
-const documentenBaseUri = `/api/documenten/documenten/api/v1`;
+const zakenApiPrefix = `/api/zaken`;
+const catalogiApiPrefix = `/api/catalogi`;
+const documentenApiPrefix = `/api/documenten`;
 
 const combineOverview = (multiple: ZaakDetails[][]) =>
   multiple
@@ -27,7 +28,7 @@ const combineOverview = (multiple: ZaakDetails[][]) =>
     );
 
 const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
-  fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken?${query}`)
+  fetchWithSysteemId(systeem.identifier, `${zakenApiPrefix}/zaken?${query}`)
     .then(throwIfNotOk)
     .then(parseJson)
     .then((json) =>
@@ -58,7 +59,7 @@ export function fetchZakenByZaaknummer(
 }
 
 export const fetchZaakDetailsById = (id: string, systeem: Systeem) =>
-  fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken/${id}`)
+  fetchWithSysteemId(systeem.identifier, `${zakenApiPrefix}/zaken/${id}`)
     .then(throwIfNotOk)
     .then(parseJson)
     .then((x) => mapZaakDetails({ ...x, zaaksysteemId: systeem.identifier }));
@@ -159,7 +160,7 @@ const getStatus = async ({
 
   const statusType = await fetchWithSysteemId(
     zaaksysteemId,
-    `${zaaksysteemBaseUri}/statussen/${statusId}`,
+    `${zakenApiPrefix}/statussen/${statusId}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json())
@@ -169,11 +170,9 @@ const getStatus = async ({
 
   if (!statusTypeUuid) return "";
 
-  const statusTypeUrl = `/api/zaken/catalogi/api/v1/statustypen/${statusTypeUuid}`;
-
   const statusOmschrijving = await fetchWithSysteemId(
     zaaksysteemId,
-    statusTypeUrl,
+    `${catalogiApiPrefix}/statustypen/${statusTypeUuid}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json())
@@ -191,7 +190,7 @@ export const getDocumenten = async ({
 }): Promise<Array<ZaakDocument>> => {
   const infoObjecten = await fetchWithSysteemId(
     systeemId,
-    `${zaaksysteemBaseUri}/zaakinformatieobjecten?${new URLSearchParams({ zaak: zaakUrl })}`,
+    `${zakenApiPrefix}/zaakinformatieobjecten?${new URLSearchParams({ zaak: zaakUrl })}`,
   )
     .then(throwIfNotOk)
     .then((x) => x.json());
@@ -200,7 +199,7 @@ export const getDocumenten = async ({
     const promises = infoObjecten.map(async (item: any) => {
       const id = item.informatieobject.split("/").pop();
 
-      const docUrl = `${documentenBaseUri}/enkelvoudiginformatieobjecten/${id}`;
+      const docUrl = `${documentenApiPrefix}/enkelvoudiginformatieobjecten/${id}`;
       return fetchWithSysteemId(systeemId, docUrl)
         .then(throwIfNotOk) //todo 404 afvanengen?
         .then((x) => x.json())
@@ -226,7 +225,7 @@ const getRollen = async ({
 
   let pageIndex = 0;
   const rollen: Array<RolType> = [];
-  const rollenUrl = `${zaaksysteemBaseUri}/rollen?zaak=${url}`;
+  const rollenUrl = `${zakenApiPrefix}/rollen?zaak=${url}`;
 
   const getPage = async (url: string) => {
     const page = await fetchWithSysteemId(zaaksysteemId, url)
@@ -255,9 +254,11 @@ const getZaakType = ({
   zaaksysteemId: string;
 }): Promise<ZaakType> => {
   const zaaktypeid = zaaktype.split("/").pop();
-  const url = `/api/zaken/catalogi/api/v1/zaaktypen/${zaaktypeid}`;
 
-  return fetchWithSysteemId(zaaksysteemId, url)
+  return fetchWithSysteemId(
+    zaaksysteemId,
+    `${catalogiApiPrefix}/zaaktypen/${zaaktypeid}`,
+  )
     .then(throwIfNotOk)
     .then((x) => x.json())
     .then((json) => {

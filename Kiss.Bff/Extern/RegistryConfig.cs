@@ -79,6 +79,9 @@ namespace Kiss.Bff.Extern
         }
         public string? DeeplinkUrl { get; init; }
         public string? DeeplinkProperty { get; init; }
+        public string? ZakenBaseUrl { get; init; }
+        public string? CatalogiBaseUrl { get; init; }
+        public string? DocumentenBaseUrl { get; init; }
     }
 
     public static class CrsHeaderConstants

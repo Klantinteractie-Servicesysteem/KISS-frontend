@@ -2,16 +2,13 @@ import { parseJson, throwIfNotOk } from "..";
 import { fetchWithSysteemId } from "../fetch-with-systeem-id";
 import type { ZaakContactmoment } from "./types";
 
-const zaaksysteemProxyRoot = `/api/zaken`;
-const zaaksysteemApiRoot = `/zaken/api/v1`;
-const zaaksysteemBaseUri = `${zaaksysteemProxyRoot}${zaaksysteemApiRoot}`;
-const zaakcontactmomentUrl = `${zaaksysteemBaseUri}/zaakcontactmomenten`;
+const zakenApiPrefix = `/api/zaken`;
 
 export const voegContactmomentToeAanZaak = (
   { contactmoment, zaak }: ZaakContactmoment,
   zaaksysteemId: string,
 ) =>
-  fetchWithSysteemId(zaaksysteemId, zaakcontactmomentUrl, {
+  fetchWithSysteemId(zaaksysteemId, `${zakenApiPrefix}/zaakcontactmomenten`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -25,8 +22,7 @@ export const fetchZaakIdentificatieByUrlOrId = (
   urlOrId: string,
 ) => {
   const id = urlOrId.split("/").at(-1) || urlOrId;
-
-  return fetchWithSysteemId(systeemId, `${zaaksysteemBaseUri}/zaken/${id}`)
+  return fetchWithSysteemId(systeemId, `${zakenApiPrefix}/zaken/${id}`)
     .then(throwIfNotOk)
     .then(parseJson)
     .then(({ identificatie }) => identificatie as string);

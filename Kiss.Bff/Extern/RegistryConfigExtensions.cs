@@ -48,6 +48,9 @@
                         ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
                         DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
                         DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
+                        ZakenBaseUrl = GetValue("ZAAKSYSTEEM_ZAKEN_BASE_URL"),
+                        CatalogiBaseUrl = GetValue("ZAAKSYSTEEM_CATALOGI_BASE_URL"),
+                        DocumentenBaseUrl = GetValue("ZAAKSYSTEEM_DOCUMENTEN_BASE_URL"),
                     }
                     : null;
 
