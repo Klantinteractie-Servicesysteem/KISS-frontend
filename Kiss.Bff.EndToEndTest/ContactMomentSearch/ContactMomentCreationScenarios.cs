@@ -163,7 +163,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             }
 
             await Step("Then user navigates to KISS home page");
-            await Expect(Page).ToHaveURLAsync("https://dev.kiss-demo.nl/");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Startscherm" })).ToBeVisibleAsync();
 
         }
 
@@ -306,7 +306,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             }
 
             await Step("Then user navigates to KISS home page");
-            await Expect(Page).ToHaveURLAsync("https://dev.kiss-demo.nl/");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Startscherm" })).ToBeVisibleAsync();
 
 
         }
