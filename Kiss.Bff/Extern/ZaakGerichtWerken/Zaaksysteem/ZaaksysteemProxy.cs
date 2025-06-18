@@ -40,8 +40,9 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             if (config == null)
             {
+                var sanitizedSystemIdentifier = systemIdentifier.Replace("\n", "").Replace("\r", "").Replace("\t", "");
                 logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}",
-                    systemIdentifier[..(systemIdentifier.Length < 15 ? systemIdentifier.Length - 1 : 15)] + "...");
+                    sanitizedSystemIdentifier[..(sanitizedSystemIdentifier.Length < 15 ? sanitizedSystemIdentifier.Length - 1 : 15)] + "...");
                 return Problem(
                     title: "Configuratieprobleem",
                     detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
