@@ -275,6 +275,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And click on afronden");
             await Page.GetAfrondenButton().ClickAsync();
 
+            await Step("And the Contactverzoek section of the Afhandeling screen is loaded");
+            await Expect(Page.GetByText("Contactverzoek maken voor")).ToBeVisibleAsync();
+
             await Step("And user fills in 'Hoe gaat het' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
@@ -316,6 +319,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And click on afronden");
             await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("And the Contactverzoek section of the Afhandeling screen is loaded");
+            await Expect(Page.GetByText("Contactverzoek maken voor")).ToBeVisibleAsync();
 
             await Step("And user fills in 'Hoe gaat het' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
@@ -436,6 +442,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And click on afronden");
             await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("And the Contactverzoek section of the Afhandeling screen is loaded");
+            await Expect(Page.GetByText("Contactverzoek maken voor")).ToBeVisibleAsync();
 
             await Step("And user fills in 'automation test' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test");
