@@ -1,6 +1,6 @@
 ﻿
-
-using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers; 
+using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 {
@@ -45,7 +45,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
             var note = "test notitieblok";
-            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note); 
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
             await Step("Given user clicks on Afronden button on the Notes-Contactverzoek-Pane");
 
@@ -76,10 +76,10 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Expect(Page.GetKanaalField()).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
 
             await Step("And user enters 'Live chat' in field Kanaal");
-            
+
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label= "Live Chat" } });
+            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
             await Step("And clicks on Opslaan button");
 
@@ -107,7 +107,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetAfdelingVoorField().ClickAsync();
             await Page.GetByText("Parkeren").ClickAsync();
-                       
+
             await Step("And clicks on Opslaan button");
 
             await Page.GetOpslaanButton().ClickAsync();
@@ -143,8 +143,8 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
             var note = "test notitieblok";
-            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note); 
-         
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
+
             await Step("Given user clicks on Afronden button on the Notes-Contactverzoek-Pane");
 
             await Page.GetAfrondenButton().ClickAsync();
@@ -171,7 +171,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And selects value 'Parkeren' in field Afdeling");
 
-            await Page.GetAfdelingVoorField().ClickAsync(); 
+            await Page.GetAfdelingVoorField().ClickAsync();
             await Page.GetByText("Parkeren").ClickAsync();
 
             await Step("And clicks on Opslaan button");
@@ -183,7 +183,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-     
+
 
     }
 }

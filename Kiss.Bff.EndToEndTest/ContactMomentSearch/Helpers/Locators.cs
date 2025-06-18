@@ -69,10 +69,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers
         {
             return page.GetByRole(AriaRole.Table).Locator($"tbody tr:has(td:nth-child(4):has-text(\"{postcode.Trim()} {huisNummer.Trim()}\"))");
         }
-        public static ILocator GetAnnulerenButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
-        }
+
     }
 
 

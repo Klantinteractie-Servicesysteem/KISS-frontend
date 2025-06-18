@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 using Kiss.Bff.EndToEndTest.Helpers;
-
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 {
@@ -166,8 +166,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Startscherm" })).ToBeVisibleAsync();
 
         }
-
-
 
         [TestMethod("3. Contact moment Creation for company")]
         public async Task ContactMomentCreation_Company()
