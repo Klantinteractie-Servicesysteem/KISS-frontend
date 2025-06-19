@@ -61,7 +61,6 @@ namespace Kiss.Bff.EndToEndTest.Beheer
             try
             {
                 // ✅ Precondition: Clean up test data if already present
-                await DeleteGespreksresultaatIfExists(originalGesprekresultaat);
                 await DeleteGespreksresultaatIfExists(updatedGesprekresultaat); // In case previous run was interrupted
                 await AddGespreksresultaatHelper(originalGesprekresultaat);
                 await Step("Given the user is on the 'Gesprekresultaten' section of the 'Beheer' tab");
