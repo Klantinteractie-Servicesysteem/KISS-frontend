@@ -1,6 +1,7 @@
 
 using Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers;
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 
 
 namespace Kiss.Bff.EndToEndTest.Beheer
