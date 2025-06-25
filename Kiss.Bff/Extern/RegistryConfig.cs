@@ -72,15 +72,15 @@ namespace Kiss.Bff.Extern
     {
         public void ApplyHeaders(HttpRequestHeaders headers, System.Security.Claims.ClaimsPrincipal user)
         {
-            var authHeaderProvider = new AuthenticationHeaderProvider(Token, ClientId, ClientSecret);
+            var authHeaderProvider = new AuthenticationHeaderProvider(null, ClientId, ClientSecret);
             authHeaderProvider.ApplyAuthorizationHeader(headers, user);
             headers.Add(CrsHeaderConstants.AcceptCrs, CrsHeaderConstants.Value);
             headers.Add(CrsHeaderConstants.ContentCrs, CrsHeaderConstants.Value);
         }
 
-        public string? ClientId { get; init; }
-        public string? ClientSecret { get; init; }
-        public string? Token { get; init; }
+        public required string ClientId { get; init; }
+        public required string ClientSecret { get; init; }
+    
 
         public string? DeeplinkUrl { get; init; }
         public string? DeeplinkProperty { get; init; }
