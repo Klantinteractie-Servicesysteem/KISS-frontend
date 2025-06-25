@@ -68,13 +68,13 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         /// <param name="config">De zaaksysteem registry configuratie</param>
         /// <param name="apiType">Het API type (zaken, catalogi, documenten)</param>
         /// <returns>De base URL voor het API type</returns>
-        private string GetBaseUrlForApiType(ZaaksysteemRegistry config, string apiType)
+        private static string GetBaseUrlForApiType(ZaaksysteemRegistry config, string apiType)
         {
             return apiType switch
             {
-                "zaken" => config.ZakenBaseUrl ?? $"{config.BaseUrl?.TrimEnd('/')}/zaken/api/v1",
-                "catalogi" => config.CatalogiBaseUrl ?? $"{config.BaseUrl?.TrimEnd('/')}/catalogi/api/v1",
-                "documenten" => config.DocumentenBaseUrl ?? $"{config.BaseUrl?.TrimEnd('/')}/documenten/api/v1",
+                "zaken" => config.ZakenBaseUrl,
+                "catalogi" => config.CatalogiBaseUrl,
+                "documenten" => config.DocumentenBaseUrl,
                 _ => throw new ArgumentException($"Unknown API type: {apiType}", nameof(apiType))
             };
         }

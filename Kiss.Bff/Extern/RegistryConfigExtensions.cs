@@ -39,20 +39,69 @@
 
                 var isDefault = bool.TryParse(GetValue("IS_DEFAULT"), out var defaultValue) && defaultValue;
 
+
+
+
+
+                ZaaksysteemRegistry? zaaksysteem = null;
+
+                // Er zijn twee mogelijke configuraties voor zaaksystemen.
+                // - met 1 baseurl en de afonderlijke api's op paden (baseurl/zaken/api/v1, baseurl/catalogi/api/v1, etc)
+                // - met een url per  afonderlijke api (zaken.zaaksysteem.nl, catalogi.zaaksysteem.nl, etc)
+
                 var zaakysteemBaseUrl = GetValue("ZAAKSYSTEEM_BASE_URL");
-                var zaaksysteem = !string.IsNullOrWhiteSpace(zaakysteemBaseUrl)
-                    ? new ZaaksysteemRegistry
-                    {
-                        BaseUrl = zaakysteemBaseUrl,
+
+                var zakenBaseUrl = GetValue("ZAAKSYSTEEM_ZAKEN_BASE_URL");
+                var catalogiBaseUrl = GetValue("ZAAKSYSTEEM_CATALOGI_BASE_URL");
+                var documentenBaseUrl = GetValue("ZAAKSYSTEEM_DOCUMENTEN_BASE_URL");
+
+
+                var hasZakenBaseUrl = string.IsNullOrWhiteSpace(zakenBaseUrl);
+                var hasCatalogiBaseUrl = string.IsNullOrWhiteSpace(catalogiBaseUrl);
+                var hasDocumentenBaseUrl = string.IsNullOrWhiteSpace(documentenBaseUrl);
+
+                if (!string.IsNullOrWhiteSpace(zaakysteemBaseUrl) && (!hasZakenBaseUrl || !hasCatalogiBaseUrl || !hasDocumentenBaseUrl ))
+                {
+                    throw new Exception("Fout: ambigue zaaksysteem configuratie. gebruik of 1 baseurl voor alle zaaksysteem api's, of aparte baseurl's voor zaken, catalogi en documenten");
+                }
+             
+                if( (hasZakenBaseUrl || hasCatalogiBaseUrl || hasDocumentenBaseUrl) && (!hasZakenBaseUrl || !hasCatalogiBaseUrl || !hasDocumentenBaseUrl))
+                {
+                    throw new Exception("Fout: als je een configuratie gebruikt met verschillende baseurl's voor de zaaksysteem api's, dan moeten er exact drie aanwezig zijn voor zaken, documente, en catalogi");
+                };
+
+
+                if (!string.IsNullOrWhiteSpace(zaakysteemBaseUrl))
+                {
+                    zaaksysteem = new ZaaksysteemRegistry
+                    {                       
                         ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
                         ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
                         DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
                         DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
-                        ZakenBaseUrl = GetValue("ZAAKSYSTEEM_ZAKEN_BASE_URL"),
-                        CatalogiBaseUrl = GetValue("ZAAKSYSTEEM_CATALOGI_BASE_URL"),
-                        DocumentenBaseUrl = GetValue("ZAAKSYSTEEM_DOCUMENTEN_BASE_URL"),
-                    }
-                    : null;
+                        ZakenBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/zaken/api/v1",
+                        CatalogiBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/catalogi/api/v1",
+                        DocumentenBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/documenten/api/v1"
+
+                    };
+                }
+                               
+
+                if (!string.IsNullOrWhiteSpace(zakenBaseUrl) && !string.IsNullOrWhiteSpace(catalogiBaseUrl) && !string.IsNullOrWhiteSpace(documentenBaseUrl))
+                {
+                    zaaksysteem = new ZaaksysteemRegistry
+                    {                       
+                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
+                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
+                        DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
+                        DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
+                        ZakenBaseUrl = zakenBaseUrl,
+                        CatalogiBaseUrl = catalogiBaseUrl,
+                        DocumentenBaseUrl = documentenBaseUrl,
+                    };
+                }
+
+
 
                 if (registryVersion == RegistryVersion.OpenKlant2)
                 {
