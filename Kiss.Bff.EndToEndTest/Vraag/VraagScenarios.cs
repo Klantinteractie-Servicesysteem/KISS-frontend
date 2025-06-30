@@ -219,7 +219,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And contactmoment details are displayed");
             await Page.Locator("summary").Filter(new() { HasText = "icatt" }).First.PressAsync("Enter");
-            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "test vraag 1" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "test vraag 2" })).ToBeVisibleAsync();
 
         }
 
