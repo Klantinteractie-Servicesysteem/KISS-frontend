@@ -45,7 +45,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("Then Afhandeling form has value as “test vraag 1 in field Notitie for vraag 1");
             await Expect(Page.GetAfhandelingNotitieTextBox().First).ToHaveValueAsync(note1);
 
-            await Step("Then Afhandeling form has value as “test vraag 1 in field Notitie for vraag 1");
+            await Step("Then Afhandeling form has value as “test vraag 2 in field Notitie for vraag 2");
             await Expect(Page.GetAfhandelingNotitieTextBox().Nth(1)).ToHaveValueAsync(note2);
 
             await Step("Then both 'Vraag 1' and 'Vraag 2' sections should be visible");
@@ -60,11 +60,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                     .Filter(new() { HasText = "Vraag 2" })
             ).ToBeVisibleAsync();
 
-            await Step("And user fills in 'Hoe gaat het' in the specific vraag field in vraag 1");
+            await Step("And user fills in 'automation test specific vraag 1' in the specific vraag field in vraag 1");
             await Page.GetSpecifiekeVraagTextbox().First.FillAsync("automation test specific vraag");
 
-            await Step("And user fills in 'Hoe gaat het' in the specific vraag field in vraag 2");
-            await Page.GetSpecifiekeVraagTextbox().Nth(1).FillAsync("automation test specific vraag");
+            await Step("And user fills in 'automation test specific vraag 2' in the specific vraag field in vraag 2");
+            await Page.GetSpecifiekeVraagTextbox().Nth(1).FillAsync("automation test specific vraag 2");
 
             await Step("select channel from the list for vraag 1");
             await Page.GetByLabel("Kanaal").First.SelectOptionAsync(["Balie"]);
@@ -159,10 +159,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                     .Filter(new() { HasText = "Vraag 2" })
             ).ToBeVisibleAsync();
 
-            await Step("And user fills in 'Hoe gaat het' in the specific vraag field in vraag 1");
+            await Step("And user fills in 'automation test specific vraag 1' in the specific vraag field in vraag 1");
             await Page.GetSpecifiekeVraagTextbox().First.FillAsync("automation test specific vraag 1");
 
-            await Step("And user fills in 'Hoe gaat het' in the specific vraag field in vraag 2");
+            await Step("And user fills in 'automation test specific vraag 2' in the specific vraag field in vraag 2");
             await Page.GetSpecifiekeVraagTextbox().Nth(1).FillAsync("automation test specific vraag 2");
 
             await Step("select channel from the list for vraag 1");
@@ -266,7 +266,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetPlusIcon().ClickAsync();
 
-            await Step("And enters de in the search field in the Search pane ");
+            await Step("And enters De boom in the search field in the Search pane ");
 
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
             await Page.GetByRole(AriaRole.Combobox).FillAsync("De boom");
