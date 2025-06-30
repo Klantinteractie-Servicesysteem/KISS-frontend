@@ -31,12 +31,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Page.GetGlobalSearch().PressAsync("Enter");
 
-            await Step("Then 10 items should appear in the Search pane");            
-           
+            await Step("Then 10 items should appear in the Search pane");
+
             await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(10);
 
             await Step("And each item has a label VAC or Kennisbank or Website in the first column");
-           
+
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
             {
                 var firstColumn = item.Locator("span:nth-of-type(1)");
@@ -70,14 +70,14 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.GetGlobalSearch().PressAsync("Enter");
 
             await Step("Then 10 items should appear");
- 
+
             await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(10);
 
             await Step("And each item has a label Smoelenboek in the first column");
 
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
-            { 
-            await Expect(item.Locator("span:nth-of-type(1)").Filter(new() { HasText = "Smoelenboek" })).ToBeVisibleAsync();
+            {
+                await Expect(item.Locator("span:nth-of-type(1)").Filter(new() { HasText = "Smoelenboek" })).ToBeVisibleAsync();
             }));
 
         }
@@ -141,7 +141,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.GetGlobalSearch().PressAsync("Enter");
 
             await Step("Then 10 items should appear");
-             
+
             await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(10);
 
             await Step("And each item has a label Kennisbank in the first column");
@@ -178,7 +178,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Step("Then at least 1 item should appear");
 
             await Expect(Page.GetGlobalSearchResults()).ToBeVisibleAsync();
-            
+
             Assert.IsTrue((await Page.GetGlobalSearchResults().CountAsync()) > 0, "Expected at least 1 search result to appear.");
 
             await Step("And the item has a label Website in the first column");
@@ -207,10 +207,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Step("There should be 1 Kennisartikel in the list of results with the title 'Andere achternaam gebruiken'");
 
             var item = Page.GetGlobalSearchResults().Locator("span:nth-of-type(2)").Filter(new() { HasText = "Andere achternaam gebruiken" });
-           
+
             await Expect(item).ToBeVisibleAsync();
             await Expect(item).ToHaveCountAsync(1);
-             
+
             await Step("When user clicks on the item 'Andere achternaam gebruiken'");
 
             await item.ClickAsync();
@@ -233,11 +233,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Expect(Page.GetAfhandelingForm()).ToBeVisibleAsync();
 
             await Step("Then the field 'Vraag' has value 'Andere achernaam gebruiken - Bijzonderheden'");
-                                                                                          
+
             await Expect(Page.GetVraagField().Locator("option:checked")).ToHaveTextAsync("Andere achternaam gebruiken - Bijzonderheden");
 
             await Step("And the dropdown list of the field Vraag has 8 items");
-   
+
             await Expect(Page.GetVraagField().Locator("option")).ToHaveCountAsync(8);
 
             await Step("And the field 'Afdeling' has value 'Publiekscontacten Burgertaken en gegevensbeheer'");
@@ -245,4 +245,4 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Expect(Page.GetAfdelingField()).ToHaveValueAsync("Publiekscontacten Burgertaken en gegevensbeheer");
         }
     }
-  }
+}

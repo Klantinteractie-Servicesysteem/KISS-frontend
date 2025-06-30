@@ -17,27 +17,15 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
         {
             return page.GetByRole(AriaRole.Tabpanel, new() { Name = "Notitieblok" }).GetByRole(AriaRole.Textbox);
         }
-         
-        public static ILocator GetAfrondenButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Afronden" });
-        }
-         
         public static ILocator GetAfhandelingNotitieTextBox(this IPage page)
         {
             return page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie" });
         }
- 
 
-        public static ILocator GetOpslaanButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
-        }
-
-        public static ILocator GetAfhandelingForm(this IPage page)
-        {
-            return  page.Locator("form.afhandeling"); 
-        }
+        // public static ILocator GetAfhandelingForm(this IPage page)
+        // {
+        //     return  page.Locator("form.afhandeling"); 
+        // }
 
         public static ILocator GetSpecificVraagField(this IPage page)
         {
@@ -46,7 +34,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetKanaalField(this IPage page)
         {
-            return page.GetByLabel("Kanaal" );
+            return page.GetByLabel("Kanaal");
         }
 
         public static ILocator GetAfhandelingField(this IPage page)
@@ -59,7 +47,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.GetByRole(AriaRole.Combobox, new() { Name = "Afdeling" });
         }
 
-       // This input is not associated with a label. This needs to be handled in development to ensure proper accessibility and identification.
+        // This input is not associated with a label. This needs to be handled in development to ensure proper accessibility and identification.
         public static ILocator GetAfdelingVoorField(this IPage page)
         {
             return page.Locator("input[type='search']");
@@ -67,7 +55,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetAfhandelingSuccessToast(this IPage page)
         {
-            return page.Locator("output[role='status'].confirm"); 
+            return page.Locator("output[role='status'].confirm");
         }
     }
 }

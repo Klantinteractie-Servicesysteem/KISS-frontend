@@ -275,13 +275,9 @@ menu {
     }
   }
 
-  > p,
-  > strong,
-  > div {
-    display: block;
-    margin-block-start: var(--spacing-small);
-  }
+
 }
+
 
 figure {
   margin-block: var(--spacing-small);

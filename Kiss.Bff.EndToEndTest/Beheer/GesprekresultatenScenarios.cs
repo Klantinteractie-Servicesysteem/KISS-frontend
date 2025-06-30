@@ -1,4 +1,5 @@
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.Beheer
@@ -53,14 +54,15 @@ namespace Kiss.Bff.EndToEndTest.Beheer
         public async Task Editgespreksresultaat()
         {
             // Precondition: Add the Gesprekresultaten
-            String OriginalGesprekresultaat = "Automation Gesprekresultaten edit";
-            await AddGespreksresultaatHelper(OriginalGesprekresultaat);
-
+            string originalGesprekresultaat = "Automation Gesprekresultaten edit";
             string updatedGesprekresultaat = "Automation Gesprekresultaten Updated";
 
 
             try
             {
+                // ✅ Precondition: Clean up test data if already present
+                await DeleteGespreksresultaatIfExists(updatedGesprekresultaat); // In case previous run was interrupted
+                await AddGespreksresultaatHelper(originalGesprekresultaat);
                 await Step("Given the user is on the 'Gesprekresultaten' section of the 'Beheer' tab");
 
                 await Page.GotoAsync("/");
@@ -186,6 +188,17 @@ namespace Kiss.Bff.EndToEndTest.Beheer
 
             await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = Gespreksresultaat })).ToHaveCountAsync(0);
         }
+
+        // / Helper method to delete a Gesprekresultaten if at all it exists
+        private async Task DeleteGespreksresultaatIfExists(string gesprekresultaat)
+        {
+            var item = Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = gesprekresultaat });
+            if (await item.IsVisibleAsync())
+            {
+                await DeleteGespreksresultaatHelper(gesprekresultaat);
+            }
+        }
+
 
     }
 }
