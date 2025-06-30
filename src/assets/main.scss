@@ -268,6 +268,16 @@ menu {
   }
 }
 
+/* 
+  the width of the summary toggle icon is device/browser dependant.
+  so either the summary icon should be custom styled to ensure a fixed width, 
+  or the content should not have a left marging (like what we do now)
+  this is a temporary best effort implementation specifically requested in https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/981 
+*/
+.htmlcontent details > *:not(summary) {
+  margin-inline-start: var(--spacing-default);
+}
+
 figure {
   margin-block: var(--spacing-small);
   margin-inline: var(--spacing-small) var(--spacing-default);
