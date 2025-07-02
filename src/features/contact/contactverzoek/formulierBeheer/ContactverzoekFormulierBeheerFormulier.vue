@@ -36,38 +36,40 @@
     </label>
 
     <!-- dropdown for afdelingen -->
-    <label
+    <div
       v-if="soort === TypeOrganisatorischeEenheid.Afdeling"
       class="utrecht-form-label"
     >
-      <span class="required">Afdeling</span>
+      <label class="required">Afdeling</label>
       <service-data-search
         class="utrecht-textbox utrecht-textbox--html-input"
         :required="true"
         placeholder="Zoek een afdeling"
         :get-data="useAfdelingen"
         v-model="selectedOrganisatorischeEenheid"
+        options-label="Afdelingen"
         :map-value="(x) => x?.naam"
         :map-description="(x) => x?.identificatie"
       />
-    </label>
+    </div>
 
     <!-- dropdown for groepen -->
-    <label
+    <div
       v-else-if="soort === TypeOrganisatorischeEenheid.Groep"
       class="utrecht-form-label"
     >
-      <span class="required">Groep</span>
+      <label class="required">Groep</label>
       <service-data-search
         class="utrecht-textbox utrecht-textbox--html-input"
         :required="true"
         placeholder="Zoek een groep"
+        options-label="Groepen"
         :get-data="useGroepen"
         v-model="selectedOrganisatorischeEenheid"
         :map-value="(x) => x?.naam"
         :map-description="(x) => x?.identificatie"
       />
-    </label>
+    </div>
 
     <!-- Loop through vragen and render label and input field -->
     <template v-for="(vraag, index) in vragen" :key="index">

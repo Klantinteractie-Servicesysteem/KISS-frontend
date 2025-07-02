@@ -2,6 +2,7 @@
   <div>
     <search-combobox
       v-bind="{ ...$attrs, ...props }"
+      options-label="Medewerkers"
       :placeholder="placeholder"
       :model-value="searchText"
       @update:model-value="updateModelValue"

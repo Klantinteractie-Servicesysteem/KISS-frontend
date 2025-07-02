@@ -1,7 +1,7 @@
 <template>
   <input
     v-bind="$attrs"
-    :id="inputId"
+    :id="id"
     :required="required"
     type="search"
     autocomplete="off"
@@ -21,6 +21,9 @@
     @mouseenter="setMinIndex"
     @focus="onFocus"
     @blur="onBlur"
+    :aria-activedescendant="
+      showList ? `${listboxId}_${activeIndex}` : undefined
+    "
   />
   <simple-spinner v-if="loading" class="spinner small" />
   <ul
@@ -28,7 +31,8 @@
     class="utrecht-textbox"
     role="listbox"
     :id="listboxId"
-    :aria-labelledby="labelId"
+    :aria-label="optionsLabel"
+    :aria-required="required ? 'true' : undefined"
     ref="ulref"
     @mousedown="selectItem()"
   >
@@ -38,11 +42,10 @@
       @mouseover="handleHover(i)"
       :class="{ active: i === activeIndex }"
       role="option"
+      :id="`${listboxId}_${i}`"
     >
-      <article>
-        <header>{{ r.value }}</header>
-        <p v-if="r.description && showDescription">{{ r.description }}</p>
-      </article>
+      <p>{{ r.value }}</p>
+      <p v-if="r.description && showDescription">{{ r.description }}</p>
     </li>
   </ul>
 </template>
@@ -64,24 +67,25 @@ export type DatalistItem = {
   value: string;
   description?: string;
 };
- 
-    const props = withDefaults(defineProps<{
-  modelValue: string | undefined;
-  listItems: DatalistItem[];
-  exactMatch: boolean;
-  required: boolean;
-  disabled: boolean;
-  loading: boolean;
-  placeholder?: string;
-  id?: string;
-  showDescription?: boolean;
-}>(), {
-  showDescription: true
-});
 
-const generatedLabelId = nanoid();
-const inputId = computed(() => generatedLabelId);
-const labelId = nanoid();
+const props = withDefaults(
+  defineProps<{
+    modelValue: string | undefined;
+    listItems: DatalistItem[];
+    exactMatch: boolean;
+    required: boolean;
+    disabled: boolean;
+    loading: boolean;
+    placeholder?: string;
+    id?: string;
+    showDescription?: boolean;
+    optionsLabel: string;
+  }>(),
+  {
+    showDescription: true,
+  },
+);
+
 const listboxId = nanoid();
 
 const minIndex = computed(() => (props.exactMatch ? 0 : -1));
@@ -269,12 +273,11 @@ li.active {
   background-color: var(--color-secondary);
 }
 
-article > p,
-article > header {
+li > p {
   font-size: 0.875rem;
-}
 
-article > header {
-  font-weight: bold;
+  &:first-child {
+    font-weight: bold;
+  }
 }
 </style>
