@@ -8,9 +8,7 @@
     role="combobox"
     :aria-expanded="showList ? 'true' : 'false'"
     :aria-controls="listboxId"
-    :aria-owns="listboxId"
     aria-autocomplete="list"
-    aria-haspopup="listbox"
     @input="onInput"
     :value="modelValue"
     ref="inputRef"
@@ -37,15 +35,22 @@
     @mousedown="selectItem()"
   >
     <li
-      v-for="(r, i) in listItems"
+      v-for="(r, i) in mappedListItems"
       :key="i"
       @mouseover="handleHover(i)"
-      :class="{ active: i === activeIndex }"
+      :class="{ active: r.isActive }"
+      :aria-selected="r.isActive ? 'true' : undefined"
       role="option"
       :id="`${listboxId}_${i}`"
+      :aria-labelledby="r.valueId"
+      :aria-describedby="r.descriptionId"
     >
-      <p>{{ r.value }}</p>
-      <p v-if="r.description && showDescription">{{ r.description }}</p>
+      <p :id="r.valueId">
+        {{ r.value }}
+      </p>
+      <p :id="r.descriptionId" v-if="r.description && showDescription">
+        {{ r.description }}
+      </p>
     </li>
   </ul>
 </template>
@@ -184,6 +189,21 @@ const validity = computed(() => {
     return "Kies een optie uit de lijst.";
   return "";
 });
+
+const mappedListItems = computed(() =>
+  props.listItems.map((item, i) => {
+    const showDescription = !!item.description && props.showDescription;
+    return {
+      ...item,
+      showDescription,
+      valueId: showDescription ? `${listboxId}_${i}_value` : undefined,
+      descriptionId: showDescription
+        ? `${listboxId}_${i}_description`
+        : undefined,
+      isActive: i === activeIndex.value,
+    };
+  }),
+);
 
 watch([inputRef, validity], ([r, v]) => {
   if (!(r instanceof HTMLInputElement)) return;
