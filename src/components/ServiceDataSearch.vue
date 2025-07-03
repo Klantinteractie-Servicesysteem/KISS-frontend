@@ -3,6 +3,7 @@
     <search-combobox
       v-bind="$attrs"
       :id="id"
+      :options-label="optionsLabel"
       :required="required ? true : false"
       :disabled="disabled ? true : false"
       :placeholder="placeholder"
@@ -30,6 +31,7 @@ defineOptions({
 const props = defineProps<{
   modelValue: T | undefined;
   id?: string;
+  optionsLabel: string;
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;

@@ -6,6 +6,7 @@
     :model-value="modelValue"
     @update:modelValue="$emit('update:modelValue', $event)"
     v-bind="$attrs"
+    options-label="Afdelingen"
   />
 </template>
 

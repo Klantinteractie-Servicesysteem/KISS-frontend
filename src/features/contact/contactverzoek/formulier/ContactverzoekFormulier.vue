@@ -41,12 +41,13 @@
       </label>
     </form-fieldset>
 
-    <label
+    <div
       v-if="form.typeActor === ActorType.afdeling"
       class="utrecht-form-label"
     >
-      <span class="required">Afdeling</span>
+      <label for="afdelingen-search" class="required">Afdeling</label>
       <afdelingen-search
+        id="afdelingen-search"
         :model-value="form.afdeling"
         @update:model-value="onUpdateAfdeling"
         :exact-match="true"
@@ -54,11 +55,12 @@
         :required="true"
         placeholder="Zoek een afdeling"
       />
-    </label>
+    </div>
 
-    <label v-if="form.typeActor === ActorType.groep" class="utrecht-form-label">
-      <span class="required">Groep</span>
+    <div v-if="form.typeActor === ActorType.groep" class="utrecht-form-label">
+      <label for="groepen-search" class="required">Groep</label>
       <groepen-search
+        id="groepen-search"
         :model-value="form.groep"
         @update:model-value="onUpdateGroep"
         :exact-match="true"
@@ -66,7 +68,7 @@
         :required="true"
         placeholder="Zoek een groep"
       />
-    </label>
+    </div>
 
     <label v-if="useMedewerkeremail" class="utrecht-form-label">
       <span class="">E-mailadres medewerker</span>
@@ -80,7 +82,7 @@
       />
     </label>
 
-    <label
+    <div
       v-else
       :class="[
         'utrecht-form-label',
@@ -91,9 +93,10 @@
         },
       ]"
     >
-      <span class="">Medewerker</span>
+      <label for="medewerker-search">Medewerker</label>
 
       <medewerker-search
+        id="medewerker-search"
         class="utrecht-textbox utrecht-textbox--html-input"
         :model-value="form.medewerker"
         @update:model-value="onUpdateMedewerker"
@@ -120,7 +123,7 @@
             : 'Kies eerst een afdeling of groep'
         "
       />
-    </label>
+    </div>
 
     <label
       v-if="form.typeActor === ActorType.medewerker && form.medewerker"
