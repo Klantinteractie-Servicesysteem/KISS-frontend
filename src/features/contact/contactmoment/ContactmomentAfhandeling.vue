@@ -1,4 +1,4 @@
-<template>
+ <template>
   <prompt-modal
     :dialog="cancelDialog"
     message="Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens worden verwijderd."
@@ -323,6 +323,7 @@
               type="text"
               class="utrecht-textbox utrecht-textbox--html-input"
               :id="'specifiekevraag' + idx"
+              maxlength="180"
               v-model="vraag.specifiekevraag"
             />
 
