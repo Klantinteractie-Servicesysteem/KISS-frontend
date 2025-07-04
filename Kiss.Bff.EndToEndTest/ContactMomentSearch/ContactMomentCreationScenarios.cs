@@ -310,7 +310,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
-        [TestMethod("Scenario 1: Multiple ContactMoments")]
+        [TestMethod("1: Managing Parallel ContactMoments — One with VAC and Kennisbank, Another as a Contactverzoek")]
         public async Task ContactMomentMultiple()
         {
             await Step("Given the user is on the Startpagina");
@@ -394,7 +394,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
-        [TestMethod("Scenario 2: Multiple ContactMoments")]
+        [TestMethod("2: Multiple Parallel ContactMoments — One with Person & Zaken, Another with Company & News Instruction")]
         public async Task ContactMomentMultipleScenario2()
         {
             await Step("Given the user is on the Startpagina");
