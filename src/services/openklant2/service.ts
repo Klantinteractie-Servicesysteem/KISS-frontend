@@ -487,7 +487,7 @@ export const saveKlantContact = async (
   systemIdentifier: string,
   vraag: Vraag,
 ): Promise<SaveKlantContactResponseModel> => {
-  if (vraag.specifiekevraag.length > MAX_SPECIFIEKE_VRAAG) {
+  if ((vraag.specifiekevraag || "").length > MAX_SPECIFIEKE_VRAAG) {
     throw new Error("Specifieke vraag mag maximaal 180 tekens bevatten.");
   }
   const klantcontactPostModel: KlantContactPostmodel = {
