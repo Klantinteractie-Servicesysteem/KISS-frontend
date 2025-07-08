@@ -481,7 +481,7 @@ async function postActor({
   const jsonResponse = await response.json();
   return jsonResponse.uuid;
 }
-const extractOnderwerp = (vraag: Vraag): string => {
+export const extractOnderwerp = (vraag: Vraag): string => {
   const ELLIPSIS = "...";
   const MAX_ONDERWERP_TOTAL = 200;
   const vraagTitle = vraag.vraag?.title?.trim() || "";
@@ -517,6 +517,7 @@ const extractOnderwerp = (vraag: Vraag): string => {
 
   return truncateWithEllipsis(specifiekeVraag);
 };
+
 export const saveKlantContact = async (
   systemIdentifier: string,
   vraag: Vraag,
