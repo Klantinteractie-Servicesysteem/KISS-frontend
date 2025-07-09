@@ -486,14 +486,10 @@ export const extractOnderwerp = (vraag: Vraag): string => {
   const MAX_ONDERWERP_TOTAL = 200;
   const vraagTitle = vraag.vraag?.title?.trim() || "";
   const specifiekeVraag = vraag.specifiekevraag || "";
-
-  const truncateWithEllipsis = (text: string) => 
-    text.length <= MAX_ONDERWERP_TOTAL 
-      ? text 
-      : text.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
+ 
 
   if (vraagTitle === "anders") {
-    return truncateWithEllipsis(specifiekeVraag);
+    return specifiekeVraag;
   }
 
   if (vraagTitle && specifiekeVraag) {
@@ -502,7 +498,7 @@ export const extractOnderwerp = (vraag: Vraag): string => {
     
     if (totalLength <= MAX_ONDERWERP_TOTAL) {
       return `${vraagTitle}${suffix}`;
-    }
+    } 
     
     const allowedVraagLength = MAX_ONDERWERP_TOTAL - suffix.length - ELLIPSIS.length;
     return `${vraagTitle.slice(0, allowedVraagLength)}${ELLIPSIS}${suffix}`;
@@ -515,7 +511,7 @@ export const extractOnderwerp = (vraag: Vraag): string => {
     return vraagTitle.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
   }
 
-  return truncateWithEllipsis(specifiekeVraag);
+  return specifiekeVraag;
 };
 
 export const saveKlantContact = async (
