@@ -92,7 +92,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
 
-        [TestMethod(" 4. Searching by BSN (Invalid)")]
+        [TestMethod("4. Searching by BSN (Invalid)")]
         public async Task SearchByBSN_Invalid()
         {
             await Step("Given the user is on the startpagina ");

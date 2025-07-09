@@ -11,7 +11,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
     public class VraagScenarios : KissPlaywrightTest
     {
 
-        [TestMethod("Scenario 1: 2 vragen within 1 anonymous contactmoment")]
+        [TestMethod("1: 2 vragen within 1 anonymous contactmoment")]
         public async Task vragenAnonymousContactMoment()
         {
             await Step("Given the user is on KISS home page ");
@@ -102,7 +102,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("Scenario: 2 vragen within 1 contactmoment for Vestiging")]
+        [TestMethod("2. Two vragen within 1 contactmoment for Vestiging")]
         public async Task VragenVestiging()
         {
             await Step("Given the user is on KISS home page ");
@@ -223,7 +223,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
         }
 
-        [TestMethod("Scenario 3: 2 vragen with different bronnen within 1 contactmoment")]
+        [TestMethod("3. Two vragen with different bronnen within 1 contactmoment")]
         public async Task vragenwithbronnen()
         {
             await Step("Given the user is on KISS home page ");
@@ -311,6 +311,45 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             var boomLabel = sectionLocator.Locator("label").Filter(new() { HasText = "De boom van de buren is veel" });
             await Expect(boomLabel).ToBeVisibleAsync();
+
+        }
+
+        [TestMethod("4. Vraag field displays last displayed section of Kennisartkel")]
+        public async Task vragenValueValidation()
+        {
+            await Step("Given the user is on KISS home page ");
+
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And enters “Kind erkennen” in the search field in the Search pane");
+            await Page.GetByLabel("Zoekterm").FillAsync("Kind erkennen");
+
+            await Step("And clicks on the first result in the list");
+
+            await Page.GetByText("Kind erkennen").First.ClickAsync();
+
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Kennisbank Kind erkennen" }).ClickAsync();
+
+            await Step("And navigate to BijZonderheden section ");
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Bijzonderheden" }).ClickAsync();
+
+            await Step("Click the Afronden button");
+
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("Then vraag field value is prefilled with last visited section");
+
+            var select = Page.GetByLabel("Vraag", new() { Exact = true });
+
+            var selectedText = await select.EvaluateAsync<string>("el => el.options[el.selectedIndex].text");
+
+            Assert.AreEqual("Kind erkennen - Bijzonderheden", selectedText);
 
         }
 
