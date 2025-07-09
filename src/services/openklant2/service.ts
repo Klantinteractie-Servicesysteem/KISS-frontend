@@ -40,7 +40,6 @@ const klantinteractiesKlantcontacten = `${klantinteractiesBaseUrl}/klantcontacte
 const klantinteractiesActoren = `${klantinteractiesBaseUrl}/actoren`;
 const klantinteractiesDigitaleadressen = `${klantinteractiesBaseUrl}/digitaleadressen`;
 const klantinteractiesBetrokkenen = `${klantinteractiesBaseUrl}/betrokkenen`;
-const MAX_SPECIFIEKE_VRAAG = 180;
 
 ////////////////////////////////////////////
 // contactmomenten and contactverzoeken
@@ -487,9 +486,6 @@ export const saveKlantContact = async (
   systemIdentifier: string,
   vraag: Vraag,
 ): Promise<SaveKlantContactResponseModel> => {
-  if ((vraag.specifiekevraag || "").length > MAX_SPECIFIEKE_VRAAG) {
-    throw new Error("Specifieke vraag mag maximaal 180 tekens bevatten.");
-  }
   const klantcontactPostModel: KlantContactPostmodel = {
     kanaal: vraag.kanaal,
     onderwerp:
