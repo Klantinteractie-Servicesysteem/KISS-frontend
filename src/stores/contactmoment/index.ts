@@ -182,20 +182,25 @@ interface ContactmomentenState {
   loading: boolean;
 }
 
-const getByCaseInsensitiveKey = (obj: unknown, key: string) => {
+const getByCaseInsensitiveKey = <T extends Record<string, unknown>>(
+  obj: T | null | undefined,
+  key: string,
+) => {
   if (!obj) {
     return undefined;
   }
 
-  const property = Object.keys(obj).find(
+  const propertyKey = Object.keys(obj).find(
     (x) => key.toLowerCase() === x.toLowerCase(),
   );
 
-  if (!property) {
+  if (!propertyKey) {
     return undefined;
   }
 
-  return (obj[property as keyof typeof obj] as string)?.trim();
+  const value = obj[propertyKey];
+
+  return typeof value === "string" ? value.trim() : undefined;
 };
 
 export const useContactmomentStore = defineStore("contactmoment", {
