@@ -5,7 +5,7 @@ import {
   throwIfNotOk,
 } from "@/services";
 
-import { type PaginatedResult } from "@/services";
+import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
 
 import {
   type BetrokkeneMetKlantContact,
@@ -481,41 +481,46 @@ async function postActor({
   const jsonResponse = await response.json();
   return jsonResponse.uuid;
 }
+
 export const extractOnderwerp = (vraag: Vraag): string => {
   const ELLIPSIS = "...";
   const MAX_ONDERWERP_TOTAL = 200;
+
   const vraagTitle = vraag.vraag?.title?.trim() || "";
   const specifiekeVraag = vraag.specifiekevraag || "";
 
-  const truncateWithEllipsis = (text: string) => 
-    text.length <= MAX_ONDERWERP_TOTAL 
-      ? text 
-      : text.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
+  //specifiekevraag length should be guarded by the input validation, just in case we'll cut it off
+  const truncatedSpecifiekeVraag = specifiekeVraag.substring(
+    0,
+    SPECIFIEKEVRAAG_MAXLENGTH,
+  );
 
-  if (vraagTitle === "anders") {
-    return truncateWithEllipsis(specifiekeVraag);
+  if (vraagTitle === "anders" || !vraagTitle) {
+    return truncatedSpecifiekeVraag;
   }
 
-  if (vraagTitle && specifiekeVraag) {
-    const suffix = ` (${specifiekeVraag})`;
+  if (vraagTitle && truncatedSpecifiekeVraag) {
+    const suffix = ` (${truncatedSpecifiekeVraag})`;
     const totalLength = vraagTitle.length + suffix.length;
-    
+
     if (totalLength <= MAX_ONDERWERP_TOTAL) {
+      //this should result in 'vraag (specifiekevraag)'
       return `${vraagTitle}${suffix}`;
     }
-    
-    const allowedVraagLength = MAX_ONDERWERP_TOTAL - suffix.length - ELLIPSIS.length;
+
+    const allowedVraagLength =
+      MAX_ONDERWERP_TOTAL - suffix.length - ELLIPSIS.length;
+    //this should result in 'truncatedVraag... (specifiekevraag)'
     return `${vraagTitle.slice(0, allowedVraagLength)}${ELLIPSIS}${suffix}`;
   }
 
-  if (vraagTitle) {
-    if (vraagTitle.length <= MAX_ONDERWERP_TOTAL) {
-      return vraagTitle;
-    }
-    return vraagTitle.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
+  //this should result in 'vraag'
+  if (vraagTitle.length <= MAX_ONDERWERP_TOTAL) {
+    return vraagTitle;
   }
 
-  return truncateWithEllipsis(specifiekeVraag);
+  //this should result in 'truncatedVraag...'
+  return vraagTitle.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
 };
 
 export const saveKlantContact = async (

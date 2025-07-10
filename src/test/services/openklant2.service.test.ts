@@ -4,42 +4,51 @@ import type { Vraag } from "@/stores/contactmoment";
 
 describe("extractOnderwerp", () => {
   const makeVraag = (overrides = {}): Vraag => ({
-      vraag: { title: "Testvraag", url: "https://example.com" },
-      specifiekevraag: "Specifieke vraag",
-      zaken: [],
-      notitie: "",
-      contactverzoek: {
-          vragenSets: [],
-          vragenSetIdMap: new Map(),
-      },
-      startdatum: "",
-      kanaal: "",
-      ...overrides,
-      gespreksresultaat: "",
-      klanten: [],
-      medewerkers: [],
-      websites: [],
-      kennisartikelen: [],
-      nieuwsberichten: [],
-      werkinstructies: [],
-      vacs: []
+    vraag: { title: "Testvraag", url: "https://example.com" },
+    specifiekevraag: "Specifieke vraag",
+    zaken: [],
+    notitie: "",
+    contactverzoek: {
+      vragenSets: [],
+      vragenSetIdMap: new Map(),
+    },
+    startdatum: "",
+    kanaal: "",
+    ...overrides,
+    gespreksresultaat: "",
+    klanten: [],
+    medewerkers: [],
+    websites: [],
+    kennisartikelen: [],
+    nieuwsberichten: [],
+    werkinstructies: [],
+    vacs: [],
   });
 
   it("returns specifiekevraag truncated if title is 'anders'", () => {
-    const vraag = makeVraag({ vraag: { title: "anders" }, specifiekevraag: "a".repeat(210) });
+    const vraag = makeVraag({
+      vraag: { title: "anders" },
+      specifiekevraag: "a".repeat(210),
+    });
     const result = extractOnderwerp(vraag);
     expect(result.length).toBeLessThanOrEqual(200);
     expect(result.endsWith("..."));
   });
 
   it("returns title and specifiekevraag if both fit", () => {
-    const vraag = makeVraag({ vraag: { title: "Vraag" }, specifiekevraag: "Specifiek" });
+    const vraag = makeVraag({
+      vraag: { title: "Vraag" },
+      specifiekevraag: "Specifiek",
+    });
     const result = extractOnderwerp(vraag);
     expect(result).toBe("Vraag (Specifiek)");
   });
 
   it("truncates title if title + specifiekevraag is too long", () => {
-    const vraag = makeVraag({ vraag: { title: "a".repeat (190) }, specifiekevraag: "Specifiek" });
+    const vraag = makeVraag({
+      vraag: { title: "a".repeat(190) },
+      specifiekevraag: "Specifiek",
+    });
     const result = extractOnderwerp(vraag);
     expect(result.length).toBeLessThanOrEqual(200);
     expect(result.endsWith(")"));
@@ -53,29 +62,43 @@ describe("extractOnderwerp", () => {
   });
 
   it("truncates title if only title is present and too long", () => {
-    const vraag = makeVraag({ vraag: { title: "a".repeat(210) }, specifiekevraag: undefined });
+    const vraag = makeVraag({
+      vraag: { title: "a".repeat(210) },
+      specifiekevraag: undefined,
+    });
     const result = extractOnderwerp(vraag);
     expect(result.length).toBeLessThanOrEqual(200);
-    expect(result.endsWith("..."));
+    expect(result.endsWith("...")).toBeTruthy();
   });
 
   it("returns specifiekevraag truncated if only specifiekevraag is present", () => {
-    const vraag = makeVraag({ vraag: { title: undefined }, specifiekevraag: "a".repeat(210) });
+    const vraag = makeVraag({
+      vraag: { title: undefined },
+      specifiekevraag: "a".repeat(210),
+    });
     const result = extractOnderwerp(vraag);
+
     expect(result.length).toBeLessThanOrEqual(200);
-    expect(result.endsWith("..."));
+  });
+
+  it("returns specifiekevraag if only specifiekevraag is present and shorter than the max length", () => {
+    const vraag = makeVraag({
+      vraag: { title: undefined },
+      specifiekevraag: "abc",
+    });
+    const result = extractOnderwerp(vraag);
+
+    expect(result).toBe(vraag.specifiekevraag);
   });
 
   it("returns empty string if no title or specifiekevraag", () => {
-    const vraag = makeVraag({ vraag: { title: undefined }, specifiekevraag: undefined });
+    const vraag = makeVraag({
+      vraag: { title: undefined },
+      specifiekevraag: undefined,
+    });
     const result = extractOnderwerp(vraag);
     expect(result).toBe("");
   });
-
-  it("shows error if specifiekevraag exceeds 180 characters", () => {
-    const specifiekevraag = "a".repeat(181);
-      expect(specifiekevraag.length).toBeGreaterThan(180);
-      });
 
   it("truncates vraag so that 'Vraag (Specifieke vraag)' fits 200 chars, with ...", () => {
     const specifiekevraag = "b".repeat(50);
@@ -99,14 +122,17 @@ describe("extractOnderwerp", () => {
     const vraagPart = result.slice(0, result.length - suffix.length);
     expect(vraagPart.endsWith("...")).toBe(true);
     expect(vraagPart.length).toBe(17); // 14 + 3 dots
-    expect(result.endsWith(suffix)).toBe(true); 
+    expect(result.endsWith(suffix)).toBe(true);
   });
 
   it("if specifiekevraag is empty and vraag > 200, vraag is truncated to 197 chars + ...", () => {
     const vraagTitle = "a".repeat(250);
-    const vraag = makeVraag({ vraag: { title: vraagTitle }, specifiekevraag: "" });
+    const vraag = makeVraag({
+      vraag: { title: vraagTitle },
+      specifiekevraag: "",
+    });
     const result = extractOnderwerp(vraag);
     expect(result.length).toBe(200);
     expect(result.endsWith("...")).toBe(true);
   });
-}); 
+});
