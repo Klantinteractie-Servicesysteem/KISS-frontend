@@ -194,11 +194,11 @@ label.disabled {
   color: var(--color-grey);
 }
 
-label > span {
-  display: block;
-  position: absolute;
-  font-size: var(--utrecht-form-field-description-font-size);
-  line-height: var(--line-height-small);
+label > span.utrecht-form-field-description {
+    display: block;
+    position: absolute;
+    font-size: var(--utrecht-form-field-description-font-size);
+    line-height: var(--line-height-small);
 }
 
 menu {

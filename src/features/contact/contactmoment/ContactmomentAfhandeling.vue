@@ -316,7 +316,9 @@
               :class="['utrecht-form-label', { required: !vraag.vraag }]"
               :for="'specifiekevraag' + idx"
             >
-              Specifieke vraag<span>(maximaal 180 tekens)</span>
+              Specifieke vraag<span class="utrecht-form-field-description"
+                >(maximaal 180 tekens)</span
+              >
             </label>
             <input
               :required="!vraag.vraag"
