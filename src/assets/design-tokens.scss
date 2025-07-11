@@ -40,6 +40,7 @@
   --header-height: 6rem;
   --text-margin: 1.5rem;
   --line-height-default: 1.5rem;
+  --line-height-small: 1rem;
 
   // other
   --radius-default: 0.4rem;
@@ -143,6 +144,7 @@
   --utrecht-form-input-invalid-border-color: var(--color-error);
   --utrecht-select-invalid-border-color: var(--color-error);
   --utrecht-textbox-read-only-border-color: var(--color-grey);
+  --utrecht-form-field-description-font-size: 0.8rem;
 
   /* pagination */
   --denhaag-pagination-link-current-disabled-color: var(-color-white);
