@@ -12,7 +12,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
     public class SearchCompanyScenarios : KissPlaywrightTest
     {
 
-
         [TestMethod("1. Searching by Partial Last Name and Date of Birth (Single Result)")]
         public async Task SearchByBedrijfsnaam_MultipleRecordsAsync()
         {
@@ -323,11 +322,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Expect(Page.GetByRole(AriaRole.Caption)).ToHaveTextAsync("Geen resultaten gevonden voor '1234AB, 10'.");
         }
-
-
-
-
-
 
     }
 }
