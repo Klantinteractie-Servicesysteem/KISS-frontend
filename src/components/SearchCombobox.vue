@@ -1,16 +1,14 @@
 <template>
   <input
     v-bind="$attrs"
-    :id="inputId"
+    :id="id"
     :required="required"
     type="search"
     autocomplete="off"
     role="combobox"
     :aria-expanded="showList ? 'true' : 'false'"
     :aria-controls="listboxId"
-    :aria-owns="listboxId"
     aria-autocomplete="list"
-    aria-haspopup="listbox"
     @input="onInput"
     :value="modelValue"
     ref="inputRef"
@@ -21,6 +19,9 @@
     @mouseenter="setMinIndex"
     @focus="onFocus"
     @blur="onBlur"
+    :aria-activedescendant="
+      showList ? `${listboxId}_${activeIndex}` : undefined
+    "
   />
   <simple-spinner v-if="loading" class="spinner small" />
   <ul
@@ -28,21 +29,28 @@
     class="utrecht-textbox"
     role="listbox"
     :id="listboxId"
-    :aria-labelledby="labelId"
+    :aria-label="optionsLabel"
+    :aria-required="required ? 'true' : undefined"
     ref="ulref"
     @mousedown="selectItem()"
   >
     <li
-      v-for="(r, i) in listItems"
+      v-for="(r, i) in mappedListItems"
       :key="i"
       @mouseover="handleHover(i)"
-      :class="{ active: i === activeIndex }"
+      :class="{ active: r.isActive }"
+      :aria-selected="r.isActive ? 'true' : undefined"
       role="option"
+      :id="`${listboxId}_${i}`"
+      :aria-labelledby="r.valueId"
+      :aria-describedby="r.descriptionId"
     >
-      <article>
-        <header>{{ r.value }}</header>
-        <p v-if="r.description && showDescription">{{ r.description }}</p>
-      </article>
+      <p :id="r.valueId">
+        {{ r.value }}
+      </p>
+      <p :id="r.descriptionId" v-if="r.description && showDescription">
+        {{ r.description }}
+      </p>
     </li>
   </ul>
 </template>
@@ -64,24 +72,25 @@ export type DatalistItem = {
   value: string;
   description?: string;
 };
- 
-    const props = withDefaults(defineProps<{
-  modelValue: string | undefined;
-  listItems: DatalistItem[];
-  exactMatch: boolean;
-  required: boolean;
-  disabled: boolean;
-  loading: boolean;
-  placeholder?: string;
-  id?: string;
-  showDescription?: boolean;
-}>(), {
-  showDescription: true
-});
 
-const generatedLabelId = nanoid();
-const inputId = computed(() => generatedLabelId);
-const labelId = nanoid();
+const props = withDefaults(
+  defineProps<{
+    modelValue: string | undefined;
+    listItems: DatalistItem[];
+    exactMatch: boolean;
+    required: boolean;
+    disabled: boolean;
+    loading: boolean;
+    placeholder?: string;
+    id?: string;
+    showDescription?: boolean;
+    optionsLabel: string;
+  }>(),
+  {
+    showDescription: true,
+  },
+);
+
 const listboxId = nanoid();
 
 const minIndex = computed(() => (props.exactMatch ? 0 : -1));
@@ -181,6 +190,21 @@ const validity = computed(() => {
   return "";
 });
 
+const mappedListItems = computed(() =>
+  props.listItems.map((item, i) => {
+    const showDescription = !!item.description && props.showDescription;
+    return {
+      ...item,
+      showDescription,
+      valueId: showDescription ? `${listboxId}_${i}_value` : undefined,
+      descriptionId: showDescription
+        ? `${listboxId}_${i}_description`
+        : undefined,
+      isActive: i === activeIndex.value,
+    };
+  }),
+);
+
 watch([inputRef, validity], ([r, v]) => {
   if (!(r instanceof HTMLInputElement)) return;
   r.setCustomValidity(v);
@@ -269,12 +293,11 @@ li.active {
   background-color: var(--color-secondary);
 }
 
-article > p,
-article > header {
+li > p {
   font-size: 0.875rem;
-}
 
-article > header {
-  font-weight: bold;
+  &:first-child {
+    font-weight: bold;
+  }
 }
 </style>

@@ -1,5 +1,6 @@
 <template>
   <service-data-search
+    options-label="Groepen"
     :get-data="useGroepen"
     :map-value="(x: Groep) => x.naam"
     :map-description="(x: Groep) => x.identificatie"

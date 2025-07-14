@@ -44,6 +44,7 @@
         :disabled="false"
         :loading="listItems.loading"
         :exact-match="false"
+        options-label="Suggesties"
       />
       <button><span>Zoeken</span></button>
     </div>
