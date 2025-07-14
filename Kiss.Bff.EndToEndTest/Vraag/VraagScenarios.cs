@@ -11,7 +11,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
     public class VraagScenarios : KissPlaywrightTest
     {
 
-        [TestMethod("1: 2 vragen within 1 anonymous contactmoment")]
+        [TestMethod("1. 2 vragen within 1 anonymous contactmoment")]
         public async Task vragenAnonymousContactMoment()
         {
             await Step("Given the user is on KISS home page ");
