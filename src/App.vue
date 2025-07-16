@@ -43,18 +43,20 @@ const contactmomentStore = useContactmomentStore();
 const route = useRoute();
 
 const { data: versieInfo } = useLoader(() =>
-  fetchLoggedIn("/api/environment/versienummer")
+  fetchLoggedIn("/api/environment/build-info")
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(({ versienummer }: { versienummer?: string }) => {
-      if (!versienummer) return null;
-
-      const [version, commit] = versienummer.split("+");
+    .then(({ versionInfo }: { versionInfo?: string }) => {
+      const [version, commit] = versionInfo?.split("+") || [];
       return {
         version: version || "onbekend",
-        commit: commit || "onbekend",
+        commit: commit?.replace(/^\./, "") || "onbekend",
       };
-    }),
+    })
+    .catch(() => ({
+      version: "onbekend",
+      commit: "onbekend",
+    })),
 );
 </script>
 

@@ -31,14 +31,14 @@ namespace Kiss.Bff.Intern.Environment
                 (IActionResult)Ok(new { useMedewerkeremail }) : Ok(new { useMedewerkeremail = false });
         }
 
-        [HttpGet("versienummer")]
-        public IActionResult GetVersienummer()
+        [HttpGet("build-info")]
+        public IActionResult GetBuildInfo()
         {
-            var versienummer = Assembly.GetExecutingAssembly()
+            var versionInfo = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
-            return Ok(new { versienummer });
+            return Ok(new { versionInfo });
         }
 
         [HttpGet("registers")]
