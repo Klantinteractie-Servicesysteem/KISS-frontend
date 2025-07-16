@@ -316,7 +316,9 @@
               :class="['utrecht-form-label', { required: !vraag.vraag }]"
               :for="'specifiekevraag' + idx"
             >
-              Specifieke vraag
+              Specifieke vraag<span class="utrecht-form-field-description"
+                >(maximaal 180 tekens)</span
+              >
             </label>
             <input
               :required="!vraag.vraag"
@@ -324,6 +326,7 @@
               class="utrecht-textbox utrecht-textbox--html-input"
               :id="'specifiekevraag' + idx"
               v-model="vraag.specifiekevraag"
+              :maxlength="SPECIFIEKEVRAAG_MAXLENGTH"
             />
 
             <label class="utrecht-form-label" :for="'notitie' + idx"
@@ -498,6 +501,7 @@ import {
   saveContactmoment,
 } from "@/services/openklant1";
 import type { Contactmoment, Klant } from "@/services/openklant/types";
+import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();

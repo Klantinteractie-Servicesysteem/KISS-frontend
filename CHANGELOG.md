@@ -3,9 +3,13 @@
 ## vx.x.x
 
 ### New features
-- Nette melding als je wel in het AD zit maar niet de juiste rol(len) hebt #598
+- pc-1397 Ability to use collapsible sections using standard HTML #981
+- pc-1520 Support case insensitive property of afdelingnaam for Kennisartikelen #1159
 
 
 ### Bugfixes
+
+
+
 
 ### Maintenance

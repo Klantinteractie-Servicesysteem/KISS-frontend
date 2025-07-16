@@ -10,7 +10,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers
     {
         public static async Task CreateNewcontactVerzoekAsync(this IPage page)
         {
-            await page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoek" }).ClickAsync();
+            await page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoek", Exact = true }).ClickAsync();
 
         }
     }

@@ -5,7 +5,7 @@ import {
   throwIfNotOk,
 } from "@/services";
 
-import { type PaginatedResult } from "@/services";
+import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
 
 import {
   type BetrokkeneMetKlantContact,
@@ -89,7 +89,7 @@ export async function enrichInterneTakenWithActoren(
 
     const actoren = internetaak.toegewezenAanActoren || [];
 
-    //we halen alle actoren op en kiezen dan de eerste medewerker. als er geen medewerkers bij staan de erste organisatie
+    //we halen alle actoren op en kiezen dan de eerste medewerker. als er geen medewerkers bij staan de eerste organisatie
     //wordt naar verwachting tzt aangepast, dan gaan we gewoon alle actoren bij de internetak tonen
 
     const actorenDetails = [] as ActorApiViewModel[];
@@ -482,20 +482,54 @@ async function postActor({
   return jsonResponse.uuid;
 }
 
+export const extractOnderwerp = (vraag: Vraag): string => {
+  const ELLIPSIS = "...";
+  const MAX_ONDERWERP_TOTAL = 200;
+
+  const vraagTitle = vraag.vraag?.title?.trim() || "";
+  const specifiekeVraag = vraag.specifiekevraag || "";
+
+  //specifiekevraag length should be guarded by the input validation, just in case we'll cut it off
+  const truncatedSpecifiekeVraag = specifiekeVraag.substring(
+    0,
+    SPECIFIEKEVRAAG_MAXLENGTH,
+  );
+
+  if (vraagTitle === "anders" || !vraagTitle) {
+    return truncatedSpecifiekeVraag;
+  }
+
+  if (vraagTitle && truncatedSpecifiekeVraag) {
+    const suffix = ` (${truncatedSpecifiekeVraag})`;
+    const totalLength = vraagTitle.length + suffix.length;
+
+    if (totalLength <= MAX_ONDERWERP_TOTAL) {
+      //this should result in 'vraag (specifiekevraag)'
+      return `${vraagTitle}${suffix}`;
+    }
+
+    const allowedVraagLength =
+      MAX_ONDERWERP_TOTAL - suffix.length - ELLIPSIS.length;
+    //this should result in 'truncatedVraag... (specifiekevraag)'
+    return `${vraagTitle.slice(0, allowedVraagLength)}${ELLIPSIS}${suffix}`;
+  }
+
+  //this should result in 'vraag'
+  if (vraagTitle.length <= MAX_ONDERWERP_TOTAL) {
+    return vraagTitle;
+  }
+
+  //this should result in 'truncatedVraag...'
+  return vraagTitle.slice(0, MAX_ONDERWERP_TOTAL - ELLIPSIS.length) + ELLIPSIS;
+};
+
 export const saveKlantContact = async (
   systemIdentifier: string,
   vraag: Vraag,
 ): Promise<SaveKlantContactResponseModel> => {
   const klantcontactPostModel: KlantContactPostmodel = {
     kanaal: vraag.kanaal,
-    onderwerp:
-      vraag.vraag?.title === "anders"
-        ? vraag.specifiekevraag
-        : vraag.vraag
-          ? vraag.specifiekevraag
-            ? `${vraag.vraag.title} (${vraag.specifiekevraag})`
-            : vraag.vraag.title
-          : vraag.specifiekevraag,
+    onderwerp: extractOnderwerp(vraag),
     inhoud: vraag.notitie,
     indicatieContactGelukt: true,
     taal: "nld",
