@@ -20,8 +20,8 @@
             </back-link-provider>
           </template>
         </router-view>
-        <div v-if="versienummer" class="versienummer">
-          Versie {{ versienummer }}
+        <div v-if="versieInfo" class="versienummer">
+          Versie {{ versieInfo.version }} | Commit {{ versieInfo.commit }}
         </div>
       </main>
     </div>
@@ -42,14 +42,21 @@ import { useLoader } from "./services/use-loader";
 const contactmomentStore = useContactmomentStore();
 const route = useRoute();
 
-const { data: versienummer } = useLoader(() =>
-  fetchLoggedIn("/api/environment/versienummer")
+const { data: versieInfo } = useLoader(() =>
+  fetchLoggedIn("/api/environment/build-info")
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(
-      ({ versienummer }: { versienummer?: string }) =>
-        versienummer?.split("+")?.[1] || "",
-    ),
+    .then(({ versionInfo }: { versionInfo?: string }) => {
+      const [version, commit] = versionInfo?.split("+") || [];
+      return {
+        version: version || "onbekend",
+        commit: commit?.replace(/^\./, "") || "onbekend",
+      };
+    })
+    .catch(() => ({
+      version: "onbekend",
+      commit: "onbekend",
+    })),
 );
 </script>
 
