@@ -50,7 +50,6 @@ WORKDIR "/src/Kiss.Bff"
 ARG VERSION=0.0.0
 ARG REVISION=dev
 ENV VERSION=$VERSION REVISION=$REVISION
-RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$VERSION /p:SourceRevisionId=$REVISION
 RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$VERSION /p:SourceRevisionId=$REVISION /p:InformationalVersion=$VERSION+$REVISION
 
 FROM base AS final
