@@ -7,9 +7,15 @@ services:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
       target: final
+      args:
+        VERSION: ${VERSION:-0.0.0}
+        REVISION: ${REVISION:-dev}
   test:
     image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}:test
     build:
       context: .
       dockerfile: Kiss.Bff/Dockerfile
       target: test
+      args:
+        VERSION: ${VERSION:-0.0.0}
+        REVISION: ${REVISION:-dev}
