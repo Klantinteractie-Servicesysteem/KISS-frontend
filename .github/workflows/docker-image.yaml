@@ -1,5 +1,5 @@
 name: Docker CI
-#
+
 on:
   pull_request:
     branches:
@@ -10,7 +10,17 @@ on:
   push:
     branches:
       - main
+    tags: ["v*.*.*"] 
+
   workflow_dispatch:
+
+env:
+  # add environment variables 
+  SHOULD_PUSH: ${{ github.event_name != 'pull_request' }}
+  SHOULD_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+  IS_LATEST: false
+  VERSION: ""
+  REVISION: ""
 
 jobs:
   build-node:
@@ -25,6 +35,23 @@ jobs:
           
     steps:
       - uses: actions/checkout@v3
+
+      # find the latest release tag (for determining if this should be marked as 'latest')
+      - name: "Find the latest release tag (determined by semver sort)"
+        id: latest-semver
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          REPO_URL: ${{ github.event.repository.html_url }}
+          TAG_FILTER: '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$'
+        run: |
+          TAG=$(\
+            git ls-remote --exit-code --refs --tags --sort='-v:refname' "$REPO_URL" \
+            | awk '{print $2}' | grep -E "$TAG_FILTER" | head -n 1
+          )
+          echo "tag-ref=${TAG}" >> "$GITHUB_OUTPUT"
+          if [ "$TAG" = "${{ github.ref }}" ] ; then
+              echo "IS_LATEST=true" >> "$GITHUB_ENV"
+          fi
 
       - name: Get date
         id: date
@@ -42,17 +69,6 @@ jobs:
           BRANCH_NAME=$(echo $BRANCH_NAME | tr / -)
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-      - name: Set release code
-        if: (success() || failure())
-        id: releasecode
-        run: |
-          VERSION=$(grep APP_VERSION= .env | cut -d '=' -f2)
-          RELEASE=$BRANCH_NAME-$DATE
-          echo "RELEASE=$RELEASE" >> $GITHUB_ENV
-          echo "APP_ENV=prod">> $GITHUB_ENV
-          echo "APP_BUILD=latest">> $GITHUB_ENV
-          echo "set APP_ENV to $APP_ENV"
-
       - name: Setting CONTAINER_PROJECT_NAME
         run: |
           NAME=$(grep CONTAINER_PROJECT_NAME= .env | cut -d '=' -f2)
@@ -62,6 +78,7 @@ jobs:
         run: |
           NAME=$(grep CONTAINER_REGISTRY_BASE= .env | cut -d '=' -f2)
           echo "CONTAINER_REGISTRY_BASE=$NAME" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -73,6 +90,28 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
         if: github.event_name != 'pull_request'
 
+      # extract Docker metadata for semantic versioning
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          flavor: |
+            latest=${{ env.IS_LATEST }}
+          images: |
+            ${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      # set version and revision in environment variables
+      - name: Set version and revision in env
+        run: |
+          echo "VERSION=${{ fromJson(env.SHOULD_RELEASE) && fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
+          echo "REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}" >> "$GITHUB_ENV"
+
+      # build containers
       - name: Build containers
         uses: docker/bake-action@v5
         with:
@@ -92,22 +131,27 @@ jobs:
           file: Kiss.Bff/Dockerfile
           target: test
           outputs: testresults
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            REVISION=${{ env.REVISION }}
 
       - name: dotnet test report
         uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
+        if: success() || failure()
         with:
-          name: dotnet tests # Name of the check run which will be created
-          path: testresults/*.trx # Path to test results
-          reporter: dotnet-trx # Format of test results
+          name: dotnet tests
+          path: testresults/*.trx
+          reporter: dotnet-trx
+
       - name: npm test report
         uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
+        if: success() || failure()
         with:
-          name: npm tests # Name of the check run which will be created
-          path: testresults/*.xml # Path to test results
-          reporter: jest-junit # Format of test results
+          name: npm tests
+          path: testresults/*.xml
+          reporter: jest-junit
 
+      # push image with tags
       - name: push image
         uses: docker/build-push-action@v4
         if: github.event_name != 'pull_request'
@@ -115,5 +159,11 @@ jobs:
           context: .
           file: Kiss.Bff/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:${{ env.RELEASE}},${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.CONTAINER_PROJECT_NAME }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           target: final
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            REVISION=${{ env.REVISION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
