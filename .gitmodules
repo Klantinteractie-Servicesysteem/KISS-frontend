@@ -1,0 +1,3 @@
+[submodule "Kiss.Bff.EndToEndTest/hercules"]
+	path = Kiss.Bff.EndToEndTest/hercules
+	url = https://github.com/test-zeus-ai/testzeus-hercules.git
