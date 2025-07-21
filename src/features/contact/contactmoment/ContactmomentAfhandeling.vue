@@ -330,12 +330,15 @@
             />
 
             <label class="utrecht-form-label" :for="'notitie' + idx"
-              >Notitie</label
+              >Notitie<span class="utrecht-form-field-description"
+                >(maximaal 1000 tekens)</span
+              ></label
             >
             <textarea
               class="utrecht-textarea"
               :id="'notitie' + idx"
               v-model="vraag.notitie"
+              :maxlength="NOTITIE_MAXLENGTH"
             ></textarea>
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
@@ -501,7 +504,10 @@ import {
   saveContactmoment,
 } from "@/services/openklant1";
 import type { Contactmoment, Klant } from "@/services/openklant/types";
-import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
+import {
+  SPECIFIEKEVRAAG_MAXLENGTH,
+  NOTITIE_MAXLENGTH,
+} from "@/services/openklant/service";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
