@@ -295,7 +295,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
                 .AsSpan()
-                .TrimStart('/');
+                .TrimStart('/'); 
 
             var fullReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/{returnUrl}";
 

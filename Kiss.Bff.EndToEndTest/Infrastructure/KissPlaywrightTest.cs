@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
+using Kiss.Bff.EndToEndTest.Infrastructure;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients;
 using Microsoft.Extensions.Configuration;
 
 
@@ -18,17 +20,25 @@ namespace Kiss.Bff.EndToEndTest
     {
         private const string StoragePath = "./auth.json";
 
+        public readonly OpenKlantApiClient OpenKlantApiClient = new(
+            GetRequiredConfig("TestSettings:TEST_REGISTER_BASE_URL"),
+            GetRequiredConfig("TestSettings:TEST_REGISTER_SECRET")
+            );
+
         private static readonly IConfiguration s_configuration = new ConfigurationBuilder()
             .AddUserSecrets<KissPlaywrightTest>()
             .AddEnvironmentVariables()
             .Build();
 
         private static readonly UniqueOtpHelper s_uniqueOtpHelper = new(GetRequiredConfig("TestSettings:TEST_TOTP_SECRET"));
-        
+
         // this is used to build a test report for each test
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
 
         private readonly List<string> _steps = [];
+
+        // clean up actions that are registered by the tests
+        private readonly List<Func<Task>> _cleanupActions = [];
 
         /// <summary>
         /// This is run before each test
@@ -40,6 +50,9 @@ namespace Kiss.Bff.EndToEndTest
             // log in with azure ad
             var username = GetRequiredConfig("TestSettings:TEST_USERNAME");
             var password = GetRequiredConfig("TestSettings:TEST_PASSWORD");
+
+            var baseUrl = GetRequiredConfig("TestSettings:TEST_REGISTER_BASE_URL");
+            var token = GetRequiredConfig("TestSettings:TEST_REGISTER_SECRET");
 
             var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper);
             await loginHelper.LoginAsync();
@@ -100,6 +113,20 @@ namespace Kiss.Bff.EndToEndTest
             """;
 
             s_testReports.TryAdd(TestContext.TestName!, html);
+
+            // Run cleanup actions in reverse order
+            foreach (var cleanup in ((IEnumerable<Func<Task>>)_cleanupActions).Reverse())
+            {
+                try
+                {
+                    await cleanup();
+                    Console.WriteLine($"Cleanup for {TestContext.TestName} completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Cleanup failed: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -150,6 +177,10 @@ namespace Kiss.Bff.EndToEndTest
                 // save auth state so we don't need to log in in every single test
                 StorageStatePath = File.Exists(StoragePath) ? StoragePath : null,
             };
+        }
+        protected void RegisterCleanup(Func<Task> cleanupFunc)
+        {
+            _cleanupActions.Add(cleanupFunc);
         }
     }
 }

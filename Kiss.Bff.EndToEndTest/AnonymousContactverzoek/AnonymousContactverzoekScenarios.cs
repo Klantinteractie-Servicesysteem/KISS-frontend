@@ -2,6 +2,8 @@
 using Kiss.Bff.EndToEndTest.AnonymousContactmoment.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
+using Microsoft.Playwright;
 
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
@@ -47,7 +49,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+               await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -106,7 +122,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -166,7 +196,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -187,7 +231,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
-
         }
 
         [TestMethod("contactverzoek creation and search via email for group")]
@@ -225,7 +268,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -349,12 +406,25 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetTelefoonnummer2field().FillAsync("0617138777");
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
 
             await Expect(Page.GetContactVerzoekSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
-
         }
 
         [TestMethod("Validation of Email field in contactverzoek form")]
@@ -471,7 +541,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetTelefoonnummerTextbox().FillAsync("0617178888");
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -484,7 +568,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Page.GetZoekenButton().ClickAsync();
 
-
             await Step("And contactverzoek details are displayed");
             var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
             await latestRequest.PressAsync("Enter");
@@ -493,7 +576,13 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
+        }
 
+        private async Task CleanupPostKlantContactenCall(string klantContactUuid)
+        {
+            var actorKlantContact = await OpenKlantApiClient.GetActorKlantContact(klantContactUuid);
+            await OpenKlantApiClient.DeleteActor(actorKlantContact.Actor.Uuid);
+            await OpenKlantApiClient.DeleteKlantContact(actorKlantContact.KlantContact.Uuid);
         }
 
     }

@@ -1,14 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Kiss.Bff.EndToEndTest.Common.Helpers;
-using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
-using Kiss.Bff.EndToEndTest.Helpers;
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
+using Kiss.Bff.EndToEndTest.Common.Helpers;
+using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
+using Kiss.Bff.EndToEndTest.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
 
 namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 {
@@ -68,7 +71,19 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            }, 
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -99,8 +114,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.Locator("summary").Filter(new() { HasText = "TESTtest" }).First.PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Automation Test afhandeling form" })).ToBeVisibleAsync();
-
-
         }
 
         [TestMethod("Contact moment Creation for person is cancelled ")]
@@ -215,7 +228,21 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -246,7 +273,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.Locator("summary").Filter(new() { HasText = "TESTtest" }).First.PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Automation Test afhandeling form" })).ToBeVisibleAsync();
-
         }
 
         [TestMethod("4. Contact moment Creation for company is cancelled")]
@@ -477,7 +503,12 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie" })).ToHaveValueAsync(note);
 
         }
-
+        private async Task CleanupPostKlantContactenCall(string klantContactUuid)
+        {
+            var actorKlantContact = await OpenKlantApiClient.GetActorKlantContact(klantContactUuid);
+            await OpenKlantApiClient.DeleteActor(actorKlantContact.Actor.Uuid);
+            await OpenKlantApiClient.DeleteKlantContact(actorKlantContact.KlantContact.Uuid);
+        }
 
     }
 }

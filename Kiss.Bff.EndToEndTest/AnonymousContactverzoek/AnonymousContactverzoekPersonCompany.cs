@@ -4,6 +4,7 @@ using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 using Kiss.Bff.EndToEndTest.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
 
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
@@ -110,7 +111,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
@@ -137,7 +152,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "fatimaz@syps.nl" })).ToBeVisibleAsync();
-
         }
 
         [TestMethod("3.Contactverzoek form prefill for company, Vestigingsnr 000055679269")]
@@ -180,7 +194,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And field E-mailadres has value SuzyM.OK26@syps.nl ");
             await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("voorlopige.deponering@syps.nl");
-
         }
 
         [TestMethod("4.Contactverzoek form prefill for company with Vestigingsnr")]
@@ -225,7 +238,21 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+            });
 
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
@@ -247,7 +274,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And contactverzoek details are displayed");
             await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "voorlopige.deponering@syps.nl" })).ToBeVisibleAsync();
-
         }
 
         [TestMethod("5.Cancel a Contact verzoek Creation for BSN 999993264")]
@@ -308,9 +334,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("Then user navigates to KISS home page");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Startscherm" })).ToBeVisibleAsync();
-
-
-
         }
 
         [TestMethod("6. Contact verzoek Creation for company cancelled")]
@@ -369,10 +392,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
 
         }
-
-
-
-
+        private async Task CleanupPostKlantContactenCall(string klantContactUuid)
+        {
+            var actorKlantContact = await OpenKlantApiClient.GetActorKlantContact(klantContactUuid);
+            await OpenKlantApiClient.DeleteActor(actorKlantContact.Actor.Uuid);
+            await OpenKlantApiClient.DeleteKlantContact(actorKlantContact.KlantContact.Uuid);
+        }
 
     }
 }
