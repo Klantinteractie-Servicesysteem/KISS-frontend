@@ -34,11 +34,11 @@ namespace Kiss.Bff.Intern.Environment
         [HttpGet("build-info")]
         public IActionResult GetBuildInfo()
         {
-            var versionInfo = Assembly.GetExecutingAssembly()
+            var buildInfo = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
-            return Ok(new { versionInfo });
+            return Ok(new { buildInfo });
         }
 
         [HttpGet("registers")]
