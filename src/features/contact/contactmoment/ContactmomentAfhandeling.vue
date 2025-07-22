@@ -1135,7 +1135,7 @@ const trySetOfficieleAfdeling = async (vraag: Vraag) => {
   vraag.afdeling = artikelAfdelingen.page[0];
 };
 
-onMounted(async () => {
+onMounted(() => {
   if (!contactmomentStore.huidigContactmoment) return;
   const promises = contactmomentStore.huidigContactmoment.vragen.map(
     trySetOfficieleAfdeling,
