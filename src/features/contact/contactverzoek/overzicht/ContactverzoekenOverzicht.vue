@@ -1,118 +1,98 @@
 <template>
-  <section>
-    <expandable-table-list :items="contactverzoeken" item-key="url">
-      <template #header>
-        <span id="datum-header" class="icon-after sort-descending">Datum</span>
-        <span id="onderwerp-header">Onderwerp</span>
-        <span id="medewerker-header">Status</span>
-        <span id="kanaal-header">Behandelaar</span>
+  <template v-if="!currentCv">
+    <utrecht-heading :level="level"> Contactverzoeken </utrecht-heading>
+    <table class="overview">
+      <caption class="sr-only">
+        Contactverzoeken
+      </caption>
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Onderwerp</th>
+          <th>Status</th>
+          <th>Behandelaar</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="cv in contactverzoeken" :key="cv.url">
+          <td><dutch-date-time :date="cv.registratiedatum" /></td>
+          <td>{{ cv.onderwerp }}</td>
+          <td>{{ cv.status }}</td>
+          <td>{{ cv.behandelaar }}</td>
+          <td>
+            <button type="button" @click="currentCv = cv">
+              Details<span class="sr-only">
+                van contactverzoek op
+                <dutch-date-time :date="cv.registratiedatum"
+              /></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </template>
+  <template v-else>
+    <button @click="currentCv = undefined">Alle contactverzoeken</button>
+    <utrecht-heading :level="level" :id="generatedId"
+      >Contactverzoek</utrecht-heading
+    >
+    <dl :aria-labelledby="generatedId">
+      <dt>Onderwerp / vraag</dt>
+      <dd>{{ currentCv.vraag }}</dd>
+      <dt>Informatie voor klant</dt>
+      <dd>{{ currentCv.toelichtingBijContactmoment }}</dd>
+      <dt v-if="currentCv.zaaknummers.length">Gekoppelde zaak</dt>
+      <dd>
+        {{ currentCv.zaaknummers.join(", ") }}
+      </dd>
+      <dt>Interne toelichting</dt>
+      <dd>{{ currentCv.toelichtingVoorCollega }}</dd>
+      <template v-if="currentCv.betrokkene?.persoonsnaam?.achternaam">
+        <dt>Naam betrokkene</dt>
+        <dd>
+          {{ fullName(currentCv.betrokkene.persoonsnaam) }}
+        </dd>
       </template>
-
-      <template
-        v-slot:item="{
-          item: contactverzoek,
-        }: {
-          item: ContactverzoekOverzichtItem;
-        }"
-      >
-        <summary>
-          <dutch-date
-            v-if="contactverzoek.registratiedatum"
-            :date="new Date(contactverzoek.registratiedatum)"
-          />
-          <span v-else />
-          <span class="max18char" :title="contactverzoek.onderwerp"
-            >{{ contactverzoek.onderwerp }}
-          </span>
-          <span>{{ contactverzoek.status }}</span>
-          <span>{{ contactverzoek.behandelaar }}</span>
-        </summary>
-        <dl>
-          <dt>Starttijd</dt>
-          <dd>
-            <dutch-time
-              v-if="contactverzoek.registratiedatum"
-              :date="new Date(contactverzoek.registratiedatum)"
-            />
-          </dd>
-
-          <dt>Toelichting voor de collega</dt>
-          <dd class="preserve-newline">
-            {{ contactverzoek.toelichtingVoorCollega }}
-          </dd>
-
-          <template v-if="contactverzoek.betrokkene?.persoonsnaam?.achternaam">
-            <dt>Naam betrokkene</dt>
-            <dd>
-              {{ fullName(contactverzoek.betrokkene.persoonsnaam) }}
-            </dd>
-          </template>
-
-          <template v-if="contactverzoek.betrokkene?.organisatie">
-            <dt>Organisatie</dt>
-            <dd>{{ contactverzoek.betrokkene?.organisatie }}</dd>
-          </template>
-
-          <template
-            v-for="(adres, idx) in contactverzoek.betrokkene
-              ?.digitaleAdressen || []"
-            :key="idx"
-          >
-            <dt>
-              {{
-                capitalizeFirstLetter(
-                  adres.omschrijving || adres.soortDigitaalAdres || "contact",
-                )
-              }}
-            </dt>
-            <dd>
-              {{ adres.adres }}
-            </dd>
-          </template>
-
-          <template v-if="contactverzoek.aangemaaktDoor">
-            <dt>Aangemaakt door</dt>
-            <dd>{{ contactverzoek.aangemaaktDoor }}</dd>
-          </template>
-
-          <dt v-if="contactverzoek.zaaknummers.length">Zaaknummer</dt>
-          <dd
-            v-for="zaaknummer in contactverzoek.zaaknummers"
-            :key="zaaknummer"
-          >
-            {{ zaaknummer }}
-          </dd>
-
-          <template v-if="contactverzoek?.vraag">
-            <dt>Vraag</dt>
-            <dd>{{ contactverzoek.vraag }}</dd>
-          </template>
-
-          <template v-if="contactverzoek?.toelichtingBijContactmoment">
-            <dt>Toelichting</dt>
-            <dd>
-              {{ contactverzoek.toelichtingBijContactmoment }}
-            </dd>
-          </template>
-        </dl>
+      <template v-if="currentCv.betrokkene?.organisatie">
+        <dt>Organisatie</dt>
+        <dd>{{ currentCv.betrokkene?.organisatie }}</dd>
       </template>
-    </expandable-table-list>
-  </section>
+      <dt>E-mailadres</dt>
+      <dd>TODO</dd>
+      <dt>Telefoonnummer(s)</dt>
+      <dd>TODO</dd>
+      <dt>Aangemaakt op</dt>
+      <dd><dutch-date-time :date="currentCv.registratiedatum" /></dd>
+      <dt>Aangemaakt door</dt>
+      <dd>{{ currentCv.aangemaaktDoor }}</dd>
+      <dt>Behandelaar</dt>
+      <dd>{{ currentCv.behandelaar }}</dd>
+      <dt>Status</dt>
+      <dd>{{ currentCv.status }}</dd>
+      <dt>Kanaal</dt>
+      <dd>TODO</dd>
+    </dl>
+  </template>
 </template>
 
 <script lang="ts" setup>
-import DutchDate from "@/components/DutchDate.vue";
-import DutchTime from "@/components/DutchTime.vue";
 import { fullName } from "@/helpers/string";
-import ExpandableTableList from "@/components/ExpandableTableList.vue";
+import DutchDateTime from "@/components/DutchDateTime.vue";
+import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
+import { ref, useId } from "vue";
 import type { ContactverzoekOverzichtItem } from "./types";
-
-defineProps<{
+const { level = 3 } = defineProps<{
   contactverzoeken: ContactverzoekOverzichtItem[];
+  level: 1 | 2 | 3 | 4;
 }>();
+
+const generatedId = useId();
 
 const capitalizeFirstLetter = (val: string) =>
   `${val?.[0]?.toLocaleUpperCase() || ""}${val?.substring(1) || ""}`;
+
+const currentCv = ref<ContactverzoekOverzichtItem>();
 </script>
 
 <style scoped>
