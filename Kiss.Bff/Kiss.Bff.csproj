@@ -6,7 +6,7 @@
     <UserSecretsId>fd21c90f-fa7c-49b2-af82-4089ee78a973</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
-    <InformationalVersion>0.0.0-development+$(GitCommitHash)</InformationalVersion>
+    <InformationalVersion>Development+$(GitCommitHash)</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Extern\Klantinteracties\PostContactmomentenCustomProxy.cs" />
