@@ -70,6 +70,8 @@ body {
 
 .app-layout > main {
   grid-area: main;
+  container-type: inline-size;
+  container-name: main;
   padding: var(--spacing-large);
   padding-inline-end: var(--container-padding);
 }
@@ -411,7 +413,7 @@ th.row-link-header {
 }
 
 .table-wrapper {
-  max-inline-size: 100%;
+  width: 100cqw;
   overflow-x: auto;
 }
 

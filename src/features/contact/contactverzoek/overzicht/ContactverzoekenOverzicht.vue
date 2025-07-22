@@ -1,36 +1,38 @@
 <template>
   <template v-if="!currentCv">
     <utrecht-heading :level="level"> Contactverzoeken </utrecht-heading>
-    <table class="overview">
-      <caption class="sr-only">
-        Contactverzoeken
-      </caption>
-      <thead>
-        <tr>
-          <th>Datum</th>
-          <th>Onderwerp</th>
-          <th>Status</th>
-          <th>Behandelaar</th>
-          <th>Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="cv in contactverzoeken" :key="cv.url">
-          <td><dutch-date-time :date="cv.registratiedatum" /></td>
-          <td>{{ cv.onderwerp }}</td>
-          <td>{{ cv.status }}</td>
-          <td>{{ cv.behandelaar }}</td>
-          <td>
-            <button type="button" @click="currentCv = cv">
-              Details<span class="sr-only">
-                van contactverzoek op
-                <dutch-date-time :date="cv.registratiedatum"
-              /></span>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="overview">
+        <caption class="sr-only">
+          Contactverzoeken
+        </caption>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Onderwerp</th>
+            <th>Status</th>
+            <th>Behandelaar</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="cv in contactverzoeken" :key="cv.url">
+            <td><dutch-date-time :date="cv.registratiedatum" /></td>
+            <td>{{ cv.onderwerp }}</td>
+            <td>{{ cv.status }}</td>
+            <td>{{ cv.behandelaar }}</td>
+            <td>
+              <button type="button" @click="currentCv = cv">
+                Details<span class="sr-only">
+                  van contactverzoek op
+                  <dutch-date-time :date="cv.registratiedatum"
+                /></span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </template>
   <template v-else>
     <button @click="currentCv = undefined">Alle contactverzoeken</button>
@@ -42,10 +44,12 @@
       <dd>{{ currentCv.vraag }}</dd>
       <dt>Informatie voor klant</dt>
       <dd>{{ currentCv.toelichtingBijContactmoment }}</dd>
-      <dt v-if="currentCv.zaaknummers.length">Gekoppelde zaak</dt>
-      <dd>
-        {{ currentCv.zaaknummers.join(", ") }}
-      </dd>
+      <template v-if="currentCv.zaaknummers.length">
+        <dt>Gekoppelde zaak</dt>
+        <dd>
+          {{ currentCv.zaaknummers.join(", ") }}
+        </dd>
+      </template>
       <dt>Interne toelichting</dt>
       <dd>{{ currentCv.toelichtingVoorCollega }}</dd>
       <template v-if="currentCv.betrokkene?.persoonsnaam?.achternaam">
@@ -105,5 +109,10 @@ const currentCv = ref<ContactverzoekOverzichtItem>();
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto auto;
 }
 </style>
