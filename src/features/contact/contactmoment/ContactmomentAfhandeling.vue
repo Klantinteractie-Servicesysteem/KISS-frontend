@@ -442,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import {
   Heading as UtrechtHeading,
@@ -517,6 +517,35 @@ const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
 
 onMounted(async () => {
+  await nextTick();
+
+  // forceer HTML5 validatie voor notities (tijdelijk)
+  document
+    .querySelectorAll<HTMLTextAreaElement>("textarea[maxlength]")
+    .forEach((textarea) => {
+      // voeg input eventlistener toe
+      textarea.addEventListener("input", () => {
+        if (textarea.value.length > NOTITIE_MAXLENGTH) {
+          const currentLength = textarea.value.length;
+          const overLimit = currentLength - NOTITIE_MAXLENGTH;
+
+          textarea.setCustomValidity(
+            `Dit veld bevat ${currentLength} tekens (maximaal ${NOTITIE_MAXLENGTH} toegestaan). ` +
+              `Verwijder ${overLimit} teken${overLimit > 1 ? "s" : ""}.`,
+          );
+        } else {
+          textarea.setCustomValidity("");
+        }
+      });
+
+      if (textarea.value.length > NOTITIE_MAXLENGTH) {
+        // fake de input
+        textarea.dispatchEvent(new Event("input"));
+        // forceer validatie
+        textarea.reportValidity();
+      }
+    });
+
   if (!contactmomentStore.huidigContactmoment) return;
 
   for (const vraag of contactmomentStore.huidigContactmoment.vragen) {
@@ -936,33 +965,6 @@ async function submit() {
     if (!contactmomentStore.huidigContactmoment) return;
 
     const { vragen } = contactmomentStore.huidigContactmoment;
-
-    //////////////////// tijdelijk tot character teller in ingebouwd
-    const fouten: string[] = [];
-
-    if (vragen.some((vraag) => !vraag.notitie || vraag.notitie.length > 1000)) {
-      fouten.push("Het veld notitie is te lang gebruik maximaal 1000 tekens.");
-    }
-
-    if (
-      vragen.some(
-        (vraag) =>
-          vraag.contactverzoek?.interneToelichting &&
-          vraag.contactverzoek.interneToelichting.length > 1000,
-      )
-    ) {
-      fouten.push(
-        "Het veld interne toelichting voor medewerker is te lang gebruik maximaal 1000 tekens.",
-      );
-    }
-
-    if (fouten.length > 0) {
-      errorMessage.value = fouten.join(" ");
-      saving.value = false;
-      return;
-    }
-    //////////////////////////////////////////////////////////////////////
-
     const saveVraagResult = await saveVraag(vragen[0]);
 
     if (saveVraagResult.errorMessage) {
@@ -1133,7 +1135,7 @@ const trySetOfficieleAfdeling = async (vraag: Vraag) => {
   vraag.afdeling = artikelAfdelingen.page[0];
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!contactmomentStore.huidigContactmoment) return;
   const promises = contactmomentStore.huidigContactmoment.vragen.map(
     trySetOfficieleAfdeling,
