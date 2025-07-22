@@ -10,6 +10,6 @@ namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.OpenKlant.Dtos
     public class KlantContactResponse
     {
         [JsonPropertyName("uuid")]
-        public string Uuid { get; set; }
+        public required string Uuid { get; set; }
     }
 }

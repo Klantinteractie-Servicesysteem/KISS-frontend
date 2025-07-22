@@ -11,15 +11,15 @@ namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos.OpenKlant
     public class ActorKlantContactResponse
     {
         [JsonPropertyName("uuid")]
-        public string Uuid { get; set; }
+        public required string Uuid { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public required string Url { get; set; }
 
         [JsonPropertyName("actor")]
-        public ActorResponse Actor { get; set; }
+        public required ActorResponse Actor { get; set; }
 
         [JsonPropertyName("klantcontact")]
-        public KlantContactResponse KlantContact { get; set; }
+        public required KlantContactResponse KlantContact { get; set; }
     }
 }

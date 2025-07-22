@@ -10,6 +10,6 @@ namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos
     internal class UuidDto
     {
         [JsonPropertyName("uuid")]
-        public string Value { get; set; }
+        public required string Value { get; set; }
     }
 }
