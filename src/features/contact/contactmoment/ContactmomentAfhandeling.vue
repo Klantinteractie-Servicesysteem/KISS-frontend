@@ -937,13 +937,31 @@ async function submit() {
 
     const { vragen } = contactmomentStore.huidigContactmoment;
 
-    //tijdelijk tot character teller in ingebouwd
+    //////////////////// tijdelijk tot character teller in ingebouwd
+    const fouten: string[] = [];
+
     if (vragen.some((vraag) => !vraag.notitie || vraag.notitie.length > 1000)) {
-      errorMessage.value =
-        "Je notitie is te lang. Gebruik maximaal 1000 tekens.";
+      fouten.push("Het veld notitie is te lang gebruik maximaal 1000 tekens.");
+    }
+
+    if (
+      vragen.some(
+        (vraag) =>
+          vraag.contactverzoek?.interneToelichting &&
+          vraag.contactverzoek.interneToelichting.length > 1000,
+      )
+    ) {
+      fouten.push(
+        "Het veld interne toelichting voor medewerker is te lang gebruik maximaal 1000 tekens.",
+      );
+    }
+
+    if (fouten.length > 0) {
+      errorMessage.value = fouten.join(" ");
       saving.value = false;
       return;
     }
+    //////////////////////////////////////////////////////////////////////
 
     const saveVraagResult = await saveVraag(vragen[0]);
 
