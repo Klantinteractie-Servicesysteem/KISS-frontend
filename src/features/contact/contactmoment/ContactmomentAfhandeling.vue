@@ -937,6 +937,14 @@ async function submit() {
 
     const { vragen } = contactmomentStore.huidigContactmoment;
 
+    //tijdelijk tot character teller in ingebouwd
+    if (vragen.some((vraag) => !vraag.notitie || vraag.notitie.length > 1000)) {
+      errorMessage.value =
+        "Je notitie is te lang. Gebruik maximaal 1000 tekens.";
+      saving.value = false;
+      return;
+    }
+
     const saveVraagResult = await saveVraag(vragen[0]);
 
     if (saveVraagResult.errorMessage) {
