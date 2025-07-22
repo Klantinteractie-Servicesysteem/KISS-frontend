@@ -10,7 +10,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
     [TestClass]
     public class AnonymousContactVerzoekScenarios : KissPlaywrightTest
     {
-        [TestMethod("contactverzoek creation and search via telefoonnummer for an afdeling")]
+        [TestMethod("1. Contactverzoek creation and search via telefoonnummer for an afdeling")]
         public async Task AnonymousContactVerzoekTelefoonAfdeling()
         {
             await Step("Given the user is on the Startpagina");
@@ -69,7 +69,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("contactverzoek creation and search via email for an afdeling")]
+        [TestMethod("2. Contactverzoek creation and search via email for an afdeling")]
         public async Task AnonymousContactVerzoekEmailAfdeling()
         {
             await Step("Given the user is on the Startpagina");
@@ -130,7 +130,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("contactverzoek creation and search via telefoonnummer for group")]
+        [TestMethod("3. Contactverzoek creation and search via telefoonnummer for group")]
 
         public async Task AnonymousContactVerzoekTelefoonGroup()
         {
@@ -190,7 +190,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("contactverzoek creation and search via email for group")]
+        [TestMethod("4. Contactverzoek creation and search via email for group")]
         public async Task AnonymousContactVerzoekEmailGroup()
         {
             await Step("Given the user is on the Startpagina");
@@ -248,7 +248,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("Validation of phone number field 1 in contactverzoek form")]
+        [TestMethod("5. Validation of phone number field 1 in contactverzoek form")]
         public async Task AnonymousContactVerzoekTelefoonValidation()
         {
             await Step("Given the user is on the Startpagina");
@@ -293,7 +293,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("Validation of telefoon nummer 2 field in contactverzoek form")]
+        [TestMethod("6. Validation of telefoon nummer 2 field in contactverzoek form")]
         public async Task AnonymousContactVerzoekTelefoon2Validation()
         {
             await Step("Given the user is on the Startpagina");
@@ -357,7 +357,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("Validation of Email field in contactverzoek form")]
+        [TestMethod("7. Validation of Email field in contactverzoek form")]
         public async Task AnonymousContactVerzoekEmailValidation()
         {
             await Step("Given the user is on the Startpagina");
@@ -418,7 +418,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("contactverzoek creation and search via telefoonnummer for medewerker")]
+        [TestMethod("8. Contactverzoek creation and search via telefoonnummer for medewerker")]
 
         public async Task AnonymousContactVerzoekTelefoonMedewerker()
         {

@@ -6,7 +6,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies;
 [TestClass]
 public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 {
-    [TestMethod]
+    [TestMethod("1. Navigation to NieuwsEnWerkInstructies page")]
     public async Task Scenario01()
     {
         await Step("Given there is at least 1 nieuwsbericht");
@@ -25,7 +25,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).First).ToBeVisibleAsync();
     }
 
-    [TestMethod]
+    [TestMethod("2. Verify Important Message Count on Home Page")]
     public async Task Scenario02()
     {
         await Step("Given there is at least 1 important message");
@@ -39,7 +39,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         Assert.AreNotEqual(0, count);
     }
 
-    [TestMethod]
+    [TestMethod("3. Verify markeer ongelezen read icon functionality")]
     public async Task Scenario03()
     {
         await Step("Given there is at least 1 nieuwsbericht");
@@ -63,7 +63,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(body).ToBeHiddenAsync();
     }
 
-    [TestMethod]
+    [TestMethod("4. Test Pagination Using 'Next' Button on Nieuws en Instructies")]
     public async Task Scenario04()
     {
         var newsArticles = Page.GetNieuwsSection().GetByRole(AriaRole.Article);
@@ -96,7 +96,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(aButtonThatIsTheCurrentPageAndHasLabelPagina2).ToBeVisibleAsync();
     }
 
-    [TestMethod]
+    [TestMethod("5. Test Pagination Using 'Previous' Button on Nieuws en Instructies")]
     public async Task Scenario05()
     {
         var newSection = Page.GetNieuwsSection();
@@ -137,7 +137,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(aButtonThatIsTheCurrentPageAndHasLabelPagina1).ToBeVisibleAsync();
     }
 
-    [TestMethod]
+    [TestMethod("6. Test Pagination Using 'Next' Button on Werkinstructies")]
     public async Task Scenario06()
     {
         await Step("Given there are at least 20 werkinstructies");
@@ -176,7 +176,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(aButtonThatIsTheCurrentPageAndHasLabelPagina1).ToBeVisibleAsync();
     }
 
-    [TestMethod]
+    [TestMethod("7. Test Pagination Using 'Previous' Button on Werkinstructies")]
     public async Task Scenario07()
     {
         await Step("Given there are at least 20 werkinstructies");
@@ -221,7 +221,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(articles.First).ToMatchAriaSnapshotAsync(initialFirstArticleAriaSnapshot);
     }
 
-    [TestMethod]
+    [TestMethod("8. Verify markeer ongelezen unread icon functionality")]
     public async Task Scenario08()
     {
         await Step("Given there is a nieuwsbericht that is read");
@@ -245,7 +245,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(article).ToContainTextAsync(bericht.Body);
     }
 
-    [TestMethod]
+    [TestMethod("9. Verify Skill-Based Filtering of Nieuwsberichten on Home Page")]
     public async Task Scenario09()
     {
         await Step("Given there are at least two skills");
@@ -274,7 +274,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(articles.GetByRole(AriaRole.Heading, new() { Name = berichtWithSkill1.Title })).ToBeVisibleAsync();
     }
 
-    [TestMethod]
+    [TestMethod("10. No Nieuwsberichten Shown When Filtering by Skill Without Articles")]
     public async Task Scenario10()
     {
         await Step("Given there is a skill that is not linked to any article");
@@ -294,7 +294,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(articles).ToBeHiddenAsync();
     }
 
-    [TestMethod]
+    [TestMethod("11. Filter and Search Display Only Nieuwsbericht Matching Unique Title Text")]
     public async Task Scenario11()
     {
         await Step("Given a unique text (uuid)");
@@ -334,7 +334,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
+    [TestMethod("12. Filter and Search Display Only Werkinstructies Matching Unique Title Text")]
     public async Task Scenario12()
     {
         await Step("Given a unique text (uuid)");
@@ -372,7 +372,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
+    [TestMethod("13. Filter by Multiple Skills Shows Only Related Nieuwsberichten and Werkinstructies")]
     public async Task Scenario13()
     {
         await Step("Given there are at least 3 skills");
@@ -457,7 +457,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
+    [TestMethod("14. Verify Combined Search Shows Correct Nieuwsbericht and Werkinstructie")]
     public async Task Scenario14()
     {
         await Step("Given a unique text (uuid)");
@@ -493,7 +493,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
+    [TestMethod("15. Clear Search Resets Results to Show All Nieuwsberichten and Werkinstructies")]
     public async Task Scenario15()
     {
         await Step("Given a unique text (uuid)");
@@ -536,21 +536,15 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Step("Then at least two werkinstructies should be visible");
 
         await Expect(Page.GetWerkinstructiesSection().GetByRole(AriaRole.Article).Nth(1)).ToBeVisibleAsync();
-     
+
         await Step("And at least two nieuwsberichten should be visible");
 
         await Expect(Page.GetNieuwsSection().GetByRole(AriaRole.Article).Nth(1)).ToBeVisibleAsync();
-     
 
     }
-    [TestMethod]
-    public void Scenario16()
-    {
-        Assert.Inconclusive($"This scenario seems to be a duplicate of {nameof(Scenario09)}");
-    }
 
-    [TestMethod]
-    public async Task Scenario17()
+    [TestMethod("16. Verify Nieuwsberichten Appear in List on Beheer Page")]
+    public async Task Scenario16()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -566,8 +560,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(nieuwsSection.GetByRole(AriaRole.Heading, new() { Name = nieuws.Title })).ToBeVisibleAsync();
     }
 
-    [TestMethod]
-    public async Task Scenario18()
+    [TestMethod("17. Delete Nieuwsbericht from the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario17()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -599,8 +593,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario19()
+    [TestMethod("18. Delete Werkinstructie from the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario18()
     {
         await Step("Given there is at least 1 werkinstructie");
 
@@ -616,8 +610,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario20()
+    [TestMethod("19. View Nieuwsbericht Details on the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario19()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -642,8 +636,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = skill.Naam })).ToBeCheckedAsync();
     }
 
-    [TestMethod]
-    public async Task Scenario21()
+    [TestMethod("20. Update Title of Nieuwsbericht and View Changes in Berichten")]
+    public async Task Scenario20()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -681,8 +675,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetBeheerTableCell(5, 1)).ToHaveTextAsync(DateTime.Now.ToString("dd-MM-yyyy, HH:mm"));
     }
 
-    [TestMethod]
-    public async Task Scenario22()
+    [TestMethod("21. Update Publicatiedatum of Nieuwsbericht on the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario21()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -718,8 +712,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario23()
+    [TestMethod("22. Mark Nieuwsbericht as Belangrijk and View on Home Screen")]
+    public async Task Scenario22()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -764,8 +758,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario24()
+    [TestMethod("23. Add New Nieuwsbericht to the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario23()
     {
         await Step("Given the user is on the Nieuws and werkinstructiesscreen available under Beheer");
 
@@ -777,8 +771,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetBeheerTableCell(2, 1)).ToHaveTextAsync(BerichtType.Nieuws.ToString());
     }
 
-    [TestMethod]
-    public async Task Scenario25()
+    [TestMethod("24. Add New Nieuwsbericht to the Nieuws and Werkinstructies Screen")]
+    public async Task Scenario24()
     {
         await Step("Given there is at least 1 Werkinstructie");
 
@@ -796,8 +790,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario26()
+    [TestMethod("25. Add New Werkinstructie and Display in Berichten ")]
+    public async Task Scenario25()
     {
         await Step("Given the user is on the Nieuws and werkinstructiesscreen available under Beheer");
 
@@ -808,8 +802,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetBeheerTableCell(1, 1)).ToHaveTextAsync(werkinstructie.Title);
     }
 
-    [TestMethod]
-    public async Task Scenario27()
+    [TestMethod("26. Add and View Newly Created Werkinstructie")]
+    public async Task Scenario26()
     {
         await Step("Given the user is on the Nieuws and werkinstructiesscreen available under Beheer");
 
@@ -824,12 +818,10 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" })).ToHaveValueAsync(werkbericht.Title);
         await Expect(Page.GetByText(BerichtType.Werkinstructie.ToString(), new() { Exact = true })).ToBeCheckedAsync();
 
-
-
     }
 
-    [TestMethod]
-    public async Task Scenario28()
+    [TestMethod("Verify Presence of 'Berichten' Table on Nieuws and Werkinstructies Screen")]
+    public async Task Scenario27()
     {
         await Step("Given there is at least 1 nieuwsbericht");
 
@@ -847,14 +839,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public void Scenario29()
-    {
-        Assert.Inconclusive("This scenario in the document is still unclear");
-    }
-
-    [TestMethod]
-    public async Task Scenario30()
+    [TestMethod("28. Do Not Display Nieuwsbericht with Future Publicatiedatum in Nieuws Section")]
+    public async Task Scenario28()
     {
         await Step("Given a nieuwsbericht for with a publicatiedatum in the future");
 
@@ -870,8 +856,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario31()
+    [TestMethod("29. Display Nieuwsbericht with Past Publicatiedatum in Nieuws Section")]
+    public async Task Scenario29()
     {
         await Step("Given a nieuwsbericht for a publicatiedatum in the past");
 
@@ -889,8 +875,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario32()
+    [TestMethod("30. Do Not Display Nieuwsbericht with Past Publicatie-einddatum in Nieuws Section")]
+    public async Task Scenario30()
     {
         await Step("Given a nieuwsbericht for a publicatie-einddatum in the past");
 
@@ -906,8 +892,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario33()
+    [TestMethod("31. Display Nieuwsbericht with Future Publicatie-einddatum in Nieuws Section")]
+    public async Task Scenario31()
     {
         await Step("Given a nieuwsbericht for a publicatie-einddatum in the future");
 
@@ -923,8 +909,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod]
-    public async Task Scenario34()
+    [TestMethod("32. Display Nieuwsbericht with Skills as Labels in Nieuws Section")]
+    public async Task Scenario32()
     {
         await Step("Given a nieuwsbericht with multiple skills");
 
@@ -949,8 +935,8 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         Assert.AreEqual(true, await Page.AreSkillsVisibleByNameAsync(article, new() { skill1.Naam, skill2.Naam, skill3.Naam }));
     }
 
-    [TestMethod]
-    public async Task Scenario35()
+    [TestMethod("33. Display Werkinstructie with Skills as Labels in Nieuws Section")]
+    public async Task Scenario33()
     {
         await Step("Given a werkinstructie with multiple skills");
 
