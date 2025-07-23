@@ -330,12 +330,15 @@
             />
 
             <label class="utrecht-form-label" :for="'notitie' + idx"
-              >Notitie</label
+              >Notitie<span class="utrecht-form-field-description"
+                >(maximaal 1000 tekens)</span
+              ></label
             >
             <textarea
               class="utrecht-textarea"
               :id="'notitie' + idx"
               v-model="vraag.notitie"
+              :maxlength="NOTITIE_MAXLENGTH"
             ></textarea>
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
@@ -439,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import {
   Heading as UtrechtHeading,
@@ -501,7 +504,10 @@ import {
   saveContactmoment,
 } from "@/services/openklant1";
 import type { Contactmoment, Klant } from "@/services/openklant/types";
-import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
+import {
+  SPECIFIEKEVRAAG_MAXLENGTH,
+  NOTITIE_MAXLENGTH,
+} from "@/services/openklant/service";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -511,6 +517,35 @@ const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
 
 onMounted(async () => {
+  await nextTick();
+
+  // forceer HTML5 validatie voor notities (tijdelijk)
+  document
+    .querySelectorAll<HTMLTextAreaElement>("textarea[maxlength]")
+    .forEach((textarea) => {
+      // voeg input eventlistener toe
+      textarea.addEventListener("input", () => {
+        if (textarea.value.length > NOTITIE_MAXLENGTH) {
+          const currentLength = textarea.value.length;
+          const overLimit = currentLength - NOTITIE_MAXLENGTH;
+
+          textarea.setCustomValidity(
+            `Dit veld bevat ${currentLength} tekens (maximaal ${NOTITIE_MAXLENGTH} toegestaan). ` +
+              `Verwijder ${overLimit} teken${overLimit > 1 ? "s" : ""}.`,
+          );
+        } else {
+          textarea.setCustomValidity("");
+        }
+      });
+
+      if (textarea.value.length > NOTITIE_MAXLENGTH) {
+        // fake de input
+        textarea.dispatchEvent(new Event("input"));
+        // forceer validatie
+        textarea.reportValidity();
+      }
+    });
+
   if (!contactmomentStore.huidigContactmoment) return;
 
   for (const vraag of contactmomentStore.huidigContactmoment.vragen) {
@@ -930,7 +965,6 @@ async function submit() {
     if (!contactmomentStore.huidigContactmoment) return;
 
     const { vragen } = contactmomentStore.huidigContactmoment;
-
     const saveVraagResult = await saveVraag(vragen[0]);
 
     if (saveVraagResult.errorMessage) {

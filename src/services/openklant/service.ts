@@ -62,3 +62,4 @@ export const heeftContactgegevens = (klant: Klant) =>
   klant.emailadressen?.length || klant.telefoonnummers?.length;
 
 export const SPECIFIEKEVRAAG_MAXLENGTH = 180;
+export const NOTITIE_MAXLENGTH = 1000;
