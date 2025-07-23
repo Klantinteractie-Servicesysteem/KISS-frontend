@@ -21,8 +21,8 @@ namespace Kiss.Bff.EndToEndTest
         private const string StoragePath = "./auth.json";
 
         public readonly OpenKlantApiClient OpenKlantApiClient = new(
-            GetRequiredConfig("TestSettings:TEST_REGISTER_BASE_URL"),
-            GetRequiredConfig("TestSettings:TEST_REGISTER_SECRET")
+            GetRequiredConfig("TestSettings:TEST_OPEN_ZAAK_BASE_URL"),
+            GetRequiredConfig("TestSettings:TEST_OPEN_ZAAK_SECRET")
             );
 
         public TestCleanupHelper TestCleanupHelper { get; }
