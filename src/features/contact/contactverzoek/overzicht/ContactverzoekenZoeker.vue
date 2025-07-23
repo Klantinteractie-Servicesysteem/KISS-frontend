@@ -16,15 +16,10 @@
   <section class="search-section">
     <simple-spinner v-if="store.zoekerResults.loading" />
     <template v-if="store.zoekerResults.success">
-      <table class="overview zoekresultaten-view">
-        <SearchResultsCaption
-          :results="store.zoekerResults.data"
-          :zoek-termen="undefined"
-        />
-        <contactverzoeken-overzicht
-          :contactverzoeken="store.zoekerResults.data"
-        />
-      </table>
+      <contactverzoeken-overzicht
+        :contactverzoeken="store.zoekerResults.data"
+        :level="1"
+      />
     </template>
 
     <application-message
