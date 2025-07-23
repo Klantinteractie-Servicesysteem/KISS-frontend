@@ -40,8 +40,8 @@ jobs:
         'TestSettings:TEST_PASSWORD': '${{ secrets.PLAYWRIGHT_PASSWORD }}'
         'TestSettings:TEST_TOTP_SECRET': ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
         'TestSettings:TEST_BASE_URL': ${{ secrets.PLAYWRIGHT_BASE_URL }}
-        'TestSettings:TEST_REGISTER_BASE_URL': ${{ secrets.TEST_OPEN_ZAAK_BASE_URL }}
-        'TestSettings:TEST_REGISTER_SECRET': ${{ secrets.TEST_OPEN_ZAAK_SECRET }}
+        'TestSettings:TEST_OPEN_ZAAK_BASE_URL': ${{ secrets.PLAYWRIGHT_OPEN_ZAAK_BASE_URL }}
+        'TestSettings:TEST_OPEN_ZAAK_SECRET': ${{ secrets.PLAYWRIGHT_OPEN_ZAAK_SECRET }}
     - name: Upload artifact
       if: ${{ always() }}
       uses: actions/upload-pages-artifact@v3
