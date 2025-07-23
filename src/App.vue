@@ -46,8 +46,8 @@ const { data: versieInfo } = useLoader(() =>
   fetchLoggedIn("/api/environment/build-info")
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(({ versionInfo }: { versionInfo?: string }) => {
-      const [version, commit] = versionInfo?.split("+") || [];
+    .then(({ buildInfo }: { buildInfo?: string }) => {
+      const [version, commit] = buildInfo?.split("+") || [];
       return {
         version: version || "onbekend",
         commit: commit?.replace(/^\./, "") || "onbekend",
