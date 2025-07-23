@@ -39,7 +39,7 @@ body {
   display: grid;
   grid-template:
     "aside header" min-content "aside main" 1fr / var(--aside-width)
-    1fr;
+    minmax(0, 1fr);
   height: 100vh;
   overflow: auto;
 
@@ -85,7 +85,8 @@ body {
 }
 
 .klant-panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-large);
 }
 

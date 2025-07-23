@@ -56,8 +56,6 @@
 
     <tab-list-item label="Contactverzoeken">
       <template #default="{ setError, setLoading, setDisabled }">
-        <utrecht-heading :level="2">Contactverzoeken</utrecht-heading>
-
         <contactverzoeken-for-klant-identificator
           v-if="persoon"
           :klant-identificator="persoon"
