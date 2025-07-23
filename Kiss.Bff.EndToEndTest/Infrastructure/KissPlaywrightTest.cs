@@ -58,9 +58,6 @@ namespace Kiss.Bff.EndToEndTest
             var username = GetRequiredConfig("TestSettings:TEST_USERNAME");
             var password = GetRequiredConfig("TestSettings:TEST_PASSWORD");
 
-            var baseUrl = GetRequiredConfig("TestSettings:TEST_REGISTER_BASE_URL");
-            var token = GetRequiredConfig("TestSettings:TEST_REGISTER_SECRET");
-
             var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper);
             await loginHelper.LoginAsync();
             // store the cookie so we stay logged in in each test
