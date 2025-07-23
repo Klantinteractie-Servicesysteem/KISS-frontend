@@ -4,6 +4,7 @@ using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 using Kiss.Bff.EndToEndTest.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure;
 using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
 
 
@@ -124,7 +125,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("When the user starts a new Contactmoment");
@@ -251,7 +252,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("When the user starts a new Contactmoment");
@@ -391,12 +392,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Startscherm" })).ToBeVisibleAsync();
 
 
-        }
-        private async Task CleanupPostKlantContactenCall(string klantContactUuid)
-        {
-            var actorKlantContact = await OpenKlantApiClient.GetActorKlantContact(klantContactUuid);
-            await OpenKlantApiClient.DeleteActor(actorKlantContact.Actor.Uuid);
-            await OpenKlantApiClient.DeleteKlantContact(actorKlantContact.KlantContact.Uuid);
         }
 
     }

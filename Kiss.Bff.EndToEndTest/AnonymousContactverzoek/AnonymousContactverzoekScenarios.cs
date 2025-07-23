@@ -62,7 +62,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Clean up later
             RegisterCleanup(async () =>
             {
-               await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -135,7 +135,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -209,7 +209,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -281,7 +281,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -419,7 +419,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
@@ -554,7 +554,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await CleanupPostKlantContactenCall(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -577,14 +577,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
-
-        private async Task CleanupPostKlantContactenCall(string klantContactUuid)
-        {
-            var actorKlantContact = await OpenKlantApiClient.GetActorKlantContact(klantContactUuid);
-            await OpenKlantApiClient.DeleteActor(actorKlantContact.Actor.Uuid);
-            await OpenKlantApiClient.DeleteKlantContact(actorKlantContact.KlantContact.Uuid);
-        }
-
     }
 
 

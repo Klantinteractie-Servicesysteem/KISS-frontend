@@ -25,6 +25,8 @@ namespace Kiss.Bff.EndToEndTest
             GetRequiredConfig("TestSettings:TEST_REGISTER_SECRET")
             );
 
+        public TestCleanupHelper TestCleanupHelper { get; }
+
         private static readonly IConfiguration s_configuration = new ConfigurationBuilder()
             .AddUserSecrets<KissPlaywrightTest>()
             .AddEnvironmentVariables()
@@ -39,6 +41,11 @@ namespace Kiss.Bff.EndToEndTest
 
         // clean up actions that are registered by the tests
         private readonly List<Func<Task>> _cleanupActions = [];
+
+        public KissPlaywrightTest()
+        {
+            TestCleanupHelper = new TestCleanupHelper(OpenKlantApiClient);
+        }
 
         /// <summary>
         /// This is run before each test
