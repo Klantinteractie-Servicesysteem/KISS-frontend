@@ -20,8 +20,8 @@
             </back-link-provider>
           </template>
         </router-view>
-        <div v-if="versieInfo" class="versienummer">
-          Versie {{ versieInfo.version }} | Commit {{ versieInfo.commit }}
+        <div v-if="buildInfo" class="versienummer">
+          Versie {{ buildInfo.version }} | Commit {{ buildInfo.commit }}
         </div>
       </main>
     </div>
@@ -42,7 +42,7 @@ import { useLoader } from "./services/use-loader";
 const contactmomentStore = useContactmomentStore();
 const route = useRoute();
 
-const { data: versieInfo } = useLoader(() =>
+const { data: buildInfo } = useLoader(() =>
   fetchLoggedIn("/api/environment/build-info")
     .then(throwIfNotOk)
     .then(parseJson)
