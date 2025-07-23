@@ -74,7 +74,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
                 await Page.GetOpslaanButton().ClickAsync();
-            }, 
+            },
                 response => response.Url.Contains("/postklantcontacten")
             );
 
@@ -240,7 +240,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             // Clean up later
             RegisterCleanup(async () =>
             {
-
                 await CleanupPostKlantContactenCall(klantContactUuid.Value);
             });
 
