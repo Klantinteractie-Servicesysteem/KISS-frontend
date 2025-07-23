@@ -53,6 +53,13 @@
           class="utrecht-textbox utrecht-textbox--html-input"
         />
       </label>
+      <label class="utrecht-form-label">
+        Achternaam
+        <input
+          v-validate="store.achternaamPostcode"
+          class="utrecht-textbox utrecht-textbox--html-input"
+        />
+      </label>
       <utrecht-button type="submit" appearance="primary-action-button">
         Zoeken
       </utrecht-button>
@@ -134,6 +141,7 @@ const store = ensureState({
       huisnummer: validateWith(parseHuisnummer),
       toevoeging: validateWith(parseToevoeging),
       huisletter: validateWith(parseHuisletter),
+      achternaamPostcode: validateWith(parseAchternaam),
       bsn: validateWith(parseBsn),
       persoonSearchQuery: undefined as PersoonQuery | undefined,
       page: 1,
@@ -161,6 +169,7 @@ const zoekOpPostcode = () => {
         huisnummer: store.value.huisnummer.validated,
         toevoeging: store.value.toevoeging.validated,
         huisletter: store.value.huisletter.validated,
+        achternaam: store.value.achternaamPostcode.validated,
       },
     };
     navigateOnSingleResult.value = true;

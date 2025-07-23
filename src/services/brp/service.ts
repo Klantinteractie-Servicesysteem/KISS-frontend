@@ -84,8 +84,31 @@ function mapPersoon(json: any): Persoon {
   };
 }
 
+function filterByAchternaam(
+  personen: Persoon[],
+  achternaamFilter?: string,
+): Persoon[] {
+  if (!achternaamFilter) return personen;
+
+  const isWildcard = achternaamFilter.endsWith("*");
+  const searchTerm = isWildcard
+    ? achternaamFilter.slice(0, -1).toLowerCase()
+    : achternaamFilter.toLowerCase();
+
+  return personen.filter((persoon) => {
+    const persoonAchternaam = persoon.achternaam?.toLowerCase() || "";
+
+    if (isWildcard) {
+      return persoonAchternaam.startsWith(searchTerm);
+    } else {
+      return persoonAchternaam === searchTerm;
+    }
+  });
+}
+
 export const searchPersonen = (query: PersoonQuery) => {
-  let request, sorter: Compare<Persoon>;
+  let request, sorter: Compare<Persoon>, filterAchternaam: string | undefined;
+
   if ("bsn" in query) {
     request = {
       burgerservicenummer: [query.bsn],
@@ -110,6 +133,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       huisnummer,
       toevoeging,
       huisletter,
+      achternaam,
     } = query.postcodeHuisnummer;
     request = {
       postcode: numbers + digits,
@@ -119,6 +143,9 @@ export const searchPersonen = (query: PersoonQuery) => {
       type: "ZoekMetPostcodeEnHuisnummer",
       fields: [...minimalFields],
     };
+
+    filterAchternaam = achternaam;
+
     sorter = compareAdresThenNaam;
   }
 
@@ -143,7 +170,13 @@ export const searchPersonen = (query: PersoonQuery) => {
       throwIfNotOk(r);
       return r.json();
     })
-    .then(({ personen }: { personen: unknown[] }) =>
-      personen.map(mapPersoon).sort(sorter),
-    );
+    .then(({ personen }: { personen: unknown[] }) => {
+      let mappedPersonen = personen.map(mapPersoon);
+
+      if (filterAchternaam) {
+        mappedPersonen = filterByAchternaam(mappedPersonen, filterAchternaam);
+      }
+
+      return mappedPersonen.sort(sorter);
+    });
 };
