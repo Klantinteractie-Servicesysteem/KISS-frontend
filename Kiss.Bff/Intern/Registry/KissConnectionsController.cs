@@ -5,24 +5,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Intern.Environment
 {
-    [Route("api/registry")]
+    [Route("api/connections")]
     [ApiController]
     [Authorize(Policies.KcmOrRedactiePolicy)]
-    public class RegistryController : ControllerBase
+    public class KissConnectionsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly RegistryConfig _registryConfig;
 
-        public RegistryController(IConfiguration configuration, RegistryConfig klantContactConfig)
+        public KissConnectionsController(IConfiguration configuration, RegistryConfig klantContactConfig)
         {
             _configuration = configuration;
             _registryConfig = klantContactConfig;
         }
 
-        [HttpGet("all")]
-        public IActionResult GetRegistrySystems()
+        public IActionResult GetConnections()
         {
-            var kissConnectionsModel = new
+            var kissConnectionsModel = new KissConnectionsModel
             {
                 AfdelingenBaseUrl = _configuration["AFDELINGEN_BASE_URL"],
                 GroepenBaseUrl = _configuration["GROEPEN_BASE_URL"],

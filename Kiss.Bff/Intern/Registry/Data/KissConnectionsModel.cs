@@ -9,7 +9,6 @@
         public string? GroepenBaseUrl { get; set; }
 
         public string? VacObjectenBaseUrl { get; set; }
-
         
         public string? VacObjectTypeUrl { get; set; }
 

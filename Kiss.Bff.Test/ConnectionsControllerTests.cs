@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 namespace Kiss.Bff.Test
 {
     [TestClass]
-    public class RegistryControllerTests : TestHelper
+    public class ConnectionsControllerTests : TestHelper
     {
         [TestMethod]
         public void GetRegistrySystems_ReturnsExpectedSystems()
@@ -37,10 +37,10 @@ namespace Kiss.Bff.Test
             configurationMock.Setup(cfg => cfg["MEDEWERKER_OBJECTEN_BASE_URL"]).Returns(medewerkerObjectenUrl);
             configurationMock.Setup(cfg => cfg["MEDEWERKER_OBJECTTYPES_BASE_URL"]).Returns(medewerkerObjectTypesUrl);
 
-            var controller = new RegistryController(configurationMock.Object, registryConfig);
+            var controller = new KissConnectionsController(configurationMock.Object, registryConfig);
 
             // Act
-            var result = controller.GetRegistrySystems();
+            var result = controller.GetConnections();
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
