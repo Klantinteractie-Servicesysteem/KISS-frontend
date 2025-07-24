@@ -15,7 +15,7 @@ namespace Kiss.Bff.Intern.Environment
             _registryConfig = klantContactConfig;
         }
 
-        [HttpGet("/all")]
+        [HttpGet("all")]
         public IActionResult GetRegistrySystems()
         {
             var model = new
