@@ -64,7 +64,9 @@ function mapPersoon(json: any): Persoon {
   const { plaats, land, datum } = geboorte ?? {};
 
   const { adresregel1, adresregel2, adresregel3 } = adressering ?? {};
+
   const { geslachtsnaam, voornamen, voorvoegsel } = naam ?? {};
+
   const geboortedatum = datum?.datum && new Date(datum.datum);
 
   return {
@@ -82,8 +84,29 @@ function mapPersoon(json: any): Persoon {
   };
 }
 
+function normalizeString(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function filterByAchternaam(
+  personen: Persoon[],
+  achternaamFilter?: string,
+): Persoon[] {
+  if (!achternaamFilter) return personen;
+
+  const searchTerm = normalizeString(achternaamFilter);
+
+  return personen.filter((persoon) => {
+    const achternaam = persoon.achternaam ?? "";
+    const normalizedAchternaam = normalizeString(achternaam);
+    return normalizedAchternaam.startsWith(searchTerm);
+  });
+}
 export const searchPersonen = (query: PersoonQuery) => {
-  let request, sorter: Compare<Persoon>;
+  let request, sorter: Compare<Persoon>, filterAchternaam: string | undefined;
 
   if ("bsn" in query) {
     request = {
@@ -119,10 +142,9 @@ export const searchPersonen = (query: PersoonQuery) => {
       huisletter: huisletter || "",
       type: "ZoekMetPostcodeEnHuisnummer",
       fields: [...minimalFields],
-      // Voeg geslachtsnaam toe aan API request
-      geslachtsnaam:
-        achternaam && achternaam.length >= 3 ? achternaam + "*" : undefined,
     };
+
+    filterAchternaam = achternaam;
 
     sorter = compareAdresThenNaam;
   }
@@ -149,7 +171,12 @@ export const searchPersonen = (query: PersoonQuery) => {
       return r.json();
     })
     .then(({ personen }: { personen: unknown[] }) => {
-      const mappedPersonen = personen.map(mapPersoon);
+      let mappedPersonen = personen.map(mapPersoon);
+
+      if (filterAchternaam) {
+        mappedPersonen = filterByAchternaam(mappedPersonen, filterAchternaam);
+      }
+
       return mappedPersonen.sort(sorter);
     });
 };
