@@ -11,7 +11,6 @@ import {
   registryVersions,
   fetchSystemen,
 } from "@/services/environment/fetch-systemen";
-import type { ContactmomentKlant } from "@/stores/contactmoment";
 
 export const useKlantByBedrijfIdentifier = (
   getId: () => KlantBedrijfIdentifier | undefined,

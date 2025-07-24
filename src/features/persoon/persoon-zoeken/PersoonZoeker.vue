@@ -22,54 +22,58 @@
       </utrecht-button>
     </form>
     <form @submit.prevent="zoekOpPostcode" class="zoekerForm-postcode">
-      <div class="first-row">
-        <!-- Postcode, huisnummer, huisletter, toevoeging -->
-        <label class="utrecht-form-label">
-          Postcode
-          <input
-            v-validate="store.postcode"
-            required
-            class="utrecht-textbox utrecht-textbox--html-input"
-          />
-        </label>
-        <label class="utrecht-form-label">
-          Huisnummer
-          <input
-            v-validate="store.huisnummer"
-            required
-            inputmode="numeric"
-            class="utrecht-textbox utrecht-textbox--html-input"
-          />
-        </label>
-        <label class="utrecht-form-label">
-          Huisletter
-          <input
-            v-validate="store.huisletter"
-            class="utrecht-textbox utrecht-textbox--html-input"
-          />
-        </label>
-        <label class="utrecht-form-label">
-          Toevoeging
-          <input
-            v-validate="store.toevoeging"
-            class="utrecht-textbox utrecht-textbox--html-input"
-          />
-        </label>
-        <label class="utrecht-form-label"></label>
+      <!-- Linkerkolom -->
+      <div class="form-left">
+        <div class="row-top">
+          <label class="utrecht-form-label">
+            Postcode
+            <input
+              v-validate="store.postcode"
+              required
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Huisnummer
+            <input
+              v-validate="store.huisnummer"
+              required
+              inputmode="numeric"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Huisletter
+            <input
+              v-validate="store.huisletter"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Toevoeging
+            <input
+              v-validate="store.toevoeging"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Achternaam
+            <input
+              v-validate="store.achternaamPostcode"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+        </div>
       </div>
 
-      <!-- Achternaam + zoekknop -->
-      <div class="second-row">
-        <label class="utrecht-form-label">
-          Achternaam
-          <input
-            v-validate="store.achternaamPostcode"
-            class="utrecht-textbox utrecht-textbox--html-input"
-          />
-        </label>
-        <utrecht-button type="submit" appearance="primary-action-button">
-          Zoeken
-        </utrecht-button>
+      <!-- Rechterkolom -->
+      <div class="form-right">
+        <div class="row-top"></div>
+        <div class="row-bottom">
+          <utrecht-button type="submit" appearance="primary-action-button">
+            Zoeken
+          </utrecht-button>
+        </div>
       </div>
     </form>
 

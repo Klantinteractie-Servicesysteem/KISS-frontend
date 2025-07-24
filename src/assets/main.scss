@@ -571,31 +571,28 @@ main > h1 + [role="tablist"] {
 
 .zoekerForm-postcode {
   display: flex;
-  flex-direction: column;
+  gap: var(--spacing-default);
   background-color: var(--color-secondary);
+  padding: var(--spacing-default);
 
-  .first-row {
-    display: flex;
-    flex-basis: 20%;
-    flex-grow: 1;
-    padding: var(--spacing-default);
-    gap: var(--spacing-default);
+  .form-left {
+    .row-top {
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: var(--spacing-default);
 
-    label {
-      flex: 0 0 7rem;
+      label {
+        flex: 1;
+      }
     }
   }
 
-  .second-row {
+  .form-right {
     display: flex;
-    flex-grow: 1;
-    padding: 0 var(--spacing-default) var(--spacing-default);
-    gap: var(--spacing-default);
-    align-items: flex-end;
-
-    label {
-      flex-grow: 1;
-    }
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--spacing-small);
   }
 }
 
