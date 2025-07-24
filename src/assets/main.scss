@@ -195,10 +195,10 @@ label.disabled {
 }
 
 label > span.utrecht-form-field-description {
-    display: block;
-    position: absolute;
-    font-size: var(--utrecht-form-field-description-font-size);
-    line-height: var(--line-height-small);
+  display: block;
+  position: absolute;
+  font-size: var(--utrecht-form-field-description-font-size);
+  line-height: var(--line-height-small);
 }
 
 menu {
@@ -564,6 +564,36 @@ main > h1 + [role="tablist"] {
     flex-basis: 33%;
 
     &:first-child {
+      flex-grow: 1;
+    }
+  }
+}
+
+.zoekerForm-postcode {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-secondary);
+
+  .first-row {
+    display: flex;
+    flex-basis: 20%;
+    flex-grow: 1;
+    padding: var(--spacing-default);
+    gap: var(--spacing-default);
+
+    label {
+      flex: 0 0 7rem;
+    }
+  }
+
+  .second-row {
+    display: flex;
+    flex-grow: 1;
+    padding: 0 var(--spacing-default) var(--spacing-default);
+    gap: var(--spacing-default);
+    align-items: flex-end;
+
+    label {
       flex-grow: 1;
     }
   }

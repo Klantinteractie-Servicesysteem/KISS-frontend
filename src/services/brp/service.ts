@@ -64,9 +64,7 @@ function mapPersoon(json: any): Persoon {
   const { plaats, land, datum } = geboorte ?? {};
 
   const { adresregel1, adresregel2, adresregel3 } = adressering ?? {};
-
   const { geslachtsnaam, voornamen, voorvoegsel } = naam ?? {};
-
   const geboortedatum = datum?.datum && new Date(datum.datum);
 
   return {
@@ -84,30 +82,8 @@ function mapPersoon(json: any): Persoon {
   };
 }
 
-function filterByAchternaam(
-  personen: Persoon[],
-  achternaamFilter?: string,
-): Persoon[] {
-  if (!achternaamFilter) return personen;
-
-  const isWildcard = achternaamFilter.endsWith("*");
-  const searchTerm = isWildcard
-    ? achternaamFilter.slice(0, -1).toLowerCase()
-    : achternaamFilter.toLowerCase();
-
-  return personen.filter((persoon) => {
-    const persoonAchternaam = persoon.achternaam?.toLowerCase() || "";
-
-    if (isWildcard) {
-      return persoonAchternaam.startsWith(searchTerm);
-    } else {
-      return persoonAchternaam === searchTerm;
-    }
-  });
-}
-
 export const searchPersonen = (query: PersoonQuery) => {
-  let request, sorter: Compare<Persoon>, filterAchternaam: string | undefined;
+  let request, sorter: Compare<Persoon>;
 
   if ("bsn" in query) {
     request = {
@@ -135,6 +111,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       huisletter,
       achternaam,
     } = query.postcodeHuisnummer;
+
     request = {
       postcode: numbers + digits,
       huisnummer,
@@ -142,9 +119,10 @@ export const searchPersonen = (query: PersoonQuery) => {
       huisletter: huisletter || "",
       type: "ZoekMetPostcodeEnHuisnummer",
       fields: [...minimalFields],
+      // Voeg geslachtsnaam toe aan API request
+      geslachtsnaam:
+        achternaam && achternaam.length >= 3 ? achternaam + "*" : undefined,
     };
-
-    filterAchternaam = achternaam;
 
     sorter = compareAdresThenNaam;
   }
@@ -171,12 +149,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       return r.json();
     })
     .then(({ personen }: { personen: unknown[] }) => {
-      let mappedPersonen = personen.map(mapPersoon);
-
-      if (filterAchternaam) {
-        mappedPersonen = filterByAchternaam(mappedPersonen, filterAchternaam);
-      }
-
+      const mappedPersonen = personen.map(mapPersoon);
       return mappedPersonen.sort(sorter);
     });
 };
