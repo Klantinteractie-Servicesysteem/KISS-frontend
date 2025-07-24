@@ -19,6 +19,9 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers
            page.Locator("form").Filter(new() { HasText = "Achternaam Geboortedatum" }).GetByRole(AriaRole.Button);
         public static ILocator PersonenSecond_SearchButton(this IPage page) =>
           page.Locator("form").Filter(new() { HasText = "Postcode Huisnummer" }).GetByRole(AriaRole.Button);
+        public static ILocator Personen_PostcodeForm_AchternaamInput(this IPage page) =>
+            page.Locator("form").Filter(new() { HasText = "Postcode Huisnummer" })
+                .GetByRole(AriaRole.Textbox, new() { Name = "Achternaam" });
 
         public static ILocator PersonenThird_SearchButton(this IPage page) =>
             page.Locator("form").Filter(new() { HasText = "Bsn Zoeken" }).GetByRole(AriaRole.Button);
