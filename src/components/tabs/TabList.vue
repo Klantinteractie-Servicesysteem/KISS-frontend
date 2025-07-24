@@ -49,6 +49,7 @@ watchEffect(() => {
   font-size: var(--tab-size, 1rem);
   color: var(--tab-color, var(--utrecht-heading-color));
   gap: var(--tab-gap, 0.5em);
+  overflow-x: auto;
 }
 
 [role="tablist"] > :deep([aria-selected="true"]) {

@@ -12,6 +12,10 @@
   position: absolute;
 }
 
+.preserve-newline {
+  white-space: pre-line;
+}
+
 * {
   outline-offset: -2px;
   outline-color: var(--utrecht-focus-outline-color);
