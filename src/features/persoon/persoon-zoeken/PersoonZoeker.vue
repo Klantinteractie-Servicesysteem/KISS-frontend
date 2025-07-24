@@ -22,7 +22,6 @@
       </utrecht-button>
     </form>
     <form @submit.prevent="zoekOpPostcode" class="zoekerForm-postcode">
-      <!-- Linkerkolom -->
       <div class="form-left">
         <div class="row-top">
           <label class="utrecht-form-label">
@@ -66,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Rechterkolom -->
       <div class="form-right">
         <div class="row-top"></div>
         <div class="row-bottom">
