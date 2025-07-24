@@ -14,12 +14,6 @@ namespace Kiss.Bff.Test
     [TestClass]
     public class RegistryControllerTests : TestHelper
     {
-        [TestInitialize] 
-        public void Initialize()
-        {
-            InitializeDatabase();
-        }
-
         [TestMethod]
         public void GetRegistrySystems_ReturnsExpectedSystems()
         {
