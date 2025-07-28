@@ -8,7 +8,7 @@
       'status',
       'behandelaar',
     ]"
-    :detail-columns="[
+    :detail-groups="[
       [
         'onderwerp',
         'toelichtingBijContactmoment',
@@ -38,7 +38,7 @@
     <template #overview-heading
       ><slot name="overview-heading">Contactverzoeken</slot></template
     >
-    <template #caption
+    <template #table-caption
       ><slot name="caption">
         <caption class="sr-only">
           Contactverzoeken

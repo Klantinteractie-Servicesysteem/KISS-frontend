@@ -8,7 +8,7 @@
       'gespreksresultaat',
       'verantwoordelijkeAfdeling',
     ]"
-    :detail-columns="[
+    :detail-groups="[
       [
         'registratiedatum',
         'medewerkerIdentificatie',
@@ -34,7 +34,7 @@
     }"
   >
     <template #overview-heading>Contactmomenten</template>
-    <template #caption
+    <template #table-caption
       ><slot name="caption">
         <caption class="sr-only">
           Contactmomenten
