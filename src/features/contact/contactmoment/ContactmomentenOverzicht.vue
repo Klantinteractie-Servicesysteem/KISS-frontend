@@ -34,6 +34,13 @@
     }"
   >
     <template #overview-heading>Contactmomenten</template>
+    <template #caption
+      ><slot name="caption">
+        <caption class="sr-only">
+          Contactmomenten
+        </caption>
+      </slot></template
+    >
     <template #detail-button="{ record }"
       ><span class="sr-only">
         Details van het contactmoment dat plaats vond op
