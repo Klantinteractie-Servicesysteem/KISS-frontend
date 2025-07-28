@@ -42,10 +42,9 @@
       </slot></template
     >
     <template #detail-button="{ record }"
-      ><span class="sr-only">
-        Details van het contactmoment dat plaats vond op
-        <dutch-date-time :date="record.registratiedatum" /></span
-    ></template>
+      >Details van het contactmoment dat plaats vond op
+      <dutch-date-time :date="record.registratiedatum" />
+    </template>
     <template #detail-heading>Contactmoment</template>
     <template #back-button>Terug naar contactmomenten</template>
     <template #registratiedatum="{ value }">

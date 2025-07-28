@@ -48,10 +48,9 @@
     <template #detail-heading>Contactverzoek</template>
     <template #back-button>Alle contactverzoeken</template>
     <template #detail-button="{ record }"
-      ><span class="sr-only">
-        Details van het contactverzoek dat plaats vond op
-        <dutch-date-time :date="record.registratiedatum" /></span
-    ></template>
+      >Details van het contactverzoek dat plaats vond op
+      <dutch-date-time :date="record.registratiedatum"
+    /></template>
     <template #registratiedatum="{ value }">
       <dutch-date-time :date="value" />
     </template>
