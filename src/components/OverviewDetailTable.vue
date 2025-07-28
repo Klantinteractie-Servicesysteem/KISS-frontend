@@ -50,10 +50,10 @@
     <dl :aria-labelledby="generatedId">
       <div v-for="(group, cIdx) in detailColumns" :key="cIdx">
         <template v-for="(column, cIdx2) in group" :key="cIdx2">
-          <dt :class="{ hightlight: highlight?.includes(column) }">
+          <dt :class="{ highlight: highlight?.includes(column) }">
             {{ headings[column] }}
           </dt>
-          <dd :class="{ hightlight: highlight?.includes(column) }">
+          <dd :class="{ highlight: highlight?.includes(column) }">
             <!-- @vue-ignore -->
             <slot :name="column" :value="currentCv[column]">{{
               currentCv[column]
@@ -163,7 +163,7 @@ dt {
   }
 }
 
-dt.hightlight {
+dt.highlight {
   border-inline-start: 4px var(--color-primary) solid;
 }
 
@@ -177,7 +177,7 @@ button {
   align-self: start;
 }
 
-.hightlight {
+.highlight {
   background-color: var(--color-secondary);
 }
 
