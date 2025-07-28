@@ -147,8 +147,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       throwIfNotOk(r);
       return r.json();
     })
-    .then(({ personen }: { personen: unknown[] }) => {
-      const mappedPersonen = personen.map(mapPersoon);
-      return mappedPersonen.sort(sorter);
-    });
+    .then(({ personen }: { personen: unknown[] }) =>
+      personen.map(mapPersoon).sort(sorter),
+    );
 };
