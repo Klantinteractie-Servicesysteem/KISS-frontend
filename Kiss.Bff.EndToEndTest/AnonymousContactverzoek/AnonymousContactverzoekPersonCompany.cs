@@ -21,7 +21,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters \"999993653\" in the field bsn ");
+            await Step("And user enters \"999993264\" in the field bsn ");
 
             await Page.PersonenBsnInput().FillAsync("999993264");
 
