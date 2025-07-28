@@ -61,7 +61,7 @@
 <script lang="ts" setup>
 import { fullName } from "@/helpers/string";
 import DutchDateTime from "@/components/DutchDateTime.vue";
-import { computed, nextTick, ref, useId } from "vue";
+import { computed } from "vue";
 import type { ContactverzoekOverzichtItem } from "./types";
 import { DigitaalAdresTypes } from "@/services/openklant2";
 import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
@@ -104,22 +104,6 @@ const mappedCvs = computed(() =>
       .join(", "),
   })),
 );
-
-const generatedId = useId();
-
-const capitalizeFirstLetter = (val: string) =>
-  `${val?.[0]?.toLocaleUpperCase() || ""}${val?.substring(1) || ""}`;
-
-const currentCv = ref<ContactverzoekOverzichtItem>();
-
-const goToOverview = () => {
-  if (!currentCv.value) return;
-  const cvUrl = currentCv.value.url;
-  currentCv.value = undefined;
-  nextTick(() => {
-    document.getElementById(`details_${cvUrl}`)?.focus();
-  });
-};
 
 const prettifyStatus = (status: string) =>
   `${status[0]?.toUpperCase()}${status.substring(1).replace(/_/g, " ")}`;
