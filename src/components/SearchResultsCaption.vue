@@ -19,7 +19,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   results: Paginated<unknown> | PaginatedResult<unknown> | unknown[];
-  zoekTermen?: PersoonQuery | BedrijvenQuery | undefined;
+  zoekTermen?: PersoonQuery | BedrijvenQuery;
 }>();
 
 const zoekTermenCaption = computed(() => {
