@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -103,7 +103,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
-        [TestMethod("Contact moment Creation for person is cancelled ")]
+        [TestMethod("2. Contact moment Creation for person is cancelled ")]
         public async Task ContactMomentCreation_Person_cancel()
         {
             await Step("Given the user is on the startpagina ");
