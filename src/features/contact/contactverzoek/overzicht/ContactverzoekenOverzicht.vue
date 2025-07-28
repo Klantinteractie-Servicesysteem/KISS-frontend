@@ -35,11 +35,15 @@
     :highlight="['toelichtingVoorCollega']"
     key-prop="url"
   >
-    <template #overview-heading>Contactverzoeken</template>
+    <template #overview-heading
+      ><slot name="overview-heading">Contactverzoeken</slot></template
+    >
     <template #caption
-      ><caption class="sr-only">
-        Contactverzoeken
-      </caption></template
+      ><slot name="caption">
+        <caption class="sr-only">
+          Contactverzoeken
+        </caption>
+      </slot></template
     >
     <template #detail-heading>Contactverzoek</template>
     <template #back-button>Alle contactverzoeken</template>

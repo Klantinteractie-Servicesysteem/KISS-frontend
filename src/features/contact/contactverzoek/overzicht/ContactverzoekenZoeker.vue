@@ -18,8 +18,13 @@
     <template v-if="store.zoekerResults.success">
       <contactverzoeken-overzicht
         :contactverzoeken="store.zoekerResults.data"
-        :level="1"
-      />
+        :level="2"
+      >
+        <template #overview-heading>Resultaten</template>
+        <template #caption
+          ><search-results-caption :results="store.zoekerResults.data"
+        /></template>
+      </contactverzoeken-overzicht>
     </template>
 
     <application-message
