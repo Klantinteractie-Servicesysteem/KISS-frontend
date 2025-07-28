@@ -55,6 +55,9 @@
     <template #registratiedatum="{ value }">
       <dutch-date-time :date="value" />
     </template>
+    <template #toelichtingVoorCollega="{ value }">
+      <span class="preserve-newline">{{ value }}</span>
+    </template>
   </overview-detail-table>
 </template>
 
