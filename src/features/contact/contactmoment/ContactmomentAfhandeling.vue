@@ -335,10 +335,12 @@
               ></label
             >
             <textarea
-              class="utrecht-textarea"
+              :ref="(el) => (notitieRefs[idx] = el as HTMLTextAreaElement)"
               :id="'notitie' + idx"
               v-model="vraag.notitie"
               :maxlength="NOTITIE_MAXLENGTH"
+              class="utrecht-textarea"
+              @input="() => validateNotitie(idx)"
             ></textarea>
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
@@ -442,7 +444,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   Heading as UtrechtHeading,
@@ -515,36 +517,37 @@ const saving = ref(false);
 const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
+const notitieRefs = ref<(HTMLTextAreaElement | null)[]>([]);
+
+const validateNotitie = (idx: number) => {
+  const el = notitieRefs.value[idx];
+  if (!el) return;
+
+  const val = el.value;
+  const length = val.length;
+
+  if (length > NOTITIE_MAXLENGTH) {
+    const over = length - NOTITIE_MAXLENGTH;
+    el.setCustomValidity(
+      `Dit veld bevat ${length} tekens (maximaal ${NOTITIE_MAXLENGTH} toegestaan). Verwijder ${over} teken${over > 1 ? "s" : ""}.`,
+    );
+  } else {
+    el.setCustomValidity("");
+  }
+
+  el.reportValidity();
+};
 
 onMounted(async () => {
-  await nextTick();
+  if (!contactmomentStore.huidigContactmoment) return;
 
-  // forceer HTML5 validatie voor notities (tijdelijk)
-  document
-    .querySelectorAll<HTMLTextAreaElement>("textarea[maxlength]")
-    .forEach((textarea) => {
-      // voeg input eventlistener toe
-      textarea.addEventListener("input", () => {
-        if (textarea.value.length > NOTITIE_MAXLENGTH) {
-          const currentLength = textarea.value.length;
-          const overLimit = currentLength - NOTITIE_MAXLENGTH;
-
-          textarea.setCustomValidity(
-            `Dit veld bevat ${currentLength} tekens (maximaal ${NOTITIE_MAXLENGTH} toegestaan). ` +
-              `Verwijder ${overLimit} teken${overLimit > 1 ? "s" : ""}.`,
-          );
-        } else {
-          textarea.setCustomValidity("");
-        }
-      });
-
-      if (textarea.value.length > NOTITIE_MAXLENGTH) {
-        // fake de input
-        textarea.dispatchEvent(new Event("input"));
-        // forceer validatie
-        textarea.reportValidity();
-      }
-    });
+  contactmomentStore.huidigContactmoment.vragen.forEach((_, idx) => {
+    watch(
+      () => contactmomentStore.huidigContactmoment!.vragen[idx].notitie,
+      () => nextTick(() => validateNotitie(idx)),
+      { immediate: true },
+    );
+  });
 
   if (!contactmomentStore.huidigContactmoment) return;
 
