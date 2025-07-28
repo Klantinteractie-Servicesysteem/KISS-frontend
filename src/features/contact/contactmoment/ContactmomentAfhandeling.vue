@@ -329,19 +329,13 @@
               :maxlength="SPECIFIEKEVRAAG_MAXLENGTH"
             />
 
-            <label class="utrecht-form-label" :for="'notitie' + idx"
-              >Notitie<span class="utrecht-form-field-description"
-                >(maximaal 1000 tekens)</span
-              ></label
-            >
-            <textarea
-              :ref="(el) => (notitieRefs[idx] = el as HTMLTextAreaElement)"
-              :id="'notitie' + idx"
+            <MaxLengthTextArea
               v-model="vraag.notitie"
               :maxlength="NOTITIE_MAXLENGTH"
-              class="utrecht-textarea"
-              @input="() => validateNotitie(idx)"
-            ></textarea>
+              :id="'notitie' + idx"
+            >
+            </MaxLengthTextArea>
+
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
             >
@@ -510,6 +504,7 @@ import {
   SPECIFIEKEVRAAG_MAXLENGTH,
   NOTITIE_MAXLENGTH,
 } from "@/services/openklant/service";
+import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -517,38 +512,8 @@ const saving = ref(false);
 const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
-const notitieRefs = ref<(HTMLTextAreaElement | null)[]>([]);
-
-const validateNotitie = (idx: number) => {
-  const el = notitieRefs.value[idx];
-  if (!el) return;
-
-  const val = el.value;
-  const length = val.length;
-
-  if (length > NOTITIE_MAXLENGTH) {
-    const over = length - NOTITIE_MAXLENGTH;
-    el.setCustomValidity(
-      `Dit veld bevat ${length} tekens (maximaal ${NOTITIE_MAXLENGTH} toegestaan). Verwijder ${over} teken${over > 1 ? "s" : ""}.`,
-    );
-  } else {
-    el.setCustomValidity("");
-  }
-
-  el.reportValidity();
-};
 
 onMounted(async () => {
-  if (!contactmomentStore.huidigContactmoment) return;
-
-  contactmomentStore.huidigContactmoment.vragen.forEach((_, idx) => {
-    watch(
-      () => contactmomentStore.huidigContactmoment!.vragen[idx].notitie,
-      () => nextTick(() => validateNotitie(idx)),
-      { immediate: true },
-    );
-  });
-
   if (!contactmomentStore.huidigContactmoment) return;
 
   for (const vraag of contactmomentStore.huidigContactmoment.vragen) {
