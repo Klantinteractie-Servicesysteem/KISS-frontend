@@ -140,7 +140,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("3.Contactverzoek form prefill for company, Vestigingsnr 000055679269")]
+        [TestMethod("3.Contactverzoek form prefill for company, Vestigingsnr 990000996048")]
         public async Task AnonymousContactVerzoekformVestiging()
         {
             await Step("Given the user is on the Startpagina");
@@ -149,9 +149,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -173,13 +173,13 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
 
             await Step("And field organisatie has value Voorlopige Deponering B.V.");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Organisatie" })).ToHaveValueAsync("Voorlopige Deponering B.V."); // waits up to 10 seconds
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Organisatie" })).ToHaveValueAsync("Prijsknaller B.V."); // waits up to 10 seconds
 
             await Step("And field Telefoonnummer 1 has value Moulin ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0885213577");
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0536711764");
 
             await Step("And field E-mailadres has value SuzyM.OK26@syps.nl ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("voorlopige.deponering@syps.nl");
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("prijsknaller.bv@syps.nl");
 
         }
 
