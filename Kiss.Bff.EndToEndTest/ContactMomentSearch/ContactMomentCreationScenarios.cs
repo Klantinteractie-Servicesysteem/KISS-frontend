@@ -417,7 +417,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step(" user click through first available Zaken in the Zaken tab");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Zaken" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Link, new() { Name = "Details 100-" }).ClickAsync();
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Details ZAAK-2023-002" }).ClickAsync();
             await Expect(Page.GetByText("Algemeen").First).ToBeVisibleAsync();
 
             await Step("Start another contact moment");
@@ -473,7 +473,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Klant" })).ToBeVisibleAsync();
             await Expect(Page.Locator("span").Filter(new() { HasText = "Suzanne Moulin" })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Gerelateerde zaak" })).ToBeVisibleAsync();
-            await Expect(Page.Locator("span").Filter(new() { HasText = "100-2025" })).ToBeVisibleAsync();
+            await Expect(Page.Locator("span").Filter(new() { HasText = "ZAAK-2023-002" })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie" })).ToHaveValueAsync(note);
 
         }

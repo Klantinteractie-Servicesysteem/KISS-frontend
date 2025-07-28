@@ -322,9 +322,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
