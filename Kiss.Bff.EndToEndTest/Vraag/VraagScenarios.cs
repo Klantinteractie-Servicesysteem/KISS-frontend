@@ -113,9 +113,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -203,15 +203,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("user is navigated to Bedrijfinformatie page of Test BV Donald Nevenvestiging");
+            await Step("user is navigated to Bedrijfinformatie page of Prijsknaller B.V.");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactmoment tab to view the created contact moment");
