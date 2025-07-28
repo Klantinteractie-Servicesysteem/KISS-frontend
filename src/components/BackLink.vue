@@ -1,32 +1,37 @@
 <template>
   <a
     v-if="back"
-    :href="back"
+    :href="back.path"
     class="icon-before chevron-left"
     @click.prevent.stop="$router.back()"
   >
-    <slot>Terug</slot>
+    <slot>{{ back.title }}</slot>
   </a>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, type RouteLocationNormalizedLoaded } from "vue-router";
 
 const route = useRoute();
 const back = computed(() => {
-  const { back } = route.meta;
-  return typeof back === "string" && back;
+  const { back } = route.meta as {
+    back: RouteLocationNormalizedLoaded | undefined;
+  };
+  return (
+    back && {
+      path: back.fullPath,
+      title:
+        typeof back.meta.backTitle === "string" && back.meta.backTitle
+          ? `Terug naar ${back.meta.backTitle}`
+          : "Terug",
+    }
+  );
 });
 </script>
 
 <style lang="scss" scoped>
-.icon-before::before {
-  margin-inline-end: 0.5ch;
-  min-inline-size: 1.25ch;
-}
-
-.icon-before {
+a {
   text-decoration: none;
   color: inherit;
 }
