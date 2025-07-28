@@ -110,7 +110,7 @@ type AllColumns = Overview[number] | Detail[number];
 const { level = 2, keyProp } = defineProps<{
   records: Array<NonNullable<T>>;
   overviewColumns: Overview;
-  detailColumns: Detail | Detail[];
+  detailColumns: Detail[];
   headings: {
     [K in AllColumns]: string;
   };
@@ -196,5 +196,12 @@ button {
 
 td:last-of-type {
   text-align: right;
+  padding-inline-end: 0;
+  padding-block: 0;
+
+  .icon-after {
+    padding-inline: 0.75rem;
+    padding-block: 0.5rem;
+  }
 }
 </style>
