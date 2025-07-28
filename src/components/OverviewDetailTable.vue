@@ -48,32 +48,19 @@
       ><slot :name="KNOWN_SLOTS.detail_heading" :record="currentCv"></slot
     ></utrecht-heading>
     <dl :aria-labelledby="generatedId">
-      <template v-for="(columnOrGroup, cIdx) in detailColumns" :key="cIdx">
-        <div v-if="Array.isArray(columnOrGroup)">
-          <template v-for="(column, cIdx2) in columnOrGroup" :key="cIdx2">
-            <dt :class="{ hightlight: highlight?.includes(column) }">
-              {{ headings[column] }}
-            </dt>
-            <dd :class="{ hightlight: highlight?.includes(column) }">
-              <!-- @vue-ignore -->
-              <slot :name="column" :value="currentCv[column]">{{
-                currentCv[column]
-              }}</slot>
-            </dd>
-          </template>
-        </div>
-        <template v-else>
-          <dt :class="{ hightlight: highlight?.includes(columnOrGroup) }">
-            {{ headings[columnOrGroup] }}
+      <div v-for="(group, cIdx) in detailColumns" :key="cIdx">
+        <template v-for="(column, cIdx2) in group" :key="cIdx2">
+          <dt :class="{ hightlight: highlight?.includes(column) }">
+            {{ headings[column] }}
           </dt>
-          <dd :class="{ hightlight: highlight?.includes(columnOrGroup) }">
+          <dd :class="{ hightlight: highlight?.includes(column) }">
             <!-- @vue-ignore -->
-            <slot :name="columnOrGroup" :value="currentCv[columnOrGroup]">{{
-              currentCv[columnOrGroup]
+            <slot :name="column" :value="currentCv[column]">{{
+              currentCv[column]
             }}</slot>
           </dd>
         </template>
-      </template>
+      </div>
     </dl>
   </div>
 </template>
