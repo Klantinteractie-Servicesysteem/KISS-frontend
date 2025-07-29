@@ -495,7 +495,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.Locator("span").Filter(new() { HasText = "Suzanne Moulin" })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Gerelateerde zaak" })).ToBeVisibleAsync();
             await Expect(Page.Locator("span").Filter(new() { HasText = "ZAAK-2023-002" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie" })).ToHaveValueAsync(note);
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie (maximaal 1000 tekens)" })).ToHaveValueAsync(note);
         }
     }
 }
