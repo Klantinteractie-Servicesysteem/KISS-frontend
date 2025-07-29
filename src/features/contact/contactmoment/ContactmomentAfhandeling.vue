@@ -329,12 +329,11 @@
               :maxlength="SPECIFIEKEVRAAG_MAXLENGTH"
             />
 
-            <MaxLengthTextArea
+            <max-length-text-area
               v-model="vraag.notitie"
               :maxlength="NOTITIE_MAXLENGTH"
               :id="'notitie' + idx"
-            >
-            </MaxLengthTextArea>
+            />
 
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
@@ -438,7 +437,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   Heading as UtrechtHeading,
