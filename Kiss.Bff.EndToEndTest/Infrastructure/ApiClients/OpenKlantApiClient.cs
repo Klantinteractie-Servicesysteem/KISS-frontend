@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos.OpenKlant;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.OpenKlant.Dtos;
 
 namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients
 {
@@ -80,6 +81,34 @@ namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients
             } else
             {
                 throw new Exception($"Failed to retrieve actor klant contact: {response.Content}");
+            }
+        }
+
+        public async Task<List<KlantContactResponse>> GetAllKlantContacts()
+        {
+            var endpoint = $"klantcontacten";
+
+            var request = CreateRequest(HttpMethod.Get, endpoint);
+
+            using var response = await HttpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonResponse = JsonNode.Parse(content);
+
+                var results = jsonResponse?["results"]?.AsArray();
+
+                if (results == null)
+                {
+                    throw new Exception($"Failed to retrieve klant contacts: {response.Content}");
+                }
+
+                return results.Deserialize<List<KlantContactResponse>>() ?? [];
+            }
+            else
+            {
+                throw new Exception($"Failed to retrieve klant contacts: {response.Content}");
             }
         }
     }
