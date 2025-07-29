@@ -182,6 +182,7 @@ dt.highlight {
 
 button {
   align-self: start;
+  cursor: pointer;
 }
 
 .highlight {
@@ -191,11 +192,11 @@ button {
 td:last-of-type {
   text-align: right;
   padding-inline-end: 0;
-  padding-block: 0;
+  padding-block: 0.25rem;
 
   .icon-after {
     padding-inline: 0.75rem;
-    padding-block: 0.5rem;
+    padding-block: 0.25rem;
   }
 }
 </style>
