@@ -47,7 +47,10 @@ COPY --from=frontendtest /testresults/*.xml .
 
 FROM dotnetbuild AS dotnetpublish
 WORKDIR "/src/Kiss.Bff"
-RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false
+ARG VERSION=0.0.0
+ARG REVISION=dev
+ENV VERSION=$VERSION REVISION=$REVISION
+RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$VERSION /p:SourceRevisionId=$REVISION /p:InformationalVersion=$VERSION+$REVISION
 
 FROM base AS final
 WORKDIR /app
