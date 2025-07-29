@@ -13,11 +13,12 @@
     :maxlength="maxlength"
     :required="required"
     :value="model"
+    @input="validate"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 
 const props = defineProps<{
   maxlength: number;
@@ -48,8 +49,6 @@ const validate = () => {
 
   el.reportValidity();
 };
-
-watch(model, validate);
 
 onMounted(() => validate());
 </script>
