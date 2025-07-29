@@ -13,7 +13,7 @@
     </utrecht-button>
   </form>
 
-  <section class="search-section results">
+  <section :class="['search-section', { frame: store.zoekerResults.success }]">
     <simple-spinner v-if="store.zoekerResults.loading" />
     <template v-if="store.zoekerResults.success">
       <contactverzoeken-overzicht
@@ -98,7 +98,7 @@ form {
   }
 }
 
-.results {
+.frame {
   background-color: var(--color-secondary);
   padding: var(--spacing-large);
 }
