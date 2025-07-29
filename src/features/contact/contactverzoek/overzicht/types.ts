@@ -1,6 +1,7 @@
 import type { DigitaalAdresTypes } from "@/services/openklant2";
 
 export type ContactverzoekOverzichtItem = {
+  kanaal: string;
   url: string;
   registratiedatum: string;
   onderwerp: string;

@@ -9,6 +9,6 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 watch(router.currentRoute, (to, from) => {
-  to.meta.back = from.fullPath;
+  to.meta.back = from;
 });
 </script>

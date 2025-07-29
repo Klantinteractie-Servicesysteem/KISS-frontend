@@ -13,18 +13,18 @@
     </utrecht-button>
   </form>
 
-  <section class="search-section">
+  <section class="search-section results">
     <simple-spinner v-if="store.zoekerResults.loading" />
     <template v-if="store.zoekerResults.success">
-      <table class="overview zoekresultaten-view">
-        <SearchResultsCaption
-          :results="store.zoekerResults.data"
-          :zoek-termen="undefined"
-        />
-        <contactverzoeken-overzicht
-          :contactverzoeken="store.zoekerResults.data"
-        />
-      </table>
+      <contactverzoeken-overzicht
+        :contactverzoeken="store.zoekerResults.data"
+        :level="2"
+      >
+        <template #overview-heading>Resultaten</template>
+        <template #caption
+          ><search-results-caption :results="store.zoekerResults.data"
+        /></template>
+      </contactverzoeken-overzicht>
     </template>
 
     <application-message
@@ -98,18 +98,12 @@ form {
   }
 }
 
-.actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
+.results {
+  background-color: var(--color-secondary);
+  padding: var(--spacing-large);
 }
 
-.overview {
-  min-inline-size: max-content;
-}
-
-.zoekresultaten-view {
-  min-inline-size: fit-content;
+:deep(tbody > tr) {
+  background: var(--color-white);
 }
 </style>
