@@ -32,6 +32,7 @@ namespace Kiss.Bff.Intern.Environment
                 Registries = _registryConfig.Systemen.Select(system => new RegistryModel
                 {
                     IsDefault = system.IsDefault,
+                    Identifier = system.Identifier,
                     RegistryVersion = system.RegistryVersion.ToString(),
                     KlantinteractieRegistry = system.KlantinteractieRegistry?.BaseUrl,
                     ZaaksysteemRegistry = system.ZaaksysteemRegistry?.BaseUrl,
