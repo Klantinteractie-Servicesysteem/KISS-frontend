@@ -78,11 +78,9 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("And Afhandeling form is successfully submitted");
@@ -235,12 +233,10 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Clean up later
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("And Afhandeling form is successfully submitted");

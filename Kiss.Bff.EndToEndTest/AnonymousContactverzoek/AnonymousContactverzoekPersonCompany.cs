@@ -120,12 +120,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("When the user starts a new Contactmoment");
@@ -247,12 +245,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("When the user starts a new Contactmoment");

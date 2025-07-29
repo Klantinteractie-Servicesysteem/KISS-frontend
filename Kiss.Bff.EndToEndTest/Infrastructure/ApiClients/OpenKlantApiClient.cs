@@ -79,7 +79,7 @@ namespace Kiss.Bff.EndToEndTest.Infrastructure.ApiClients
                 return results[0].Deserialize<ActorKlantContactResponse>();
             } else
             {
-                throw new Exception($"Failed to retrieve actor klant contact: {response.ReasonPhrase}");
+                throw new Exception($"Failed to retrieve actor klant contact: {response.Content}");
             }
         }
     }

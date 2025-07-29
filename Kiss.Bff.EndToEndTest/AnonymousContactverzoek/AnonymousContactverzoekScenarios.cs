@@ -57,12 +57,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Clean up later
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -130,12 +128,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -204,12 +200,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -276,12 +270,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
@@ -414,12 +406,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
@@ -549,12 +539,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            var klantContactUuid = await klantContactPostResponse.JsonAsync<UuidDto>();
-
             // Register cleanup
             RegisterCleanup(async () =>
             {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactUuid.Value);
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
