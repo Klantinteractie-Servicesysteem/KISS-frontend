@@ -13,7 +13,7 @@
     </utrecht-button>
   </form>
 
-  <section class="search-section">
+  <section class="search-section results">
     <simple-spinner v-if="store.zoekerResults.loading" />
     <template v-if="store.zoekerResults.success">
       <contactverzoeken-overzicht
@@ -98,18 +98,12 @@ form {
   }
 }
 
-.actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
+.results {
+  background-color: var(--color-secondary);
+  padding: var(--spacing-large);
 }
 
-.overview {
-  min-inline-size: max-content;
-}
-
-.zoekresultaten-view {
-  min-inline-size: fit-content;
+:deep(tbody > tr) {
+  background: var(--color-white);
 }
 </style>
