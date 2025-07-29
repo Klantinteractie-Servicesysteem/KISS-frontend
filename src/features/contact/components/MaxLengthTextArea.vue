@@ -12,13 +12,12 @@
     class="utrecht-textarea"
     :maxlength="maxlength"
     :required="required"
-    :value="model"
-    @input="validate"
+    v-model="model"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 
 const props = defineProps<{
   maxlength: number;
@@ -49,6 +48,8 @@ const validate = () => {
 
   el.reportValidity();
 };
+
+watch(model, validate);
 
 onMounted(() => validate());
 </script>
