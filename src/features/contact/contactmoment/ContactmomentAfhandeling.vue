@@ -652,7 +652,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const klanten = await ensureKlanten(systeem, vraag);
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
-  const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
+  const isAnoniem = !klanten.length;
   const isNietAnoniemContactmoment = !isContactverzoek && !isAnoniem;
 
   // gedeeld contactmoment voor contactmomentdetails
