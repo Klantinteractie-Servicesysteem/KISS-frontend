@@ -37,7 +37,6 @@
       <tab-list-item label="Contactmomenten">
         <template #default="{ setError, setLoading, setDisabled }">
           <div class="contactmomenten">
-            <utrecht-heading :level="2"> Contactmomenten </utrecht-heading>
             <contactmomenten-for-object-url
               :object-url="zaak.url"
               :systeem-id="zaaksysteemId"

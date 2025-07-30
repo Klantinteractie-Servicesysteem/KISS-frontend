@@ -46,7 +46,7 @@
       <dutch-date-time :date="record.registratiedatum" />
     </template>
     <template #detail-heading>Contactmoment</template>
-    <template #back-button>Terug naar contactmomenten</template>
+    <template #back-button>Alle contactmomenten</template>
     <template #registratiedatum="{ value }">
       <dutch-date-time :date="value" />
     </template>
