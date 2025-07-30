@@ -74,8 +74,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetZoekenButton().ClickAsync();
 
             await Step("And contactverzoek details are displayed");
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test specific vraag")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617138555").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -147,8 +151,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test specific vraag")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("testautomation@info.nl").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -219,7 +227,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617138556").First;
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -289,7 +302,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("testautomation@example.com").First;
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -557,8 +575,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetZoekenButton().ClickAsync();
 
             await Step("And contactverzoek details are displayed");
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617178888").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });

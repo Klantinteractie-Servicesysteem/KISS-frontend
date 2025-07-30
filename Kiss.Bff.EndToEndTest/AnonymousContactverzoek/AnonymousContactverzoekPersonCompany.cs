@@ -148,7 +148,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "fatimaz@syps.nl" })).ToBeVisibleAsync();
         }
