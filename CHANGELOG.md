@@ -7,6 +7,7 @@
 - PC-1478 Better handling of maximum number of characters in klantcontact.onderwerp #1150
 - pc-1520 Support case insensitive property of afdelingnaam for Kennisartikelen #1159
 - pc-1576 Validation on max length of Notitie #1175
+- pc-1257 Implement 4th "Personen" search option #1157
 
 
 ### Bugfixes
