@@ -119,8 +119,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       huisletter: huisletter || "",
       type: "ZoekMetPostcodeEnHuisnummer",
       fields: [...minimalFields],
-      geslachtsnaam:
-        achternaam && achternaam.length >= 3 ? achternaam + "*" : undefined,
+      geslachtsnaam: achternaam ? achternaam + "*" : undefined,
     };
 
     sorter = compareAdresThenNaam;

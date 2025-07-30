@@ -66,7 +66,6 @@
       </div>
 
       <div class="form-right">
-        <div class="row-top"></div>
         <div class="row-bottom">
           <utrecht-button type="submit" appearance="primary-action-button">
             Zoeken
@@ -247,6 +246,33 @@ input[type="radio"] {
     display: flex;
     gap: var(--spacing-small);
     align-items: center;
+  }
+}
+
+.zoekerForm-postcode {
+  display: flex;
+  gap: var(--spacing-default);
+  background-color: var(--color-secondary);
+  padding: var(--spacing-default);
+
+  .form-left {
+    .row-top {
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: var(--spacing-default);
+
+      label {
+        flex: 1;
+      }
+    }
+  }
+
+  .form-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--spacing-small);
   }
 }
 </style>
