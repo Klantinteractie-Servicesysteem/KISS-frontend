@@ -22,7 +22,7 @@ export type PersoonQuery =
       bsn: string;
     }
   | {
-      postcodeHuisnummer: PostcodeHuisnummerMetAchternaam;
+      postcodeHuisnummerAchternaam: PostcodeHuisnummerMetAchternaam;
     }
   | {
       geslachtsnaamGeboortedatum: GeslachtsnaamGeboortedatum;
