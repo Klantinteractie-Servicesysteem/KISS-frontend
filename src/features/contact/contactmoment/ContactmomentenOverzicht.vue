@@ -17,7 +17,7 @@
         'tekst',
         'zaaknummers',
         'vraag',
-        'specifiekevraag',
+        'specifiekeVraag',
       ],
     ]"
     :key-prop="'url'"
@@ -30,7 +30,7 @@
       verantwoordelijkeAfdeling: 'Afdeling',
       zaaknummers: 'Gekoppelde zaak',
       vraag: 'Vraag',
-      specifiekevraag: 'Specifieke vraag',
+      specifiekeVraag: 'Specifieke vraag',
     }"
   >
     <template #overview-heading>Contactmomenten</template>
@@ -58,7 +58,7 @@ import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
 import type { ContactmomentViewModel } from "../types";
 import { fullName } from "@/helpers/string";
 import DutchDateTime from "@/components/DutchDateTime.vue";
-import type { ContactmomentDetails } from "./write-contactmoment-details";
+import type { ContactmomentDetails } from "./types";
 import { computed } from "vue";
 
 const props = defineProps<{
