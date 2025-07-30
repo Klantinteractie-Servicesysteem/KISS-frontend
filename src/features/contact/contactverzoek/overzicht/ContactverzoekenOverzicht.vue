@@ -57,9 +57,6 @@
     <template #toelichtingVoorCollega="{ value }">
       <span class="preserve-newline">{{ value }}</span>
     </template>
-    <template #onderwerp="{ value }">
-      <span class="wrap">{{ value }}</span>
-    </template>
   </overview-detail-table>
 </template>
 
@@ -113,9 +110,3 @@ const mappedCvs = computed(() =>
 const prettifyStatus = (status: string) =>
   `${status[0]?.toUpperCase()}${status.substring(1).replace(/_/g, " ")}`;
 </script>
-
-<style scoped>
-.wrap {
-  white-space: normal;
-}
-</style>
