@@ -70,6 +70,7 @@ export type Betrokkene = {
     voornaam: string;
     voorvoegselAchternaam: string;
   };
+  organisatienaam?: string;
   hadKlantcontact?: { uuid: string; url: string };
 };
 

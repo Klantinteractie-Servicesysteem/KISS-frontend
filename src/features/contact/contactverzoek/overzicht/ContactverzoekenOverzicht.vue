@@ -73,15 +73,13 @@ const { level = 2, contactverzoeken } = defineProps<{
   level?: 1 | 2 | 3 | 4;
 }>();
 
-const getKlantNaam = (
-  betrokkene: ContactverzoekOverzichtItem["betrokkene"],
-) => {
-  if (!betrokkene) return "";
-  if (!betrokkene.organisatie) return fullName(betrokkene.persoonsnaam);
-  if (betrokkene.persoonsnaam.achternaam)
-    return `${fullName(betrokkene.persoonsnaam)} (${betrokkene.organisatie})`;
-  return betrokkene.organisatie;
-};
+const getKlantNaam = (betrokkene: ContactverzoekOverzichtItem["betrokkene"]) =>
+  [
+    betrokkene?.organisatie,
+    betrokkene?.persoonsnaam && fullName(betrokkene?.persoonsnaam),
+  ]
+    .filter((x) => !!x)
+    .join(" - ");
 
 const mappedCvs = computed(() =>
   contactverzoeken.map((cv) => ({

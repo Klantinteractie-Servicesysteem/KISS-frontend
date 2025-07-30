@@ -182,6 +182,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
     ({
       klantContact,
       contactnaam,
+      organisatienaam,
       expandedDigitaleAdressen,
       wasPartij,
       zaaknummers,
@@ -205,6 +206,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
           persoonsnaam: contactnaam,
           digitaleAdressen: expandedDigitaleAdressen || [],
           isGeauthenticeerd: !!wasPartij,
+          organisatie: organisatienaam,
         },
         kanaal: klantContact.kanaal,
         zaaknummers,
