@@ -57,6 +57,9 @@
     <template #toelichtingVoorCollega="{ value }">
       <span class="preserve-newline">{{ value }}</span>
     </template>
+    <template #onderwerp="{ value }">
+      <span class="wrap">{{ value }}</span>
+    </template>
   </overview-detail-table>
 </template>
 
@@ -112,57 +115,7 @@ const prettifyStatus = (status: string) =>
 </script>
 
 <style scoped>
-.max18char {
-  max-width: 18ch;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-dl {
-  background: var(--color-white);
-  display: grid;
-  grid-template-columns: minmax(min-content, max-content) auto;
-  row-gap: 0.75rem;
-
-  > div {
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-column: 1 / -1;
-    padding-block: 0.5rem;
-    border-bottom: 1px solid var(--color-accent);
-  }
-}
-
-dd,
-dt {
-  padding-block: 0.5rem;
-  padding-inline: 1rem;
-
-  &:empty::before {
-    content: "-";
-  }
-}
-
-dt.intern {
-  border-inline-start: 4px var(--color-primary) solid;
-}
-
-.details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-button {
-  align-self: start;
-}
-
-.intern {
-  background-color: var(--color-secondary);
-}
-
-td:last-of-type {
-  text-align: right;
+.wrap {
+  white-space: normal;
 }
 </style>
