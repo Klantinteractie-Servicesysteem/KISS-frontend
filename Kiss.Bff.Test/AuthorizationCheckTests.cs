@@ -56,6 +56,8 @@ namespace Kiss.Bff.Test
                     (typeof(GetVerwerkingsLogs), "Get", new Type[0]),
                     (typeof(SeedController), "SeedStart", new Type[0]),
                     (typeof(SeedController), "SeedCheck", new Type[0]),
+                    (typeof(ConnectionsControllerTests), "GetConnections", new Type[0]),
+
                     // Add more controller, method, and parameter combinations as needed
                 };
 
