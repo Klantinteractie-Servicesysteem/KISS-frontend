@@ -87,16 +87,16 @@ const KNOWN_SLOTS = {
 
 // we need to inform vue that the slot names are dynamic based on the props
 type KnownSlotFunctions = {
-  [KNOWN_SLOTS.table_caption](): any;
-  [KNOWN_SLOTS.overview_heading](): any;
-  [KNOWN_SLOTS.detail_heading](props: { record: T }): any;
-  [KNOWN_SLOTS.back_button](props: { record: T }): any;
-  [KNOWN_SLOTS.detail_button](props: { record: T }): any;
+  [KNOWN_SLOTS.table_caption](): unknown;
+  [KNOWN_SLOTS.overview_heading](): unknown;
+  [KNOWN_SLOTS.detail_heading](props: { record: T }): unknown;
+  [KNOWN_SLOTS.back_button](props: { record: T }): unknown;
+  [KNOWN_SLOTS.detail_button](props: { record: T }): unknown;
 };
 
 defineSlots<
   {
-    [K in AllColumns]: (props: { value: NonNullable<T>[K] }) => any;
+    [K in AllColumns]: (props: { value: NonNullable<T>[K] }) => unknown;
   } & KnownSlotFunctions
 >();
 
