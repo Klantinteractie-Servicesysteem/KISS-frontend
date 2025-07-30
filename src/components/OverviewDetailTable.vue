@@ -138,13 +138,6 @@ const goToOverview = () => {
 </script>
 
 <style scoped>
-.max18char {
-  max-width: 18ch;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 dl {
   background: var(--color-white);
   display: grid;
@@ -155,15 +148,17 @@ dl {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: 1 / -1;
-    padding-block: 0.5rem;
+    padding-block: var(--spacing-small);
     border-bottom: 1px solid var(--color-accent);
   }
 }
 
 dd,
 dt {
-  padding-block: 0.5rem;
-  padding-inline: 1rem;
+  --dd-dt-padding-inline: var(--spacing-default);
+
+  padding-block: var(--spacing-small);
+  padding-inline: var(--dd-dt-padding-inline);
 
   &:empty::before {
     content: "-";
@@ -171,7 +166,12 @@ dt {
 }
 
 dt.highlight {
-  border-inline-start: 4px var(--color-primary) solid;
+  --highlight-border-width: 4px;
+
+  border-inline-start: var(--highlight-border-width) var(--color-primary) solid;
+  padding-inline-start: calc(
+    var(--dd-dt-padding-inline) - var(--highlight-border-width)
+  );
 }
 
 .details {
@@ -192,7 +192,7 @@ button {
 td:last-of-type {
   text-align: end;
   padding-inline: 0;
-  padding-block: 0.25rem;
+  padding-block: var(--spacing-extrasmall);
 
   /* scroll shadow */
   background: inherit;
@@ -204,8 +204,8 @@ td:last-of-type {
   /* icon */
 
   .icon-after {
-    padding-inline: 0.75rem;
-    padding-block: 0.25rem;
+    padding-inline: var(--utrecht-button-icon-gap);
+    padding-block: var(--spacing-extrasmall);
   }
 }
 
