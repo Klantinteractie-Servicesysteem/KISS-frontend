@@ -190,13 +190,33 @@ button {
 }
 
 td:last-of-type {
-  text-align: right;
-  padding-inline-end: 0;
+  text-align: end;
+  padding-inline: 0;
   padding-block: 0.25rem;
+
+  /* scroll shadow */
+  background: inherit;
+  position: sticky;
+  inset-inline-end: 0;
+  animation: scroll-shadow-button;
+  animation-timeline: scroll(inline);
+
+  /* icon */
 
   .icon-after {
     padding-inline: 0.75rem;
     padding-block: 0.25rem;
+  }
+}
+
+@keyframes scroll-shadow-button {
+  from {
+    filter: drop-shadow(-5px 0 10px rgb(0 0 0 / 25%));
+    clip-path: inset(0 0 0 -100%);
+  }
+
+  to {
+    clip-path: inset(0 0 0 -100%);
   }
 }
 </style>
