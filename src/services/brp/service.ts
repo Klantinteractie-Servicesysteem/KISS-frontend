@@ -110,7 +110,7 @@ export const searchPersonen = (query: PersoonQuery) => {
       toevoeging,
       huisletter,
       achternaam,
-    } = query.postcodeHuisnummer;
+    } = query.postcodeHuisnummerAchternaam;
 
     request = {
       postcode: numbers + digits,

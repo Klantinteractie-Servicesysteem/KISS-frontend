@@ -175,7 +175,7 @@ const zoekOpGeboortedatum = () => {
 const zoekOpPostcode = () => {
   if (store.value.postcode.validated && store.value.huisnummer.validated) {
     store.value.persoonSearchQuery = {
-      postcodeHuisnummer: {
+      postcodeHuisnummerAchternaam: {
         postcode: store.value.postcode.validated,
         huisnummer: store.value.huisnummer.validated,
         toevoeging: store.value.toevoeging.validated,
