@@ -224,5 +224,37 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
+        [TestMethod("8. Searching by Postcode and Huisnummer with optional Achternaam")]
+        public async Task SearchByPostcodeHuisnummer_WithOptionalAchternaam()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("3544NG");
+            await Page.Personen_HuisnummerInput().FillAsync("10");
+            await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Mel");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then the results should be filtered using achternaam");
+
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+
+            var allNames = await Page.Locator("table tr.row-link th[scope='row']").AllTextContentsAsync();
+            Assert.IsTrue(allNames.Any(), "Er zijn geen resultaten gevonden.");
+            Assert.IsTrue(allNames.All(name => name.Contains("Mel", StringComparison.OrdinalIgnoreCase)),
+                "Niet alle resultaten bevatten 'Mel' in de naam.");
+        }
+
+
     }
 }
