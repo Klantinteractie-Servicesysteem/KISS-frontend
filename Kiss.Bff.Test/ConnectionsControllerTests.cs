@@ -54,8 +54,20 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(registries);
             Assert.AreEqual(2, registries.Count);
 
-            Assert.AreEqual(registryConfig.Systemen[0].Identifier.ToString(), registries[0].Identifier.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].Identifier.ToString(), registries[1].Identifier.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].KlantinteractieRegistry.BaseUrl.ToString(), registries[0].KlantinteractieRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].KlantinteractieRegistry.BaseUrl.ToString(), registries[1].KlantinteractieRegistry.ToString());
+
+            Assert.AreEqual(registryConfig.Systemen[0].InterneTaakRegistry.BaseUrl.ToString(), registries[0].InterneTaakRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].InterneTaakRegistry.BaseUrl.ToString(), registries[1].InterneTaakRegistry.ToString());
+
+            Assert.AreEqual(registryConfig.Systemen[0].KlantRegistry.BaseUrl.ToString(), registries[0].KlantRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].KlantRegistry.BaseUrl.ToString(), registries[1].KlantRegistry.ToString());
+
+            Assert.AreEqual(registryConfig.Systemen[0].ContactmomentRegistry.BaseUrl.ToString(), registries[0].ContactmomentRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ContactmomentRegistry.BaseUrl.ToString(), registries[1].ContactmomentRegistry.ToString());
+
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.BaseUrl.ToString(), registries[0].ZaaksysteemRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.BaseUrl.ToString(), registries[1].ZaaksysteemRegistry.ToString());
 
             Assert.AreEqual(true, (bool)registries[0].IsDefault);
             Assert.AreEqual(false, (bool)registries[1].IsDefault);
@@ -81,9 +93,25 @@ namespace Kiss.Bff.Test
                         RegistryVersion = RegistryVersion.OpenKlant1,
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
-                            BaseUrl = "https://test-system.com/api",
-                            ClientId = "client-id",
-                            ClientSecret = "client-secret"
+                            BaseUrl = "https://test-system.com/klant",
+                        },
+                        ContactmomentRegistry = new ContactmomentRegistry
+                        {
+                            BaseUrl = "https://test-system.com/contact",
+                        },
+                        InterneTaakRegistry = new InternetaakRegistry
+                        {
+                            ObjectTypeUrl = "https://test-system.com/interne-taak/objecttype",
+                            ObjectTypeVersion = "1.0",
+                            BaseUrl = "https://test-system.com/interne-taak",
+                        },
+                        KlantRegistry = new KlantRegistry
+                        {
+                            BaseUrl = "https://test-system.com/klant",
+                        },
+                        ZaaksysteemRegistry = new ZaaksysteemRegistry
+                        {
+                            BaseUrl = "https://test-system.com/zaak",
                         },
                     },
                     new RegistrySystem
@@ -93,9 +121,25 @@ namespace Kiss.Bff.Test
                         RegistryVersion = RegistryVersion.OpenKlant2,
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
-                            BaseUrl = "https://test-system2.com/api",
-                            ClientId = "client-id-2",
-                            ClientSecret = "client-secret-2"
+                            BaseUrl = "https://test-system.com/klant2",
+                        },
+                        ContactmomentRegistry = new ContactmomentRegistry
+                        {
+                            BaseUrl = "https://test-system.com/contact2",
+                        },
+              InterneTaakRegistry = new InternetaakRegistry
+                        {
+                            ObjectTypeUrl = "https://test-system.com/interne-taak/objecttype",
+                            ObjectTypeVersion = "1.0",
+                            BaseUrl = "https://test-system.com/interne-taak2",
+                        },
+                        KlantRegistry = new KlantRegistry
+                        {
+                            BaseUrl = "https://test-system.com/klant2",
+                        },
+                        ZaaksysteemRegistry = new ZaaksysteemRegistry
+                        {
+                            BaseUrl = "https://test-system.com/zaak2",
                         },
                     }
 
