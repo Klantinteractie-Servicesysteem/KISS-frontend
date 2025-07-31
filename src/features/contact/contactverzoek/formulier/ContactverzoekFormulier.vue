@@ -93,8 +93,11 @@
         },
       ]"
     >
-      <label for="medewerker-search">Medewerker</label>
-
+      <label for="medewerker-search">
+        Medewerker
+        <span v-if="form.typeActor === ActorType.medewerker" class="required">
+        </span>
+      </label>
       <medewerker-search
         id="medewerker-search"
         class="utrecht-textbox utrecht-textbox--html-input"
@@ -112,7 +115,7 @@
             ? form.afdeling?.naam
             : form.groep?.naam
         "
-        :required="false"
+        :required="form.typeActor === ActorType.medewerker"
         :isDisabled="
           (form.typeActor == ActorType.afdeling && !form.afdeling?.id) ||
           (form.typeActor == ActorType.groep && !form.groep?.id)
