@@ -23,19 +23,27 @@ namespace Kiss.Bff.Test
             var registryConfig = CreateRegistryConfigWithTwoRegistries();
 
             var afdelingUrl = "https://afdeling.nl";
+            var afdelingObjectTypeUrl = "https://afdeling-objecttype.nl";
             var groepenUrl = "https://groepen.nl";
+            var groepenObjectTypeUrl = "https://groepen-objecttype.nl";
             var vacObjectenUrl = "https://vacobjecten.nl";
             var vacObjectTypeUrl = "https://vacobjecttype.nl";
             var medewerkerObjectenUrl = "https://medewerkerobjecten.nl";
-            var medewerkerObjectTypesUrl = "https://medewerkerobjecttypen.nl";
+            var medewerkerObjectTypeUrl = "https://medewerkerobjecttypen.nl";
+            var sdgObjectenUrl = "https://sdgobjecten.nl";
+            var sdgObjectTypeUrl = "https://sdgobjecttype.nl";
 
             var configurationMock = new Mock<IConfiguration>();
             configurationMock.Setup(cfg => cfg["AFDELINGEN_BASE_URL"]).Returns(afdelingUrl);
+            configurationMock.Setup(cfg => cfg["AFDELINGEN_OBJECT_TYPE_URL"]).Returns(afdelingObjectTypeUrl);
             configurationMock.Setup(cfg => cfg["GROEPEN_BASE_URL"]).Returns(groepenUrl);
+            configurationMock.Setup(cfg => cfg["GROEPEN_OBJECT_TYPE_URL"]).Returns(groepenObjectTypeUrl);
             configurationMock.Setup(cfg => cfg["VAC_OBJECTEN_BASE_URL"]).Returns(vacObjectenUrl);
             configurationMock.Setup(cfg => cfg["VAC_OBJECT_TYPE_URL"]).Returns(vacObjectTypeUrl);
             configurationMock.Setup(cfg => cfg["MEDEWERKER_OBJECTEN_BASE_URL"]).Returns(medewerkerObjectenUrl);
-            configurationMock.Setup(cfg => cfg["MEDEWERKER_OBJECTTYPES_BASE_URL"]).Returns(medewerkerObjectTypesUrl);
+            configurationMock.Setup(cfg => cfg["MEDEWERKER_OBJECT_TYPE_URL"]).Returns(medewerkerObjectTypeUrl);
+            configurationMock.Setup(cfg => cfg["SDG_OBJECTEN_BASE_URL"]).Returns(sdgObjectenUrl);
+            configurationMock.Setup(cfg => cfg["SDG_OBJECT_TYPE_URL"]).Returns(sdgObjectTypeUrl);
 
             var controller = new KissConnectionsController(configurationMock.Object, registryConfig);
 
@@ -73,11 +81,15 @@ namespace Kiss.Bff.Test
             Assert.AreEqual(false, (bool)registries[1].IsDefault);
 
             Assert.AreEqual(afdelingUrl, kissConnectionsModel.AfdelingenBaseUrl);
+            Assert.AreEqual(afdelingObjectTypeUrl, kissConnectionsModel.AfdelingObjectTypeUrl);
             Assert.AreEqual(groepenUrl, kissConnectionsModel.GroepenBaseUrl);
+            Assert.AreEqual(groepenObjectTypeUrl, kissConnectionsModel.GroepenObjectTypeUrl);
             Assert.AreEqual(vacObjectenUrl, kissConnectionsModel.VacObjectenBaseUrl);
             Assert.AreEqual(vacObjectTypeUrl, kissConnectionsModel.VacObjectTypeUrl);
             Assert.AreEqual(medewerkerObjectenUrl, kissConnectionsModel.MedewerkerObjectenBaseUrl);
-            Assert.AreEqual(medewerkerObjectTypesUrl, kissConnectionsModel.MedewerkerObjectTypeUrl);
+            Assert.AreEqual(medewerkerObjectTypeUrl, kissConnectionsModel.MedewerkerObjectTypeUrl);
+            Assert.AreEqual(sdgObjectenUrl, kissConnectionsModel.SdgObjectenBaseUrl);
+            Assert.AreEqual(sdgObjectTypeUrl, kissConnectionsModel.SdgObjectTypeUrl);
         }
 
         private RegistryConfig CreateRegistryConfigWithTwoRegistries()
