@@ -5,7 +5,6 @@
         public RegistryModel() { }
 
         public bool IsDefault { get; set; }
-        public string Identifier { get; set; } = default!;
         public string? RegistryVersion { get; set; }
         public string? KlantinteractieRegistry { get; set; }
         public string? ZaaksysteemRegistry { get; set; }
