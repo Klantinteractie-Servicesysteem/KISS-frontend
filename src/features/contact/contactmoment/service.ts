@@ -92,22 +92,12 @@ export async function koppelKlant({
   }).then(throwIfNotOk) as Promise<void>;
 }
 
-export const useContactmomentDetails = (url: () => string) =>
-  ServiceResult.fromFetcher(
-    () => {
-      const u = url();
-      if (!u) return "";
-      const searchParams = new URLSearchParams();
-      searchParams.set("id", u);
-      return `${contactmomentDetails}?${searchParams.toString()}`;
-    },
-    (url) =>
-      fetchLoggedIn(url).then((r) => {
-        if (r.status === 404) return null;
-        throwIfNotOk(r);
-        return r.json() as Promise<ContactmomentDetails>;
-      }),
-  );
+export const fetchContactmomentDetails = (
+  url: string,
+): Promise<ContactmomentDetails | null> =>
+  fetchLoggedIn(
+    `${contactmomentDetails}?${new URLSearchParams({ id: url })}`,
+  ).then((r) => (r.status === 404 ? null : throwIfNotOk(r).json()));
 
 //te gebruiken om cotactverzoeken als internetaak op te slaan in een overige objecten register, wanneer er geen regiser compatibel met openklant 2 of hoger beschikbaar is.
 export function saveContactverzoek({
@@ -348,4 +338,14 @@ export function mapKlantContactToContactmomentViewModel(
     },
   };
   return vm;
+}
+
+export async function enrichContactmomentWithDetails(
+  cm: ContactmomentViewModel,
+): Promise<ContactmomentViewModel & Partial<ContactmomentDetails>> {
+  const details = await fetchContactmomentDetails(cm.url);
+  return {
+    ...cm,
+    ...(details || {}),
+  };
 }

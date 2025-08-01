@@ -14,7 +14,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
     [TestClass]
     public class AnonymousContactVerzoekPersonCompany : KissPlaywrightTest
     {
-        [TestMethod("1.Contactverzoek form prefill for BSN 999993264")]
+    
+        [TestMethod("1. Contactverzoek form prefill for BSN 999993264")]
+        
         public async Task AnonymousContactVerzoekformBSN()
         {
             await Step("Given the user is on the Startpagina");
@@ -65,7 +67,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("2.Contactverzoek form prefill for BSN form submission")]
+        [TestMethod("2. Contactverzoek form prefill for BSN form submission")]
+        
         public async Task AnonymousContactVerzoekcontactverzoekBSN()
         {
             await Step("Given the user is on the Startpagina");
@@ -201,7 +204,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("4.Contactverzoek form prefill for company with Vestigingsnr")]
+        [TestMethod("4. Contactverzoek form prefill for company with Vestigingsnr")]
+
         public async Task AnonymousContactVerzoekVestigingContactVerzoek()
         {
             await Step("Given the user is on the Startpagina");
@@ -280,7 +284,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("5.Cancel a Contact verzoek Creation for BSN 999993264")]
+        [TestMethod("5. Cancel a Contact verzoek Creation for BSN 999993264")]
+
         public async Task AnonymousContactVerzoekformCancel()
         {
             await Step("Given the user is on the Startpagina");

@@ -15,13 +15,17 @@ import {
   enrichContactmomentWithZaaknummer,
   enrichOnderwerpObjectenWithZaaknummers,
 } from "../shared";
-import { mapKlantContactToContactmomentViewModel } from "./service";
+import {
+  enrichContactmomentWithDetails,
+  mapKlantContactToContactmomentViewModel,
+} from "./service";
 import type { KlantIdentificator } from "@/services/openklant/types";
+import type { ContactmomentDetails } from "./write-contactmoment-details";
 
 export async function fetchContactmomentenByKlantIdentificator(
   klantIndentificator: KlantIdentificator,
   systemen: Systeem[],
-): Promise<ContactmomentViewModel[]> {
+): Promise<Array<ContactmomentViewModel & Partial<ContactmomentDetails>>> {
   const promises = systemen.map(async (systeem) => {
     if (systeem.registryVersion === registryVersions.ok1) {
       const klant = await fetchKlantByKlantIdentificatorOk1(
@@ -37,7 +41,9 @@ export async function fetchContactmomentenByKlantIdentificator(
 
       return Promise.all(
         page.map((item) =>
-          enrichContactmomentWithZaaknummer(systeem.identifier, item),
+          enrichContactmomentWithZaaknummer(systeem.identifier, item).then(
+            enrichContactmomentWithDetails,
+          ),
         ),
       );
     }
@@ -66,13 +72,15 @@ export async function fetchContactmomentenByKlantIdentificator(
         enrichOnderwerpObjectenWithZaaknummers(
           systeem.identifier,
           klantContact._expand.gingOverOnderwerpobjecten || [],
-        ).then((zaaknummers) =>
-          mapKlantContactToContactmomentViewModel(
-            systeem.identifier,
-            klantContact,
-            zaaknummers,
-          ),
-        ),
+        )
+          .then((zaaknummers) =>
+            mapKlantContactToContactmomentViewModel(
+              systeem.identifier,
+              klantContact,
+              zaaknummers,
+            ),
+          )
+          .then(enrichContactmomentWithDetails),
       ),
     );
   });

@@ -19,7 +19,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   results: Paginated<unknown> | PaginatedResult<unknown> | unknown[];
-  zoekTermen: PersoonQuery | BedrijvenQuery | undefined;
+  zoekTermen?: PersoonQuery | BedrijvenQuery;
 }>();
 
 const zoekTermenCaption = computed(() => {
@@ -37,6 +37,10 @@ const zoekTermenCaption = computed(() => {
     const { postcode, huisnummer, huisletter, toevoeging } =
       props.zoekTermen.postcodeHuisnummer;
     return `voor '${postcode.numbers}${postcode.digits}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}'.`;
+  } else if ("postcodeHuisnummerAchternaam" in props.zoekTermen) {
+    const { postcode, huisnummer, huisletter, toevoeging, achternaam } =
+      props.zoekTermen.postcodeHuisnummerAchternaam;
+    return `voor '${postcode.numbers}${postcode.digits}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}${achternaam ? `, ${achternaam}` : ""}'.`;
   } else if ("handelsnaam" in props.zoekTermen) {
     return `voor '${props.zoekTermen.handelsnaam}'.`;
   } else if ("kvkNummer" in props.zoekTermen) {

@@ -25,6 +25,10 @@ export interface PostcodeHuisnummer {
   huisletter?: string;
 }
 
+export interface PostcodeHuisnummerMetAchternaam extends PostcodeHuisnummer {
+  achternaam?: string;
+}
+
 export interface GeslachtsnaamGeboortedatum {
   geslachtsnaam: string;
   geboortedatum: Date;

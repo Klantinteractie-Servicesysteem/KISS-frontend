@@ -182,6 +182,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
     ({
       klantContact,
       contactnaam,
+      organisatienaam,
       expandedDigitaleAdressen,
       wasPartij,
       zaaknummers,
@@ -205,7 +206,9 @@ function mapKlantcontactToContactverzoekOverzichtItem(
           persoonsnaam: contactnaam,
           digitaleAdressen: expandedDigitaleAdressen || [],
           isGeauthenticeerd: !!wasPartij,
+          organisatie: organisatienaam,
         },
+        kanaal: klantContact.kanaal,
         zaaknummers,
       } satisfies ContactverzoekOverzichtItem;
     },
@@ -246,6 +249,7 @@ function mapObjectToContactverzoekOverzichtItem({
       digitaleAdressen: data.betrokkene?.digitaleAdressen || [],
     },
     aangemaaktDoor: fullName(contactmoment?.medewerkerIdentificatie),
+    kanaal: contactmoment?.kanaal || "",
     zaaknummers: contactmoment?.zaaknummers || [],
   } satisfies ContactverzoekOverzichtItem;
 }

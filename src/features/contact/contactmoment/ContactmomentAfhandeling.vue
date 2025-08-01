@@ -329,14 +329,12 @@
               :maxlength="SPECIFIEKEVRAAG_MAXLENGTH"
             />
 
-            <label class="utrecht-form-label" :for="'notitie' + idx"
-              >Notitie</label
-            >
-            <textarea
-              class="utrecht-textarea"
-              :id="'notitie' + idx"
+            <max-length-text-area
               v-model="vraag.notitie"
-            ></textarea>
+              :maxlength="NOTITIE_MAXLENGTH"
+              :id="'notitie' + idx"
+            />
+
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
             >
@@ -501,7 +499,11 @@ import {
   saveContactmoment,
 } from "@/services/openklant1";
 import type { Contactmoment, Klant } from "@/services/openklant/types";
-import { SPECIFIEKEVRAAG_MAXLENGTH } from "@/services/openklant/service";
+import {
+  SPECIFIEKEVRAAG_MAXLENGTH,
+  NOTITIE_MAXLENGTH,
+} from "@/services/openklant/service";
+import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -650,7 +652,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const klanten = await ensureKlanten(systeem, vraag);
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
-  const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
+  const isAnoniem = !klanten.length;
   const isNietAnoniemContactmoment = !isContactverzoek && !isAnoniem;
 
   // gedeeld contactmoment voor contactmomentdetails
@@ -930,7 +932,6 @@ async function submit() {
     if (!contactmomentStore.huidigContactmoment) return;
 
     const { vragen } = contactmomentStore.huidigContactmoment;
-
     const saveVraagResult = await saveVraag(vragen[0]);
 
     if (saveVraagResult.errorMessage) {

@@ -1,129 +1,110 @@
 <template>
-  <section>
-    <expandable-table-list :items="contactverzoeken" item-key="url">
-      <template #header>
-        <span id="datum-header" class="icon-after sort-descending">Datum</span>
-        <span id="onderwerp-header">Onderwerp</span>
-        <span id="medewerker-header">Status</span>
-        <span id="kanaal-header">Behandelaar</span>
-      </template>
-
-      <template
-        v-slot:item="{
-          item: contactverzoek,
-        }: {
-          item: ContactverzoekOverzichtItem;
-        }"
-      >
-        <summary>
-          <dutch-date
-            v-if="contactverzoek.registratiedatum"
-            :date="new Date(contactverzoek.registratiedatum)"
-          />
-          <span v-else />
-          <span class="max18char" :title="contactverzoek.onderwerp"
-            >{{ contactverzoek.onderwerp }}
-          </span>
-          <span>{{ contactverzoek.status }}</span>
-          <span>{{ contactverzoek.behandelaar }}</span>
-        </summary>
-        <dl>
-          <dt>Starttijd</dt>
-          <dd>
-            <dutch-time
-              v-if="contactverzoek.registratiedatum"
-              :date="new Date(contactverzoek.registratiedatum)"
-            />
-          </dd>
-
-          <dt>Toelichting voor de collega</dt>
-          <dd class="preserve-newline">
-            {{ contactverzoek.toelichtingVoorCollega }}
-          </dd>
-
-          <template v-if="contactverzoek.betrokkene?.persoonsnaam?.achternaam">
-            <dt>Naam betrokkene</dt>
-            <dd>
-              {{ fullName(contactverzoek.betrokkene.persoonsnaam) }}
-            </dd>
-          </template>
-
-          <template v-if="contactverzoek.betrokkene?.organisatie">
-            <dt>Organisatie</dt>
-            <dd>{{ contactverzoek.betrokkene?.organisatie }}</dd>
-          </template>
-
-          <template
-            v-for="(adres, idx) in contactverzoek.betrokkene
-              ?.digitaleAdressen || []"
-            :key="idx"
-          >
-            <dt>
-              {{
-                capitalizeFirstLetter(
-                  adres.omschrijving || adres.soortDigitaalAdres || "contact",
-                )
-              }}
-            </dt>
-            <dd>
-              {{ adres.adres }}
-            </dd>
-          </template>
-
-          <template v-if="contactverzoek.aangemaaktDoor">
-            <dt>Aangemaakt door</dt>
-            <dd>{{ contactverzoek.aangemaaktDoor }}</dd>
-          </template>
-
-          <dt v-if="contactverzoek.zaaknummers.length">Zaaknummer</dt>
-          <dd
-            v-for="zaaknummer in contactverzoek.zaaknummers"
-            :key="zaaknummer"
-          >
-            {{ zaaknummer }}
-          </dd>
-
-          <template v-if="contactverzoek?.vraag">
-            <dt>Vraag</dt>
-            <dd>{{ contactverzoek.vraag }}</dd>
-          </template>
-
-          <template v-if="contactverzoek?.toelichtingBijContactmoment">
-            <dt>Toelichting</dt>
-            <dd>
-              {{ contactverzoek.toelichtingBijContactmoment }}
-            </dd>
-          </template>
-        </dl>
-      </template>
-    </expandable-table-list>
-  </section>
+  <overview-detail-table
+    :level="level"
+    :records="mappedCvs"
+    :overview-columns="[
+      'registratiedatum',
+      'onderwerp',
+      'status',
+      'behandelaar',
+    ]"
+    :detail-groups="[
+      [
+        'onderwerp',
+        'toelichtingBijContactmoment',
+        'zaaknummers',
+        'toelichtingVoorCollega',
+      ],
+      ['klantnaam', 'emails', 'telefoonnummers'],
+      ['registratiedatum', 'aangemaaktDoor', 'behandelaar', 'status', 'kanaal'],
+    ]"
+    :headings="{
+      aangemaaktDoor: 'Aangemaakt door',
+      behandelaar: 'Behandelaar',
+      klantnaam: 'Klantnaam',
+      kanaal: 'Kanaal',
+      onderwerp: 'Onderwerp',
+      registratiedatum: 'Aangemaakt op',
+      toelichtingBijContactmoment: 'Informatie voor klant',
+      toelichtingVoorCollega: 'Interne toelichting',
+      zaaknummers: 'Gekoppelde zaak',
+      status: 'Status',
+      emails: 'E-mailadres',
+      telefoonnummers: 'Telefoonnummer(s)',
+    }"
+    :highlight="['toelichtingVoorCollega']"
+    key-prop="url"
+  >
+    <template #overview-heading
+      ><slot name="overview-heading">Contactverzoeken</slot></template
+    >
+    <template #table-caption
+      ><slot name="caption">
+        <caption class="sr-only">
+          Contactverzoeken
+        </caption>
+      </slot></template
+    >
+    <template #detail-heading>Contactverzoek</template>
+    <template #back-button>Alle contactverzoeken</template>
+    <template #detail-button="{ record }"
+      >Details van het contactverzoek dat plaats vond op
+      <dutch-date-time :date="record.registratiedatum"
+    /></template>
+    <template #registratiedatum="{ value }">
+      <dutch-date-time :date="value" />
+    </template>
+    <template #toelichtingVoorCollega="{ value }">
+      <span class="preserve-newline">{{ value }}</span>
+    </template>
+  </overview-detail-table>
 </template>
 
 <script lang="ts" setup>
-import DutchDate from "@/components/DutchDate.vue";
-import DutchTime from "@/components/DutchTime.vue";
 import { fullName } from "@/helpers/string";
-import ExpandableTableList from "@/components/ExpandableTableList.vue";
+import DutchDateTime from "@/components/DutchDateTime.vue";
+import { computed } from "vue";
 import type { ContactverzoekOverzichtItem } from "./types";
+import { DigitaalAdresTypes } from "@/services/openklant2";
+import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
 
-defineProps<{
+const { level = 2, contactverzoeken } = defineProps<{
   contactverzoeken: ContactverzoekOverzichtItem[];
+  level?: 1 | 2 | 3 | 4;
 }>();
 
-const capitalizeFirstLetter = (val: string) =>
-  `${val?.[0]?.toLocaleUpperCase() || ""}${val?.substring(1) || ""}`;
+const getKlantNaam = (betrokkene: ContactverzoekOverzichtItem["betrokkene"]) =>
+  [
+    betrokkene?.organisatie,
+    betrokkene?.persoonsnaam && fullName(betrokkene?.persoonsnaam),
+  ]
+    .filter((x) => !!x)
+    .join(" - ");
+
+const mappedCvs = computed(() =>
+  contactverzoeken.map((cv) => ({
+    ...cv,
+    status: prettifyStatus(cv.status),
+    klantnaam: getKlantNaam(cv.betrokkene),
+    zaaknummers: cv.zaaknummers.join(", "),
+
+    emails: cv.betrokkene?.digitaleAdressen
+      .filter(
+        ({ soortDigitaalAdres }) =>
+          soortDigitaalAdres == DigitaalAdresTypes.email,
+      )
+      .map(({ adres }) => adres)
+      .join(", "),
+    telefoonnummers: cv.betrokkene?.digitaleAdressen
+      .filter(
+        ({ soortDigitaalAdres }) =>
+          soortDigitaalAdres == DigitaalAdresTypes.telefoonnummer,
+      )
+      .map(({ adres }) => adres)
+      .join(", "),
+  })),
+);
+
+const prettifyStatus = (status: string) =>
+  `${status[0]?.toUpperCase()}${status.substring(1).replace(/_/g, " ")}`;
 </script>
-
-<style scoped>
-.preserve-newline {
-  white-space: pre-line;
-}
-
-.max18char {
-  max-width: 18ch;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-</style>
