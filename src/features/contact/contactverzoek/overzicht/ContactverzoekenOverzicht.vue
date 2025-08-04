@@ -15,7 +15,7 @@
         'zaaknummers',
         'toelichtingVoorCollega',
       ],
-      ['klantnaam', 'emails', 'telefoonnummers'],
+      ['klantnaam', 'emails', 'telefoonnummer1', 'otherTelefoonnummers'],
       ['registratiedatum', 'aangemaaktDoor', 'behandelaar', 'status', 'kanaal'],
     ]"
     :headings="{
@@ -30,7 +30,8 @@
       zaaknummers: 'Gekoppelde zaak',
       status: 'Status',
       emails: 'E-mailadres',
-      telefoonnummers: 'Telefoonnummer(s)',
+      telefoonnummer1: 'Eerste telefoonnummer',
+      otherTelefoonnummers: 'Andere telefoonnummers',
     }"
     :highlight="['toelichtingVoorCollega']"
     key-prop="url"
@@ -85,27 +86,35 @@ const getKlantNaam = (betrokkene: ContactverzoekOverzichtItem["betrokkene"]) =>
     .join(" - ");
 
 const mappedCvs = computed(() =>
-  contactverzoeken.map((cv) => ({
-    ...cv,
-    status: prettifyStatus(cv.status),
-    klantnaam: getKlantNaam(cv.betrokkene),
-    zaaknummers: cv.zaaknummers.join(", "),
-
-    emails: cv.betrokkene?.digitaleAdressen
-      .filter(
-        ({ soortDigitaalAdres }) =>
-          soortDigitaalAdres == DigitaalAdresTypes.email,
-      )
-      .map(({ adres }) => adres)
-      .join(", "),
-    telefoonnummers: cv.betrokkene?.digitaleAdressen
-      .filter(
+  contactverzoeken.map((cv) => {
+    const telefoonnummers =
+      cv.betrokkene?.digitaleAdressen.filter(
         ({ soortDigitaalAdres }) =>
           soortDigitaalAdres == DigitaalAdresTypes.telefoonnummer,
-      )
-      .map(({ adres }) => adres)
-      .join(", "),
-  })),
+      ) ?? [];
+
+    return {
+      ...cv,
+      status: prettifyStatus(cv.status),
+      klantnaam: getKlantNaam(cv.betrokkene),
+      zaaknummers: cv.zaaknummers.join(", "),
+
+      emails: cv.betrokkene?.digitaleAdressen
+        .filter(
+          ({ soortDigitaalAdres }) =>
+            soortDigitaalAdres == DigitaalAdresTypes.email,
+        )
+        .map(({ adres }) => adres)
+        .join(", "),
+
+      telefoonnummer1: telefoonnummers?.[0]?.adres,
+
+      otherTelefoonnummers: telefoonnummers
+        .filter((_, i) => i > 0)
+        .map(({ adres, omschrijving }) => `${adres} (${omschrijving})`)
+        .join(", "),
+    };
+  }),
 );
 
 const prettifyStatus = (status: string) =>
