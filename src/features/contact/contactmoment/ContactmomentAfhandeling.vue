@@ -1252,7 +1252,7 @@ select {
 }
 
 .contactverzoek-container {
-  :deep(label) {
+  :deep(.utrecht-form-label) {
     display: grid;
     grid-template-columns: var(--label-width) auto;
     gap: var(--label-gap);
