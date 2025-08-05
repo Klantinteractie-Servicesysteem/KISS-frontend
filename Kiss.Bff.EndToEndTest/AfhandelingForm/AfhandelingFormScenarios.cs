@@ -59,9 +59,9 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field specific vraag");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field specific vraag");
 
-            await Expect(Page.GetSpecificVraagField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
+            await Expect(Page.GetSpecificVraagField()).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
 
             await Step("And user enters 'Test' in field specific vraag");
 
@@ -101,7 +101,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("Then error message as 'Please fill out this field.' is displayed for the field Afdeling");
 
-            await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
+            await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
 
             await Step("And user selects 'parkeren' from the dropdown list");
 

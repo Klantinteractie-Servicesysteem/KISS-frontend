@@ -218,8 +218,16 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
 
             await Step("And contactmoment details are displayed");
-            await Page.Locator("summary").Filter(new() { HasText = "icatt" }).First.PressAsync("Enter");
+
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("icatt")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
+
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "test vraag 2" })).ToBeVisibleAsync();
+
 
         }
 
@@ -326,6 +334,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
             await Step("And enters “Kind erkennen” in the search field in the Search pane");
+
             await Page.GetByLabel("Zoekterm").FillAsync("Kind erkennen");
 
             await Step("And clicks on the first result in the list");
