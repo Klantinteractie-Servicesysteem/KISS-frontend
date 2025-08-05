@@ -78,6 +78,7 @@ export function useGlobalSearch(
 
   const getPayload = () => {
     if (!template.value || !parameters.value.search) return "";
+
     const page = parameters.value.page || 1;
     const from = (page - 1) * pageSize;
 
@@ -89,6 +90,50 @@ export function useGlobalSearch(
     const query = JSON.parse(replaced);
     query.from = from;
     query.size = pageSize;
+
+    const allFilters = parameters.value.filters;
+
+    const selectedDomains = allFilters
+      .map((f) => f.name)
+      .filter((name) => name.startsWith("http"));
+
+    const selectedBronnen = allFilters
+      .map((f) => f.name)
+      .filter((name) => !name.startsWith("http"));
+
+    const filterClauses = [];
+
+    if (selectedDomains.length) {
+      filterClauses.push({
+        terms: {
+          "domains.enum": selectedDomains,
+        },
+      });
+    }
+
+    if (selectedBronnen.length) {
+      filterClauses.push({
+        terms: {
+          "object_bron.enum": selectedBronnen,
+        },
+      });
+    }
+
+    if (filterClauses.length) {
+      query.query = {
+        bool: {
+          must: [query.query],
+          filter: [
+            {
+              bool: {
+                should: filterClauses,
+                minimum_should_match: 1,
+              },
+            },
+          ],
+        },
+      };
+    }
 
     return JSON.stringify(query);
   };
