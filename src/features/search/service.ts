@@ -82,55 +82,43 @@ export function useGlobalSearch(
     const page = parameters.value.page || 1;
     const from = (page - 1) * pageSize;
 
-    const replaced = template.value.replace(
+    const rawQuery = template.value.replace(
       /\{\{query\}\}/g,
       parameters.value.search,
     );
 
-    const query = JSON.parse(replaced);
+    const query = JSON.parse(rawQuery);
     query.from = from;
     query.size = pageSize;
 
-    const allFilters = parameters.value.filters;
+    const filters = parameters.value.filters ?? [];
 
-    const selectedDomains = allFilters
-      .map((f) => f.name)
-      .filter((name) => name.startsWith("http"));
+    const filterClauses = filters.reduce(
+      (acc, { name }) => {
+        if (name.startsWith("http")) {
+          acc.domains.push(name);
+        } else {
+          acc.bronnen.push(name);
+        }
+        return acc;
+      },
+      { domains: [], bronnen: [] } as { domains: string[]; bronnen: string[] },
+    );
 
-    const selectedBronnen = allFilters
-      .map((f) => f.name)
-      .filter((name) => !name.startsWith("http"));
+    const conditions = [];
 
-    const filterClauses = [];
-
-    if (selectedDomains.length) {
-      filterClauses.push({
-        terms: {
-          "domains.enum": selectedDomains,
-        },
-      });
+    if (filterClauses.domains.length) {
+      conditions.push({ terms: { "domains.enum": filterClauses.domains } });
+    }
+    if (filterClauses.bronnen.length) {
+      conditions.push({ terms: { "object_bron.enum": filterClauses.bronnen } });
     }
 
-    if (selectedBronnen.length) {
-      filterClauses.push({
-        terms: {
-          "object_bron.enum": selectedBronnen,
-        },
-      });
-    }
-
-    if (filterClauses.length) {
+    if (conditions.length) {
       query.query = {
         bool: {
           must: [query.query],
-          filter: [
-            {
-              bool: {
-                should: filterClauses,
-                minimum_should_match: 1,
-              },
-            },
-          ],
+          filter: [{ bool: { should: conditions } }],
         },
       };
     }
