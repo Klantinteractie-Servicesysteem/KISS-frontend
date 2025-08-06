@@ -137,6 +137,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await Step("And navigates to the screen 'Zaak ZAAK-2023-001'");
 
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-001" })).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on tab Contactmomenten");
 

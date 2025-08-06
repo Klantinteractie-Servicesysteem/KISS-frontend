@@ -219,9 +219,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Table).Locator("tr.row-link")
                 .Nth(1).Locator("th[scope='row']")).ToHaveTextAsync("Julia Christina Melapatti");
 
-
-
-
         }
 
         [TestMethod("8. Searching by Postcode and Huisnummer with optional Achternaam")]
@@ -240,6 +237,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.Personen_PostCodeInput().FillAsync("3544NG");
             await Page.Personen_HuisnummerInput().FillAsync("10");
             await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Mel");
+            await Page.WaitForTimeoutAsync(1000);
 
             await Step("And clicks the search button");
 
@@ -250,7 +248,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
 
             var allNames = await Page.Locator("table tr.row-link th[scope='row']").AllTextContentsAsync();
-            Assert.IsTrue(allNames.Any(), "Er zijn geen resultaten gevonden.");
+            Assert.IsTrue(allNames.Any(), "Geen resultaten gevonden voor '3544NG, 10, Mel'.");
             Assert.IsTrue(allNames.All(name => name.Contains("Mel", StringComparison.OrdinalIgnoreCase)),
                 "Niet alle resultaten bevatten 'Mel' in de naam.");
         }

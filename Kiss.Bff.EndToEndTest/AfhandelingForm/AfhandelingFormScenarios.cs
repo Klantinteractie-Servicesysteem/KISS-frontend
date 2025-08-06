@@ -99,7 +99,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field Afdeling");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field Afdeling");
 
             await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
 
