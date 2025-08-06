@@ -183,7 +183,5 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-
-
     }
 }
