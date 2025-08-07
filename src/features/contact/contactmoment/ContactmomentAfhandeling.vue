@@ -448,6 +448,7 @@ import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
+  type ContactmomentState,
   type Vraag,
 } from "@/stores/contactmoment";
 import { toast } from "@/stores/toast";
@@ -930,6 +931,13 @@ async function submit() {
     saving.value = true;
     errorMessage.value = "";
     if (!contactmomentStore.huidigContactmoment) return;
+    const validationMessage = validateContactmomentState(
+      contactmomentStore.huidigContactmoment,
+    );
+    if (validationMessage) {
+      toast({ type: "error", text: validationMessage, timeout: 30_000 });
+      return;
+    }
 
     const { vragen } = contactmomentStore.huidigContactmoment;
     const saveVraagResult = await saveVraag(vragen[0]);
@@ -1171,6 +1179,31 @@ const ensureKlanten = async (systeem: Systeem, vraag: Vraag) => {
     });
   }
   return result;
+};
+
+const validateContactmomentState = (cm: ContactmomentState) => {
+  const validateContactverzoekToelichtingLength = () => {
+    const TOELICHTING_MAX_LENGTH = 1_000;
+    for (const [index, vraag] of cm.vragen.entries()) {
+      if (vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT) {
+        const contactverzoek = mapContactverzoekData({
+          data: vraag.contactverzoek,
+        });
+        const toelichtingLength = contactverzoek.toelichting?.length ?? 0;
+        if (toelichtingLength > TOELICHTING_MAX_LENGTH) {
+          return (
+            `De interne informatie van vraag ${index + 1} bevat ${toelichtingLength} tekens, ` +
+            `dit mag maximaal ${TOELICHTING_MAX_LENGTH} tekens zijn. ` +
+            `Verwijder ${toelichtingLength - TOELICHTING_MAX_LENGTH} tekens ` +
+            `uit de Interne toelichting voor de medewerker, ` +
+            `of uit de velden van een contactverzoekformulier.`
+          );
+        }
+      }
+    }
+  };
+
+  return validateContactverzoekToelichtingLength();
 };
 </script>
 
