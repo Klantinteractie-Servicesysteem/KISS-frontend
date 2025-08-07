@@ -473,7 +473,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.GetByRole(AriaRole.Link, new() { Name = "Nieuws en werkinstructies" }).ClickAsync();
 
             var buffer = await Page.ScreenshotAsync(new() { Path = "screenshot.png", FullPage = true });
-            Console.log(System.Text.Encoding.Default.GetString(buffer));
+            Console.WriteLine(System.Text.Encoding.Default.GetString(buffer));
 
             await Page.GetByRole(AriaRole.Article).Filter(new() { HasText = "28-03-2025, 12:03Bewerkt op" }).GetByLabel("Opslaan bij contactmoment").CheckAsync();
 
