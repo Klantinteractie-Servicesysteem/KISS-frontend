@@ -935,7 +935,12 @@ async function submit() {
       contactmomentStore.huidigContactmoment,
     );
     if (validationMessage) {
-      toast({ type: "error", text: validationMessage, timeout: 30_000 });
+      toast({
+        type: "error",
+        text: validationMessage,
+        timeout: 30_000,
+        dimiss: true,
+      });
       return;
     }
 
