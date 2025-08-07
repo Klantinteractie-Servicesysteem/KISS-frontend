@@ -1,5 +1,6 @@
 ﻿
 
+using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 
@@ -100,7 +101,18 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" }).ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" }).ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register clean up of contactmoment
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
