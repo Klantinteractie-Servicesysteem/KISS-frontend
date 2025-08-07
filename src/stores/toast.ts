@@ -6,7 +6,7 @@ interface ToastParams {
   text: string;
   type?: MessageType;
   timeout?: number;
-  dimiss?: boolean;
+  dismissable?: boolean;
 }
 
 interface Message {
@@ -34,7 +34,7 @@ export function toast(params: ToastParams) {
     text: params.text,
     type: params.type || "confirm",
     key: (key += 1),
-    dismiss: params.dimiss ? () => remove(message) : undefined,
+    dismiss: params.dismissable ? () => remove(message) : undefined,
   };
   _messages.push(message);
   setTimeout(() => {

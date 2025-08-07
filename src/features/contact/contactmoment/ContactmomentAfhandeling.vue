@@ -939,7 +939,7 @@ async function submit() {
         type: "error",
         text: validationMessage,
         timeout: 30_000,
-        dimiss: true,
+        dismissable: true,
       });
       return;
     }
