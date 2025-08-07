@@ -16,6 +16,14 @@ import { http } from "msw";
 
 const someUrl = "https://dummy.request.fgdsf";
 
+vi.mock('@/features/login', () => ({
+  useCurrentUser: () => ({
+    data: null,
+    error: null,
+    loading: false,
+  }),
+}));
+
 describe("fetchLoggedIn", () => {
   const consoleLogMock = vi.spyOn(console, "log");
   const consoleWarnMock = vi.spyOn(console, "warn");
