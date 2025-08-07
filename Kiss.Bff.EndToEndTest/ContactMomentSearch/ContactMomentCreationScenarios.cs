@@ -471,7 +471,9 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Step("go to tab Nieuws en werkinstructies, and link 1 item to this Contactmoment ");
 
             await Page.GetByRole(AriaRole.Link, new() { Name = "Nieuws en werkinstructies" }).ClickAsync();
+            await Page.ScreenshotAsync(new() { Path = "screenshot.png", FullPage = true });
             await Page.GetByRole(AriaRole.Article).Filter(new() { HasText = "28-03-2025, 12:03Bewerkt op" }).GetByLabel("Opslaan bij contactmoment").CheckAsync();
+            await Page.ScreenshotAsync(new() { Path = "screenshot.png", FullPage = true });
 
             await Step("Add a note");
             var note2 = "test multiple contactmoment scenario relate niews werkinstructies";
