@@ -169,7 +169,9 @@ namespace Kiss.Bff.EndToEndTest
             var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "screenshots");
             Directory.CreateDirectory(screenshotDir);
 
+
             var path = Path.Combine(screenshotDir, $"{testName}.png");
+            Console.WriteLine($"Saving screenshot to: {path}");
             await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
         }
 
