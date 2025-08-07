@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
-          path: ./screenshots/
+          path: /home/runner/work/KISS-frontend/KISS-frontend/Kiss.Bff.EndToEndTest/bin/Debug/net8.0/screenshots/
       - name: Show working directory
         run: pwd
   deploy:
