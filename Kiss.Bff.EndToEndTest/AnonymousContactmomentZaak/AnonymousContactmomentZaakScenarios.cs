@@ -110,9 +110,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
         [TestMethod("4. View Contactmoment bij Zaak")]
         public async Task ViewContactmomentBijZaak()
         {
-            // await Step("Precondition: Scenario: Register Contactmoment bij Zaak – II is executed");
+            await Step("Precondition: Scenario: Register Contactmoment bij Zaak – II is executed");
 
-            // await RegisterContactmomentBijZaakII();
+            await RegisterContactmomentBijZaakII();
 
             await Step("Given the user is on the Startpagina");
 
@@ -128,7 +128,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("And enters 'ZAAK-2023-001' in the search field");
 
-            await Page.GetByTitle("ZAAK-1").FillAsync("ZAAK-2023-002");
+            await Page.GetByTitle("ZAAK-1").FillAsync("ZAAK-2023-001");
 
             await Step("And clicks zoeken");
 
@@ -136,8 +136,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Step("And navigates to the screen 'Zaak ZAAK-2023-001'");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-002" })).ToBeVisibleAsync();
-            // await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-001" })).ToBeVisibleAsync();
 
             await Step("And clicks on tab Contactmomenten");
 
