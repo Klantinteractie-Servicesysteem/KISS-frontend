@@ -163,7 +163,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
-
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
