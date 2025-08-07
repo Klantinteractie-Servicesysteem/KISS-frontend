@@ -7,6 +7,7 @@
       role="status"
       :class="type"
     >
+      <span>{{ text }}</span>
       <button
         v-if="dismiss"
         class="icon icon-after xmark icon-only"
@@ -14,7 +15,6 @@
         title="Gelezen"
         @click="dismiss"
       />
-      <span>{{ text }}</span>
     </output>
   </transition-group>
 </template>
