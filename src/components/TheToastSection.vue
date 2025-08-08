@@ -2,12 +2,20 @@
   <!-- https://web.dev/building-a-toast-component/ -->
   <transition-group name="toast" tag="section">
     <output
-      v-for="{ text, type, key } in messages"
+      v-for="{ text, type, key, dismiss } in messages"
       :key="key"
       role="status"
       :class="type"
-      >{{ text }}</output
     >
+      <span>{{ text }}</span>
+      <button
+        v-if="dismiss"
+        class="icon icon-after xmark icon-only"
+        type="button"
+        title="Gelezen"
+        @click="dismiss"
+      />
+    </output>
   </transition-group>
 </template>
 
@@ -26,7 +34,10 @@ section {
   justify-items: center;
   justify-content: center;
   gap: 1vh;
-  pointer-events: none;
+
+  &:not(:has(button)) {
+    pointer-events: none;
+  }
 }
 
 output {
@@ -60,5 +71,11 @@ output {
    animations can be calculated correctly. */
 .toast-leave-active {
   position: absolute;
+}
+
+button {
+  cursor: pointer;
+  float: inline-end;
+  block-size: var(--line-height-default);
 }
 </style>
