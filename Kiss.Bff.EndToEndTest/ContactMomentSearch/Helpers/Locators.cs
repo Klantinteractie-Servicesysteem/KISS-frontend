@@ -10,8 +10,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers
     {
 
         public static ILocator Personen_LastNameInput(this IPage page) =>
-           page.GetByRole(AriaRole.Textbox, new() { Name = "Achternaam" });
-
+            page.Locator("form").Filter(new() { HasText = "Achternaam Geboortedatum" }).GetByLabel("Achternaam");
         public static ILocator Personen_BirthDateInput(this IPage page) =>
            page.GetByRole(AriaRole.Textbox, new() { Name = "Geboortedatum" });
 

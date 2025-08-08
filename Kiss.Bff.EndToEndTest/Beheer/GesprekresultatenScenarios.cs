@@ -51,45 +51,57 @@ namespace Kiss.Bff.EndToEndTest.Beheer
 
 
         [TestMethod("3. Editing an existing Gesprekresultaten")]
-        public async Task Editgespreksresultaat()
+        public async Task EditGespreksresultaat()
         {
-            // Precondition: Add the Gesprekresultaten
             string originalGesprekresultaat = "Automation Gesprekresultaten edit";
             string updatedGesprekresultaat = "Automation Gesprekresultaten Updated";
 
-
             try
             {
-                // ✅ Precondition: Clean up test data if already present
-                await DeleteGespreksresultaatIfExists(updatedGesprekresultaat); // In case previous run was interrupted
-                await AddGespreksresultaatHelper(originalGesprekresultaat);
-                await Step("Given the user is on the 'Gesprekresultaten' section of the 'Beheer' tab");
 
+                await DeleteGespreksresultaatIfExists(originalGesprekresultaat);
+                await DeleteGespreksresultaatIfExists(updatedGesprekresultaat);
+
+
+                await AddGespreksresultaatHelper(originalGesprekresultaat);
+
+                await Step("Given the user is on the 'Gespreksresultaten' section of the 'Beheer' tab");
                 await Page.GotoAsync("/");
                 await Page.GetByRole(AriaRole.Link, new() { Name = "Beheer" }).ClickAsync();
                 await Page.GetByRole(AriaRole.Link, new() { Name = "Gespreksresultaten" }).ClickAsync();
 
-                await Step($"When user clicks on channel list with name as '{"Automation Gesprekresultaten edit"}'");
+                await Step($"When the user clicks on the list item named '{originalGesprekresultaat}'");
+                await Page.GetByRole(AriaRole.Link, new() { Name = originalGesprekresultaat }).ClickAsync();
 
-                await Page.GetByRole(AriaRole.Link, new() { Name = "Automation Gesprekresultaten edit" }).ClickAsync();
-
-                await Step($"And user updates title to '{updatedGesprekresultaat}'");
-
+                await Step($"And the user updates the title to '{updatedGesprekresultaat}'");
                 await Page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).FillAsync(updatedGesprekresultaat);
 
-                await Step("And user clicks on Opslaan");
-
+                await Step("And the user clicks on Opslaan");
                 await Page.GetOpslaanButton().ClickAsync();
 
-                await Step($"And updated Gesprekresultaten '{updatedGesprekresultaat}' is added to the list of gespreksresultaten");
-
-                await Expect(Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = updatedGesprekresultaat })).ToBeVisibleAsync();
+                await Step("And the updated Gespreksresultaat appears in the list");
+                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                await Expect(Page.GetByRole(AriaRole.Listitem)
+                    .Filter(new() { HasText = updatedGesprekresultaat }))
+                    .ToBeVisibleAsync();
             }
             finally
             {
-                await DeleteGespreksresultaatHelper(updatedGesprekresultaat);
+
+                var updatedItem = Page.GetByRole(AriaRole.Listitem)
+                    .Filter(new() { HasText = updatedGesprekresultaat });
+
+                if (await updatedItem.IsVisibleAsync())
+                {
+                    await DeleteGespreksresultaatHelper(updatedGesprekresultaat);
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️ Cleanup skipped: '{updatedGesprekresultaat}' not found in the list.");
+                }
             }
         }
+
 
         [TestMethod("4. Deleting a Gespreksresultaten")]
         public async Task Deletegespreksresultaat()

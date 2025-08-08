@@ -59,7 +59,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field specific vraag");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field specific vraag");
 
             await Expect(Page.GetSpecificVraagField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
 
@@ -99,7 +99,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field Afdeling");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field Afdeling");
 
             await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
 
@@ -163,7 +163,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
-
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
@@ -182,8 +181,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
-
-
 
     }
 }

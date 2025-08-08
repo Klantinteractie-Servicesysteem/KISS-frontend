@@ -14,9 +14,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
     [TestClass]
     public class AnonymousContactVerzoekPersonCompany : KissPlaywrightTest
     {
-    
+
         [TestMethod("1. Contactverzoek form prefill for BSN 999993264")]
-        
+
         public async Task AnonymousContactVerzoekformBSN()
         {
             await Step("Given the user is on the Startpagina");
@@ -68,7 +68,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
         }
 
         [TestMethod("2. Contactverzoek form prefill for BSN form submission")]
-        
+
         public async Task AnonymousContactVerzoekcontactverzoekBSN()
         {
             await Step("Given the user is on the Startpagina");
@@ -200,7 +200,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0536711764");
 
             await Step("And field E-mailadres has value prijsknaller.bv@syps.nl ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("prijsknaller.bv@syps.nl");
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("syps+prijsknaller@icatt.nl");
 
         }
 
@@ -279,8 +279,15 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoeken" }).ClickAsync();
 
             await Step("And contactverzoek details are displayed");
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
-            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "prijsknaller.bv@syps.nl" })).ToBeVisibleAsync();
+
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
+
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "syps+prijsknaller@icatt.nl" })).ToBeVisibleAsync();
 
         }
 
