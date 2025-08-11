@@ -114,8 +114,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
                 // TODO: make configurable?
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(20);
+                options.SlidingExpiration = false;
                 //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
                 options.Events.OnRedirectToAccessDenied = (ctx) =>
                 {

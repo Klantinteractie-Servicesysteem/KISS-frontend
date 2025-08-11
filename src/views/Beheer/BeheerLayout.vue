@@ -28,15 +28,18 @@
 <script setup lang="ts">
 import { watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { useCurrentUser } from "@/features/login";
 import { useLoader } from "@/services/use-loader";
 import { fetchLoggedIn } from "@/services";
+import { useUserStore } from "@/stores/user";
+import { storeToRefs } from "pinia";
 
-const user = useCurrentUser();
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
+
 const router = useRouter();
 
 watchEffect(() => {
-  if (user.success && user.data.isLoggedIn && !user.data.isRedacteur) {
+  if (user.value.isLoggedIn && !user.value.isRedacteur) {
     router.push("/");
   }
 });

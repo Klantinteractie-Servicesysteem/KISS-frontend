@@ -4,16 +4,14 @@ import type { Ref } from "vue";
 import { computed } from "vue";
 
 export type User =
-  | {
-      isLoggedIn: false;
-    }
-  | {
-      isLoggedIn: true;
-      isRedacteur: boolean;
-      isKcm: boolean;
-      email: string;
-      organisatieIds: string[];
-    };
+  {
+    isLoggedIn: boolean;
+    isRedacteur: boolean;
+    isKcm: boolean;
+    email: string;
+    organisatieIds: string[];
+    isSessionExpired: boolean;
+  };
 
 export const useUserStore = defineStore("user", {
   state: () => {
@@ -27,6 +25,7 @@ export const useUserStore = defineStore("user", {
       }>,
       user: {
         isLoggedIn: false,
+        isSessionExpired: false,
       } as User,
     };
 
@@ -40,8 +39,12 @@ export const useUserStore = defineStore("user", {
   actions: {
     setKanaal(kanaal: string) {
       this.preferences.kanaal = kanaal;
+    },    
+    setSessionExpired() {
+      this.user.isSessionExpired = this.user.isLoggedIn ? true : false; //can only be false After the user has been logged in
+      this.user.isLoggedIn = false;
     },
-    setUser(user: User) {
+    async setUser(user: User) {
       this.user = user;
     },
   },
