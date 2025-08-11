@@ -1,13 +1,12 @@
 <template>
   <!-- https://web.dev/building-a-toast-component/ -->
   <transition-group name="toast" tag="section">
-    <output
+    <div
       v-for="{ text, type, key, dismiss } in messages"
       :key="key"
-      role="status"
       :class="type"
     >
-      <span>{{ text }}</span>
+      <output role="status">{{ text }}</output>
       <button
         v-if="dismiss"
         class="icon icon-after xmark icon-only"
@@ -15,7 +14,7 @@
         title="Gelezen"
         @click="dismiss"
       />
-    </output>
+    </div>
   </transition-group>
 </template>
 
@@ -34,13 +33,11 @@ section {
   justify-items: center;
   justify-content: center;
   gap: 1vh;
-
-  &:not(:has(button)) {
-    pointer-events: none;
-  }
+  inline-size: fit-content;
+  margin-inline: auto;
 }
 
-output {
+div {
   max-inline-size: min(25ch, 90vw);
   padding: var(--spacing-default);
   border-radius: var(--radius-default);
