@@ -19,19 +19,18 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from "vue";
+import { ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { handleLogin } from "@/services";
 import { loginUrl, redirectUrl, sessionStorageKey } from "./config";
-import { useUserStore, type User } from "@/stores/user";
+import { useUserStore } from "@/stores/user";
 import { logoutUrl } from "./config";
-import { storeToRefs } from "pinia";
 import { meUrl } from "./config";
 import { fetchUser } from "./service";
 
 let newTab: Window | null = null;
 
-const loading = ref<boolean>(false);
+const loading = ref<boolean>(true);
 
 const loginTimeoutInSeconds = 60;
 
@@ -65,6 +64,7 @@ async function refreshUser() {
     loading.value = true;
     const fetchedUser = await fetchUser(meUrl);
     userStore.setUser(fetchedUser);
+    initialized.value = true;
   } finally {
     loading.value = false;
   }
@@ -91,17 +91,9 @@ const dialogRef = ref<HTMLDialogElement>();
 
 const userStore = useUserStore();
 
-const { user } = storeToRefs(userStore);
-
 const initialized = ref(false);
 
-const isLoggedInRef = computed(() => user.value.isLoggedIn);
-
-const isLoadingRef = computed(() => loading.value);
-
 function onLogin() {
-  initialized.value = true;
-
   handleLogin();
   channel.postMessage(messageTypes.refresh);
   channel.postMessage(messageTypes.closeTab);
@@ -150,39 +142,40 @@ function resetLoginTimeout() {
     clearTimeout(currentLoginTimoutId);
   }
   currentLoginTimoutId = setTimeout(() => {
-    if (!isLoggedInRef.value) {
+    if (!userStore.user.isLoggedIn) {
       location.reload();
     }
   }, loginTimeoutInSeconds * 1000);
 }
 
-watch([isLoadingRef, isLoggedInRef, dialogRef, initialized], async () => {
-  if (loading.value) return;
-  // if (isLoggedIn) {
-  if (user.value.isLoggedIn) {
-    onLogin();
-    return;
-  }
+watch(
+  [() => userStore.user.isLoggedIn, initialized],
+  ([isLoggedIn], [wasLoggedIn]) => {
+    if (isLoggedIn) {
+      onLogin();
+      return;
+    }
 
-  // not logged in
-  if (!initialized.value) {
-    // this is the first time you open this window.
-    // we can immediately redirect to login.
-    redirectToLogin();
-    return;
-  }
+    // not logged in
+    if (!wasLoggedIn) {
+      // this is the first time you open this window.
+      // we can immediately redirect to login.
+      redirectToLogin();
+      return;
+    }
 
-  // you were logged in, but got logged out in another window or your session expired
-  // the dialog element should be in the dom by now, so it shouldn't be undefined
-  // the if is just there for type safety
-  if (!dialogRef.value) {
-    console.error(
-      "we expected a dialog in the dom, but it seems to be missing...",
-    );
-  }
-  resetLoginTimeout();
-  dialogRef.value?.showModal();
-});
+    // you were logged in, but got logged out in another window or your session expired
+    // the dialog element should be in the dom by now, so it shouldn't be undefined
+    // the if is just there for type safety
+    if (!dialogRef.value) {
+      console.error(
+        "we expected a dialog in the dom, but it seems to be missing...",
+      );
+    }
+    resetLoginTimeout();
+    dialogRef.value?.showModal();
+  },
+);
 
 refreshUser();
 </script>
