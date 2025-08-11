@@ -6,6 +6,7 @@
 
 
 ### Bugfixes
-PC-1577 Better feedback when `internetaak.toelichting` has too many characters #1170
+- Better feedback when `internetaak.toelichting` has too many characters #1170
+- Filtering search results on specific website #1172
 
 ### Maintenance
