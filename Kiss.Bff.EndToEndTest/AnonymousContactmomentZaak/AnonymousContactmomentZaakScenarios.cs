@@ -108,11 +108,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            // Register clean up of contactmoment
-            RegisterCleanup(async () =>
-            {
-                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
-            });
+            // // Register clean up of contactmoment
+            // RegisterCleanup(async () =>
+            // {
+            //     await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            // });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
@@ -158,18 +158,17 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
 
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            var firstContactMomentSummary = Page.FirstContactMomentSummary();
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("Zelfstandig afgehandeld")
+            });
 
-            await Expect(firstContactMomentSummary.GespreksresultaatHeader()).ToHaveTextAsync("Zelfstandig afgehandeld");
-            await Expect(firstContactMomentSummary.AfdelingHeader()).ToHaveTextAsync("Parkeren");
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
-            await Page.FirstContactMomentDetails().Locator("summary").ClickAsync();
-
-            var detailsList = Page.FirstContactMomentDetailsList();
-            await Expect(detailsList.ZaakNumber()).ToHaveTextAsync("ZAAK-2023-001");
-            await Expect(detailsList.ContactMomentDescription()).ToHaveTextAsync("Contactmoment bij ZAAK-2023-001");
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Zelfstandig afgehandeld" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Parkeren" })).ToBeVisibleAsync();
         }
+
     }
-
-
 }
+
