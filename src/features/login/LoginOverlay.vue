@@ -3,17 +3,15 @@
   <template v-else>
     <slot v-if="initialized" :onLogout="onLogout"></slot>
     <dialog ref="dialogRef" @keyup.escape.prevent @keydown.escape.prevent>
-      <div>
-        <a
-          :href="redirectUrl"
-          target="_blank"
-          @click="onLinkClick"
-          @keydown.enter="onLinkClick"
-          >Je sessie is verlopen. Klik in het scherm om opnieuw in te loggen.
-          Als je dit binnen {{ loginTimeoutInSeconds }} seconden doet, verlies
-          je geen werk.</a
-        >
-      </div>
+      <a
+        :href="redirectUrl"
+        target="_blank"
+        @click="onLinkClick"
+        @keydown.enter="onLinkClick"
+        >Je sessie is verlopen. Klik in het scherm om opnieuw in te loggen. Als
+        je dit binnen {{ loginTimeoutInSeconds }} seconden doet, verlies je geen
+        werk.</a
+      >
     </dialog>
   </template>
 </template>
