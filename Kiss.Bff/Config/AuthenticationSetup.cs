@@ -113,10 +113,17 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
-                // TODO: make configurable?
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-                options.SlidingExpiration = true;
-                //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
+
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //LET OP. DIT IS TIJDELIJK OM TE KUNNEN TESTEN
+                //NIET OPENMEN IN EEN RELEASE!!!!!
+                //NA HET TESTE WEER TERUGZETTEN NAAR
+                // options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                // options.SlidingExpiration = true; 
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(60);
+                options.SlidingExpiration = true;       
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                
                 options.Events.OnRedirectToAccessDenied = (ctx) =>
                 {
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;

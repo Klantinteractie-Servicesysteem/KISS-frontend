@@ -13,10 +13,11 @@ import {
 
 import { setupServer } from "msw/node";
 import { http } from "msw";
+import { setActivePinia, createPinia } from "pinia";
 
 const someUrl = "https://dummy.request.fgdsf";
 
-vi.mock('@/features/login', () => ({
+vi.mock("@/features/login", () => ({
   useCurrentUser: () => ({
     data: null,
     error: null,
@@ -63,6 +64,10 @@ describe("fetchLoggedIn", () => {
   });
 
   test("should retry when a 401 response is returned", async () => {
+    //the code encounters a pinia store.
+    //since we are not in the context of the vue app we need to prepare pinia for this
+    setActivePinia(createPinia());
+
     status = 401;
     const promise = fetchLoggedIn(someUrl);
     await flushPromises();

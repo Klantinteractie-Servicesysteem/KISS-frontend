@@ -107,23 +107,26 @@
 import { useFeaturedWerkberichtenCount } from "@/features/werkbericht";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRoute } from "vue-router";
-import { LoginOverlay, logoutUrl, useCurrentUser } from "../features/login";
+import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
+import { useUserStore } from "@/stores/user";
+import { storeToRefs } from "pinia";
 
 const route = useRoute();
-const user = useCurrentUser();
+
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
+
 const contactmomentStore = useContactmomentStore();
 
 const featuredWerkberichtenCount = useFeaturedWerkberichtenCount();
 
 const isRedacteur = computed(
-  () => user.success && user.data.isLoggedIn && user.data.isRedacteur,
+  () => user.value.isLoggedIn && user.value.isRedacteur,
 );
 
-const isKcm = computed(
-  () => user.success && user.data.isLoggedIn && user.data.isKcm,
-);
+const isKcm = computed(() => user.value.isLoggedIn && user.value.isKcm);
 </script>
 
 <style lang="scss" scoped>
