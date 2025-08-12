@@ -1,14 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Kiss.Bff.EndToEndTest.Common.Helpers;
-using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
-using Kiss.Bff.EndToEndTest.Helpers;
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
+using Kiss.Bff.EndToEndTest.Common.Helpers;
+using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
+using Kiss.Bff.EndToEndTest.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
 
 namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 {
@@ -68,7 +71,17 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -99,8 +112,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.Locator("summary").Filter(new() { HasText = "TESTtest" }).First.PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Automation Test afhandeling form" })).ToBeVisibleAsync();
-
-
         }
 
         [TestMethod("2. Contact moment Creation for person is cancelled ")]
@@ -177,9 +188,9 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -215,7 +226,18 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -246,7 +268,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.Locator("summary").Filter(new() { HasText = "TESTtest" }).First.PressAsync("Enter");
 
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "Automation Test afhandeling form" })).ToBeVisibleAsync();
-
         }
 
         [TestMethod("4. Contact moment Creation for company is cancelled")]
@@ -258,9 +279,9 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000055679269” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000055679269");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -417,7 +438,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step(" user click through first available Zaken in the Zaken tab");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Zaken" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Link, new() { Name = "Details 100-" }).ClickAsync();
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Details ZAAK-2023-002" }).ClickAsync();
             await Expect(Page.GetByText("Algemeen").First).ToBeVisibleAsync();
 
             await Step("Start another contact moment");
@@ -473,11 +494,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Klant" })).ToBeVisibleAsync();
             await Expect(Page.Locator("span").Filter(new() { HasText = "Suzanne Moulin" })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Gerelateerde zaak" })).ToBeVisibleAsync();
-            await Expect(Page.Locator("span").Filter(new() { HasText = "100-2025" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie" })).ToHaveValueAsync(note);
-
+            await Expect(Page.Locator("span").Filter(new() { HasText = "ZAAK-2023-002" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie (maximaal 1000 tekens)" })).ToHaveValueAsync(note);
         }
-
-
     }
 }
