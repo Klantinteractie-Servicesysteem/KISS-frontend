@@ -44,7 +44,7 @@ export const useUserStore = defineStore("user", {
       this.user.isSessionExpired = this.user.isLoggedIn ? true : false; //can only be false After the user has been logged in
       this.user.isLoggedIn = false;
     },
-    async setUser(user: User) {
+    setUser(user: User) {
       this.user = user;
     },
   },
