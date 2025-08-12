@@ -124,18 +124,27 @@ namespace Kiss.Bff.EndToEndTest.Beheer
 
         private async Task DeleteAllTestGespreksresultaten()
         {
-            string[] patterns = { "Automation Gespreksresultaten", "Automation Gesprekresultaten Updated" };
+            string[] patterns = { "Automation Gesprek" };
 
             foreach (var pattern in patterns)
             {
                 bool found = true;
-
                 while (found)
                 {
                     await Page.GotoAsync("/");
                     await Page.GetByRole(AriaRole.Link, new() { Name = "Beheer" }).ClickAsync();
                     await Page.GetByRole(AriaRole.Link, new() { Name = "Gespreksresultaten" }).ClickAsync();
                     await Page.WaitForSelectorAsync("li", new() { State = WaitForSelectorState.Visible });
+
+                    // Keep scrolling until no new items
+                    int prevCount, newCount;
+                    do
+                    {
+                        prevCount = await Page.GetByRole(AriaRole.Listitem).CountAsync();
+                        await Page.Mouse.WheelAsync(0, 5000);
+                        await Page.WaitForTimeoutAsync(500);
+                        newCount = await Page.GetByRole(AriaRole.Listitem).CountAsync();
+                    } while (newCount > prevCount);
 
                     var matchingItems = Page.GetByRole(AriaRole.Listitem).Filter(new() { HasText = pattern });
                     int count = await matchingItems.CountAsync();
@@ -159,5 +168,6 @@ namespace Kiss.Bff.EndToEndTest.Beheer
                 }
             }
         }
+
     }
 }

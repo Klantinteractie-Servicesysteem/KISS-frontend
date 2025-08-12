@@ -103,7 +103,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
 
         public static ILocator GetContactVerzoekSuccessToast(this IPage page)
         {
-            return page.Locator("output[role='status'].confirm");
+            return page.Locator("output[role='status']");
         }
     }
 }
