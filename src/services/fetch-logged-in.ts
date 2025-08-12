@@ -49,8 +49,8 @@ export function fetchLoggedIn(...args: FetchArgs): FetchReturn {
 
   return fetch(...args).then((r) => {
     if (r.status === 401) {
-      //if we are getting 403 results on ajax calls, the users session has ended
-      // (or the user tries to do something he/she isn't supposed to do)
+      //if we are getting 401 results on ajax calls, the users session has ended
+      //(or the user tries to do something he/she isn't supposed to do)
 
       // refetching the current user will ..
       // result in a user with .isloggedin set to false.
