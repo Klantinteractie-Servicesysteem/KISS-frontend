@@ -112,9 +112,18 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Cookie.SameSite = SameSiteMode.Strict;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
-                options.Cookie.HttpOnly = true;                
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-                options.SlidingExpiration = true;               
+                options.Cookie.HttpOnly = true;
+
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //LET OP. DIT IS TIJDELIJK OM TE KUNNEN TESTEN
+                //NIET OPENMEN IN EEN RELEASE!!!!!
+                //NA HET TESTE WEER TERUGZETTEN NAAR
+                // options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                // options.SlidingExpiration = true; 
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(20);
+                options.SlidingExpiration = false;       
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                
                 options.Events.OnRedirectToAccessDenied = (ctx) =>
                 {
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
