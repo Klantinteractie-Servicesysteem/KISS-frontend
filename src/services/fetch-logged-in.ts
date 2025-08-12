@@ -52,6 +52,12 @@ export function fetchLoggedIn(...args: FetchArgs): FetchReturn {
       //if we are getting 403 results on ajax calls, the users session has ended
       // (or the user tries to do something he/she isn't supposed to do)
 
+      // refetching the current user will ..
+      // result in a user with .isloggedin set to false.
+      // That will trigger a watcher in the LoginOverlay.
+      // The LoginOverlay will make itself visible and
+      // it will help the user to login again.
+
       const userStore = useUserStore();
       userStore.setSessionExpired();
 
