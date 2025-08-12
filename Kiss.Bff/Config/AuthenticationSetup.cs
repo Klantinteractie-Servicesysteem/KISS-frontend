@@ -120,8 +120,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 //NA HET TESTE WEER TERUGZETTEN NAAR
                 // options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 // options.SlidingExpiration = true; 
-                options.ExpireTimeSpan = TimeSpan.FromSeconds(20);
-                options.SlidingExpiration = false;       
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(60);
+                options.SlidingExpiration = true;       
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 
                 options.Events.OnRedirectToAccessDenied = (ctx) =>
