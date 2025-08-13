@@ -114,7 +114,18 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+              response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then Afhandeling form is successfully submitted");
 
@@ -179,7 +190,18 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
