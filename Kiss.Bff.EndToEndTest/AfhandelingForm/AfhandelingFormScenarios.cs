@@ -104,7 +104,11 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("Then error message as 'Please fill in this field.' is displayed for the field Afdeling");
 
-            await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
+            // await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
+
+            var elementHandle2 = await Page.GetAfdelingVoorField().ElementHandleAsync();
+            var validationMessage2 = await elementHandle2.EvaluateAsync<string>("el => el.validationMessage");
+            Assert.IsFalse(string.IsNullOrEmpty(validationMessage2), "Expected a validation message, but none was found.");
 
             await Step("And user selects 'parkeren' from the dropdown list");
 

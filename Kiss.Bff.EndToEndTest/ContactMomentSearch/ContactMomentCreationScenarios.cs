@@ -186,7 +186,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
-        [TestMethod("3. Contact moment Creation for company")]
+        [TestMethod("3. Contact moment Creation for company check")]
         public async Task ContactMomentCreation_Company()
         {
             await Step("Given the user is on the Startpagina");
@@ -231,6 +231,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
+            await Task.Delay(5000);
             await Step("And clicks on Opslaan button");
 
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
@@ -250,25 +251,27 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
 
-            await Step("When user starts a new contactmoment");
-
+            await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters \"999993148\" in the field bsn ");
-
-            await Page.PersonenBsnInput().FillAsync("999993148");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
+            await Page.Company_KvknummerSearchButton().ClickAsync();
+            await Page.WaitForURLAsync("**/bedrijven/*");
 
-            await Page.PersonenThird_SearchButton().ClickAsync();
+            await Step("Then user is navigated to Bedrijfsinformatie page");
 
-            await Step("Then user is navigated to Persoonsinformatie page");
-
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToHaveTextAsync("Bedrijfsinformatie");
 
             await Step("And user navigates to the contactmomenten tab to view the created contact request");
 
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
+            await Task.Delay(5000);
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
 
             await Step("And contactmoment details are displayed");
 
