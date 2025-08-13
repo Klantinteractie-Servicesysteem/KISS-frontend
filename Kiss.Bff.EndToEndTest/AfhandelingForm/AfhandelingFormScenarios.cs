@@ -66,7 +66,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             var validationMessage = await elementHandle.EvaluateAsync<string>("el => el.validationMessage");
             Assert.IsFalse(string.IsNullOrEmpty(validationMessage), "Expected a validation message, but none was found.");
 
-
             await Step("And user enters 'Test' in field specific vraag");
 
             await Page.GetSpecificVraagField().FillAsync("Test");
