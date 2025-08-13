@@ -108,11 +108,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            // // Register clean up of contactmoment
-            // RegisterCleanup(async () =>
-            // {
-            //     await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
-            // });
+            // Register clean up of contactmoment
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
