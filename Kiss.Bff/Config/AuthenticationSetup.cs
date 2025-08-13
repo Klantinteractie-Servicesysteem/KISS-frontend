@@ -103,7 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var authBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieSchemeName;
-                if(!string.IsNullOrWhiteSpace(authOptions.Authority))
+                if (!string.IsNullOrWhiteSpace(authOptions.Authority))
                 {
                     options.DefaultChallengeScheme = ChallengeSchemeName;
                 }
@@ -113,17 +113,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
-
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //LET OP. DIT IS TIJDELIJK OM TE KUNNEN TESTEN
-                //NIET OPENMEN IN EEN RELEASE!!!!!
-                //NA HET TESTE WEER TERUGZETTEN NAAR
-                // options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-                // options.SlidingExpiration = true; 
-                options.ExpireTimeSpan = TimeSpan.FromSeconds(60);
-                options.SlidingExpiration = true;       
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                
+                // TODO: make configurable?
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                options.SlidingExpiration = true;
+                //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
                 options.Events.OnRedirectToAccessDenied = (ctx) =>
                 {
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -284,7 +277,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var email = httpContext.User.GetEmail();
             var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
-            
+
             var organisatieIds = httpContext.RequestServices
                 .GetService<IConfiguration>()
                 ?["ORGANISATIE_IDS"]
@@ -302,7 +295,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
                 .AsSpan()
-                .TrimStart('/'); 
+                .TrimStart('/');
 
             var fullReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/{returnUrl}";
 
