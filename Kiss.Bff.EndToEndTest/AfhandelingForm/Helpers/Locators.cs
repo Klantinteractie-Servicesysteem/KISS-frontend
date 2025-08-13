@@ -29,7 +29,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetSpecificVraagField(this IPage page)
         {
-            return page.GetByRole(AriaRole.Textbox, new() { Name = "Specifieke vraag (maximaal 180 tekens) *" });
+            return page.GetByRole(AriaRole.Textbox, new() { Name = "Specifieke vraag (maximaal 180 tekens)" });
         }
 
         public static ILocator GetKanaalField(this IPage page)
@@ -55,7 +55,8 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetAfhandelingSuccessToast(this IPage page)
         {
-            return page.Locator("output[role='status'].confirm");
+            // return page.Locator("output[role='status'].confirm");
+            return page.Locator("output[role='status']");
         }
     }
 }

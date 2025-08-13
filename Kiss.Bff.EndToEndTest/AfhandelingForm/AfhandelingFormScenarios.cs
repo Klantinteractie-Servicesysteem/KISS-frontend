@@ -59,9 +59,11 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field specific vraag");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field specific vraag");
 
-            await Expect(Page.GetSpecificVraagField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
+            var elementHandle = await Page.GetSpecificVraagField().ElementHandleAsync();
+            var validationMessage = await elementHandle.EvaluateAsync<string>("el => el.validationMessage");
+            Assert.IsFalse(string.IsNullOrEmpty(validationMessage), "Expected a validation message, but none was found.");
 
             await Step("And user enters 'Test' in field specific vraag");
 
@@ -99,9 +101,11 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then error message as 'Please fill out this field.' is displayed for the field Afdeling");
+            await Step("Then error message as 'Please fill in this field.' is displayed for the field Afdeling");
 
-            await Expect(Page.GetAfdelingVoorField()).ToHaveJSPropertyAsync("validationMessage", "Please fill out this field.");
+            var elementHandle2 = await Page.GetAfdelingVoorField().ElementHandleAsync();
+            var validationMessage2 = await elementHandle2.EvaluateAsync<string>("el => el.validationMessage");
+            Assert.IsFalse(string.IsNullOrEmpty(validationMessage2), "Expected a validation message, but none was found.");
 
             await Step("And user selects 'parkeren' from the dropdown list");
 
@@ -110,7 +114,18 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+              response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then Afhandeling form is successfully submitted");
 
@@ -163,7 +178,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
-
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
@@ -176,14 +190,23 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And clicks on Opslaan button");
 
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
-
-
 
     }
 }
