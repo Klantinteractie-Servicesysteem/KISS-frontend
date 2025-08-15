@@ -77,7 +77,7 @@ import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
 import LogboekOverzicht from "../contactverzoekLogboek/LogboekOverzicht.vue";
 
 const selectedContactverzoekId = ref<string | undefined>(undefined);
-const onContactverzoekSelected = (id: string) =>
+const onContactverzoekSelected = (id: string | undefined) =>
   (selectedContactverzoekId.value = id);
 
 const { level = 2, contactverzoeken } = defineProps<{
