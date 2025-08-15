@@ -1,5 +1,6 @@
 <template>
   <overview-detail-table
+    @itemSelected="onContactverzoekSelected"
     :level="level"
     :records="mappedCvs"
     :overview-columns="[
@@ -34,7 +35,7 @@
       otherTelefoonnummers: 'Andere telefoonnummers',
     }"
     :highlight="['toelichtingVoorCollega']"
-    key-prop="url"
+    key-prop="uuid"
   >
     <template #overview-heading
       ><slot name="overview-heading">Contactverzoeken</slot></template
@@ -59,15 +60,25 @@
       <span class="preserve-newline">{{ value }}</span>
     </template>
   </overview-detail-table>
+
+  <logboek-overzicht
+    v-if="selectedContactverzoekId"
+    :contactverzoek-id="selectedContactverzoekId"
+  />
 </template>
 
 <script lang="ts" setup>
 import { fullName } from "@/helpers/string";
 import DutchDateTime from "@/components/DutchDateTime.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { ContactverzoekOverzichtItem } from "./types";
 import { DigitaalAdresTypes } from "@/services/openklant2";
 import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
+import LogboekOverzicht from "../contactverzoekLogboek/LogboekOverzicht.vue";
+
+const selectedContactverzoekId = ref<string | undefined>(undefined);
+const onContactverzoekSelected = (id: string) =>
+  (selectedContactverzoekId.value = id);
 
 const { level = 2, contactverzoeken } = defineProps<{
   contactverzoeken: ContactverzoekOverzichtItem[];

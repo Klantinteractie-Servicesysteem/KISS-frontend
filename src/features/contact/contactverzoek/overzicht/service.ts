@@ -188,11 +188,13 @@ function mapKlantcontactToContactverzoekOverzichtItem(
       zaaknummers,
     }) => {
       const internetaak = klantContact._expand?.leiddeTotInterneTaken?.[0];
+
       if (!internetaak) {
         throw new Error("");
       }
 
       return {
+        uuid: internetaak.uuid,
         url: internetaak.url,
         onderwerp: klantContact.onderwerp,
         toelichtingBijContactmoment: klantContact.inhoud,
@@ -235,6 +237,7 @@ function mapObjectToContactverzoekOverzichtItem({
   const data = record.data;
 
   return {
+    uuid: contactverzoekObject.uuid,
     url: contactverzoekObject.url,
     onderwerp: vraag,
     toelichtingBijContactmoment: contactmoment?.tekst || "",
