@@ -39,7 +39,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         Assert.AreNotEqual(0, count);
     }
 
-    [TestMethod("3. Verify markeer ongelezen read icon functionality")]
+    [TestMethod("3. Verify markeer gelezen read icon functionality")]
     public async Task Scenario03()
     {
         await Step("Given there is at least 1 nieuwsbericht");
@@ -137,7 +137,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(aButtonThatIsTheCurrentPageAndHasLabelPagina1).ToBeVisibleAsync();
     }
 
-    [TestMethod("6. Test Pagination Using 'Next' Button on Werkinstructies")]
+    [TestMethod("6. Test Pagination Using 'Previous' Button on Werkinstructies")]
     public async Task Scenario06()
     {
         await Step("Given there are at least 20 werkinstructies");
@@ -176,7 +176,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
         await Expect(aButtonThatIsTheCurrentPageAndHasLabelPagina1).ToBeVisibleAsync();
     }
 
-    [TestMethod("7. Test Pagination Using 'Previous' Button on Werkinstructies")]
+    [TestMethod("7. Test Pagination last page on Werkinstructies")]
     public async Task Scenario07()
     {
         await Step("Given there are at least 20 werkinstructies");
@@ -761,7 +761,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
     [TestMethod("23. Add New Nieuwsbericht to the Nieuws and Werkinstructies Screen")]
     public async Task Scenario23()
     {
-        await Step("Given the user is on the Nieuws and werkinstructiesscreen available under Beheer");
+        await Step("Given the user is on the Nieuws and werkinstructiesscreen available under Beheer and creates a new Nieuwsbericht");
 
         await using var nieuws = await Page.CreateBerichtAsync(new() { Title = Guid.NewGuid().ToString(), BerichtType = BerichtType.Nieuws });
 
@@ -820,7 +820,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
     }
 
-    [TestMethod("Verify Presence of 'Berichten' Table on Nieuws and Werkinstructies Screen")]
+    [TestMethod("27. Verify Presence of 'Berichten' Table on Nieuws and Werkinstructies Screen")]
     public async Task Scenario27()
     {
         await Step("Given there is at least 1 nieuwsbericht");
@@ -850,7 +850,7 @@ public class NieuwsEnWerkInstructiesScenarios : KissPlaywrightTest
 
         await Page.GotoAsync("/");
 
-        await Step("And browses through all pages of the Nieuws section");
+        await Step("And browses through all pages of the Nieuws section, the nieuwsbericht should not be visible");
 
         Assert.AreEqual(false, await Page.IsBerichtVisibleOnAllPagesAsync(niewus));
 
