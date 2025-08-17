@@ -62,8 +62,10 @@
   </overview-detail-table>
 
   <logboek-overzicht
+    class="logboek"
     v-if="selectedContactverzoekId"
     :contactverzoek-id="selectedContactverzoekId"
+    :level="level"
   />
 </template>
 
@@ -128,3 +130,9 @@ const mappedCvs = computed(() =>
 const prettifyStatus = (status: string) =>
   `${status[0]?.toUpperCase()}${status.substring(1).replace(/_/g, " ")}`;
 </script>
+
+<style scoped>
+.logboek {
+  margin-top: var(--spacing-default);
+}
+</style>
