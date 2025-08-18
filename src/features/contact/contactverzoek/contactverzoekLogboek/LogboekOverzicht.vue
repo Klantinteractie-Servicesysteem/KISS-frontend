@@ -12,16 +12,18 @@
         }}</utrecht-heading>
 
         <p>{{ logboekItem.tekst }}</p>
-        <article class="highlight">
+        <article class="highlight" v-if="logboekItem.notitie">
           <utrecht-heading :level="level ? level + 2 : 4"
             >Interne toelichting</utrecht-heading
           >
           <p>{{ logboekItem.notitie }}</p>
         </article>
         <ul class="meta">
-          <li>{{ logboekItem.datum }}</li>
+          <li><DateTimeOrNvt :date="logboekItem.datum" /></li>
           <li>{{ logboekItem.uitgevoerdDoor }}</li>
-          <li>{{ logboekItem.kanaal }}</li>
+          <li>
+            {{ logboekItem.kanaal ? "Kanaal: " + logboekItem.kanaal : "" }}
+          </li>
         </ul>
       </li>
     </ul>
@@ -33,11 +35,21 @@ import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
 import { toast } from "@/stores/toast";
 import { ref, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
+import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
+import {
+  registryVersions,
+  useSystemen,
+  type Systeem,
+} from "@/services/environment/fetch-systemen";
+import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
 const props = defineProps<{
   contactverzoekId: string;
   level?: 1 | 2 | 3 | 4;
 }>();
+
+const { systemen } = useSystemen();
 
 // const logboekData = ref<{
 //   count: 0;
@@ -59,14 +71,29 @@ interface LogboekActiviteit {
 }
 const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
 
+const systeem = ref<Systeem | undefined>(undefined);
+
 watchEffect(async () => {
+  ///todo!!
+  //alleen iets doen als  je openklant gebruikt. niets doen im geval van esuite. de esuite maakt geen logboek records aan dus er is toch niets te vinden
+  // en niet alle aanvullende calls zullen slagen als je dit toch probeert met de esuite!
+
+  systeem.value = systemen.value?.find(
+    (x) => x.registryVersion === registryVersions.ok2,
+  );
+
+  console.log(systeem.value, 123);
+  if (!systeem.value) {
+    return;
+  }
+
   const logboekUrl = `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`;
   logboekActiviteiten.value = [];
   await fetchLoggedIn(logboekUrl)
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((r) => {
-      logboekActiviteiten.value = mapLogboek(r.results);
+    .then(async (r) => {
+      logboekActiviteiten.value = await mapLogboek(r.results);
     })
     .catch(() =>
       toast({
@@ -76,7 +103,26 @@ watchEffect(async () => {
     );
 });
 
-const mapLogboek = (logboek: any) => {
+const activiteitTypes = {
+  klantcontact: "klantcontact",
+  toegewezen: "toegewezen",
+  verwerkt: "verwerkt",
+  zaakGekoppeld: "zaak-gekoppeld",
+  zaakkoppelingGewijzigd: "zaakkoppeling-gewijzigd",
+  interneNotitie: "interne-notitie",
+};
+
+const getActionTitle = (type: string) =>
+  new Map<string, string>([
+    [activiteitTypes.klantcontact, "Klantcontact"],
+    [activiteitTypes.toegewezen, "Toegewezen"],
+    [activiteitTypes.verwerkt, "Verwerkt"],
+    [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
+    [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
+    [activiteitTypes.interneNotitie, "Interne notitie"],
+  ]).get(type) || "Onbekende actie";
+
+const mapLogboek = async (logboek: any) => {
   const logItems = [];
 
   const activiteiten = logboek[0]?.record?.data?.activiteiten;
@@ -86,86 +132,89 @@ const mapLogboek = (logboek: any) => {
     const activiteit = {
       datum: item.datum,
       type: item.type,
-      titel: "ssssss", // GetActionTitle(item.Type)
+      titel: getActionTitle(item.type),
+      uitgevoerdDoor: item.actor?.naam ?? "Onbekend",
     };
-    activiteit.id = "mmmm";
-    activiteit.kanaal = "Onbekend";
-    activiteit.tekst = "sdfsdfs";
-    activiteit.contactGelukt = "gelukt";
-    activiteit.uitgevoerdDoor = "iemand";
-    activiteit.notitie = "nnnnnn nnn n n ";
 
-    // switch (item.Type)
-    // {
-    //     case ActiviteitTypes.Klantcontact when item.HeeftBetrekkingOp.Count == 1:
-    //         {
-    //             var contactmoment =
-    //                 await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
-    //             if (contactmoment != null)
-    //             {
-    //                 activiteit.Id = contactmoment.Uuid;
-    //                 activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
-    //                 activiteit.Tekst = contactmoment.Inhoud;
-    //                 activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-    //                 activiteit.UitgevoerdDoor = GetName( item);
-    //                 activiteit.Notitie = item.Notitie;
+    if (item.type === activiteitTypes.klantcontact) {
+      //let op. kiss ondersteunt meerdere klant registers. primair om e-suite naast openklant te kunnen gebruiken
+      // in dat geval is dit geen issue. de esuite maaakt immers toch geen logboek aan
+      // maar als je meerdere andere openklant achtige systemen grbuikt, waarbij ITA wel gebruikt wordt voor afhandeling
+      // dn weten we nu eigenlijk niet uit welk register we de bijbehorende contacmoment gegevesn moeten halen
+      // we pakken voorals nog het eerste openklant regsiter dat we in de confioguratie vonden.
+      // er zijn nog geen scenario's in beeld waarin dat niet zal gaan werken.
+      //mochten er tzt meer contcatregisters bij komen, dan moeten we hier iets mee
 
-    //                 activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
-    //                     ? "Contact gelukt"
-    //                     : "Contact niet gelukt";
-    //             }
+      if (item.heeftBetrekkingOp?.length != 1) {
+        return;
+      }
 
-    //             break;
-    //         }
-    //     case ActiviteitTypes.Toegewezen when item.HeeftBetrekkingOp.Count == 1:
-    //         {
-    //             var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
-    //             var actor = await _openKlantApiClient.GetActorAsync(actorId);
-    //             if (actor != null)
-    //             {
-    //                 activiteit.UitgevoerdDoor = GetName(item);
-    //                 activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
-    //             }
+      const contactmoment = await fetchKlantcontact({
+        systeemId: systeem.value.identifier,
+        expand: [],
+        uuid: item.heeftBetrekkingOp[0].objectId,
+      });
 
-    //             break;
-    //         }
-    //     case ActiviteitTypes.ZaakGekoppeld:
-    //         {
-    //             var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
-    //             if (zaak != null)
-    //             {
-    //                 activiteit.UitgevoerdDoor = GetName(item);
-    //                 activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
-    //             }
+      activiteit.id = contactmoment.uuid;
+      activiteit.kanaal = contactmoment.kanaal ?? "Onbekend";
+      activiteit.tekst = contactmoment.inhoud;
+      activiteit.contactGelukt = contactmoment.indicatieContactGelukt;
 
-    //             break;
-    //         }
-    //     case ActiviteitTypes.ZaakkoppelingGewijzigd:
-    //         {
-    //             var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
-    //             if (zaak != null)
-    //             {
-    //                 activiteit.UitgevoerdDoor = GetName(item);
-    //                 activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
-    //             }
+      activiteit.notitie = item.notitie;
+      activiteit.titel = contactmoment.indicatieContactGelukt
+        ? "Contact gelukt"
+        : "Contact niet gelukt";
+    }
 
-    //             break;
-    //         }
-    //     case ActiviteitTypes.Verwerkt:
-    //         {
+    if (activiteitTypes.toegewezen === item.type) {
+      if (item.heeftBetrekkingOp.length != 1) {
+        return;
+      }
 
-    //             activiteit.UitgevoerdDoor = GetName(item);
-    //             activiteit.Tekst = $"Contactverzoek afgerond";
+      const actorId = item.heeftBetrekkingOp[0].objectId;
+      const actor = await fetchActor(systeem.value.identifier, actorId);
+      if (actor != null) {
+        activiteit.tekst = `Contactverzoek opgepakt door ${actor.naam ?? "Onbekend"}`;
+      }
+    }
 
-    //             break;
-    //         }
-    //     case ActiviteitTypes.InterneNotitie:
-    //         {
-    //             activiteit.UitgevoerdDoor = GetName(item);
-    //             activiteit.Notitie = item.Notitie;
-    //             break;
-    //         }
-    // }
+    if (activiteitTypes.zaakGekoppeld === item.type) {
+      if (item.heeftBetrekkingOp.length != 1) {
+        return;
+      }
+
+      const zaakId = item.heeftBetrekkingOp[0].objectId;
+
+      const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
+        systeem.value.identifier,
+        zaakId,
+      );
+      if (zaakIdentificatie != null) {
+        activiteit.tekst = `Zaak ${zaakIdentificatie} gekoppeld aan het contactverzoek`;
+      }
+    }
+
+    if (activiteitTypes.zaakkoppelingGewijzigd === item.type) {
+      if (item.heeftBetrekkingOp.length != 1) {
+        return;
+      }
+
+      const zaakId = item.heeftBetrekkingOp[0].objectId;
+
+      const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
+        systeem.value.identifier,
+        zaakId,
+      );
+      if (zaakIdentificatie != null) {
+        activiteit.tekst = `Zaak ${zaakIdentificatie} gekoppeld aan het contactverzoek`;
+      }
+    }
+    if (activiteitTypes.verwerkt === item.type) {
+      activiteit.tekst = "Contactverzoek afgerond";
+    }
+    if (activiteitTypes.interneNotitie === item.type) {
+      activiteit.notitie = item.notitie;
+    }
 
     logItems.push(activiteit);
 
@@ -177,9 +226,14 @@ const mapLogboek = (logboek: any) => {
 </script>
 
 <style>
-li > * {
+.logboek li > * {
   padding-block: var(--spacing-small);
   padding-inline: var(--spacing-default);
+}
+
+.meta li > * {
+  padding-block: 0;
+  padding-inline: 0;
 }
 
 .highlight {
