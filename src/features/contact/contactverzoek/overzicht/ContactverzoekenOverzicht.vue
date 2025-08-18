@@ -134,5 +134,6 @@ const prettifyStatus = (status: string) =>
 <style scoped>
 .logboek {
   margin-top: var(--spacing-default);
+  max-width: 60%;
 }
 </style>

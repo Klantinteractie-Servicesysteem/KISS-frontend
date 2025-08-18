@@ -225,7 +225,7 @@ const mapLogboek = async (logboek: any) => {
 };
 </script>
 
-<style>
+<style scoped>
 .logboek li > * {
   padding-block: var(--spacing-small);
   padding-inline: var(--spacing-default);
@@ -250,6 +250,8 @@ const mapLogboek = async (logboek: any) => {
   display: flex;
   flex-direction: row;
   gap: var(--spacing-default);
+  color: var(--color-grey);
+  font-style: italic;
 }
 
 .meta li:last-child {
