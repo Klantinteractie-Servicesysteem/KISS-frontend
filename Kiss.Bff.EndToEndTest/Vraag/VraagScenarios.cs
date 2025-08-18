@@ -428,66 +428,64 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("6. Long vraag ánd Long specifieke vraag")]
+        [TestMethod("6. Long vraag ánd Long specifieke vraag ")]
         public async Task longVraaglongSpecifiekevraag()
         {
-            var longVraag = "This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi";
-            await RunVraagTest("Long vraag and long specifieke vraag", longVraag);
-        }
-
-        [TestMethod("7. Slightly shorter vraag and specifieke vraag")]
-        public async Task VraagandSpecifiekevraag()
-        {
-            var shorterVraag = "This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ";
-            await RunVraagTest("Slightly shorter vraag and specifieke vraag", shorterVraag);
-        }
-
-        public async Task RunVraagTest(string testTitle, string specifiekeVraagText)
-        {
-            await Step($"Test: {testTitle}");
-
             await Step("Given the user is on KISS home page ");
+
             await Page.GotoAsync("/");
 
             await Step("And user clicks on Nieuw contactmoment button");
+
             await Page.GetNieuwContactmomentButton().ClickAsync();
             await Page.WaitForTimeoutAsync(2000);
 
             await Step("When user enters “PC-1478” in Notitieblok");
+
             var note = "PC-1478”";
+
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
             await Step("And enters “testing” in the search field in the Search pane ");
+
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
             await Page.WaitForTimeoutAsync(2000);
             await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
             await Page.WaitForTimeoutAsync(2000);
 
-            await Step("And clicks on the VAC with more characters ");
+            await Step("And clicks on the VAC wth more characters ");
             await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
+
             await Page.WaitForTimeoutAsync(2000);
 
             await Step("Click the Afronden button");
+
             await Page.GetAfrondenButton().ClickAsync();
+
             await Page.WaitForTimeoutAsync(2000);
 
-            await Step($"And user fills in '{specifiekeVraagText.Length} char long string' in the specific vraag field");
-            await Page.GetSpecifiekeVraagTextbox().FillAsync(specifiekeVraagText);
+            await Step("And user fills in '180 char long string' in the specific vraag field");
+            await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi");
 
             await Step("And user enters 'Live chat' in field Kanaal");
+
             await Page.GetKanaalField().ClickAsync();
+
             await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
+
             await Page.GetAfhandelingField().ClickAsync();
             await Page.GetAfhandelingField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Zelfstandig afgehandeld" } });
 
             await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
+
             await Page.GetAfdelingVoorField().ClickAsync();
             await Page.GetByText("Publiekscontacten Vergunningen").First.ClickAsync();
 
             await Step("And clicks on Opslaan button");
+
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
                 await Page.GetOpslaanButton().ClickAsync();
@@ -496,9 +494,79 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             );
 
             await Step("And Afhandeling form is successfully submitted");
+
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
+        [TestMethod("7. slightly shorter vraag and slightly shorter specifieke vraag ")]
+        public async Task VraagandSpecifiekevraag()
+        {
+            await Step("Given the user is on KISS home page ");
+
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Page.WaitForTimeoutAsync(2000);
+
+            await Step("When user enters “PC-1478” in Notitieblok");
+
+            var note = "PC-1478”";
+
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
+
+            await Step("And enters “testing” in the search field in the Search pane ");
+
+            await Page.GetByRole(AriaRole.Combobox).ClickAsync();
+            await Page.WaitForTimeoutAsync(2000);
+            await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
+            await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
+            await Page.WaitForTimeoutAsync(2000);
+
+            await Step("And clicks on the VAC wth more characters ");
+            await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
+
+            await Page.WaitForTimeoutAsync(2000);
+
+            await Step("Click the Afronden button");
+
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Page.WaitForTimeoutAsync(2000);
+
+            await Step("And user fills in '140 char long string' in the specific vraag field");
+            await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ");
+
+            await Step("And user enters 'Live chat' in field Kanaal");
+
+            await Page.GetKanaalField().ClickAsync();
+
+            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
+
+            await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
+
+            await Page.GetAfhandelingField().ClickAsync();
+            await Page.GetAfhandelingField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Zelfstandig afgehandeld" } });
+
+            await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
+
+            await Page.GetAfdelingVoorField().ClickAsync();
+            await Page.GetByText("Publiekscontacten Vergunningen").First.ClickAsync();
+
+            await Step("And clicks on Opslaan button");
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            await Step("And Afhandeling form is successfully submitted");
+
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
+        }
 
     }
 }
