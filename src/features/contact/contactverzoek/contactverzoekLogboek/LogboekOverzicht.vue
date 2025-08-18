@@ -4,7 +4,7 @@
     <ul class="logboek">
       <li
         v-for="logboekItem in logboekActiviteiten"
-        :key="logboekItem.uuid"
+        :key="logboekItem.datum"
         class="ita-step"
       >
         <utrecht-heading :level="level ? level + 2 : 4">{{
@@ -66,16 +66,6 @@ const activiteitTypes = {
   interneNotitie: "interne-notitie",
 };
 
-const getActionTitle = (type: string) =>
-  new Map<string, string>([
-    [activiteitTypes.klantcontact, "Klantcontact"],
-    [activiteitTypes.toegewezen, "Toegewezen"],
-    [activiteitTypes.verwerkt, "Verwerkt"],
-    [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
-    [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
-    [activiteitTypes.interneNotitie, "Interne notitie"],
-  ]).get(type) || "Onbekende actie";
-
 watchEffect(async () => {
   logboekActiviteiten.value = [];
   await fetchLoggedIn(
@@ -95,7 +85,7 @@ const mapAndEnrichLogboek = async (
   const logItems = [];
 
   const activiteiten = logboek[0]?.record?.data?.activiteiten;
-  for (let i = 0; i < (activiteiten?.length ?? 0); i++) {
+  for (let i = (activiteiten?.length ?? 1) - 1; i >= 0; i--) {
     const item = activiteiten[i];
 
     const activiteit: LogboekActiviteit = {
@@ -209,6 +199,16 @@ function enrichActiviteitWithNotitieInfo(
 ) {
   activiteit.notitie = item.notitie;
 }
+
+const getActionTitle = (type: string) =>
+  new Map<string, string>([
+    [activiteitTypes.klantcontact, "Klantcontact"],
+    [activiteitTypes.toegewezen, "Opgepakt"],
+    [activiteitTypes.verwerkt, "Afgerond"],
+    [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
+    [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
+    [activiteitTypes.interneNotitie, "Interne notitie"],
+  ]).get(type) || "Onbekende actie";
 </script>
 
 <style scoped>

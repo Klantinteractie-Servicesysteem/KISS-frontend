@@ -28,5 +28,5 @@ export type ContactverzoekOverzichtItem = {
   };
   vraag: string;
   zaaknummers: string[];
-  systeemId: string;
+  systeemId?: string;
 };
