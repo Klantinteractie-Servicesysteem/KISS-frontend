@@ -564,7 +564,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             );
 
             await Step("And Afhandeling form is successfully submitted");
-
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
