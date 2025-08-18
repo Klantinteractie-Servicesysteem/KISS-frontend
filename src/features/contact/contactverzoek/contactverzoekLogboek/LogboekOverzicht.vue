@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-import { ref, watchEffect } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
@@ -55,6 +55,7 @@ interface LogboekActiviteit {
   notitie?: string | undefined;
 }
 
+const useLogboek = ref<boolean>(false);
 const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
 
 const activiteitTypes = {
@@ -66,7 +67,19 @@ const activiteitTypes = {
   interneNotitie: "interne-notitie",
 };
 
+onMounted(() => {
+  fetchLoggedIn("/api/environment/use-logboek")
+    .then((r) => r.json())
+    .then((x) => {
+      useLogboek.value = x.useLogboek;
+    });
+});
+
 watchEffect(async () => {
+  if (!useLogboek.value) {
+    return;
+  }
+
   logboekActiviteiten.value = [];
   await fetchLoggedIn(
     `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
