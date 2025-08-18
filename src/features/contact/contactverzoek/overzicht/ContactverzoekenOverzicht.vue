@@ -81,12 +81,10 @@ import LogboekOverzicht from "../contactverzoekLogboek/LogboekOverzicht.vue";
 
 const selectedContactverzoekId = ref<string | undefined>(undefined);
 const selectedContactverzoekSysteemId = ref<string | undefined>(undefined);
-const onContactverzoekSelected = (
-  id: string | undefined,
-  systeemId: string | undefined,
-) => {
+const onContactverzoekSelected = (id: string | undefined) => {
   selectedContactverzoekId.value = id;
-  selectedContactverzoekSysteemId.value = systeemId;
+  const record = mappedCvs.value.find((x) => x.uuid === id);
+  selectedContactverzoekSysteemId.value = record?.systeemId;
 };
 
 const { level = 2, contactverzoeken } = defineProps<{

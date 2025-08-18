@@ -1,7 +1,7 @@
 <template>
-  <section>
+  <section v-if="logboekActiviteiten?.length">
     <utrecht-heading :level="level ? level + 1 : 3">Logboek</utrecht-heading>
-    <ul class="logboek" v-if="logboekActiviteiten?.length">
+    <ul class="logboek">
       <li
         v-for="logboekItem in logboekActiviteiten"
         :key="logboekItem.uuid"
@@ -32,16 +32,10 @@
 
 <script lang="ts" setup>
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-
 import { ref, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
-import {
-  registryVersions,
-  useSystemen,
-  type Systeem,
-} from "@/services/environment/fetch-systemen";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
 const props = defineProps<{
@@ -54,16 +48,12 @@ interface LogboekActiviteit {
   datum: string;
   type: string;
   titel: string;
-  kanaal: string | undefined;
-  tekst: string | undefined;
-  uuid: string;
-  contactGelukt: string | undefined;
+  kanaal?: string | undefined;
+  tekst?: string | undefined;
+  contactGelukt?: string | undefined;
   uitgevoerdDoor: string | undefined;
-  notitie: string | undefined;
+  notitie?: string | undefined;
 }
-
-//const { systemen } = useSystemen();
-//const systeem = ref<Systeem | undefined>(undefined);
 
 const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
 
@@ -87,118 +77,62 @@ const getActionTitle = (type: string) =>
   ]).get(type) || "Onbekende actie";
 
 watchEffect(async () => {
-  // Let op. kiss ondersteunt meerdere klantcontact registers tegelijk.
-  // Primair om e-suite naast openklant te kunnen gebruiken.
-  // In dat geval is er geen issue. de e-suite maaakt immers toch geen logboek aan.
-  // We hoeven dus alleen te kijken of er ook een ok2 systeem is.
-  // Maar als er meerdere ok2 systemen tegelijk in gebruik zijn, dan weten we niet in welke eenvullende gegevens van het contact opgehaald moeten worden.
-  // We pakken voorals nog het eerste openklant regsiter dat we in de confioguratie vinden.
-  // Er zijn nog geen scenario's in beeld waarin dat niet zal gaan werken.
-  // Mochten er tzt meer contcatregisters bij komen, dan moeten we hier iets mee.
-
-  // systeem.value = systemen.value?.find(
-  //   (x) => x.registryVersion === registryVersions.ok2,
-  // );
-
-  // if (!systeem.value) {
-  //   return;
-  // }
-
   logboekActiviteiten.value = [];
   await fetchLoggedIn(
     `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
   )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(async (r) => {
-      logboekActiviteiten.value = await mapLogboek(r.results);
-    });
+    .then(
+      async (r) =>
+        (logboekActiviteiten.value = await mapAndEnrichLogboek(r.results)),
+    );
 });
 
-const mapLogboek = async (logboek: any): Promise<LogboekActiviteit[]> => {
+const mapAndEnrichLogboek = async (
+  logboek: any,
+): Promise<LogboekActiviteit[]> => {
   const logItems = [];
 
   const activiteiten = logboek[0]?.record?.data?.activiteiten;
-  for (let i = 0; i < activiteiten.length; i++) {
+  for (let i = 0; i < (activiteiten?.length ?? 0); i++) {
     const item = activiteiten[i];
 
-    const activiteit = {
+    const activiteit: LogboekActiviteit = {
       datum: item.datum,
       type: item.type,
       titel: getActionTitle(item.type),
       uitgevoerdDoor: item.actor?.naam ?? "Onbekend",
     };
 
-    if (item.type === activiteitTypes.klantcontact) {
-      if (item.heeftBetrekkingOp?.length != 1) {
-        return;
+    switch (item.type) {
+      case activiteitTypes.klantcontact: {
+        await enrichActiviteitWithKlantContactInfo(activiteit, item);
+        break;
       }
-
-      const contactmoment = await fetchKlantcontact({
-        systeemId: props.contactverzoekSysteemId,
-        expand: [],
-        uuid: item.heeftBetrekkingOp[0].objectId,
-      });
-
-      activiteit.id = contactmoment.uuid;
-      activiteit.kanaal = contactmoment.kanaal ?? "Onbekend";
-      activiteit.tekst = contactmoment.inhoud;
-      activiteit.contactGelukt = contactmoment.indicatieContactGelukt;
-
-      activiteit.notitie = item.notitie;
-      activiteit.titel = contactmoment.indicatieContactGelukt
-        ? "Contact gelukt"
-        : "Contact niet gelukt";
-    }
-
-    if (activiteitTypes.toegewezen === item.type) {
-      if (item.heeftBetrekkingOp.length != 1) {
-        return;
+      case activiteitTypes.toegewezen: {
+        await enrichActiviteitWithToegewezenAanInfo(activiteit, item);
+        break;
       }
-
-      const actorId = item.heeftBetrekkingOp[0].objectId;
-      const actor = await fetchActor(props.contactverzoekSysteemId, actorId);
-      if (actor != null) {
-        activiteit.tekst = `Contactverzoek opgepakt door ${actor.naam ?? "Onbekend"}`;
+      case activiteitTypes.zaakGekoppeld: {
+        await enrichActiviteitWithZaakInfo(activiteit, item);
+        break;
       }
-    }
-
-    if (activiteitTypes.zaakGekoppeld === item.type) {
-      if (item.heeftBetrekkingOp.length != 1) {
-        return;
+      case activiteitTypes.zaakkoppelingGewijzigd: {
+        await enrichActiviteitWithZaakInfo(activiteit, item);
+        break;
       }
-
-      const zaakId = item.heeftBetrekkingOp[0].objectId;
-
-      const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
-        props.contactverzoekSysteemId,
-        zaakId,
-      );
-      if (zaakIdentificatie != null) {
-        activiteit.tekst = `Zaak ${zaakIdentificatie} gekoppeld aan het contactverzoek`;
+      case activiteitTypes.verwerkt: {
+        enrichActiviteitWithVerwerktInfo(activiteit);
+        break;
       }
-    }
-
-    if (activiteitTypes.zaakkoppelingGewijzigd === item.type) {
-      if (item.heeftBetrekkingOp.length != 1) {
-        return;
+      case activiteitTypes.interneNotitie: {
+        enrichActiviteitWithNotitieInfo(activiteit, item);
+        break;
       }
-
-      const zaakId = item.heeftBetrekkingOp[0].objectId;
-
-      const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
-        props.contactverzoekSysteemId,
-        zaakId,
-      );
-      if (zaakIdentificatie != null) {
-        activiteit.tekst = `Zaak ${zaakIdentificatie} gekoppeld aan het contactverzoek`;
+      default: {
+        break;
       }
-    }
-    if (activiteitTypes.verwerkt === item.type) {
-      activiteit.tekst = "Contactverzoek afgerond";
-    }
-    if (activiteitTypes.interneNotitie === item.type) {
-      activiteit.notitie = item.notitie;
     }
 
     logItems.push(activiteit);
@@ -206,19 +140,78 @@ const mapLogboek = async (logboek: any): Promise<LogboekActiviteit[]> => {
 
   return logItems;
 };
+
+async function enrichActiviteitWithKlantContactInfo(
+  activiteit: LogboekActiviteit,
+  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+) {
+  if (item.heeftBetrekkingOp?.length != 1) {
+    return [];
+  }
+
+  const contactmoment = await fetchKlantcontact({
+    systeemId: props.contactverzoekSysteemId,
+    expand: [],
+    uuid: item.heeftBetrekkingOp[0].objectId,
+  });
+
+  activiteit.kanaal = contactmoment.kanaal ?? "Onbekend";
+  activiteit.tekst = contactmoment.inhoud;
+  activiteit.contactGelukt = contactmoment.indicatieContactGelukt;
+
+  activiteit.notitie = item.notitie;
+  activiteit.titel = contactmoment.indicatieContactGelukt
+    ? "Contact gelukt"
+    : "Contact niet gelukt";
+}
+
+async function enrichActiviteitWithToegewezenAanInfo(
+  activiteit: LogboekActiviteit,
+  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+) {
+  if (item.heeftBetrekkingOp.length != 1) {
+    return [];
+  }
+
+  const actorId = item.heeftBetrekkingOp[0].objectId;
+  const actor = await fetchActor(props.contactverzoekSysteemId, actorId);
+  if (actor != null) {
+    activiteit.tekst = `Contactverzoek opgepakt door ${actor.naam ?? "Onbekend"}`;
+  }
+}
+
+async function enrichActiviteitWithZaakInfo(
+  activiteit: LogboekActiviteit,
+  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+) {
+  if (item.heeftBetrekkingOp.length != 1) {
+    return [];
+  }
+
+  const zaakId = item.heeftBetrekkingOp[0].objectId;
+
+  const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
+    props.contactverzoekSysteemId,
+    zaakId,
+  );
+  if (zaakIdentificatie != null) {
+    activiteit.tekst = `Zaak ${zaakIdentificatie} gekoppeld aan het contactverzoek`;
+  }
+}
+
+function enrichActiviteitWithVerwerktInfo(activiteit: LogboekActiviteit) {
+  activiteit.tekst = "Contactverzoek afgerond";
+}
+
+function enrichActiviteitWithNotitieInfo(
+  activiteit: LogboekActiviteit,
+  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+) {
+  activiteit.notitie = item.notitie;
+}
 </script>
 
 <style scoped>
-.logboek li > * {
-  padding-block: var(--spacing-small);
-  padding-inline: var(--spacing-default);
-}
-
-.meta li > * {
-  padding-block: 0;
-  padding-inline: 0;
-}
-
 .highlight {
   --highlight-border-width: 4px;
 
@@ -227,6 +220,22 @@ const mapLogboek = async (logboek: any): Promise<LogboekActiviteit[]> => {
     var(--spacing-default) - var(--highlight-border-width)
   );
   background-color: var(--color-secondary);
+}
+
+.logboek {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.logboek > li {
+  background: var(--color-white);
+  border: 1px solid var(--color-accent);
+}
+
+.logboek li > * {
+  padding-block: var(--spacing-small);
+  padding-inline: var(--spacing-default);
 }
 
 .meta {
@@ -241,14 +250,8 @@ const mapLogboek = async (logboek: any): Promise<LogboekActiviteit[]> => {
   margin-left: auto;
 }
 
-.logboek {
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
-.logboek > li {
-  background: var(--color-white);
-  border: 1px solid var(--color-accent);
+.logboek .meta li > * {
+  padding-block: 0;
+  padding-inline: 0;
 }
 </style>
