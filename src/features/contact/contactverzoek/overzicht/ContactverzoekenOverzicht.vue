@@ -63,8 +63,9 @@
 
   <logboek-overzicht
     class="logboek"
-    v-if="selectedContactverzoekId"
+    v-if="selectedContactverzoekId && selectedContactverzoekSysteemId"
     :contactverzoek-id="selectedContactverzoekId"
+    :contactverzoek-systeem-id="selectedContactverzoekSysteemId"
     :level="level"
   />
 </template>
@@ -79,8 +80,14 @@ import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
 import LogboekOverzicht from "../contactverzoekLogboek/LogboekOverzicht.vue";
 
 const selectedContactverzoekId = ref<string | undefined>(undefined);
-const onContactverzoekSelected = (id: string | undefined) =>
-  (selectedContactverzoekId.value = id);
+const selectedContactverzoekSysteemId = ref<string | undefined>(undefined);
+const onContactverzoekSelected = (
+  id: string | undefined,
+  systeemId: string | undefined,
+) => {
+  selectedContactverzoekId.value = id;
+  selectedContactverzoekSysteemId.value = systeemId;
+};
 
 const { level = 2, contactverzoeken } = defineProps<{
   contactverzoeken: ContactverzoekOverzichtItem[];

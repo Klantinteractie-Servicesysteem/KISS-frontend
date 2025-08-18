@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-import { toast } from "@/stores/toast";
+
 import { ref, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
@@ -46,17 +46,9 @@ import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
 const props = defineProps<{
   contactverzoekId: string;
+  contactverzoekSysteemId: string;
   level?: 1 | 2 | 3 | 4;
 }>();
-
-const { systemen } = useSystemen();
-
-// const logboekData = ref<{
-//   count: 0;
-//   next: null;
-//   previous: null;
-//   results: LogboekActiviteit[];
-// } | null>();
 
 interface LogboekActiviteit {
   datum: string;
@@ -69,39 +61,11 @@ interface LogboekActiviteit {
   uitgevoerdDoor: string | undefined;
   notitie: string | undefined;
 }
+
+//const { systemen } = useSystemen();
+//const systeem = ref<Systeem | undefined>(undefined);
+
 const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
-
-const systeem = ref<Systeem | undefined>(undefined);
-
-watchEffect(async () => {
-  ///todo!!
-  //alleen iets doen als  je openklant gebruikt. niets doen im geval van esuite. de esuite maakt geen logboek records aan dus er is toch niets te vinden
-  // en niet alle aanvullende calls zullen slagen als je dit toch probeert met de esuite!
-
-  systeem.value = systemen.value?.find(
-    (x) => x.registryVersion === registryVersions.ok2,
-  );
-
-  console.log(systeem.value, 123);
-  if (!systeem.value) {
-    return;
-  }
-
-  const logboekUrl = `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`;
-  logboekActiviteiten.value = [];
-  await fetchLoggedIn(logboekUrl)
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then(async (r) => {
-      logboekActiviteiten.value = await mapLogboek(r.results);
-    })
-    .catch(() =>
-      toast({
-        text: "Er is een fout opgetreden bij het ophalen van het contactverzoek logboek. Probeer het later opnieuw.",
-        type: "error",
-      }),
-    );
-});
 
 const activiteitTypes = {
   klantcontact: "klantcontact",
@@ -122,7 +86,36 @@ const getActionTitle = (type: string) =>
     [activiteitTypes.interneNotitie, "Interne notitie"],
   ]).get(type) || "Onbekende actie";
 
-const mapLogboek = async (logboek: any) => {
+watchEffect(async () => {
+  // Let op. kiss ondersteunt meerdere klantcontact registers tegelijk.
+  // Primair om e-suite naast openklant te kunnen gebruiken.
+  // In dat geval is er geen issue. de e-suite maaakt immers toch geen logboek aan.
+  // We hoeven dus alleen te kijken of er ook een ok2 systeem is.
+  // Maar als er meerdere ok2 systemen tegelijk in gebruik zijn, dan weten we niet in welke eenvullende gegevens van het contact opgehaald moeten worden.
+  // We pakken voorals nog het eerste openklant regsiter dat we in de confioguratie vinden.
+  // Er zijn nog geen scenario's in beeld waarin dat niet zal gaan werken.
+  // Mochten er tzt meer contcatregisters bij komen, dan moeten we hier iets mee.
+
+  // systeem.value = systemen.value?.find(
+  //   (x) => x.registryVersion === registryVersions.ok2,
+  // );
+
+  // if (!systeem.value) {
+  //   return;
+  // }
+
+  logboekActiviteiten.value = [];
+  await fetchLoggedIn(
+    `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
+  )
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then(async (r) => {
+      logboekActiviteiten.value = await mapLogboek(r.results);
+    });
+});
+
+const mapLogboek = async (logboek: any): Promise<LogboekActiviteit[]> => {
   const logItems = [];
 
   const activiteiten = logboek[0]?.record?.data?.activiteiten;
@@ -137,20 +130,12 @@ const mapLogboek = async (logboek: any) => {
     };
 
     if (item.type === activiteitTypes.klantcontact) {
-      //let op. kiss ondersteunt meerdere klant registers. primair om e-suite naast openklant te kunnen gebruiken
-      // in dat geval is dit geen issue. de esuite maaakt immers toch geen logboek aan
-      // maar als je meerdere andere openklant achtige systemen grbuikt, waarbij ITA wel gebruikt wordt voor afhandeling
-      // dn weten we nu eigenlijk niet uit welk register we de bijbehorende contacmoment gegevesn moeten halen
-      // we pakken voorals nog het eerste openklant regsiter dat we in de confioguratie vonden.
-      // er zijn nog geen scenario's in beeld waarin dat niet zal gaan werken.
-      //mochten er tzt meer contcatregisters bij komen, dan moeten we hier iets mee
-
       if (item.heeftBetrekkingOp?.length != 1) {
         return;
       }
 
       const contactmoment = await fetchKlantcontact({
-        systeemId: systeem.value.identifier,
+        systeemId: props.contactverzoekSysteemId,
         expand: [],
         uuid: item.heeftBetrekkingOp[0].objectId,
       });
@@ -172,7 +157,7 @@ const mapLogboek = async (logboek: any) => {
       }
 
       const actorId = item.heeftBetrekkingOp[0].objectId;
-      const actor = await fetchActor(systeem.value.identifier, actorId);
+      const actor = await fetchActor(props.contactverzoekSysteemId, actorId);
       if (actor != null) {
         activiteit.tekst = `Contactverzoek opgepakt door ${actor.naam ?? "Onbekend"}`;
       }
@@ -186,7 +171,7 @@ const mapLogboek = async (logboek: any) => {
       const zaakId = item.heeftBetrekkingOp[0].objectId;
 
       const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
-        systeem.value.identifier,
+        props.contactverzoekSysteemId,
         zaakId,
       );
       if (zaakIdentificatie != null) {
@@ -202,7 +187,7 @@ const mapLogboek = async (logboek: any) => {
       const zaakId = item.heeftBetrekkingOp[0].objectId;
 
       const zaakIdentificatie = await fetchZaakIdentificatieByUrlOrId(
-        systeem.value.identifier,
+        props.contactverzoekSysteemId,
         zaakId,
       );
       if (zaakIdentificatie != null) {
@@ -217,8 +202,6 @@ const mapLogboek = async (logboek: any) => {
     }
 
     logItems.push(activiteit);
-
-    // activiteiten.Add(activiteit);
   }
 
   return logItems;

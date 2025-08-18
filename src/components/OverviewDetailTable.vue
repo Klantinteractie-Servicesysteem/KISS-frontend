@@ -122,7 +122,11 @@ const { level = 2, keyProp } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "itemSelected", id: string | undefined): void;
+  (
+    e: "itemSelected",
+    id: string | undefined,
+    systeemId: string | undefined,
+  ): void;
 }>();
 
 const generatedId = useId();
@@ -141,9 +145,11 @@ const goToOverview = () => {
 };
 
 watchEffect(() => {
+  console.log(123, currentRecord.value);
   emit(
     "itemSelected",
     currentRecord.value ? getKey(currentRecord.value) : undefined,
+    currentRecord.value.systeemId,
   );
 });
 </script>

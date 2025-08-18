@@ -118,7 +118,9 @@ export async function search(
           }
           return result;
         })
-        .then(mapKlantcontactToContactverzoekOverzichtItem)
+        .then((x) =>
+          mapKlantcontactToContactverzoekOverzichtItem(x, systeem.identifier),
+        )
         .then(filterOutGeauthenticeerdeContactverzoeken);
     }
 
@@ -177,6 +179,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
   betrokkeneMetKlantcontact: (BetrokkeneMetKlantContact & {
     zaaknummers: string[];
   })[],
+  systeemId: string,
 ): ContactverzoekOverzichtItem[] {
   return betrokkeneMetKlantcontact.map(
     ({
@@ -212,6 +215,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
         },
         kanaal: klantContact.kanaal,
         zaaknummers,
+        systeemId: systeemId,
       } satisfies ContactverzoekOverzichtItem;
     },
   );
@@ -330,7 +334,12 @@ export async function fetchContactverzoekenByKlantIdentificator(
                   })),
                 ),
               )
-              .then(mapKlantcontactToContactverzoekOverzichtItem),
+              .then((x) =>
+                mapKlantcontactToContactverzoekOverzichtItem(
+                  x,
+                  systeem.identifier,
+                ),
+              ),
           ),
     );
   });
