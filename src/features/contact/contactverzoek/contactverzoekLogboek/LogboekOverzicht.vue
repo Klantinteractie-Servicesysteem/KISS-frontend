@@ -260,14 +260,14 @@ const getActionTitle = (type: string) =>
 
 .meta {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: var(--spacing-default);
   color: var(--color-grey);
   font-style: italic;
 }
 
-.meta li:last-child {
-  margin-left: auto;
+.meta li:has(+ :last-child) {
+  margin-inline-end: auto;
 }
 
 .logboek .meta li > * {
