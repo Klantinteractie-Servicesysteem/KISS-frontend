@@ -14,5 +14,10 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.GetByRole(AriaRole.Button, new() { Name = "Nieuwe vraag" });
         }
 
+        public static ILocator GetSearchVAC(this IPage page)
+        {
+            return page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" });
+        }
+
     }
 }

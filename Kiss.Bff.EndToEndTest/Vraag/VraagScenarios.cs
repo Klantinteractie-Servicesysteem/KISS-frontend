@@ -386,7 +386,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
 
             await Step("And clicks on the VAC wth more characters ");
-            await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
+            await Page.GetSearchVAC().ClickAsync();
 
             await Step("Click the Afronden button");
 
@@ -446,7 +446,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
 
             await Step("And clicks on the VAC wth more characters ");
-            await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
+            await Page.GetSearchVAC().ClickAsync();
 
             await Step("Click the Afronden button");
 
@@ -509,7 +509,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
 
             await Step("And clicks on the VAC wth more characters ");
-            await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
+            await Page.GetSearchVAC().ClickAsync();
 
             await Step("Click the Afronden button");
 
