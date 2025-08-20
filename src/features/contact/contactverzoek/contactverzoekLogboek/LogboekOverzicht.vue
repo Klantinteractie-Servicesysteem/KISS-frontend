@@ -1,25 +1,25 @@
 <template>
   <section v-if="logboekActiviteiten?.length">
-    <utrecht-heading :level="level ? level + 1 : 3">Logboek</utrecht-heading>
+    <utrecht-heading :level="level">Logboek</utrecht-heading>
     <ul class="logboek">
       <li
         v-for="logboekItem in logboekActiviteiten"
         :key="logboekItem.datum"
         class="ita-step"
       >
-        <utrecht-heading :level="level ? level + 2 : 4">{{
+        <utrecht-heading :level="level + 1">{{
           logboekItem.titel
         }}</utrecht-heading>
 
-        <p>{{ logboekItem.tekst }}</p>
+        <p v-if="logboekItem.tekst">{{ logboekItem.tekst }}</p>
         <article class="highlight" v-if="logboekItem.notitie">
-          <utrecht-heading :level="level ? level + 2 : 4"
+          <utrecht-heading :level="level + 1"
             >Interne toelichting</utrecht-heading
           >
           <p>{{ logboekItem.notitie }}</p>
         </article>
         <ul class="meta">
-          <li><DateTimeOrNvt :date="logboekItem.datum" /></li>
+          <li><DutchDateTime :date="logboekItem.datum" /></li>
           <li>{{ logboekItem.uitgevoerdDoor }}</li>
           <li>
             {{ logboekItem.kanaal ? "Kanaal: " + logboekItem.kanaal : "" }}
@@ -31,20 +31,29 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref } from "vue";
+import { fetchLoggedIn, parseJson, throwIfNotOk, useLoader } from "@/services";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import DutchDateTime from "@/components/DutchDateTime.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
-const props = defineProps<{
+const { level = 3, ...props } = defineProps<{
   contactverzoekId: string;
   contactverzoekSysteemId: string;
-  level?: 1 | 2 | 3 | 4;
+  level?: number;
 }>();
 
-interface LogboekActiviteit {
+type InputLogboekActiviteit = {
+  datum: string;
+  type: string;
+  titel: string;
+  actor?: { naam?: string };
+  heeftBetrekkingOp: { objectId: string }[];
+  notitie?: string;
+};
+
+interface EnrichedLogboekActiviteit {
   datum: string;
   type: string;
   titel: string;
@@ -56,7 +65,6 @@ interface LogboekActiviteit {
 }
 
 const useLogboek = ref<boolean>(false);
-const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
 
 const activiteitTypes = {
   klantcontact: "klantcontact",
@@ -75,33 +83,38 @@ onMounted(() => {
     });
 });
 
-watchEffect(async () => {
-  if (!useLogboek.value) {
-    return;
-  }
-
-  logboekActiviteiten.value = [];
-  await fetchLoggedIn(
-    `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
-  )
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then(
-      async (r) =>
-        (logboekActiviteiten.value = await mapAndEnrichLogboek(r.results)),
-    );
+const { data: logboekActiviteiten } = useLoader(() => {
+  if (useLogboek.value)
+    return fetchLoggedIn(
+      `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
+    )
+      .then(throwIfNotOk)
+      .then(parseJson)
+      .then((r) => mapAndEnrichLogboek(r.results));
 });
 
+const sortActiviteitByDateDescending = (
+  activiteiten: EnrichedLogboekActiviteit[],
+) =>
+  activiteiten.sort(
+    (a, b) => new Date(b.datum).valueOf() - new Date(a.datum).valueOf(),
+  );
+
 const mapAndEnrichLogboek = async (
-  logboek: any,
-): Promise<LogboekActiviteit[]> => {
+  logboek: {
+    record: {
+      data: {
+        activiteiten: InputLogboekActiviteit[];
+      };
+    };
+  }[],
+): Promise<EnrichedLogboekActiviteit[]> => {
   const logItems = [];
 
-  const activiteiten = logboek[0]?.record?.data?.activiteiten;
-  for (let i = (activiteiten?.length ?? 1) - 1; i >= 0; i--) {
-    const item = activiteiten[i];
+  const activiteiten = logboek[0]?.record?.data?.activiteiten ?? [];
 
-    const activiteit: LogboekActiviteit = {
+  for (const item of activiteiten) {
+    const activiteit: EnrichedLogboekActiviteit = {
       datum: item.datum,
       type: item.type,
       titel: getActionTitle(item.type),
@@ -141,12 +154,12 @@ const mapAndEnrichLogboek = async (
     logItems.push(activiteit);
   }
 
-  return logItems;
+  return sortActiviteitByDateDescending(logItems);
 };
 
 async function enrichActiviteitWithKlantContactInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp?.length != 1) {
     return [];
@@ -169,8 +182,8 @@ async function enrichActiviteitWithKlantContactInfo(
 }
 
 async function enrichActiviteitWithToegewezenAanInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp.length != 1) {
     return [];
@@ -184,8 +197,8 @@ async function enrichActiviteitWithToegewezenAanInfo(
 }
 
 async function enrichActiviteitWithZaakInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp.length != 1) {
     return [];
@@ -202,26 +215,30 @@ async function enrichActiviteitWithZaakInfo(
   }
 }
 
-function enrichActiviteitWithVerwerktInfo(activiteit: LogboekActiviteit) {
+function enrichActiviteitWithVerwerktInfo(
+  activiteit: EnrichedLogboekActiviteit,
+) {
   activiteit.tekst = "Contactverzoek afgerond";
 }
 
 function enrichActiviteitWithNotitieInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   activiteit.notitie = item.notitie;
 }
 
+const activiteitTitles = new Map<string, string>([
+  [activiteitTypes.klantcontact, "Klantcontact"],
+  [activiteitTypes.toegewezen, "Opgepakt"],
+  [activiteitTypes.verwerkt, "Afgerond"],
+  [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
+  [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
+  [activiteitTypes.interneNotitie, "Interne notitie"],
+]);
+
 const getActionTitle = (type: string) =>
-  new Map<string, string>([
-    [activiteitTypes.klantcontact, "Klantcontact"],
-    [activiteitTypes.toegewezen, "Opgepakt"],
-    [activiteitTypes.verwerkt, "Afgerond"],
-    [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
-    [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
-    [activiteitTypes.interneNotitie, "Interne notitie"],
-  ]).get(type) || "Onbekende actie";
+  activiteitTitles.get(type) || "Onbekende actie";
 </script>
 
 <style scoped>
@@ -232,35 +249,37 @@ const getActionTitle = (type: string) =>
   padding-inline-start: calc(
     var(--spacing-default) - var(--highlight-border-width)
   );
+  padding-block: var(--spacing-small);
+  margin-inline: calc(-1 * var(--spacing-default));
   background-color: var(--color-secondary);
 }
 
 .logboek {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-default);
   flex-direction: column;
 }
 
 .logboek > li {
   background: var(--color-white);
   border: 1px solid var(--color-accent);
-}
-
-.logboek li > * {
   padding-block: var(--spacing-small);
   padding-inline: var(--spacing-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
 }
 
 .meta {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: var(--spacing-default);
   color: var(--color-grey);
   font-style: italic;
 }
 
-.meta li:last-child {
-  margin-left: auto;
+.meta li:has(+ :last-child) {
+  margin-inline-end: auto;
 }
 
 .logboek .meta li > * {
