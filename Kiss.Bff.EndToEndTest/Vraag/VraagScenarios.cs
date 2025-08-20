@@ -12,7 +12,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
     {
 
         [TestMethod("1. 2 vragen within 1 anonymous contactmoment")]
-        public async Task vragenAnonymousContactMoment()
+        public async Task VragenAnonymousContactMoment()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -232,7 +232,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("3. Two vragen with different bronnen within 1 contactmoment")]
-        public async Task vragenwithbronnen()
+        public async Task VragenWithBronnen()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -324,7 +324,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
         [TestMethod("4. Vraag field displays last displayed section of Kennisartkel")]
         [Obsolete]
-        public async Task vragenValueValidation()
+        public async Task VragenValueValidation()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -368,7 +368,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("5. Long Vraag, no Specifieke vraag ")]
-        public async Task longVraag()
+        public async Task LongVraag()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -396,12 +396,12 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Zelfstandig afgehandeld" } });
+            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
             await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
 
@@ -414,6 +414,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             {
                 await Page.GetOpslaanButton().ClickAsync();
             },
+
                 response => response.Url.Contains("/postklantcontacten")
             );
 
@@ -423,7 +424,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("6. Long vraag ánd Long specifieke vraag ")]
-        public async Task longVraaglongSpecifiekevraag()
+        public async Task LongVraagLongSpecifiekeVraag()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -459,12 +460,12 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Zelfstandig afgehandeld" } });
+            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
             await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
 
@@ -486,7 +487,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("7. slightly shorter vraag and slightly shorter specifieke vraag ")]
-        public async Task VraagandSpecifiekevraag()
+        public async Task VraagAndSpecifiekevraag()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -522,12 +523,13 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
+
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync(new[] { new SelectOptionValue { Label = "Zelfstandig afgehandeld" } });
+            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
             await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
 
