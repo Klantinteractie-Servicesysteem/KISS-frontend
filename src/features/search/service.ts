@@ -78,17 +78,50 @@ export function useGlobalSearch(
 
   const getPayload = () => {
     if (!template.value || !parameters.value.search) return "";
+
     const page = parameters.value.page || 1;
     const from = (page - 1) * pageSize;
 
-    const replaced = template.value.replace(
+    const rawQuery = template.value.replace(
       /\{\{query\}\}/g,
       parameters.value.search,
     );
 
-    const query = JSON.parse(replaced);
+    const query = JSON.parse(rawQuery);
     query.from = from;
     query.size = pageSize;
+
+    const filters = parameters.value.filters ?? [];
+
+    const filterClauses = filters.reduce(
+      (acc, { name }) => {
+        if (name.startsWith("http")) {
+          acc.domains.push(name);
+        } else {
+          acc.bronnen.push(name);
+        }
+        return acc;
+      },
+      { domains: [], bronnen: [] } as { domains: string[]; bronnen: string[] },
+    );
+
+    const conditions = [];
+
+    if (filterClauses.domains.length) {
+      conditions.push({ terms: { "domains.enum": filterClauses.domains } });
+    }
+    if (filterClauses.bronnen.length) {
+      conditions.push({ terms: { "object_bron.enum": filterClauses.bronnen } });
+    }
+
+    if (conditions.length) {
+      query.query = {
+        bool: {
+          must: [query.query],
+          filter: [{ bool: { should: conditions } }],
+        },
+      };
+    }
 
     return JSON.stringify(query);
   };

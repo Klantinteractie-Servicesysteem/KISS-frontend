@@ -103,7 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var authBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieSchemeName;
-                if(!string.IsNullOrWhiteSpace(authOptions.Authority))
+                if (!string.IsNullOrWhiteSpace(authOptions.Authority))
                 {
                     options.DefaultChallengeScheme = ChallengeSchemeName;
                 }
@@ -277,7 +277,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var email = httpContext.User.GetEmail();
             var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
-            
+
             var organisatieIds = httpContext.RequestServices
                 .GetService<IConfiguration>()
                 ?["ORGANISATIE_IDS"]
@@ -295,7 +295,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
                 .AsSpan()
-                .TrimStart('/'); 
+                .TrimStart('/');
 
             var fullReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/{returnUrl}";
 

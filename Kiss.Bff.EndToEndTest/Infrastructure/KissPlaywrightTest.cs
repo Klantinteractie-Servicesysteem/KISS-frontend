@@ -163,6 +163,18 @@ namespace Kiss.Bff.EndToEndTest
             await writer.WriteLineAsync(html);
         }
 
+
+        protected async Task CaptureScreenshotAsync(string testName)
+        {
+            var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "screenshots");
+            Directory.CreateDirectory(screenshotDir);
+
+
+            var path = Path.Combine(screenshotDir, $"{testName}.png");
+            Console.WriteLine($"Saving screenshot to: {path}");
+            await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
+        }
+
         private static string GetRequiredConfig(string key)
         {
             var value = s_configuration[key];

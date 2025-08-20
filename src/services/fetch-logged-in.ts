@@ -1,3 +1,6 @@
+//import { useCurrentUser } from "@/features/login";
+import { useUserStore } from "@/stores/user";
+
 type FetchArgs = Parameters<typeof fetch>;
 type FetchReturn = ReturnType<typeof fetch>;
 
@@ -46,6 +49,18 @@ export function fetchLoggedIn(...args: FetchArgs): FetchReturn {
 
   return fetch(...args).then((r) => {
     if (r.status === 401) {
+      //if we are getting 401 results on ajax calls, the users session has ended
+      //(or the user tries to do something he/she isn't supposed to do)
+
+      // refetching the current user will ..
+      // result in a user with .isloggedin set to false.
+      // That will trigger a watcher in the LoginOverlay.
+      // The LoginOverlay will make itself visible and
+      // it will help the user to login again.
+
+      const userStore = useUserStore();
+      userStore.setSessionExpired();
+
       console.warn("session expired. waiting for user to log in...");
       return waitForLogin.promise.then(() => {
         console.log("user is logged in again, resuming...");
