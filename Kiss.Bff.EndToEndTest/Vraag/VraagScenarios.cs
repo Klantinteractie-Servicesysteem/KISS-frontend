@@ -388,15 +388,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And clicks on the VAC wth more characters ");
             await Page.GetSearchVAC().ClickAsync();
 
+            await Step("When user enters “PC-1478” in Notitieblok");
+
+            var note = "PC-1478”";
+
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
+
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
 
-            await Step("And user enters 'Live chat' in field Kanaal");
+            await Step("And user enters 'e-mail' in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -410,12 +416,25 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on Opslaan button");
 
-            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
-            {
-                await Page.GetOpslaanButton().ClickAsync();
-            },
-
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
+                async () =>
+                {
+                    await Page.GetOpslaanButton().ClickAsync();
+                },
                 response => response.Url.Contains("/postklantcontacten")
+            );
+
+            await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
+
+            var json = await klantContactPostResponse.JsonAsync();
+
+            Assert.IsTrue(json.HasValue, "Response JSON was null.");
+
+            var onderwerp = json.Value.GetProperty("onderwerp").GetString();
+
+            Assert.IsTrue(
+                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 characters long_"),
+                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
             );
 
             await Step("And Afhandeling form is successfully submitted");
@@ -456,11 +475,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user fills in '180 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi");
 
-            await Step("And user enters 'Live chat' in field Kanaal");
+            await Step("And user enters 'e-mail' in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -479,6 +498,19 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 await Page.GetOpslaanButton().ClickAsync();
             },
                 response => response.Url.Contains("/postklantcontacten")
+            );
+
+            await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
+
+            var json = await klantContactPostResponse.JsonAsync();
+
+            Assert.IsTrue(json.HasValue, "Response JSON was null.");
+
+            var onderwerp = json.Value.GetProperty("onderwerp").GetString();
+
+            Assert.IsTrue(
+                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 charact... (This vraag is 180 characters long_efghi"),
+                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
             );
 
             await Step("And Afhandeling form is successfully submitted");
@@ -519,12 +551,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user fills in '140 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ");
 
-            await Step("And user enters 'Live chat' in field Kanaal");
+            await Step("And user enters 'e-mail' in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "Live Chat" }]);
+            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -543,6 +574,19 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 await Page.GetOpslaanButton().ClickAsync();
             },
                 response => response.Url.Contains("/postklantcontacten")
+
+            );
+            await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
+
+            var json = await klantContactPostResponse.JsonAsync();
+
+            Assert.IsTrue(json.HasValue, "Response JSON was null.");
+
+            var onderwerp = json.Value.GetProperty("onderwerp").GetString();
+
+            Assert.IsTrue(
+                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 characters long_efghi 4bcdefghi 5bcd... (This vraag is 140 characters"),
+                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
             );
 
             await Step("And Afhandeling form is successfully submitted");
