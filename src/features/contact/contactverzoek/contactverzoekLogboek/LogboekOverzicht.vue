@@ -19,7 +19,7 @@
           <p>{{ logboekItem.notitie }}</p>
         </article>
         <ul class="meta">
-          <li><DateTimeOrNvt :date="logboekItem.datum" /></li>
+          <li><DutchDateTime :date="logboekItem.datum" /></li>
           <li>{{ logboekItem.uitgevoerdDoor }}</li>
           <li>
             {{ logboekItem.kanaal ? "Kanaal: " + logboekItem.kanaal : "" }}
@@ -34,7 +34,7 @@
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
 import { ref, watchEffect } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import DutchDateTime from "@/components/DutchDateTime.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
