@@ -44,7 +44,16 @@ const { level = 3, ...props } = defineProps<{
   level?: number;
 }>();
 
-interface LogboekActiviteit {
+type InputLogboekActiviteit = {
+  datum: string;
+  type: string;
+  titel: string;
+  actor?: { naam?: string };
+  heeftBetrekkingOp: { objectId: string }[];
+  notitie?: string;
+};
+
+interface EnrichedLogboekActiviteit {
   datum: string;
   type: string;
   titel: string;
@@ -55,7 +64,7 @@ interface LogboekActiviteit {
   notitie?: string | undefined;
 }
 
-const logboekActiviteiten = ref<LogboekActiviteit[]>([]);
+const logboekActiviteiten = ref<EnrichedLogboekActiviteit[]>([]);
 
 const activiteitTypes = {
   klantcontact: "klantcontact",
@@ -80,15 +89,21 @@ watchEffect(async () => {
 });
 
 const mapAndEnrichLogboek = async (
-  logboek: any,
-): Promise<LogboekActiviteit[]> => {
+  logboek: {
+    record: {
+      data: {
+        activiteiten: InputLogboekActiviteit[];
+      };
+    };
+  }[],
+): Promise<EnrichedLogboekActiviteit[]> => {
   const logItems = [];
 
   const activiteiten = logboek[0]?.record?.data?.activiteiten;
   for (let i = (activiteiten?.length ?? 1) - 1; i >= 0; i--) {
     const item = activiteiten[i];
 
-    const activiteit: LogboekActiviteit = {
+    const activiteit: EnrichedLogboekActiviteit = {
       datum: item.datum,
       type: item.type,
       titel: getActionTitle(item.type),
@@ -132,8 +147,8 @@ const mapAndEnrichLogboek = async (
 };
 
 async function enrichActiviteitWithKlantContactInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp?.length != 1) {
     return [];
@@ -156,8 +171,8 @@ async function enrichActiviteitWithKlantContactInfo(
 }
 
 async function enrichActiviteitWithToegewezenAanInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp.length != 1) {
     return [];
@@ -171,8 +186,8 @@ async function enrichActiviteitWithToegewezenAanInfo(
 }
 
 async function enrichActiviteitWithZaakInfo(
-  activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   if (item.heeftBetrekkingOp.length != 1) {
     return [];
@@ -189,13 +204,15 @@ async function enrichActiviteitWithZaakInfo(
   }
 }
 
-function enrichActiviteitWithVerwerktInfo(activiteit: LogboekActiviteit) {
+function enrichActiviteitWithVerwerktInfo(
+  activiteit: EnrichedLogboekActiviteit,
+) {
   activiteit.tekst = "Contactverzoek afgerond";
 }
 
 function enrichActiviteitWithNotitieInfo(
-  activiteit: LogboekActiviteit,
-  item: { notitie: string },
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
 ) {
   activiteit.notitie = item.notitie;
 }
