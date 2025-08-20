@@ -377,27 +377,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user clicks on Nieuw contactmoment button");
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And enters “testing” in the search field in the Search pane ");
 
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
             await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("And clicks on the VAC wth more characters ");
             await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
-
-            await Page.WaitForTimeoutAsync(2000);
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
 
-            await Page.WaitForTimeoutAsync(2000);
             await Step("And user enters 'Live chat' in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
@@ -438,7 +432,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user clicks on Nieuw contactmoment button");
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("When user enters “PC-1478” in Notitieblok");
 
@@ -449,21 +442,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And enters “testing” in the search field in the Search pane ");
 
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
             await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("And clicks on the VAC wth more characters ");
             await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
 
-            await Page.WaitForTimeoutAsync(2000);
-
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
-
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("And user fills in '180 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi");
@@ -508,7 +495,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user clicks on Nieuw contactmoment button");
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("When user enters “PC-1478” in Notitieblok");
 
@@ -519,21 +505,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And enters “testing” in the search field in the Search pane ");
 
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.WaitForTimeoutAsync(2000);
             await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("And clicks on the VAC wth more characters ");
             await Page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" }).ClickAsync();
 
-            await Page.WaitForTimeoutAsync(2000);
-
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
-
-            await Page.WaitForTimeoutAsync(2000);
 
             await Step("And user fills in '140 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ");
