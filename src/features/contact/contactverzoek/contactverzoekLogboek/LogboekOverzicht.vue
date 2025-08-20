@@ -88,6 +88,13 @@ watchEffect(async () => {
     );
 });
 
+const sortActiviteitByDateDescending = (
+  activiteiten: EnrichedLogboekActiviteit[],
+) =>
+  activiteiten.sort(
+    (a, b) => new Date(b.datum).valueOf() - new Date(a.datum).valueOf(),
+  );
+
 const mapAndEnrichLogboek = async (
   logboek: {
     record: {
@@ -99,10 +106,9 @@ const mapAndEnrichLogboek = async (
 ): Promise<EnrichedLogboekActiviteit[]> => {
   const logItems = [];
 
-  const activiteiten = logboek[0]?.record?.data?.activiteiten;
-  for (let i = (activiteiten?.length ?? 1) - 1; i >= 0; i--) {
-    const item = activiteiten[i];
+  const activiteiten = logboek[0]?.record?.data?.activiteiten ?? [];
 
+  for (const item of activiteiten) {
     const activiteit: EnrichedLogboekActiviteit = {
       datum: item.datum,
       type: item.type,
@@ -143,7 +149,7 @@ const mapAndEnrichLogboek = async (
     logItems.push(activiteit);
   }
 
-  return logItems;
+  return sortActiviteitByDateDescending(logItems);
 };
 
 async function enrichActiviteitWithKlantContactInfo(
