@@ -31,8 +31,7 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-import { ref, watchEffect } from "vue";
+import { fetchLoggedIn, parseJson, throwIfNotOk, useLoader } from "@/services";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DutchDateTime from "@/components/DutchDateTime.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
@@ -64,8 +63,6 @@ interface EnrichedLogboekActiviteit {
   notitie?: string | undefined;
 }
 
-const logboekActiviteiten = ref<EnrichedLogboekActiviteit[]>([]);
-
 const activiteitTypes = {
   klantcontact: "klantcontact",
   toegewezen: "toegewezen",
@@ -75,18 +72,14 @@ const activiteitTypes = {
   interneNotitie: "interne-notitie",
 };
 
-watchEffect(async () => {
-  logboekActiviteiten.value = [];
-  await fetchLoggedIn(
+const { data: logboekActiviteiten } = useLoader(() =>
+  fetchLoggedIn(
     `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
   )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then(
-      async (r) =>
-        (logboekActiviteiten.value = await mapAndEnrichLogboek(r.results)),
-    );
-});
+    .then((r) => mapAndEnrichLogboek(r.results)),
+);
 
 const sortActiviteitByDateDescending = (
   activiteiten: EnrichedLogboekActiviteit[],
