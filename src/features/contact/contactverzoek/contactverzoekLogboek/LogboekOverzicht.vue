@@ -31,7 +31,6 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
 import { fetchLoggedIn, parseJson, throwIfNotOk, useLoader } from "@/services";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DutchDateTime from "@/components/DutchDateTime.vue";
@@ -64,8 +63,6 @@ interface EnrichedLogboekActiviteit {
   notitie?: string | undefined;
 }
 
-const useLogboek = ref<boolean>(false);
-
 const activiteitTypes = {
   klantcontact: "klantcontact",
   toegewezen: "toegewezen",
@@ -75,13 +72,11 @@ const activiteitTypes = {
   interneNotitie: "interne-notitie",
 };
 
-onMounted(() => {
+const { data: useLogboek } = useLoader(() =>
   fetchLoggedIn("/api/environment/use-logboek")
     .then((r) => r.json())
-    .then((x) => {
-      useLogboek.value = x.useLogboek;
-    });
-});
+    .then((x) => !!x.useLogboek),
+);
 
 const { data: logboekActiviteiten } = useLoader(() => {
   if (useLogboek.value)
