@@ -195,7 +195,7 @@ function enrichActiviteitWithVerwerktInfo(activiteit: LogboekActiviteit) {
 
 function enrichActiviteitWithNotitieInfo(
   activiteit: LogboekActiviteit,
-  item: { heeftBetrekkingOp: { objectId: string }[]; notitie: string },
+  item: { notitie: string },
 ) {
   activiteit.notitie = item.notitie;
 }
@@ -226,7 +226,7 @@ const getActionTitle = (type: string) =>
 
 .logboek {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-default);
   flex-direction: column;
 }
 
