@@ -11,7 +11,7 @@
           logboekItem.titel
         }}</utrecht-heading>
 
-        <p>{{ logboekItem.tekst }}</p>
+        <p v-if="logboekItem.tekst">{{ logboekItem.tekst }}</p>
         <article class="highlight" v-if="logboekItem.notitie">
           <utrecht-heading :level="level + 1"
             >Interne toelichting</utrecht-heading
@@ -237,6 +237,8 @@ const getActionTitle = (type: string) =>
   padding-inline-start: calc(
     var(--spacing-default) - var(--highlight-border-width)
   );
+  padding-block: var(--spacing-small);
+  margin-inline: calc(-1 * var(--spacing-default));
   background-color: var(--color-secondary);
 }
 
@@ -249,11 +251,11 @@ const getActionTitle = (type: string) =>
 .logboek > li {
   background: var(--color-white);
   border: 1px solid var(--color-accent);
-}
-
-.logboek li > * {
   padding-block: var(--spacing-small);
   padding-inline: var(--spacing-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
 }
 
 .meta {
