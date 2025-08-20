@@ -200,15 +200,17 @@ function enrichActiviteitWithNotitieInfo(
   activiteit.notitie = item.notitie;
 }
 
+const activiteitTitles = new Map<string, string>([
+  [activiteitTypes.klantcontact, "Klantcontact"],
+  [activiteitTypes.toegewezen, "Opgepakt"],
+  [activiteitTypes.verwerkt, "Afgerond"],
+  [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
+  [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
+  [activiteitTypes.interneNotitie, "Interne notitie"],
+]);
+
 const getActionTitle = (type: string) =>
-  new Map<string, string>([
-    [activiteitTypes.klantcontact, "Klantcontact"],
-    [activiteitTypes.toegewezen, "Opgepakt"],
-    [activiteitTypes.verwerkt, "Afgerond"],
-    [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
-    [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
-    [activiteitTypes.interneNotitie, "Interne notitie"],
-  ]).get(type) || "Onbekende actie";
+  activiteitTitles.get(type) || "Onbekende actie";
 </script>
 
 <style scoped>
