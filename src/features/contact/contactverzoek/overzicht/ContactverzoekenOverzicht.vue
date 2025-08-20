@@ -66,7 +66,7 @@
     v-if="selectedContactverzoekId && selectedContactverzoekSysteemId"
     :contactverzoek-id="selectedContactverzoekId"
     :contactverzoek-systeem-id="selectedContactverzoekSysteemId"
-    :level="level"
+    :level="level + 1"
   />
 </template>
 

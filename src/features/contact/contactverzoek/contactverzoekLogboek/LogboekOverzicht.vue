@@ -1,19 +1,19 @@
 <template>
   <section v-if="logboekActiviteiten?.length">
-    <utrecht-heading :level="level ? level + 1 : 3">Logboek</utrecht-heading>
+    <utrecht-heading :level="level">Logboek</utrecht-heading>
     <ul class="logboek">
       <li
         v-for="logboekItem in logboekActiviteiten"
         :key="logboekItem.datum"
         class="ita-step"
       >
-        <utrecht-heading :level="level ? level + 2 : 4">{{
+        <utrecht-heading :level="level + 1">{{
           logboekItem.titel
         }}</utrecht-heading>
 
         <p>{{ logboekItem.tekst }}</p>
         <article class="highlight" v-if="logboekItem.notitie">
-          <utrecht-heading :level="level ? level + 2 : 4"
+          <utrecht-heading :level="level + 1"
             >Interne toelichting</utrecht-heading
           >
           <p>{{ logboekItem.notitie }}</p>
@@ -38,10 +38,10 @@ import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 
-const props = defineProps<{
+const { level = 3, ...props } = defineProps<{
   contactverzoekId: string;
   contactverzoekSysteemId: string;
-  level?: 1 | 2 | 3 | 4;
+  level?: number;
 }>();
 
 interface LogboekActiviteit {
