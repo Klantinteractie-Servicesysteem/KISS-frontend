@@ -253,6 +253,110 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
                 "Niet alle resultaten bevatten 'krabben' in de naam.");
         }
 
+        [TestMethod("9. Searching for a customer using the postcode and Huisnummer, and then Achternaam")]
+        public async Task SearchByPostcodeHuisnummer_WithAchternaam()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("2511CA");
+            await Page.Personen_HuisnummerInput().FillAsync("21");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 11 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("11 resultaten gevonden voor '2511CA, 21'.")).ToBeVisibleAsync();
+
+            await Step("When user enters “kor” in the field Achternaam, ");
+            await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Kor");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 6 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("6 resultaten gevonden voor '2511CA, 21, kor'.")).ToBeVisibleAsync();
+
+        }
+
+        [TestMethod("10. Searching for a customer using the postcode and Huisnummer, and only two letters of Achternaam")]
+        public async Task SearchByPostcodeHuisnummer_WithTwoLetterAchternaam()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("2511CA");
+            await Page.Personen_HuisnummerInput().FillAsync("21");
+            await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Kr");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then an error message should appear on achternaam field");
+
+            await Expect(Page.Personen_PostcodeForm_AchternaamInput()).ToHaveJSPropertyAsync("validationMessage", "Vul een geldig (begin van een) achternaam in, van minimaal 3 tekens");
+
+
+        }
+
+        [TestMethod("11. ffffSearching for a customer using the postcode and Huisnummer, and then huisletter")]
+        public async Task SearchByPostcodeHuisnummer_Withhuisletter()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("1074HK");
+            await Page.Personen_HuisnummerInput().FillAsync("1");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 11 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("4 resultaten gevonden voor '1074HK, 1'.")).ToBeVisibleAsync();
+
+            await Step("When user enters “B” in the field Achternaam, ");
+            await Page.Personen_HuisletterInput().FillAsync("b");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 2 records associated with same huisletter and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("2 resultaten gevonden voor '1074HK, 1, b'.")).ToBeVisibleAsync();
+
+        }
+
+
+
 
     }
 }
