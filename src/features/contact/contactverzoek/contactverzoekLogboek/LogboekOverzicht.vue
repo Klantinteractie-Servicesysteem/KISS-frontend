@@ -72,14 +72,21 @@ const activiteitTypes = {
   interneNotitie: "interne-notitie",
 };
 
-const { data: logboekActiviteiten } = useLoader(() =>
-  fetchLoggedIn(
-    `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
-  )
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((r) => mapAndEnrichLogboek(r.results)),
+const { data: useLogboek } = useLoader(() =>
+  fetchLoggedIn("/api/environment/use-logboek")
+    .then((r) => r.json())
+    .then((x) => !!x.useLogboek),
 );
+
+const { data: logboekActiviteiten } = useLoader(() => {
+  if (useLogboek.value)
+    return fetchLoggedIn(
+      `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
+    )
+      .then(throwIfNotOk)
+      .then(parseJson)
+      .then((r) => mapAndEnrichLogboek(r.results));
+});
 
 const sortActiviteitByDateDescending = (
   activiteiten: EnrichedLogboekActiviteit[],
