@@ -60,5 +60,17 @@ namespace Kiss.Bff.Intern.Environment
 
             return Ok(model);
         }
+
+        [HttpGet("use-logboek")]
+        public IActionResult GetUseLogboek()
+        {
+            return !string.IsNullOrWhiteSpace(_configuration["LOGBOEK_BASE_URL"]) &&
+                    !string.IsNullOrWhiteSpace(_configuration["LOGBOEK_TOKEN"]) &&
+                    !string.IsNullOrWhiteSpace(_configuration["LOGBOEK_OBJECT_TYPE_URL"]) &&
+                    !string.IsNullOrWhiteSpace(_configuration["LOGBOEK_OBJECT_TYPE_VERSION"])
+                ? (IActionResult)Ok(new { useLogboek = true })
+                : Ok(new { useLogboek = false });
+
+        }
     }
 }

@@ -1,5 +1,6 @@
 <template>
   <overview-detail-table
+    @itemSelected="onContactverzoekSelected"
     :level="level"
     :records="mappedCvs"
     :overview-columns="[
@@ -34,7 +35,7 @@
       otherTelefoonnummers: 'Andere telefoonnummers',
     }"
     :highlight="['toelichtingVoorCollega']"
-    key-prop="url"
+    key-prop="uuid"
   >
     <template #overview-heading
       ><slot name="overview-heading">Contactverzoeken</slot></template
@@ -59,15 +60,32 @@
       <span class="preserve-newline">{{ value }}</span>
     </template>
   </overview-detail-table>
+
+  <logboek-overzicht
+    class="logboek"
+    v-if="selectedContactverzoekId && selectedContactverzoekSysteemId"
+    :contactverzoek-id="selectedContactverzoekId"
+    :contactverzoek-systeem-id="selectedContactverzoekSysteemId"
+    :level="level + 1"
+  />
 </template>
 
 <script lang="ts" setup>
 import { fullName } from "@/helpers/string";
 import DutchDateTime from "@/components/DutchDateTime.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { ContactverzoekOverzichtItem } from "./types";
 import { DigitaalAdresTypes } from "@/services/openklant2";
 import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
+import LogboekOverzicht from "../contactverzoekLogboek/LogboekOverzicht.vue";
+
+const selectedContactverzoekId = ref<string | undefined>(undefined);
+const selectedContactverzoekSysteemId = ref<string | undefined>(undefined);
+const onContactverzoekSelected = (id: string | undefined) => {
+  selectedContactverzoekId.value = id;
+  const record = mappedCvs.value.find((x) => x.uuid === id);
+  selectedContactverzoekSysteemId.value = record?.systeemId;
+};
 
 const { level = 2, contactverzoeken } = defineProps<{
   contactverzoeken: ContactverzoekOverzichtItem[];
@@ -117,3 +135,10 @@ const mappedCvs = computed(() =>
 const prettifyStatus = (status: string) =>
   `${status[0]?.toUpperCase()}${status.substring(1).replace(/_/g, " ")}`;
 </script>
+
+<style scoped>
+.logboek {
+  margin-top: var(--spacing-default);
+  width: min(100%, 43.75rem);
+}
+</style>

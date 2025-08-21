@@ -75,7 +75,7 @@
   "
 >
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import { nextTick, ref, useId } from "vue";
+import { nextTick, ref, useId, watchEffect } from "vue";
 
 const KNOWN_SLOTS = {
   table_caption: "table-caption",
@@ -121,6 +121,10 @@ const { level = 2, keyProp } = defineProps<{
   level?: 1 | 2 | 3 | 4;
 }>();
 
+const emit = defineEmits<{
+  (e: "itemSelected", id: string | undefined): void;
+}>();
+
 const generatedId = useId();
 
 const currentRecord = ref<NonNullable<T>>();
@@ -135,6 +139,13 @@ const goToOverview = () => {
     document.getElementById(`${generatedId}_details_${key}`)?.focus();
   });
 };
+
+watchEffect(() => {
+  emit(
+    "itemSelected",
+    currentRecord.value ? getKey(currentRecord.value) : undefined,
+  );
+});
 </script>
 
 <style scoped>
