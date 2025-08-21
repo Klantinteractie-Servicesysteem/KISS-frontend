@@ -1,5 +1,6 @@
 <template>
-  <section v-if="logboekActiviteiten?.length">
+  <section v-if="loading"><simple-spinner /></section>
+  <section v-else-if="logboekActiviteiten?.length">
     <utrecht-heading :level="level">Logboek</utrecht-heading>
     <ul class="logboek">
       <li
@@ -28,6 +29,11 @@
       </li>
     </ul>
   </section>
+  <application-message
+    v-else-if="error"
+    messageType="error"
+    message="Er is een fout opgetreden. Het logboek van dit contactverzoek kan niet getoond worden."
+  />
 </template>
 
 <script lang="ts" setup>
@@ -36,6 +42,8 @@ import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import DutchDateTime from "@/components/DutchDateTime.vue";
 import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import ApplicationMessage from "@/components/ApplicationMessage.vue";
 
 const { level = 3, ...props } = defineProps<{
   contactverzoekId: string;
@@ -78,7 +86,11 @@ const { data: useLogboek } = useLoader(() =>
     .then((x) => !!x.useLogboek),
 );
 
-const { data: logboekActiviteiten } = useLoader(() => {
+const {
+  data: logboekActiviteiten,
+  loading,
+  error,
+} = useLoader(() => {
   if (useLogboek.value)
     return fetchLoggedIn(
       `/api/logboek/api/v2/objects?data_attr=heeftBetrekkingOp__objectId__exact__${props.contactverzoekId}`,
