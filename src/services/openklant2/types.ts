@@ -32,6 +32,7 @@ export type ExpandedKlantContactApiViewmodel = {
     leiddeTotInterneTaken?: InternetaakApiViewModel[];
     gingOverOnderwerpobjecten?: OnderwerpObjectPostModel[];
   };
+  indicatieContactGelukt: string | undefined;
 };
 
 export type InternetaakApiViewModel = {

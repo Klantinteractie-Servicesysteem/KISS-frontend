@@ -118,7 +118,9 @@ export async function search(
           }
           return result;
         })
-        .then(mapKlantcontactToContactverzoekOverzichtItem)
+        .then((x) =>
+          mapKlantcontactToContactverzoekOverzichtItem(x, systeem.identifier),
+        )
         .then(filterOutGeauthenticeerdeContactverzoeken);
     }
 
@@ -177,6 +179,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
   betrokkeneMetKlantcontact: (BetrokkeneMetKlantContact & {
     zaaknummers: string[];
   })[],
+  systeemId: string,
 ): ContactverzoekOverzichtItem[] {
   return betrokkeneMetKlantcontact.map(
     ({
@@ -188,11 +191,13 @@ function mapKlantcontactToContactverzoekOverzichtItem(
       zaaknummers,
     }) => {
       const internetaak = klantContact._expand?.leiddeTotInterneTaken?.[0];
+
       if (!internetaak) {
         throw new Error("");
       }
 
       return {
+        uuid: internetaak.uuid,
         url: internetaak.url,
         onderwerp: klantContact.onderwerp,
         toelichtingBijContactmoment: klantContact.inhoud,
@@ -210,6 +215,7 @@ function mapKlantcontactToContactverzoekOverzichtItem(
         },
         kanaal: klantContact.kanaal,
         zaaknummers,
+        systeemId: systeemId,
       } satisfies ContactverzoekOverzichtItem;
     },
   );
@@ -235,6 +241,7 @@ function mapObjectToContactverzoekOverzichtItem({
   const data = record.data;
 
   return {
+    uuid: contactverzoekObject.uuid,
     url: contactverzoekObject.url,
     onderwerp: vraag,
     toelichtingBijContactmoment: contactmoment?.tekst || "",
@@ -327,7 +334,12 @@ export async function fetchContactverzoekenByKlantIdentificator(
                   })),
                 ),
               )
-              .then(mapKlantcontactToContactverzoekOverzichtItem),
+              .then((x) =>
+                mapKlantcontactToContactverzoekOverzichtItem(
+                  x,
+                  systeem.identifier,
+                ),
+              ),
           ),
     );
   });

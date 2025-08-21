@@ -46,6 +46,7 @@ namespace Kiss.Bff.Extern.Logboek
             if (isObjectsEndpoint)
             {
                 context.Query.Collection["type"] = new(ObjectTypeUrl);
+                context.Query.Collection["typeVersion"] = new(TypeVersion);
             }
 
             return new();
