@@ -28,6 +28,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers
            page.GetByRole(AriaRole.Textbox, new() { Name = "postcode" });
         public static ILocator Personen_HuisnummerInput(this IPage page) =>
           page.GetByRole(AriaRole.Textbox, new() { Name = "huisnummer" });
+        public static ILocator Personen_HuisletterInput(this IPage page) =>
+          page.GetByRole(AriaRole.Textbox, new() { Name = "huisletter" });
 
         public static ILocator SearchAddressByPostalAndHuisNummer(this IPage page, string postcode, string huisNummer)
         {
