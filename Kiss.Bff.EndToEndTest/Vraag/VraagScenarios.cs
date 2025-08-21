@@ -367,9 +367,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
         }
 
-        [TestMethod("5. Long Vraag, no Specifieke vraag ")]
+        [TestMethod("5. Save klantcontact with long VAC title")]
         public async Task LongVraag()
         {
+
+            await Step("Precondition: VAC with the expected long title exists in search results");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("testing");
+            await Page.GetByRole(AriaRole.Combobox).FillAsync("This title is 210 characters long_");
+            await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
+
+            var vacResult = Page.GetByText("This title is 210 characters long_efghi");
+            await Expect(vacResult).ToBeVisibleAsync();
+
             await Step("Given the user is on KISS home page ");
 
             await Page.GotoAsync("/");
@@ -442,7 +454,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("6. Long vraag ánd Long specifieke vraag ")]
+        [TestMethod("6. Save klantcontact with long VAC title and long Specifieke vraag")]
         public async Task LongVraagLongSpecifiekeVraag()
         {
             await Step("Given the user is on KISS home page ");
@@ -518,7 +530,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("7. slightly shorter vraag and slightly shorter specifieke vraag ")]
+        [TestMethod("7. Save klantcontact with 210 char VAC title and 140 char Specifieke vraag ")]
         public async Task VraagAndSpecifiekevraag()
         {
             await Step("Given the user is on KISS home page ");
