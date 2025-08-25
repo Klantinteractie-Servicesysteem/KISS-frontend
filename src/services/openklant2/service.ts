@@ -32,6 +32,7 @@ import type { ContactverzoekData } from "../../features/contact/components/types
 import type { Klant, KlantIdentificator } from "../openklant/types";
 import type { Vraag } from "@/stores/contactmoment";
 import { fetchWithSysteemId } from "../fetch-with-systeem-id";
+import { codeObjecttype } from "../knownConsts";
 
 const klantinteractiesProxyRoot = "/api/klantinteracties";
 const klantinteractiesApiRoot = "/api/v1";
@@ -391,7 +392,7 @@ function getActorConfig(
   switch (type) {
     case "afdeling":
       return {
-        codeObjecttype: "afd",
+        codeObjecttype: codeObjecttype.afdeling.codeObjecttype,
         soortActor: "organisatorische_eenheid",
         codeRegister: "obj",
         codeSoortObjectId: "idf",
@@ -399,7 +400,7 @@ function getActorConfig(
 
     case "groep":
       return {
-        codeObjecttype: "grp",
+        codeObjecttype: codeObjecttype.groep.codeObjecttype,
         soortActor: "organisatorische_eenheid",
         codeRegister: "obj",
         codeSoortObjectId: "idf",
