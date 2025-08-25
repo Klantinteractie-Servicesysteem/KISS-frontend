@@ -44,8 +44,7 @@ import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
-import { useAfdelingen } from "../../components/afdelingen";
-import knownConsts, { codeObjecttype } from "@/services/knownConsts";
+import { codeObjecttype } from "@/services/knownConsts";
 
 const { level = 3, ...props } = defineProps<{
   contactverzoekId: string;
