@@ -44,6 +44,7 @@ import { fetchActor, fetchKlantcontact } from "@/services/openklant2";
 import { fetchZaakIdentificatieByUrlOrId } from "@/services/openzaak";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
+import { codeObjecttype } from "@/services/knownConsts";
 
 const { level = 3, ...props } = defineProps<{
   contactverzoekId: string;
@@ -56,7 +57,11 @@ type InputLogboekActiviteit = {
   type: string;
   titel: string;
   actor?: { naam?: string };
-  heeftBetrekkingOp: { objectId: string }[];
+  heeftBetrekkingOp: {
+    codeObjecttype: string;
+    objectId: string;
+    codeRegister: string;
+  }[];
   notitie?: string;
 };
 
@@ -78,6 +83,7 @@ const activiteitTypes = {
   zaakGekoppeld: "zaak-gekoppeld",
   zaakkoppelingGewijzigd: "zaakkoppeling-gewijzigd",
   interneNotitie: "interne-notitie",
+  doorsturen: "doorsturen",
 };
 
 const { data: useLogboek } = useLoader(() =>
@@ -151,6 +157,10 @@ const mapAndEnrichLogboek = async (
       }
       case activiteitTypes.interneNotitie: {
         enrichActiviteitWithNotitieInfo(activiteit, item);
+        break;
+      }
+      case activiteitTypes.doorsturen: {
+        await enrichActiviteitWithDoorsturenInfo(activiteit, item);
         break;
       }
       default: {
@@ -235,6 +245,30 @@ function enrichActiviteitWithNotitieInfo(
   activiteit.notitie = item.notitie;
 }
 
+async function enrichActiviteitWithDoorsturenInfo(
+  activiteit: EnrichedLogboekActiviteit,
+  item: InputLogboekActiviteit,
+) {
+  activiteit.tekst = "";
+  const activiteiten = [];
+  for (const heeftbetrekkingop of item.heeftBetrekkingOp) {
+    if (heeftbetrekkingop.codeRegister === "obj") {
+      const orgeenheidOrmedewerker = await fetchObject(
+        heeftbetrekkingop.objectId,
+      );
+
+      activiteiten.push(
+        `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${orgeenheidOrmedewerker?.naam}`,
+      );
+    } else if (heeftbetrekkingop.codeRegister === "handmatig") {
+      activiteiten.push(
+        `Contactverzoek doorgestuurd aan medewerker ${heeftbetrekkingop.objectId}`,
+      );
+    }
+    activiteit.tekst = activiteiten.join(" en ");
+  }
+}
+
 const activiteitTitles = new Map<string, string>([
   [activiteitTypes.klantcontact, "Klantcontact"],
   [activiteitTypes.toegewezen, "Opgepakt"],
@@ -242,10 +276,18 @@ const activiteitTitles = new Map<string, string>([
   [activiteitTypes.zaakGekoppeld, "Zaak gekoppeld"],
   [activiteitTypes.zaakkoppelingGewijzigd, "Zaakkoppeling gewijzigd"],
   [activiteitTypes.interneNotitie, "Interne notitie"],
+  [activiteitTypes.doorsturen, "Doorgestuurd"],
 ]);
 
 const getActionTitle = (type: string) =>
   activiteitTitles.get(type) || "Onbekende actie";
+
+async function fetchObject(id: string) {
+  return await fetchLoggedIn("/api/afdelingen/api/v2/objects/" + id)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((json) => json.record.data);
+}
 </script>
 
 <style scoped>
