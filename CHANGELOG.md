@@ -3,7 +3,7 @@
 ## vx.x.x
 
 ### New features
-
+- View all the 'Logboek' information belonging to a Contactverzoek (related to ITA) #1104
 
 ### Bugfixes
 - Better feedback when `internetaak.toelichting` has too many characters #1170
