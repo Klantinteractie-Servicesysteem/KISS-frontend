@@ -57,11 +57,6 @@ menu {
   gap: var(--spacing-large);
 }
 
-menu li {
-  display: contents;
-}
-
-
 .afronden {
   --_utrecht-button-background-color: var(--color-error);
   --_utrecht-button-focus-background-color: var(--color-error);
