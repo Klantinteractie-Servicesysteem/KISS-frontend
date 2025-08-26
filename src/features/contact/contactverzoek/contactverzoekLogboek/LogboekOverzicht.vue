@@ -256,10 +256,14 @@ async function enrichActiviteitWithDoorsturenInfo(
       const orgeenheidOrmedewerker = await fetchObject(
         heeftbetrekkingop.objectId,
       );
-
-      activiteiten.push(
-        `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${orgeenheidOrmedewerker?.naam}`,
-      );
+      if (
+        heeftbetrekkingop.codeObjecttype === "afd" ||
+        heeftbetrekkingop.codeObjecttype === "grp"
+      ) {
+        activiteiten.push(
+          `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${orgeenheidOrmedewerker?.naam}`,
+        );
+      }
     } else if (heeftbetrekkingop.codeRegister === "handmatig") {
       activiteiten.push(
         `Contactverzoek doorgestuurd aan medewerker ${heeftbetrekkingop.objectId}`,
