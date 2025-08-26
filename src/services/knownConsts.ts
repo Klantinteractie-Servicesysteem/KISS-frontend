@@ -1,5 +1,5 @@
 export const codeObjecttype: Record<
-  string,
+  "afd" | "grp",
   { codeObjecttype: string; name: string }
 > = {
   afd: { codeObjecttype: "afd", name: "afdeling" },

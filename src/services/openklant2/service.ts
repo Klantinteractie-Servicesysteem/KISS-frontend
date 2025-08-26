@@ -392,7 +392,7 @@ function getActorConfig(
   switch (type) {
     case "afdeling":
       return {
-        codeObjecttype: codeObjecttype.afdeling.codeObjecttype,
+        codeObjecttype: codeObjecttype.afd.codeObjecttype,
         soortActor: "organisatorische_eenheid",
         codeRegister: "obj",
         codeSoortObjectId: "idf",
@@ -400,7 +400,7 @@ function getActorConfig(
 
     case "groep":
       return {
-        codeObjecttype: codeObjecttype.groep.codeObjecttype,
+        codeObjecttype: codeObjecttype.grp.codeObjecttype,
         soortActor: "organisatorische_eenheid",
         codeRegister: "obj",
         codeSoortObjectId: "idf",
