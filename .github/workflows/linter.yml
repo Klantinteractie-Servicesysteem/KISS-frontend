@@ -6,13 +6,15 @@
 #################################
 name: Code quality checks
 
-#############################
-# Start the job on all push #
-#############################
+#######################################
+# Start the job on all push or manual #
+#######################################
 on:
   pull_request:
     branches: [main, "*.*.*", OudNaastNieuw]
-
+    
+  workflow_dispatch:
+  
 ###############
 # Set the Job #
 ###############
