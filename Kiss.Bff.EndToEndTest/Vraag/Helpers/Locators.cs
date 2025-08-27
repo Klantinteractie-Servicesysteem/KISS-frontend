@@ -14,10 +14,10 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.GetByRole(AriaRole.Button, new() { Name = "Nieuwe vraag" });
         }
 
-        public static async Task<ILocator> SearchLongItem(this IPage page, string resultName)
+        public static async Task<ILocator> SearchAndSelectItem(this IPage page, string searchTerm, string resultName)
         {
             await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
-            await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("testing");
+            await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync(searchTerm);
 
             await page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
 
@@ -25,6 +25,5 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
             return page.GetByRole(AriaRole.Link, new() { Name = resultName });
         }
-
     }
 }

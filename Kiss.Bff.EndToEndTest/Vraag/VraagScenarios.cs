@@ -393,8 +393,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetNieuwContactmomentButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("And search and clicks on the VAC wth more characters ");
-            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            await Step("And search and clicks on the VAC with more characters ");
+
+            var vacresult = await Page.SearchAndSelectItem("testing", "VAC This title is 210");
             await vacresult.ClickAsync();
 
             await Step("When user enters “PC-1478” in Notitieblok");
@@ -473,8 +474,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
-            await Step("And search and clicks on the VAC wth more characters ");
-            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            await Step("And search and clicks on the VAC with more characters ");
+
+            var vacresult = await Page.SearchAndSelectItem("testing", "VAC This title is 210");
             await vacresult.ClickAsync();
 
             await Step("Click the Afronden button");
@@ -549,9 +551,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
-            await Step("And search and clicks on the VAC wth more characters ");
+            await Step("And search and clicks on the VAC with more characters ");
 
-            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            var vacresult = await Page.SearchAndSelectItem("testing", "VAC This title is 210");
             await vacresult.ClickAsync();
 
             await Step("Click the Afronden button");
