@@ -13,7 +13,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
     {
 
         [TestMethod("1. Searching by Last Name and Date of Birth (Valid)")]
-        public async Task SearchByLastNameAndDOB_ValidAsync()
+        public async Task SearchingByLastNameAndDOB_ExpectNavigationToPersoonsinformatiePage()
         {
             await Step("Given the user is on the startpagina");
 
@@ -40,7 +40,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("2. Searching by Last Name and Date of Birth (Not Found)")]
-        public async Task SearchByLastNameAndDOB_NotFoundAsync()
+        public async Task SearchingByUnknownLastNameAndDOB_ExpectNoResultsFound()
         {
 
             await Step("Given the user is on the startpagina ");
@@ -67,7 +67,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("3. Searching by BSN (Valid)")]
-        public async Task SearchByBSN_Valid()
+        public async Task SearchingByBSN_ExpectNavigationToPersoonsinformatiePage()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -93,7 +93,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("4. Searching by BSN (Invalid)")]
-        public async Task SearchByBSN_Invalid()
+        public async Task SearchByUnknownBSN_ExpectNoResultsFound()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -119,7 +119,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("5. Searching by Postcode and Huisnummer (Valid)")]
-        public async Task SearchByPostcodeAndHuisnummer_Valid()
+        public async Task SearchingByPostcodeAndHuisnummer_ExpectNavigationToPersoonsinformatiePag()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -152,7 +152,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("6. Searching by Postcode and Huisnummer (Not Found)")]
-        public async Task SearchByPostcodeAndHuisnummer_NotFound()
+        public async Task SearchingByPostcodeAndHuisnummer_ExpectNoResultsFound()
         {
             await Step("Given the user is on the startpagina");
 
@@ -180,7 +180,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("7. Searching by Partial Last Name and Date of Birth (Multiple Results)")]
-        public async Task SearchByPartialLastNameAndDOB_MultipleResults()
+        public async Task SearchingByPartialLastNameAndDOB_MultipleResults()
         {
             await Step("Given the user is on the startpagina");
 
@@ -222,7 +222,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("8. Searching by Postcode and Huisnummer with optional Achternaam")]
-        public async Task SearchByPostcodeHuisnummer_WithOptionalAchternaam()
+        public async Task SearchingByPostcodeHuisnummer_WithOptionalAchternaam_ExpectListofresult()
         {
             await Step("Given the user is on the startpagina");
 
@@ -254,7 +254,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("9. Searching for a customer using the postcode and Huisnummer, and then Achternaam")]
-        public async Task SearchByPostcodeHuisnummer_WithAchternaam()
+        public async Task When_SearchingWithPostcodeHuisnummerAndAchternaam_ExpectFilteredResults()
         {
             await Step("Given the user is on the startpagina");
 
@@ -291,7 +291,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("10. Searching for a customer using the postcode and Huisnummer, and only two letters of Achternaam")]
-        public async Task SearchByPostcodeHuisnummer_WithTwoLetterAchternaam()
+        public async Task When_AchternaamSearchInputLessThenThreeCharacters_Expect_ValidationMessage()
         {
             await Step("Given the user is on the startpagina");
 
@@ -318,8 +318,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
         }
 
-        [TestMethod("11. ffffSearching for a customer using the postcode and Huisnummer, and then huisletter")]
-        public async Task SearchByPostcodeHuisnummer_Withhuisletter()
+        [TestMethod("11. Searching for a customer using the postcode and Huisnummer, and then huisletter")]
+        public async Task When_SearchingWithPostcodeHuisnummerAndHuisletter_ExpectFilteredResults()
         {
             await Step("Given the user is on the startpagina");
 
@@ -354,8 +354,6 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Expect(Page.GetByText("2 resultaten gevonden voor '1074HK, 1, b'.")).ToBeVisibleAsync();
 
         }
-
-
 
 
     }
