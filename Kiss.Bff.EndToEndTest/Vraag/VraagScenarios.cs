@@ -367,10 +367,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
         }
 
-        [TestMethod("5. Save klantcontact with long VAC title")]
-        public async Task LongVraag()
+        [TestMethod("5. Save klantcontact with many characters in onderwerp")]
+        public async Task When_SavingContactmomentWithLongTitleAndEmptyVraag_ExpectOnderwerpToBeTruncated()
         {
-
             await Step("Precondition: VAC with the expected long title exists in search results");
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
@@ -380,7 +379,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
 
             var vacResult = Page.GetByText("This title is 210 characters long_efghi");
-            await Expect(vacResult).ToBeVisibleAsync();
+
+            var vacTitleText = await vacResult.TextContentAsync();
+            vacTitleText ??= string.Empty;
+            Assert.AreEqual(210, vacTitleText.Length, $"The length of the title was expected to be 210 characters, but was {vacTitleText.Length}. The title text is: {vacTitleText}");
 
             await Step("Given the user is on KISS home page ");
 
@@ -391,14 +393,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetNieuwContactmomentButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("And enters “testing” in the search field in the Search pane ");
-
-            await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
-            await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-
-            await Step("And clicks on the VAC wth more characters ");
-            await Page.GetSearchVAC().ClickAsync();
+            await Step("And search and clicks on the VAC wth more characters ");
+            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            await vacresult.ClickAsync();
 
             await Step("When user enters “PC-1478” in Notitieblok");
 
@@ -410,11 +407,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetAfrondenButton().ClickAsync();
 
-            await Step("And user enters 'e-mail' in field Kanaal");
+            await Step("And user selects first option in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
+            await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -436,26 +433,31 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 response => response.Url.Contains("/postklantcontacten")
             );
 
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
             await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
 
             var json = await klantContactPostResponse.JsonAsync();
 
             Assert.IsTrue(json.HasValue, "Response JSON was null.");
 
+            var expectedOnderwerp = "This title is 210 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi 17cdefghi 18cdefghi 19cdefg...";
+
             var onderwerp = json.Value.GetProperty("onderwerp").GetString();
 
-            Assert.IsTrue(
-                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 characters long_"),
-                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
-            );
+            Assert.AreEqual(expectedOnderwerp, onderwerp, $"Expected 'onderwerp' to be exactly: {expectedOnderwerp}, but got: {onderwerp}");
 
             await Step("And Afhandeling form is successfully submitted");
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("6. Save klantcontact with long VAC title and long Specifieke vraag")]
-        public async Task LongVraagLongSpecifiekeVraag()
+        [TestMethod("6. Save klantcontact with long search result and long Specifieke vraag, Expect both to be truncated")]
+        public async Task When_UserCreatesContactmomentWithLongTitleAndVraag_ExpectBothToBeTruncated()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -471,14 +473,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
-            await Step("And enters “testing” in the search field in the Search pane ");
-
-            await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
-            await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-
-            await Step("And clicks on the VAC wth more characters ");
-            await Page.GetSearchVAC().ClickAsync();
+            await Step("And search and clicks on the VAC wth more characters ");
+            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            await vacresult.ClickAsync();
 
             await Step("Click the Afronden button");
 
@@ -487,11 +484,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user fills in '180 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi");
 
-            await Step("And user enters 'e-mail' in field Kanaal");
+            await Step("And user selects first option in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
+            await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -512,26 +509,31 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 response => response.Url.Contains("/postklantcontacten")
             );
 
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
             await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
 
             var json = await klantContactPostResponse.JsonAsync();
 
             Assert.IsTrue(json.HasValue, "Response JSON was null.");
 
+            var expectedOnderwerp = "This title is 210 charact... (This vraag is 180 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghi 14cdefghi 15cdefghi 16cdefghi)";
+
             var onderwerp = json.Value.GetProperty("onderwerp").GetString();
 
-            Assert.IsTrue(
-                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 charact... (This vraag is 180 characters long_efghi"),
-                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
-            );
+            Assert.AreEqual(expectedOnderwerp, onderwerp, $"Expected 'onderwerp' to be exactly: {expectedOnderwerp}, but got: {onderwerp}");
 
             await Step("And Afhandeling form is successfully submitted");
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        [TestMethod("7. Save klantcontact with 210 char VAC title and 140 char Specifieke vraag ")]
-        public async Task VraagAndSpecifiekevraag()
+        [TestMethod("7. Save klantcontact with 210 character search result and 140 char Specifieke vraag , expect search result to be truncated")]
+        public async Task When_SelectingALongSearchResult_Expect_ItToBeTruncatedInContactmoment()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -547,14 +549,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
-            await Step("And enters “testing” in the search field in the Search pane ");
+            await Step("And search and clicks on the VAC wth more characters ");
 
-            await Page.GetByRole(AriaRole.Combobox).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox).FillAsync("testing");
-            await Page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
-
-            await Step("And clicks on the VAC wth more characters ");
-            await Page.GetSearchVAC().ClickAsync();
+            var vacresult = await Page.SearchLongItem("VAC This title is 210");
+            await vacresult.ClickAsync();
 
             await Step("Click the Afronden button");
 
@@ -563,11 +561,11 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And user fills in '140 char long string' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ");
 
-            await Step("And user enters 'e-mail' in field Kanaal");
+            await Step("And user selects first option in field Kanaal");
 
             await Page.GetKanaalField().ClickAsync();
 
-            await Page.GetKanaalField().SelectOptionAsync([new SelectOptionValue { Label = "e-mail" }]);
+            await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
             await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
 
@@ -588,18 +586,25 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 response => response.Url.Contains("/postklantcontacten")
 
             );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
             await Step("Then a klantcontact will be saved with this value in property klantcontact.onderwerp");
 
             var json = await klantContactPostResponse.JsonAsync();
 
             Assert.IsTrue(json.HasValue, "Response JSON was null.");
 
+            var expectedOnderwerp = "This title is 210 characters long_efghi 4bcdefghi 5bcd... (This vraag is 140 characters long_efghi 4bcdefghi 5bcdefghi 6bcdefghi 7bcdefghi 8bcdefghi 9bcdefghi 10cdefghi 11cdefghi 12cdefghi 13cdefghiJ)";
+
             var onderwerp = json.Value.GetProperty("onderwerp").GetString();
 
-            Assert.IsTrue(
-                !string.IsNullOrEmpty(onderwerp) && onderwerp.StartsWith("This title is 210 characters long_efghi 4bcdefghi 5bcd... (This vraag is 140 characters"),
-                $"Expected 'onderwerp' to start with the long title but got: {onderwerp}"
-            );
+            Assert.AreEqual(expectedOnderwerp, onderwerp, $"Expected 'onderwerp' to be exactly: {expectedOnderwerp}, but got: {onderwerp}");
+
 
             await Step("And Afhandeling form is successfully submitted");
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");

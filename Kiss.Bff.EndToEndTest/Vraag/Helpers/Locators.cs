@@ -14,9 +14,16 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.GetByRole(AriaRole.Button, new() { Name = "Nieuwe vraag" });
         }
 
-        public static ILocator GetSearchVAC(this IPage page)
+        public static async Task<ILocator> SearchLongItem(this IPage page, string resultName)
         {
-            return page.GetByRole(AriaRole.Link, new() { Name = "VAC This title is 210" });
+            await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
+            await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("testing");
+
+            await page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
+
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            return page.GetByRole(AriaRole.Link, new() { Name = resultName });
         }
 
     }
