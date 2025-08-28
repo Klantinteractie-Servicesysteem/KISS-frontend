@@ -414,15 +414,28 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
-            await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
+            await Step("And select an Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
-            await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
+            var options = await Page.GetAfhandelingField().EvaluateAsync<string[]>(
+                "el => Array.from(el.options).map(o => o.text)"
+            );
 
+            if (options.Length > 0 && options[0] == "Contactverzoek gemaakt")
+            {
+                // Select the second option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            }
+            else
+            {
+                // Select the first option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
+            }
+
+            await Step("And selects first value in field Afdeling");
             await Page.GetAfdelingVoorField().ClickAsync();
-            await Page.GetByText("Publiekscontacten Vergunningen").First.ClickAsync();
+            await Page.Locator("ul[role='listbox'] li").First.ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
@@ -492,15 +505,28 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
-            await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
+            await Step("And select an Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
-            await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
+            var options = await Page.GetAfhandelingField().EvaluateAsync<string[]>(
+                "el => Array.from(el.options).map(o => o.text)"
+            );
 
+            if (options.Length > 0 && options[0] == "Contactverzoek gemaakt")
+            {
+                // Select the second option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            }
+            else
+            {
+                // Select the first option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
+            }
+
+            await Step("And selects first value in field Afdeling");
             await Page.GetAfdelingVoorField().ClickAsync();
-            await Page.GetByText("Publiekscontacten Vergunningen").First.ClickAsync();
+            await Page.Locator("ul[role='listbox'] li").First.ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
@@ -569,15 +595,28 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
 
-            await Step("And value 'Zelfstandig afgehandeld' in field Afhandeling");
+            await Step("And select an Afhandeling");
 
             await Page.GetAfhandelingField().ClickAsync();
-            await Page.GetAfhandelingField().SelectOptionAsync([new SelectOptionValue { Label = "Zelfstandig afgehandeld" }]);
 
-            await Step("And selects value 'Publiekscontacten Vergunningen' in field Afdeling");
+            var options = await Page.GetAfhandelingField().EvaluateAsync<string[]>(
+                "el => Array.from(el.options).map(o => o.text)"
+            );
 
+            if (options.Length > 0 && options[0] == "Contactverzoek gemaakt")
+            {
+                // Select the second option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            }
+            else
+            {
+                // Select the first option
+                await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
+            }
+
+            await Step("And selects first value in field Afdeling");
             await Page.GetAfdelingVoorField().ClickAsync();
-            await Page.GetByText("Publiekscontacten Vergunningen").First.ClickAsync();
+            await Page.Locator("ul[role='listbox'] li").First.ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
