@@ -9,7 +9,10 @@ Wel loggen we de error.
 We kiezen ervoor een header mee te sturen.
 Het alternatief zou zijn, om deze informatie helemaal te negeren en altijd elk gegeven in alle beschikbare zaaksystemen op te zoeken. De belangrijkste overweging om dit niet te doen is, naast het grote aantal redundante calls, de complexiteit die ontstaat in het correct afhandelen van fouten en niet gevonden gegevens.
 
-## technisch ontwerp zaken bij bedrijven nieuwe stijl
+## Zaken bij bedrijven nieuwe stijl
+- Voorstel is om de query mogelijkheden op het `/zaken` endpoint te gebruiken. Eerst zoeken op rollen is geen goede oplossing omdat de zgw standaard geen mogelijkheid biedt om zaken te filteren op de url/uuid van een rol.
+- Voorstel is om nog NIET verder gebruik te maken van de `expand` functionaliteit. Het is niet functioneel noodzakelijk, vereist extra werk omdat de esuite dit niet ondersteunt en het levert niet extra werk op als we dit eventueel later alsnog willen realiseren als de performance onvoldoende blijkt.
+- Hieronder staat per type entiteit uit KvK in pseudo-code eerst welke query parameters we kunnen gebruiken, en daarna welke handmatige filtering we vervolgens nog moeten doen.
 
 ### Rechtspersoon
 
