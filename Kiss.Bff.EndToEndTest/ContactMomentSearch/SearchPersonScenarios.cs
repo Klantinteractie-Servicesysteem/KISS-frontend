@@ -254,7 +254,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("9. Searching for a customer using the postcode and Huisnummer, and then Achternaam")]
-        public async Task When_SearchingWithPostcodeHuisnummerAndAchternaam_ExpectFilteredResults()
+        public async Task When_SearchingWithPostcodeHuisnummerAndThenAchternaam_ExpectFilteredResults()
         {
             await Step("Given the user is on the startpagina");
 
@@ -319,7 +319,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("11. Searching for a customer using the postcode and Huisnummer, and then huisletter")]
-        public async Task When_SearchingWithPostcodeHuisnummerAndHuisletter_ExpectFilteredResults()
+        public async Task When_SearchingWithPostcodeHuisnummerAndThenHuisletter_ExpectFilteredResults()
         {
             await Step("Given the user is on the startpagina");
 
