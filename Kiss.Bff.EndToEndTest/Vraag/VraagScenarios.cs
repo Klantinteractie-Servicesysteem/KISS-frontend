@@ -368,7 +368,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("5. Save klantcontact with many characters in onderwerp")]
-        public async Task When_SavingContactmomentWithLongTitleAndEmptyVraag_ExpectOnderwerpToBeTruncated()
+        public async Task When_ContactmomentWithLongVACTitleAndEmptySpecifiekeVraag_Expect_OnderwerpToBeTruncated()
         {
             await Step("Precondition: VAC with the expected long title exists in search results");
 
@@ -471,7 +471,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("6. Save klantcontact with long search result and long Specifieke vraag, Expect both to be truncated")]
-        public async Task When_UserCreatesContactmomentWithLongTitleAndVraag_ExpectBothToBeTruncated()
+        public async Task When_ContactmomentWithLongVACTitleAndSpecifiekeVraag_Expect_BothToBeTruncated()
         {
             await Step("Given the user is on KISS home page ");
 
@@ -561,7 +561,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
         }
 
         [TestMethod("7. Save klantcontact with 210 character search result and 140 char Specifieke vraag , expect search result to be truncated")]
-        public async Task When_SelectingALongSearchResult_Expect_ItToBeTruncatedInContactmoment()
+        public async Task When_ContactmomentWithLongVACTitleAndShorterSpecifiekeVraag_Expect_BothToBeTruncated()
         {
             await Step("Given the user is on KISS home page ");
 
