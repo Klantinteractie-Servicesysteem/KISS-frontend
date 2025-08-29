@@ -13,7 +13,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
     {
 
         [TestMethod("1. Searching by Last Name and Date of Birth (Valid)")]
-        public async Task SearchByLastNameAndDOB_ValidAsync()
+        public async Task SearchingByLastNameAndDOB_ExpectNavigationToPersoonsinformatiePage()
         {
             await Step("Given the user is on the startpagina");
 
@@ -40,7 +40,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("2. Searching by Last Name and Date of Birth (Not Found)")]
-        public async Task SearchByLastNameAndDOB_NotFoundAsync()
+        public async Task SearchingByUnknownLastNameAndDOB_ExpectNoResultsFound()
         {
 
             await Step("Given the user is on the startpagina ");
@@ -67,7 +67,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("3. Searching by BSN (Valid)")]
-        public async Task SearchByBSN_Valid()
+        public async Task SearchingByBSN_ExpectNavigationToPersoonsinformatiePage()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -93,7 +93,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("4. Searching by BSN (Invalid)")]
-        public async Task SearchByBSN_Invalid()
+        public async Task SearchByUnknownBSN_ExpectNoResultsFound()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -119,7 +119,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("5. Searching by Postcode and Huisnummer (Valid)")]
-        public async Task SearchByPostcodeAndHuisnummer_Valid()
+        public async Task SearchingByPostcodeAndHuisnummer_ExpectNavigationToPersoonsinformatiePag()
         {
             await Step("Given the user is on the startpagina ");
 
@@ -152,7 +152,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("6. Searching by Postcode and Huisnummer (Not Found)")]
-        public async Task SearchByPostcodeAndHuisnummer_NotFound()
+        public async Task SearchingByPostcodeAndHuisnummer_ExpectNoResultsFound()
         {
             await Step("Given the user is on the startpagina");
 
@@ -180,7 +180,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
 
         [TestMethod("7. Searching by Partial Last Name and Date of Birth (Multiple Results)")]
-        public async Task SearchByPartialLastNameAndDOB_MultipleResults()
+        public async Task SearchingByPartialLastNameAndDOB_MultipleResults()
         {
             await Step("Given the user is on the startpagina");
 
@@ -222,7 +222,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
         }
 
         [TestMethod("8. Searching by Postcode and Huisnummer with optional Achternaam")]
-        public async Task SearchByPostcodeHuisnummer_WithOptionalAchternaam()
+        public async Task SearchingByPostcodeHuisnummer_WithOptionalAchternaam_ExpectListofresult()
         {
             await Step("Given the user is on the startpagina");
 
@@ -251,6 +251,108 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             Assert.IsTrue(allNames.Any(), "Geen resultaten gevonden voor '2511CA, 21, Krabben'.");
             Assert.IsTrue(allNames.All(name => name.Contains("Krabben", StringComparison.OrdinalIgnoreCase)),
                 "Niet alle resultaten bevatten 'krabben' in de naam.");
+        }
+
+        [TestMethod("9. Searching for a customer using the postcode and Huisnummer, and then Achternaam")]
+        public async Task When_SearchingWithPostcodeHuisnummerAndThenAchternaam_ExpectFilteredResults()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("2511CA");
+            await Page.Personen_HuisnummerInput().FillAsync("21");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 11 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("11 resultaten gevonden voor '2511CA, 21'.")).ToBeVisibleAsync();
+
+            await Step("When user enters “kor” in the field Achternaam, ");
+            await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Kor");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 6 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("6 resultaten gevonden voor '2511CA, 21, kor'.")).ToBeVisibleAsync();
+
+        }
+
+        [TestMethod("10. Searching for a customer using the postcode and Huisnummer, and only two letters of Achternaam")]
+        public async Task When_AchternaamSearchInputLessThenThreeCharacters_Expect_ValidationMessage()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("2511CA");
+            await Page.Personen_HuisnummerInput().FillAsync("21");
+            await Page.Personen_PostcodeForm_AchternaamInput().FillAsync("Kr");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then an error message should appear on achternaam field");
+
+            await Expect(Page.Personen_PostcodeForm_AchternaamInput()).ToHaveJSPropertyAsync("validationMessage", "Vul een geldig (begin van een) achternaam in, van minimaal 3 tekens");
+
+
+        }
+
+        [TestMethod("11. Searching for a customer using the postcode and Huisnummer, and then huisletter")]
+        public async Task When_SearchingWithPostcodeHuisnummerAndThenHuisletter_ExpectFilteredResults()
+        {
+            await Step("Given the user is on the startpagina");
+
+            await Page.GotoAsync("/");
+
+            await Step("When user starts a new contactmoment");
+
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And user enters postcode and huisnummer and fills an achternaam filter");
+
+            await Page.Personen_PostCodeInput().FillAsync("1074HK");
+            await Page.Personen_HuisnummerInput().FillAsync("1");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 11 records associated with same huisnummer and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("4 resultaten gevonden voor '1074HK, 1'.")).ToBeVisibleAsync();
+
+            await Step("When user enters “B” in the field Achternaam, ");
+            await Page.Personen_HuisletterInput().FillAsync("b");
+
+            await Step("And clicks the search button");
+
+            await Page.PersonenSecond_SearchButton().ClickAsync();
+
+            await Step("Then a list of 2 records associated with same huisletter and postcode is displayed ");
+            await Expect(Page.GetByRole(AriaRole.Table)).ToBeVisibleAsync();
+            await Expect(Page.GetByText("2 resultaten gevonden voor '1074HK, 1, b'.")).ToBeVisibleAsync();
+
         }
 
 
