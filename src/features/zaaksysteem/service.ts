@@ -34,7 +34,12 @@ const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
         mapZaakDetails({ ...(x as any), zaaksysteemId: systeem.identifier }),
       ),
     )
-    .then(({ page }) => page);
+    .then(({ page }) => page)
+    .catch(() => {
+      // this endpoint can return a bad request because of uncertainty in the data
+      // this is expected behavior, so we can swallow the exception and return null for the caller
+      return null;
+    });
 
 export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
   const query = new URLSearchParams([
@@ -43,7 +48,11 @@ export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
   ]);
   return Promise.all(
     systemen.map((systeem) => fetchZaakOverview(systeem, query)),
-  ).then(combineOverview);
+  ).then((results) => {
+    // Filter out any null values before combining the overviews
+    const validResults = results.filter((result) => result !== null);
+    return combineOverview(validResults);
+  });
 }
 
 export function fetchZakenByZaaknummer(
@@ -52,7 +61,11 @@ export function fetchZakenByZaaknummer(
 ) {
   const query = new URLSearchParams({ identificatie: zaaknummer });
   return Promise.all(systemen.map((s) => fetchZaakOverview(s, query))).then(
-    combineOverview,
+    (results) => {
+      // Filter out any null values before combining the overviews
+      const validResults = results.filter((result) => result !== null);
+      return combineOverview(validResults);
+    },
   );
 }
 
@@ -97,20 +110,33 @@ export const fetchZakenByKlantBedrijfIdentifier = (
           "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
           id.kvkNummer,
         );
+        const [rsinResults, kvkResults] = await Promise.all([
+          fetchZaakOverview(systeem, rsinQuery),
+          fetchZaakOverview(systeem, kvkQuery),
+        ]);
 
-        // Fetch results for both queries and wait for them to resolve
-        const rsinResults = await fetchZaakOverview(systeem, rsinQuery);
-        const kvkResults = await fetchZaakOverview(systeem, kvkQuery);
+        const combinedResults = [];
 
-        // Combine the results before returning
-        return [...rsinResults, ...kvkResults];
+        if (rsinResults) {
+          combinedResults.push(...rsinResults);
+        }
+
+        if (kvkResults) {
+          combinedResults.push(...kvkResults);
+        }
+
+        return combinedResults;
       }
       // not supported
       else return [];
 
       return fetchZaakOverview(systeem, query);
     }),
-  ).then(combineOverview);
+  ).then((results) => {
+    // Filter out any null values before combining the overviews
+    const validResults = results.filter((result) => result !== null);
+    return combineOverview(validResults);
+  });
 
 const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   const ONBEKEND = "Onbekend";
