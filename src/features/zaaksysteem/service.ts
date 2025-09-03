@@ -28,7 +28,6 @@ const combineOverview = (multiple: ZaakDetails[][]) =>
 
 const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
   fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken?${query}`)
-    .then(throwIfNotOk)
     .then(parseJson)
     .then((json) =>
       parsePagination(json, (x) =>
@@ -86,14 +85,25 @@ export const fetchZakenByKlantBedrijfIdentifier = (
       }
       // nnp
       else if ("rsin" in id && id.rsin && id.kvkNummer) {
-        const nnpId =
-          systeem.registryVersion === registryVersions.ok1
-            ? id.kvkNummer
-            : id.rsin;
-        query.set(
+        // Create separate queries for rsin and kvk
+        const rsinQuery = new URLSearchParams(query);
+        rsinQuery.set(
           "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
-          nnpId,
+          id.rsin,
         );
+
+        const kvkQuery = new URLSearchParams(query);
+        kvkQuery.set(
+          "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
+          id.kvkNummer,
+        );
+
+        // Fetch results for both queries and wait for them to resolve
+        const rsinResults = await fetchZaakOverview(systeem, rsinQuery);
+        const kvkResults = await fetchZaakOverview(systeem, kvkQuery);
+
+        // Combine the results before returning
+        return [...rsinResults, ...kvkResults];
       }
       // not supported
       else return [];
