@@ -133,7 +133,7 @@ const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
   } catch (error) {
     if (error instanceof ResponseError && error.response.status === 400) {
       // ignore this kind of http responses
-      return [];
+      return null;
     }
     // For all other errors, re-throw to be caught
     throw error;
