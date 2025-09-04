@@ -1,4 +1,9 @@
-import { parseJson, parsePagination, throwIfNotOk } from "@/services";
+import {
+  parseJson,
+  parsePagination,
+  ResponseError,
+  throwIfNotOk,
+} from "@/services";
 import type {
   Medewerker,
   NatuurlijkPersoon,
@@ -28,18 +33,14 @@ const combineOverview = (multiple: ZaakDetails[][]) =>
 
 const fetchZaakOverview = (systeem: Systeem, query: URLSearchParams) =>
   fetchWithSysteemId(systeem.identifier, `${zaaksysteemBaseUri}/zaken?${query}`)
+    .then(throwIfNotOk)
     .then(parseJson)
     .then((json) =>
       parsePagination(json, (x) =>
         mapZaakDetails({ ...(x as any), zaaksysteemId: systeem.identifier }),
       ),
     )
-    .then(({ page }) => page)
-    .catch(() => {
-      // this endpoint can return a bad request because of uncertainty in the data
-      // this is expected behavior, so we can swallow the exception and return null for the caller
-      return null;
-    });
+    .then(({ page }) => page);
 
 export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
   const query = new URLSearchParams([
@@ -48,11 +49,7 @@ export function fetchZakenByBsn(systemen: Systeem[], bsn: string) {
   ]);
   return Promise.all(
     systemen.map((systeem) => fetchZaakOverview(systeem, query)),
-  ).then((results) => {
-    // Filter out any null values before combining the overviews
-    const validResults = results.filter((result) => result !== null);
-    return combineOverview(validResults);
-  });
+  ).then(combineOverview);
 }
 
 export function fetchZakenByZaaknummer(
@@ -61,11 +58,7 @@ export function fetchZakenByZaaknummer(
 ) {
   const query = new URLSearchParams({ identificatie: zaaknummer });
   return Promise.all(systemen.map((s) => fetchZaakOverview(s, query))).then(
-    (results) => {
-      // Filter out any null values before combining the overviews
-      const validResults = results.filter((result) => result !== null);
-      return combineOverview(validResults);
-    },
+    combineOverview,
   );
 }
 
@@ -95,6 +88,8 @@ export const fetchZakenByKlantBedrijfIdentifier = (
           "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
           id.vestigingsnummer,
         );
+
+        return fetchZaakOverview(systeem, query);
       }
       // nnp
       else if ("rsin" in id && id.rsin && id.kvkNummer) {
@@ -110,33 +105,41 @@ export const fetchZakenByKlantBedrijfIdentifier = (
           "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
           id.kvkNummer,
         );
+
         const [rsinResults, kvkResults] = await Promise.all([
-          fetchZaakOverview(systeem, rsinQuery),
-          fetchZaakOverview(systeem, kvkQuery),
+          // This call can create expected bad http requests
+          // So wrap each individual fetch to deal with expected exceptions
+          handleExpectedError(fetchZaakOverview(systeem, rsinQuery)),
+          handleExpectedError(fetchZaakOverview(systeem, kvkQuery)),
         ]);
 
+        // Filter nulls and combine results
         const combinedResults = [];
-
         if (rsinResults) {
           combinedResults.push(...rsinResults);
         }
-
         if (kvkResults) {
           combinedResults.push(...kvkResults);
         }
-
         return combinedResults;
       }
       // not supported
-      else return [];
-
-      return fetchZaakOverview(systeem, query);
+      else return Promise.resolve([]);
     }),
-  ).then((results) => {
-    // Filter out any null values before combining the overviews
-    const validResults = results.filter((result) => result !== null);
-    return combineOverview(validResults);
-  });
+  ).then(combineOverview);
+
+const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
+  try {
+    return await promise;
+  } catch (error) {
+    if (error instanceof ResponseError && error.response.status === 400) {
+      // ignore this kind of http responses
+      return [];
+    }
+    // For all other errors, re-throw to be caught
+    throw error;
+  }
+};
 
 const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   const ONBEKEND = "Onbekend";

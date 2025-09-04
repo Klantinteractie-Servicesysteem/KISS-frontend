@@ -44,8 +44,20 @@ export function createLookupList<K, V>(entries: [K, V][]): LookupList<K, V> {
   };
 }
 
-export function throwIfNotOk(response: Response) {
-  if (!response.ok) throw new Error(response.statusText);
+// Define a custom error class to include the response and status code
+export class ResponseError extends Error {
+  constructor(
+    message: string,
+    public response: Response,
+  ) {
+    super(message);
+  }
+}
+
+export function throwIfNotOk(response: Response): Response & { ok: true } {
+  if (!response.ok) {
+    throw new ResponseError(response.statusText, response);
+  }
   return response as Response & { ok: true };
 }
 
