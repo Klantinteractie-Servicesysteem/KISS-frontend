@@ -113,7 +113,6 @@ export const fetchZakenByKlantBedrijfIdentifier = (
           handleExpectedError(fetchZaakOverview(systeem, kvkQuery)),
         ]);
 
-        // Filter nulls and combine results
         const combinedResults = [];
         if (rsinResults) {
           combinedResults.push(...rsinResults);
