@@ -22,7 +22,6 @@
         @click="onStopContactMoment"
         title="Contactmoment afronden"
         appearance="primary-action-button"
-        class="afronden"
       >
         Afronden
       </utrecht-button>
@@ -54,17 +53,7 @@ cancelDialog.onConfirm(() => {
 menu {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-large);
-}
-
-.afronden {
-  --_utrecht-button-background-color: var(--color-error);
-  --_utrecht-button-focus-background-color: var(--color-error);
-  --_utrecht-button-active-background-color: var(--color-error);
-  --_utrecht-button-hover-background-color: var(--color-error-hover);
-  --_utrecht-button-color: var(--color-headings);
-  --_utrecht-button-hover-color: var(--color-headings);
-  --_utrecht-button-active-color: var(--color-headings);
-  --_utrecht-button-focus-color: var(--color-headings);
+  gap: 10px;
+  padding: 16px;
 }
 </style>
