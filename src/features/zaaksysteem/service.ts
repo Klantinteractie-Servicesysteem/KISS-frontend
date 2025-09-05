@@ -1,4 +1,9 @@
-import { parseJson, parsePagination, throwIfNotOk } from "@/services";
+import {
+  parseJson,
+  parsePagination,
+  ResponseError,
+  throwIfNotOk,
+} from "@/services";
 import type {
   Medewerker,
   NatuurlijkPersoon,
@@ -83,24 +88,57 @@ export const fetchZakenByKlantBedrijfIdentifier = (
           "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
           id.vestigingsnummer,
         );
+
+        return fetchZaakOverview(systeem, query);
       }
       // nnp
       else if ("rsin" in id && id.rsin && id.kvkNummer) {
-        const nnpId =
-          systeem.registryVersion === registryVersions.ok1
-            ? id.kvkNummer
-            : id.rsin;
-        query.set(
+        // Create separate queries for rsin and kvk
+        const rsinQuery = new URLSearchParams(query);
+        rsinQuery.set(
           "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
-          nnpId,
+          id.rsin,
         );
+
+        const kvkQuery = new URLSearchParams(query);
+        kvkQuery.set(
+          "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
+          id.kvkNummer,
+        );
+
+        const [rsinResults, kvkResults] = await Promise.all([
+          // This call can create expected bad http requests
+          // So wrap each individual fetch to deal with expected exceptions
+          handleExpectedError(fetchZaakOverview(systeem, rsinQuery)),
+          handleExpectedError(fetchZaakOverview(systeem, kvkQuery)),
+        ]);
+
+        const combinedResults = [];
+        if (rsinResults) {
+          combinedResults.push(...rsinResults);
+        }
+        if (kvkResults) {
+          combinedResults.push(...kvkResults);
+        }
+        return combinedResults;
       }
       // not supported
-      else return [];
-
-      return fetchZaakOverview(systeem, query);
+      else return Promise.resolve([]);
     }),
   ).then(combineOverview);
+
+const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
+  try {
+    return await promise;
+  } catch (error) {
+    if (error instanceof ResponseError && error.response.status === 400) {
+      // ignore this kind of http responses
+      return null;
+    }
+    // For all other errors, re-throw to be caught
+    throw error;
+  }
+};
 
 const getNamePerRoltype = (rollen: Array<RolType> | null, roleNaam: string) => {
   const ONBEKEND = "Onbekend";
