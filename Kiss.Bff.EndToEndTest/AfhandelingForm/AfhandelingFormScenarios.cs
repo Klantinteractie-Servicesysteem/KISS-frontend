@@ -206,7 +206,38 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed on the Startpagina");
 
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
+
+
+        }
+
+        [TestMethod("4. Prefilling Afdeling Field Based on Selected article")]
+        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen")]
+        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen")]
+        [DataRow("testing ", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)")]
+        [DataRow("testing", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)")]
+
+        public async Task When_ItemSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling)
+        {
+            await Step("Given the user is on KISS home page ");
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("When user enters “Note” in Notitieblok");
+            var note = "Note field for test";
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
+
+            await Step($"And user search and fill '{searchTerm}'");
+            await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
+
+            await Step("Click the Afronden button");
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step($"Then Afhandeling form has value as '{expectedAfdeling}' in field Afdeling");
+            await Expect(Page.GetAfdelingVoorField()).ToHaveValueAsync(expectedAfdeling);
         }
 
     }
+
 }

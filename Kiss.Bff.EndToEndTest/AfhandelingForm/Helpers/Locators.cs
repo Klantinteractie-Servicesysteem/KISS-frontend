@@ -55,7 +55,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetAfhandelingSuccessToast(this IPage page)
         {
-            // return page.Locator("output[role='status'].confirm");
             return page.Locator("output[role='status']");
         }
     }
