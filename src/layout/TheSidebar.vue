@@ -59,9 +59,8 @@
         </div>
 
         <menu class="finisher">
-          <li>
-            <contactmoment-finisher />
-          </li>
+          <li><contactmoment-canceller /></li>
+          <li><contactmoment-finisher /></li>
         </menu>
       </section>
     </template>
@@ -83,6 +82,7 @@ import {
 } from "@/features/contact/contactmoment";
 import { TabList, TabListItem } from "@/components/tabs";
 import { useUserStore } from "@/stores/user";
+import ContactmomentCanceller from "@/features/contact/contactmoment/ContactmomentCanceller.vue";
 
 enum NotitieTabs {
   Regulier = "Reguliere notitie",
@@ -190,21 +190,21 @@ menu {
   --utrecht-button-min-inline-size: 100%;
 
   padding: var(--spacing-default);
+  display: flex;
+  column-gap: var(--spacing-default);
+
+  li {
+    flex: 1;
+  }
 }
 
 menu.starter {
-  display: flex;
-  column-gap: var(--spacing-default);
   background-color: var(--sidebar-color-2);
   min-height: var(--header-min-height);
 
   .contactmoment-loopt & {
     min-height: 0;
     padding-block-end: var(--spacing-small);
-  }
-
-  li {
-    flex: 1;
   }
 }
 
