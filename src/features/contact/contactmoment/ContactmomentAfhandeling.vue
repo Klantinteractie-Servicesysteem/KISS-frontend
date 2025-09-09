@@ -1,12 +1,5 @@
 <template>
   <prompt-modal
-    :dialog="cancelDialog"
-    message="Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens worden verwijderd."
-    cancel-message="Nee"
-    confirm-message="Ja"
-  />
-
-  <prompt-modal
     :dialog="removeVraagDialog"
     message="Weet je zeker dat je deze vraag wilt verwijderen? Alle gegevens in de vraag worden verwijderd."
     cancel-message="Nee"
@@ -417,14 +410,7 @@
       </article>
       <menu>
         <li>
-          <utrecht-button
-            modelValue
-            type="button"
-            appearance="secondary-action-button"
-            @click="cancelDialog.reveal"
-          >
-            Annuleren
-          </utrecht-button>
+          <contactmoment-canceller />
         </li>
         <li>
           <utrecht-button type="submit" appearance="primary-action-button">
@@ -505,6 +491,7 @@ import {
   NOTITIE_MAXLENGTH,
 } from "@/services/openklant/service";
 import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
+import ContactmomentCanceller from "./ContactmomentCanceller.vue";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -1089,12 +1076,6 @@ function setUserChannel(e: Event) {
   if (!(e.target instanceof HTMLSelectElement)) return;
   userStore.setKanaal(e.target.value);
 }
-
-const cancelDialog = useConfirmDialog();
-cancelDialog.onConfirm(() => {
-  contactmomentStore.stop();
-  navigateToPersonen();
-});
 
 const removeVraagDialog = useConfirmDialog();
 
