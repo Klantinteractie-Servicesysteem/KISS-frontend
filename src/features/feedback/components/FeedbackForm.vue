@@ -62,7 +62,13 @@
 
     <menu>
       <li>
-        <contactmoment-annuleren @cancel-confirmed="annuleren" />
+        <utrecht-button
+          @click="cancelDialog.reveal"
+          appearance="secondary-action-button"
+          type="button"
+        >
+          Annuleren
+        </utrecht-button>
       </li>
 
       <li>
@@ -73,18 +79,26 @@
     </menu>
   </form>
 
+  <!-- Annuleer Dialog -->
+  <prompt-modal
+    :dialog="cancelDialog"
+    message="Weet je zeker dat je wilt annuleren? Alle gegevens worden verwijderd."
+    cancel-message="Nee"
+    confirm-message="Ja"
+  />
 </template>
 
 <script lang="ts" setup>
 import { ref, reactive, computed } from "vue";
 import { useFeedbackService } from "../service";
 import type { CurrentFeedbackSection, Feedback } from "../types";
+import { useConfirmDialog } from "@vueuse/core";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
+import PromptModal from "@/components/PromptModal.vue";
 import type { ServiceData } from "@/services/index";
 import { useUserStore } from "@/stores/user";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
-import ContactmomentAnnuleren from "@/features/contact/contactmoment/ContactmomentAnnuleren.vue";
 
 const props = defineProps<{
   url: unknown | URL;
@@ -98,6 +112,7 @@ const userStore = useUserStore();
 
 const serviceResult = ref<ServiceData<void>>();
 const service = useFeedbackService();
+const cancelDialog = useConfirmDialog();
 const emit = defineEmits(["cancelled", "saved"]);
 const feedback: Feedback = reactive({
   naam: props.name,
@@ -108,6 +123,8 @@ const feedback: Feedback = reactive({
   contactgegevens: userStore.user.isLoggedIn ? userStore.user.email : "",
   currentSection: props.currentSection,
 });
+
+cancelDialog.onConfirm(() => annuleren());
 
 const submit = () => {
   const result = service.postFeedback(feedback);

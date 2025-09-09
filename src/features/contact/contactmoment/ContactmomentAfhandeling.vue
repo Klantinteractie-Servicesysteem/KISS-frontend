@@ -410,7 +410,7 @@
       </article>
       <menu>
         <li>
-          <contactmoment-annuleren />
+          <contactmoment-canceller />
         </li>
         <li>
           <utrecht-button type="submit" appearance="primary-action-button">
@@ -491,7 +491,7 @@ import {
   NOTITIE_MAXLENGTH,
 } from "@/services/openklant/service";
 import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
-import ContactmomentAnnuleren from "./ContactmomentAnnuleren.vue";
+import ContactmomentCanceller from "./ContactmomentCanceller.vue";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();

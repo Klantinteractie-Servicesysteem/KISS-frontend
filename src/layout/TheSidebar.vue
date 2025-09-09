@@ -59,7 +59,7 @@
         </div>
 
         <menu class="finisher">
-          <li><contactmoment-annuleren /></li>
+          <li><contactmoment-canceller /></li>
           <li><contactmoment-finisher /></li>
         </menu>
       </section>
@@ -82,7 +82,7 @@ import {
 } from "@/features/contact/contactmoment";
 import { TabList, TabListItem } from "@/components/tabs";
 import { useUserStore } from "@/stores/user";
-import ContactmomentAnnuleren from "@/features/contact/contactmoment/ContactmomentAnnuleren.vue";
+import ContactmomentCanceller from "@/features/contact/contactmoment/ContactmomentCanceller.vue";
 
 enum NotitieTabs {
   Regulier = "Reguliere notitie",
