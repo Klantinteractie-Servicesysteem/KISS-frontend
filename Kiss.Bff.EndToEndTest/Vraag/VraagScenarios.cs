@@ -648,10 +648,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
-        //         Given user has started a contactmoment  
-        // And has typed a text of 1048 characters in the field Notitieblok 
-        // When user clickes on Afronden  
-        // Then user sees a validation message: “Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.”
         [TestMethod("8. Validation message when Notitieblok exceeds max character limit")]
         public async Task When_NotitieblokExceedsMaxCharacterLimit_Expect_ValidationMessage()
         {
