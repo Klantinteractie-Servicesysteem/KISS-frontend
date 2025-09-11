@@ -648,5 +648,30 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
+        [TestMethod("8. Validation message when Notitieblok exceeds max character limit")]
+        public async Task When_NotitieblokExceedsMaxCharacterLimit_Expect_ValidationMessage()
+        {
+            await Step("Given the user is on KISS home page ");
+
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And has typed a text of 1048 characters in the field Notitieblok ");
+
+            var longText = new string('a', 1048);
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync(longText);
+
+            await Step("When user clickes on Afronden  ");
+
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("Then user sees a validation message: “Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.”");
+
+            await Expect(Page.GetAfhandelingNotitieTextBox()).ToHaveJSPropertyAsync("validationMessage", "Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.");
+        }
+
     }
 }
