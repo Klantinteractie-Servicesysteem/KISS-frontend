@@ -23,7 +23,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await page.GetByRole(AriaRole.Link, new() { Name = resultName, Exact = true }).ClickAsync();
+            await page.GetByRole(AriaRole.Link, new() { Name = resultName, Exact = exact }).ClickAsync();
         }
 
     }

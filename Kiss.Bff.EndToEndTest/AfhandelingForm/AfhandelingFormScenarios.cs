@@ -210,13 +210,16 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
         }
 
+        // When selecting a search result, KISS will try to find that item in OverigeObjecten
+        // If it finds it there and it has an afdeling, then this afdeling will be prefilled in the Afhandeling form of the contactmoment
+        // However in OverigeObjecten the name of the afdelingen property can be 'afdelingNaam' or 'afdelingnaam'. It should work with both.
+
         [TestMethod("4. Prefilling Afdeling Field Based on Selected article")]
         [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen")]
         [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen")]
         [DataRow("testing ", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)")]
         [DataRow("testing", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)")]
-
-        public async Task When_ItemSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling)
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling)
         {
             await Step("Given the user is on KISS home page ");
             await Page.GotoAsync("/");
@@ -224,12 +227,199 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("And user clicks on Nieuw contactmoment button");
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("When user enters “Note” in Notitieblok");
+            await Step("When user enters Note in Notitieblok");
             var note = "Note field for test";
             await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
 
             await Step($"And user search and fill '{searchTerm}'");
+            Console.WriteLine($"Searching for: '{searchTerm}'");
+            Console.WriteLine($"Expected to select: '{resultName}'");
+
+            // Determine expected title, data source, and property name based on test case
+            string expectedTitle;
+            string dataSource; // "Kennisbank" or "VAC"
+            bool expectsUppercaseViolation;
+
+            if (resultName.StartsWith("Kennisbank"))
+            {
+                dataSource = "Kennisbank";
+                if (resultName.Contains("afdelingNaam"))
+                {
+                    expectedTitle = "Wegenverkeerswet, ontheffing - afdelingNaam";
+                    expectsUppercaseViolation = true;
+                }
+                else
+                {
+                    expectedTitle = "Wegenverkeerswet, ontheffing";
+                    expectsUppercaseViolation = false;
+                }
+            }
+            else if (resultName.StartsWith("VAC"))
+            {
+                dataSource = "VAC";
+                if (resultName.Contains("afdelingNaam"))
+                {
+                    expectedTitle = "This VAC has a property afdelingNaam with Upper Case N";
+                    expectsUppercaseViolation = true;
+                }
+                else
+                {
+                    expectedTitle = "This VAC has a property afdelingnaam with lower case n";
+                    expectsUppercaseViolation = false;
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported resultName format: {resultName}");
+            }
+            // Capture search responses
+            var capturedResponses = new List<string>();
+
+            await Page.RouteAsync("**", async route =>
+            {
+                var url = route.Request.Url;
+                var isSearchRequest = url.Contains("elasticsearch") ||
+                                    url.Contains("search") ||
+                                    url.Contains("kennisbank") ||
+                                    url.Contains("overige") ||
+                                    url.Contains("suggest") ||
+                                    url.Contains("vac");
+
+                if (isSearchRequest)
+                {
+                    Console.WriteLine($"🔍 INTERCEPTED SEARCH REQUEST: {url}");
+                    var response = await route.FetchAsync();
+                    var responseText = await response.TextAsync();
+
+                    if (responseText.Contains(dataSource))
+                    {
+                        Console.WriteLine($"✅ Found {dataSource} response");
+                        capturedResponses.Add(responseText);
+                    }
+
+                    await route.FulfillAsync(new RouteFulfillOptions
+                    {
+                        Status = response.Status,
+                        Headers = response.Headers,
+                        Body = responseText
+                    });
+                }
+                else
+                {
+                    await route.ContinueAsync();
+                }
+            });
+
+            // Perform the search and selection
             await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
+            await Task.Delay(2000);
+
+            // Find the response that contains our expected title
+            string targetResponse = null;
+            foreach (var response in capturedResponses)
+            {
+                if (response.Contains(expectedTitle))
+                {
+                    targetResponse = response;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(targetResponse))
+            {
+                // Use any response from the expected data source as fallback
+                targetResponse = capturedResponses.FirstOrDefault(r => r.Contains(dataSource)) ?? string.Empty;
+            }
+
+            Assert.IsNotNull(targetResponse, $"No {dataSource} response was captured");
+
+            var json = System.Text.Json.JsonDocument.Parse(targetResponse);
+            var foundCorrectProperty = false;
+            var foundViolatingProperty = false;
+            var hasExpectedData = false;
+            var foundProperties = new List<string>();
+            var targetItemFound = false;
+
+            // Check in hits
+            if (json.RootElement.TryGetProperty("hits", out var hitsProperty) &&
+                hitsProperty.TryGetProperty("hits", out var hits))
+            {
+
+                foreach (var hit in hits.EnumerateArray())
+                {
+                    var source = hit.GetProperty("_source");
+
+                    var title = source.TryGetProperty("title", out var titleProp) ? titleProp.GetString() : "";
+                    var isTargetItem = title == expectedTitle;
+
+                    Console.WriteLine($"📄 Found item with title: '{title}' (Target: {isTargetItem})");
+
+                    if (!isTargetItem) continue;
+
+                    targetItemFound = true;
+                    Console.WriteLine($"🎯 Analyzing TARGET item: {title}");
+
+                    // Check for the appropriate data source (Kennisbank or VAC)
+                    if (source.TryGetProperty(dataSource, out var dataSourceObject))
+                    {
+                        hasExpectedData = true;
+
+                        if (dataSourceObject.TryGetProperty("afdelingen", out var afdelingen))
+                        {
+
+                            foreach (var afdeling in afdelingen.EnumerateArray())
+                            {
+                                foreach (var property in afdeling.EnumerateObject())
+                                {
+                                    foundProperties.Add($"{property.Name}={property.Value.GetString()}");
+
+                                    if (property.Name == "afdelingnaam" && property.Value.GetString() == expectedAfdeling)
+                                    {
+                                        foundCorrectProperty = true;
+                                    }
+                                    else if (property.Name == "afdelingNaam" && property.Value.GetString() == expectedAfdeling)
+                                    {
+                                        foundViolatingProperty = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            if (!targetItemFound)
+            {
+                Assert.Fail($"Target item with title '{expectedTitle}' was not found in the search response.");
+            }
+
+            if (!hasExpectedData)
+            {
+                Assert.Fail($"No {dataSource} data found in the target item '{expectedTitle}'.");
+            }
+
+            if (expectsUppercaseViolation)
+            {
+                // This test case expects to find the uppercase violation
+                if (!foundViolatingProperty)
+                {
+                    Assert.Fail($"Expected to find 'afdelingNaam' (uppercase N) property with value '{expectedAfdeling}' in item '{expectedTitle}' but it was not found. Found properties: {string.Join(", ", foundProperties)}");
+                }
+
+            }
+            else
+            {
+                // This test case expects only the correct lowercase property
+                if (foundViolatingProperty)
+                {
+                    Assert.Fail($"Found 'afdelingNaam' (uppercase N) property in item '{expectedTitle}' which violates the naming convention. Expected only 'afdelingnaam' (lowercase).");
+                }
+
+                if (!foundCorrectProperty)
+                {
+                    Assert.Fail($"Expected 'afdelingnaam' (lowercase) property with value '{expectedAfdeling}' not found in item '{expectedTitle}'. Found properties: {string.Join(", ", foundProperties)}");
+                }
+            }
 
             await Step("Click the Afronden button");
             await Page.GetAfrondenButton().ClickAsync();
@@ -239,5 +429,4 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
         }
 
     }
-
 }

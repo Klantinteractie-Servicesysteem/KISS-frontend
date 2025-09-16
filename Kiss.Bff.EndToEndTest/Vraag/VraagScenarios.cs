@@ -119,7 +119,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("When user enters “test vraag 1 in Notitieblok");
 
