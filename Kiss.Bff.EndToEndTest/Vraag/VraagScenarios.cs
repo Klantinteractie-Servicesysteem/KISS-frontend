@@ -94,8 +94,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
-            await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+            await Step("And clicks on Opslaan button");
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -193,8 +206,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
-            await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+            await Step("And clicks on Opslaan button");
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
 
             await Step("And Afhandeling form is successfully submitted");
 
