@@ -145,6 +145,8 @@
                 >Alle zoekresultaten</a
               >
               <template v-if="id === state.currentId">
+
+               
                 <medewerker-detail
                   :medewerkerRaw="jsonObject"
                   v-if="source === 'Smoelenboek'"
@@ -166,6 +168,16 @@
                   :title="title"
                   :heading-level="2"
                 />
+
+                 <product-detail
+                  v-else-if="
+                    source === 'Producten'        "
+                  :kennisartikel-raw="jsonObject"
+                  :title="title"
+                  :heading-level="2"
+           
+                />
+
 
                 <article v-else>
                   <header>
@@ -215,6 +227,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import type { Source } from "./types";
 import MedewerkerDetail from "./MedewerkerDetail.vue";
 import KennisartikelDetail from "./KennisartikelDetail.vue";
+import ProductDetail from "./ProductDetail.vue";
 import VacDetail from "./VacDetail.vue";
 import type {
   Medewerker,
