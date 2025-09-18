@@ -1,6 +1,7 @@
 ﻿
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
+using System.Text.Json;
 
 namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 {
@@ -215,11 +216,12 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
         // However in OverigeObjecten the name of the afdelingen property can be 'afdelingNaam' or 'afdelingnaam'. It should work with both.
 
         [TestMethod("4. Prefilling Afdeling Field Based on Selected article")]
-        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen")]
-        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen")]
-        [DataRow("testing ", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)")]
-        [DataRow("testing", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)")]
-        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling)
+        // To make it easier to analyse the result, make the search so specific that it only returns one result
+        [DataRow("VAC This VAC has a property afdelingnaam with lower case n", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)", true)]
+        [DataRow("This VAC has a property afdelingNaam with Upper Case N", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)", false)]
+        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen", true)]
+        [DataRow("Wegenverkeerswet - afdelingNaam", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen", false)]
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling, bool expectLowerCaseAfdelingPropertyName)
         {
             await Step("Given the user is on KISS home page ");
             await Page.GotoAsync("/");
@@ -228,29 +230,82 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
             await Step("When user enters Note in Notitieblok");
-            var note = "Note field for test";
-            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note);
+            await Page.GetContactmomentNotitieblokTextbox().FillAsync("Note field for test");
 
             await Step($"And user search and fill '{searchTerm}'");
 
-            var config = AfdelingValidationHelper.DetermineValidationConfig(resultName);
+            var searchResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
+            },
+            response => response.Url.Contains("api/elasticsearch/.ent-search-engine-documents-engine-crawler,search-kennisbank,search-smoelenboek,search-vac/_search")
+            );
 
-            var capturedResponses = await AfdelingValidationHelper.CaptureSearchResponses(Page, config.DataSource);
+            // We will inspect the data from elasticsearch. This tells us whether the source data uses an afdelingnaam property with uppercase or lowercase
+            // If we don't do this we won't know if the test succeeds because KISS handles both property names correctly
+            // or because the testdata just happens is not representative (anymore) and only contains records that all have afdelingnaam properties with the same casing
+            var json = await searchResponse.JsonAsync();
+            var hit = json.Value.GetProperty("hits").GetProperty("hits")[0];
+            var source = hit.GetProperty("_source");
 
-            await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
+            // Determine if it's VAC or Kennisbank and get the first afdeling
+            JsonElement firstAfdeling;
+            if (source.TryGetProperty("VAC", out var vac))
+            {
+                firstAfdeling = vac.GetProperty("afdelingen")[0];
+            }
+            else
+            {
+                firstAfdeling = source.GetProperty("Kennisbank").GetProperty("afdelingen")[0];
+            }
 
-            var targetResponse = AfdelingValidationHelper.FindTargetResponse(capturedResponses, config.ExpectedTitle, config.DataSource);
-            Assert.IsNotNull(targetResponse, $"No {config.DataSource} response was captured");
+            // Check for both property naming conventions
+            var hasLowerCase = firstAfdeling.TryGetProperty("afdelingnaam", out var afdelingnaamLower);
+            var hasUpperCase = firstAfdeling.TryGetProperty("afdelingNaam", out var afdelingnaamUpper);
 
-
-            var validationResult = AfdelingValidationHelper.ValidateAfdelingProperties(targetResponse, config, expectedAfdeling);
-            AfdelingValidationHelper.AssertValidationResults(validationResult, config, expectedAfdeling);
+            // If we expect that this testcase used the all lowercase afdelingnaam property 
+            // then afdelingnaam should have a value and afdelingNaam should not have a value
+            if (expectLowerCaseAfdelingPropertyName)
+            {
+                Assert.IsTrue(hasLowerCase, "Expected to find 'afdelingnaam' (lowercase) property");
+                Assert.IsFalse(hasUpperCase, "Expected NOT to find 'afdelingNaam' (uppercase) property");
+                Assert.AreEqual(expectedAfdeling, afdelingnaamLower.GetString());
+            }
+            else
+            {
+                Assert.IsFalse(hasLowerCase, "Expected NOT to find 'afdelingnaam' (lowercase) property");
+                Assert.IsTrue(hasUpperCase, "Expected to find 'afdelingNaam' (uppercase) property");
+                Assert.AreEqual(expectedAfdeling, afdelingnaamUpper.GetString());
+            }
 
             await Step("Click the Afronden button");
             await Page.GetAfrondenButton().ClickAsync();
 
             await Step($"Then Afhandeling form has value as '{expectedAfdeling}' in field Afdeling");
             await Expect(Page.GetAfdelingVoorField()).ToHaveValueAsync(expectedAfdeling);
+
+            await Step("And user selects first option in field Kanaal");
+            await Page.GetKanaalField().SelectOptionAsync(new SelectOptionValue { Index = 0 });
+
+            await Step("And select an Afhandeling");
+            var options = await Page.GetAfhandelingField().EvaluateAsync<string[]>("el => Array.from(el.options).map(o => o.text)");
+            var selectedIndex = options.Length > 0 && options[0] == "Contactverzoek gemaakt" ? 1 : 0;
+            await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = selectedIndex });
+
+            await Step("And clicks on Opslaan button");
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
+                async () => await Page.GetOpslaanButton().ClickAsync(),
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
+            await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
     }
