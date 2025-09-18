@@ -132,7 +132,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
-            // await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("When user enters “test vraag 1 in Notitieblok");
 
@@ -153,6 +153,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then Afhandeling form has value as “test vraag 1 in field Notitie for vraag 1");
             await Expect(Page.GetAfhandelingNotitieTextBox().First).ToHaveValueAsync(note1);
@@ -242,6 +243,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And user navigates to the contactmoment tab to view the created contact moment");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And contactmoment details are displayed");
 
