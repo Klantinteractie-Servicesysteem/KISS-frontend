@@ -247,8 +247,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             // or because the testdata just happens is not representative (anymore) and only contains records that all have afdelingnaam properties with the same casing
             var deserializedSearchResponse = await searchResponse.JsonAsync<Rootobject>();
 
-            // Use strongly typed models instead of dynamic
-
             Afdelingen firstAfdeling;
             if (deserializedSearchResponse.hits.hits[0]._source.VAC != null)
             {
@@ -261,9 +259,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             var afdelingnaamLower = firstAfdeling.afdelingnaam;
             var afdelingnaamUpper = firstAfdeling.afdelingNaam;
-
-            Console.WriteLine($"🔍 Found lowercase 'afdelingnaam': {afdelingnaamLower ?? "null"}");
-            Console.WriteLine($"🔍 Found uppercase 'afdelingNaam': {afdelingnaamUpper ?? "null"}");
 
             // If we expect that this testcase used the all lowercase afdelingnaam property 
             // then afdelingnaam should have a value and afdelingNaam should not have a value
