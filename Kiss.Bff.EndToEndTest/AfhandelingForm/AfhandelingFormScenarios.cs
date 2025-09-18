@@ -1,5 +1,6 @@
 ﻿
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+using Kiss.Bff.EndToEndTest.AfhandelingForm.Models;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using System.Text.Json;
 
@@ -244,40 +245,40 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             // We will inspect the data from elasticsearch. This tells us whether the source data uses an afdelingnaam property with uppercase or lowercase
             // If we don't do this we won't know if the test succeeds because KISS handles both property names correctly
             // or because the testdata just happens is not representative (anymore) and only contains records that all have afdelingnaam properties with the same casing
-            var json = await searchResponse.JsonAsync();
-            var hit = json.Value.GetProperty("hits").GetProperty("hits")[0];
-            var source = hit.GetProperty("_source");
+            var deserializedSearchResponse = await searchResponse.JsonAsync<Rootobject>();
 
-            // Determine if it's VAC or Kennisbank and get the first afdeling
-            JsonElement firstAfdeling;
-            if (source.TryGetProperty("VAC", out var vac))
+            // Use strongly typed models instead of dynamic
+
+            Afdelingen firstAfdeling;
+            if (deserializedSearchResponse.hits.hits[0]._source.VAC != null)
             {
-                firstAfdeling = vac.GetProperty("afdelingen")[0];
+                firstAfdeling = deserializedSearchResponse.hits.hits[0]._source.VAC.afdelingen[0];
             }
             else
             {
-                firstAfdeling = source.GetProperty("Kennisbank").GetProperty("afdelingen")[0];
+                firstAfdeling = deserializedSearchResponse.hits.hits[0]._source.Kennisbank.afdelingen[0];
             }
 
-            // Check for both property naming conventions
-            var hasLowerCase = firstAfdeling.TryGetProperty("afdelingnaam", out var afdelingnaamLower);
-            var hasUpperCase = firstAfdeling.TryGetProperty("afdelingNaam", out var afdelingnaamUpper);
+            var afdelingnaamLower = firstAfdeling.afdelingnaam;
+            var afdelingnaamUpper = firstAfdeling.afdelingNaam;
+
+            Console.WriteLine($"🔍 Found lowercase 'afdelingnaam': {afdelingnaamLower ?? "null"}");
+            Console.WriteLine($"🔍 Found uppercase 'afdelingNaam': {afdelingnaamUpper ?? "null"}");
 
             // If we expect that this testcase used the all lowercase afdelingnaam property 
             // then afdelingnaam should have a value and afdelingNaam should not have a value
             if (expectLowerCaseAfdelingPropertyName)
             {
-                Assert.IsTrue(hasLowerCase, "Expected to find 'afdelingnaam' (lowercase) property");
-                Assert.IsFalse(hasUpperCase, "Expected NOT to find 'afdelingNaam' (uppercase) property");
-                Assert.AreEqual(expectedAfdeling, afdelingnaamLower.GetString());
+                Assert.IsNotNull(afdelingnaamLower, "Expected 'afdelingnaam' (lowercase) to have a value");
+                Assert.IsNull(afdelingnaamUpper, "Expected 'afdelingNaam' (uppercase) to be null");
+                Assert.AreEqual(expectedAfdeling, afdelingnaamLower, $"Expected afdeling value '{expectedAfdeling}' but found '{afdelingnaamLower}'");
             }
             else
             {
-                Assert.IsFalse(hasLowerCase, "Expected NOT to find 'afdelingnaam' (lowercase) property");
-                Assert.IsTrue(hasUpperCase, "Expected to find 'afdelingNaam' (uppercase) property");
-                Assert.AreEqual(expectedAfdeling, afdelingnaamUpper.GetString());
+                Assert.IsNull(afdelingnaamLower, "Expected 'afdelingnaam' (lowercase) to be null");
+                Assert.IsNotNull(afdelingnaamUpper, "Expected 'afdelingNaam' (uppercase) to have a value");
+                Assert.AreEqual(expectedAfdeling, afdelingnaamUpper, $"Expected afdeling value '{expectedAfdeling}' but found '{afdelingnaamUpper}'");
             }
-
             await Step("Click the Afronden button");
             await Page.GetAfrondenButton().ClickAsync();
 
@@ -307,6 +308,5 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
-
     }
 }
