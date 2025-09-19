@@ -358,11 +358,13 @@ namespace Microsoft.Extensions.DependencyInjection
         private static readonly HashSet<string> AllowedRedirectPaths = new()
         {
             "/",
-            "/home",
-            "/dashboard",
-            "/profile",
-            "/inbox",
-            "/settings"
+            "/afhandeling",
+            "/contactverzoeken",
+            "/personen",
+            "/bedrijven",
+            "/zaken",
+            "/links",
+            "/beheer"
         };
 
         private static string GetSafeRedirectPath(string? userInput)
