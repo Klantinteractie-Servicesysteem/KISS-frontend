@@ -100,6 +100,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             if (path.Contains('\\')) return false;
 
+            if (path.Contains("..")) return false;
+
+            if (Uri.TryCreate(path, UriKind.Absolute, out _)) return false;
+
             return true;
         }
 
