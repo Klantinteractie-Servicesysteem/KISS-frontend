@@ -304,146 +304,143 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
-    }
-}
-        }
 
         [TestMethod("5. Cancel from Notitieblok - Confirm with Ja")]
-public async Task When_CancelFromNotitieblokAndConfirmJa_Expect_RedirectToHomePage()
-{
-    await Step("Given user is on KISS DEV environment");
-    await Page.GotoAsync("/");
+        public async Task When_CancelFromNotitieblokAndConfirmJa_Expect_RedirectToHomePage()
+        {
+            await Step("Given user is on KISS DEV environment");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("When user click on Annuleren available after notice block");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("When user click on Annuleren available after notice block");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Ja in confirmation pop-up");
-    await Page.GetConfirmationJaButton().ClickAsync();
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
 
-    await Step("Then user should be redirected back to KISS HOME page");
-    await Expect(Page).ToHaveURLAsync("/");
-    await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
-}
+            await Step("Then user should be redirected back to KISS HOME page");
+            await Expect(Page).ToHaveURLAsync("/");
+            await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
+        }
 
-[TestMethod("6. Cancel from Notitieblok - Confirm with Nee")]
-public async Task When_CancelFromNotitieblokAndConfirmNee_Expect_RemainOnScreen()
-{
-    await Step("Given user is on KISS Home page");
-    await Page.GotoAsync("/");
+        [TestMethod("6. Cancel from Notitieblok - Confirm with Nee")]
+        public async Task When_CancelFromNotitieblokAndConfirmNee_Expect_RemainOnScreen()
+        {
+            await Step("Given user is on KISS Home page");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("When user click on Annuleren available after notice block");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("When user click on Annuleren available after notice block");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Nee in confirmation pop-up");
-    await Page.GetConfirmationNeeButton().ClickAsync();
+            await Step("And click on Nee in confirmation pop-up");
+            await Page.GetConfirmationNeeButton().ClickAsync();
 
-    await Step("Then user should remain in Nieuw contactmoment screen");
-    await Expect(Page.GetContactmomentNotitieblokTextbox()).ToBeVisibleAsync();
-    await Expect(Page.GetAfrondenButton()).ToBeVisibleAsync();
-}
+            await Step("Then user should remain in Nieuw contactmoment screen");
+            await Expect(Page.GetContactmomentNotitieblokTextbox()).ToBeVisibleAsync();
+            await Expect(Page.GetAfrondenButton()).ToBeVisibleAsync();
+        }
 
-[TestMethod("8. Cancel from Contactverzoeken Pane")]
-public async Task When_CancelFromContactverzoekPaneAndConfirmJa_Expect_RedirectToHomePage()
-{
-    await Step("Given user is on KISS home page");
-    await Page.GotoAsync("/");
+        [TestMethod("7. Cancel from Contactverzoeken Pane")]
+        public async Task When_CancelFromContactverzoekPaneAndConfirmJa_Expect_RedirectToHomePage()
+        {
+            await Step("Given user is on KISS home page");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("And click on contactverzoeken pane");
-    await Page.CreateNewcontactVerzoekAsync();
+            await Step("And click on contactverzoeken pane");
+            await Page.CreateNewcontactVerzoekAsync();
 
-    await Step("And enter details in afdeling, note and telefoonnummer field");
-    await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-    await Page.GetByText("Parkeren").ClickAsync();
-    await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
-    await Page.GetTelefoonnummerTextbox().FillAsync("0617138555");
+            await Step("And enter details in afdeling, note and telefoonnummer field");
+            await Page.GetAfdelingCombobox().FillAsync("Parkeren");
+            await Page.GetByText("Parkeren").ClickAsync();
+            await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
+            await Page.GetTelefoonnummerTextbox().FillAsync("0617138555");
 
-    await Step("When user click on Annuleren");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("When user click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Ja in confirmation pop-up");
-    await Page.GetConfirmationJaButton().ClickAsync();
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
 
-    await Step("Then user should be redirected back to KISS HOME page");
-    await Expect(Page).ToHaveURLAsync("/");
-    await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
-}
+            await Step("Then user should be redirected back to KISS HOME page");
+            await Expect(Page).ToHaveURLAsync("/");
+            await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
+        }
 
-[TestMethod("9. Cancel from Persoonsinformatie Page")]
-public async Task When_CancelFromPersoonsinformatiePageAndConfirmJa_Expect_RedirectToHomePage()
-{
-    await Step("Given user is on KISS home page");
-    await Page.GotoAsync("/");
+        [TestMethod("8. Cancel from Persoonsinformatie Page")]
+        public async Task When_CancelFromPersoonsinformatiePageAndConfirmJa_Expect_RedirectToHomePage()
+        {
+            await Step("Given user is on KISS home page");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("And navigates to persoonsinformatie page of \"Suzanne Moulin\"");
-    await Page.SearchAndSelectPerson("999993264");
+            await Step("And navigates to persoonsinformatie page of \"Suzanne Moulin\"");
+            await Page.SearchAndSelectPerson("999993264");
 
-    await Step("And click on Annuleren");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("And click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Ja in confirmation pop-up");
-    await Page.GetConfirmationJaButton().ClickAsync();
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
 
-    await Step("Then user should be redirected back to KISS HOME page");
-    await Expect(Page).ToHaveURLAsync("/");
-    await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
-}
+            await Step("Then user should be redirected back to KISS HOME page");
+            await Expect(Page).ToHaveURLAsync("/");
+            await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
+        }
 
-[TestMethod("10. Cancel from Bedrijfinformatie Page")]
-public async Task When_CancelFromBedrijfinformatiePageAndConfirmJa_Expect_RedirectToHomePage()
-{
-    await Step("Given user is on KISS home page");
-    await Page.GotoAsync("/");
+        [TestMethod("9. Cancel from Bedrijfinformatie Page")]
+        public async Task When_CancelFromBedrijfinformatiePageAndConfirmJa_Expect_RedirectToHomePage()
+        {
+            await Step("Given user is on KISS home page");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("And navigates to Bedrijfinformatie page of company \"990000996048\"");
-    await Page.SearchAndSelectCompany("990000996048");
+            await Step("And navigates to Bedrijfinformatie page of company \"990000996048\"");
+            await Page.SearchAndSelectCompany("990000996048");
 
-    await Step("And click on Annuleren");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("And click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Ja in confirmation pop-up");
-    await Page.GetConfirmationJaButton().ClickAsync();
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
 
-    await Step("Then user should be redirected back to KISS HOME page");
-    await Expect(Page).ToHaveURLAsync("/");
-    await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
-}
+            await Step("Then user should be redirected back to KISS HOME page");
+            await Expect(Page).ToHaveURLAsync("/");
+            await Expect(Page.GetNieuwContactmomentButton()).ToBeVisibleAsync();
+        }
 
-[TestMethod("11. Cancel from Zaak Page")]
-public async Task When_CancelFromZaakPageAndConfirmJa_Expect_RedirectToHomePage()
-{
-    await Step("Given user is on KISS home page");
-    await Page.GotoAsync("/");
+        [TestMethod("10. Cancel from Zaak Page")]
+        public async Task When_CancelFromZaakPageAndConfirmJa_Expect_RedirectToHomePage()
+        {
+            await Step("Given user is on KISS home page");
+            await Page.GotoAsync("/");
 
-    await Step("And click on Nieuw contactmoment");
-    await Page.GetNieuwContactmomentButton().ClickAsync();
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
 
-    await Step("And navigates to Zaak page of \"ZAAK-2023-002\"");
-    await Page.SearchAndSelectZaak("ZAAK-2023-002");
+            await Step("And navigates to Zaak page of \"ZAAK-2023-002\"");
+            await Page.SearchAndSelectZaak("ZAAK-2023-002");
 
-    await Step("And click on Annuleren");
-    await Page.GetAnnulerenButton().ClickAsync();
+            await Step("And click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
 
-    await Step("And click on Ja in confirmation pop-up");
-    await Page.GetConfirmationJaButton().ClickAsync();
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
 
-    await Step("Then user should be redirected back to KISS HOME page");
-    await Expect(Page).ToHaveURLAsync("/");
+            await Step("Then user should be redirected back to KISS HOME page");
+            await Expect(Page).ToHaveURLAsync("/");
 
-}
+        }
     }
 }

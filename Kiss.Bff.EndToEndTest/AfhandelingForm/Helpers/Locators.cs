@@ -46,7 +46,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 
         public static ILocator GetAfhandelingSuccessToast(this IPage page)
         {
-            return page.Locator("output[role='status']");
+            return page.Locator(".confirm output[role='status']");
         }
 
         public static ILocator GetConfirmationJaButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Ja" });
