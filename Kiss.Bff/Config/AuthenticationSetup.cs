@@ -341,31 +341,33 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var requestedReturnUrl = request.Query["returnUrl"].FirstOrDefault();
 
-            string redirectPath = "/";
-            if (!string.IsNullOrWhiteSpace(requestedReturnUrl))
-            {
-                var trimmed = requestedReturnUrl.Trim();
-                if (!trimmed.Contains('\r') && !trimmed.Contains('\n') &&
-                    !trimmed.StartsWith("//") && !trimmed.StartsWith("\\") &&
-                    !trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
-                    !trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
-                    !trimmed.Contains('\\') && !trimmed.Contains("..") &&
-                    !Uri.TryCreate(trimmed, UriKind.Absolute, out _))
-                {
-                    redirectPath = "/" + trimmed.TrimStart('/');
-                }
-            }
+            var safeRedirectPath = GetSafeRedirectPath(requestedReturnUrl);
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
-                httpContext.Response.Redirect(redirectPath);
+                httpContext.Response.Redirect(safeRedirectPath);
                 return Task.CompletedTask;
             }
 
             return httpContext.ChallengeAsync(new AuthenticationProperties
             {
-                RedirectUri = redirectPath,
+                RedirectUri = safeRedirectPath,
             });
+        }
+
+        private static string GetSafeRedirectPath(string? userInput)
+        {
+            if (string.IsNullOrWhiteSpace(userInput))
+                return "/";
+
+            var url = new Uri(userInput, UriKind.RelativeOrAbsolute);
+            
+            if (!url.IsAbsoluteUri)
+            {
+                return "/" + userInput.Trim().TrimStart('/');
+            }
+            
+            return "/";
         }
 
         private static async Task StrictSameSiteExternalAuthenticationMiddleware(HttpContext ctx, RequestDelegate next)
