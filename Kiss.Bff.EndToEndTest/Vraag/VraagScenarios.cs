@@ -94,8 +94,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
-            await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+            await Step("And clicks on Opslaan button");
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -140,6 +153,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then Afhandeling form has value as “test vraag 1 in field Notitie for vraag 1");
             await Expect(Page.GetAfhandelingNotitieTextBox().First).ToHaveValueAsync(note1);
@@ -193,8 +207,21 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
-            await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+            await Step("And clicks on Opslaan button");
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
+
 
             await Step("And Afhandeling form is successfully submitted");
 
@@ -216,6 +243,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And user navigates to the contactmoment tab to view the created contact moment");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And contactmoment details are displayed");
 
