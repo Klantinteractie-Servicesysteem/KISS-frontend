@@ -288,17 +288,16 @@ namespace Microsoft.Extensions.DependencyInjection
             if (ctx.Request.Headers.ContainsKey("is-api"))
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                // For API flows, allow only same-origin absolute URLs or safe relative app paths
                 var redirect = ctx.RedirectUri ?? string.Empty;
                 if (Uri.TryCreate(redirect, UriKind.Absolute, out var absolute) &&
                     string.Equals(absolute.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(absolute.Scheme, ctx.Request.Scheme, StringComparison.OrdinalIgnoreCase))
                 {
-                    ctx.Response.Headers.Location = redirect;
+                    ctx.Response.Headers.Location = string.IsNullOrEmpty(absolute.PathAndQuery) ? "/" : absolute.PathAndQuery;
                 }
                 else if (IsSafeLocalPath(redirect))
                 {
-                    ctx.Response.Headers.Location = BuildAppAbsoluteUrl(ctx.Request, redirect.TrimStart('/'));
+                    ctx.Response.Headers.Location = "/" + redirect.TrimStart('/');
                 }
                 else
                 {
@@ -338,26 +337,25 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var requestedReturnUrl = request.Query["returnUrl"].FirstOrDefault();
 
-            string fullReturnUrl;
+            string redirectPath;
             if (IsSafeLocalPath(requestedReturnUrl))
             {
-                fullReturnUrl = BuildAppAbsoluteUrl(request, requestedReturnUrl!.TrimStart('/'));
+                redirectPath = "/" + requestedReturnUrl!.TrimStart('/');
             }
             else
             {
-                // Fallback to application root if no/invalid returnUrl provided
-                fullReturnUrl = BuildAppAbsoluteUrl(request, "/");
+                redirectPath = "/";
             }
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
-                httpContext.Response.Redirect(fullReturnUrl);
+                httpContext.Response.Redirect(redirectPath);
                 return Task.CompletedTask;
             }
 
             return httpContext.ChallengeAsync(new AuthenticationProperties
             {
-                RedirectUri = fullReturnUrl,
+                RedirectUri = redirectPath,
             });
         }
 
