@@ -341,14 +341,19 @@ namespace Microsoft.Extensions.DependencyInjection
             var request = httpContext.Request;
             var requestedReturnUrl = request.Query["returnUrl"].FirstOrDefault();
 
-            string redirectPath;
-            if (IsSafeLocalPath(requestedReturnUrl))
+            string redirectPath = "/";
+            if (!string.IsNullOrWhiteSpace(requestedReturnUrl))
             {
-                redirectPath = "/" + requestedReturnUrl!.TrimStart('/');
-            }
-            else
-            {
-                redirectPath = "/";
+                var trimmed = requestedReturnUrl.Trim();
+                if (!trimmed.Contains('\r') && !trimmed.Contains('\n') &&
+                    !trimmed.StartsWith("//") && !trimmed.StartsWith("\\") &&
+                    !trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                    !trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                    !trimmed.Contains('\\') && !trimmed.Contains("..") &&
+                    !Uri.TryCreate(trimmed, UriKind.Absolute, out _))
+                {
+                    redirectPath = "/" + trimmed.TrimStart('/');
+                }
             }
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
