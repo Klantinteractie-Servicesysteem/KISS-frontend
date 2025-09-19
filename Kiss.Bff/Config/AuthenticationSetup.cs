@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Net;
 using Duende.IdentityModel;
 using Kiss;
 using Microsoft.AspNetCore.Authentication;
@@ -80,6 +81,33 @@ namespace Microsoft.Extensions.DependencyInjection
         private const string SignOutCallback = "/signout-callback-oidc";
         private const string CookieSchemeName = "cookieScheme";
         private const string ChallengeSchemeName = "challengeScheme";
+
+        private static bool IsSafeLocalPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+
+            path = path.Trim();
+
+            if (path.Contains('\r') || path.Contains('\n')) return false;
+
+            if (path.StartsWith("//") || path.StartsWith("\\")) return false;
+
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (path.Contains('\\')) return false;
+
+            return true;
+        }
+
+        private static string BuildAppAbsoluteUrl(HttpRequest request, string relativePath)
+        {
+            var path = relativePath.StartsWith('/') ? relativePath : "/" + relativePath;
+            return $"{request.Scheme}://{request.Host}{request.PathBase}{path}";
+        }
 
         public static IServiceCollection AddKissAuth(this IServiceCollection services, Action<KissAuthOptions> setOptions)
         {
@@ -260,7 +288,22 @@ namespace Microsoft.Extensions.DependencyInjection
             if (ctx.Request.Headers.ContainsKey("is-api"))
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                ctx.Response.Headers.Location = ctx.RedirectUri;
+                // For API flows, allow only same-origin absolute URLs or safe relative app paths
+                var redirect = ctx.RedirectUri ?? string.Empty;
+                if (Uri.TryCreate(redirect, UriKind.Absolute, out var absolute) &&
+                    string.Equals(absolute.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(absolute.Scheme, ctx.Request.Scheme, StringComparison.OrdinalIgnoreCase))
+                {
+                    ctx.Response.Headers.Location = redirect;
+                }
+                else if (IsSafeLocalPath(redirect))
+                {
+                    ctx.Response.Headers.Location = BuildAppAbsoluteUrl(ctx.Request, redirect.TrimStart('/'));
+                }
+                else
+                {
+                    ctx.Response.Headers.Location = "/";
+                }
             }
             return Task.CompletedTask;
         }
@@ -293,11 +336,18 @@ namespace Microsoft.Extensions.DependencyInjection
         private static Task ChallengeAsync(HttpContext httpContext)
         {
             var request = httpContext.Request;
-            var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
-                .AsSpan()
-                .TrimStart('/');
+            var requestedReturnUrl = request.Query["returnUrl"].FirstOrDefault();
 
-            var fullReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/{returnUrl}";
+            string fullReturnUrl;
+            if (IsSafeLocalPath(requestedReturnUrl))
+            {
+                fullReturnUrl = BuildAppAbsoluteUrl(request, requestedReturnUrl!.TrimStart('/'));
+            }
+            else
+            {
+                // Fallback to application root if no/invalid returnUrl provided
+                fullReturnUrl = BuildAppAbsoluteUrl(request, "/");
+            }
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
@@ -335,9 +385,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         ctx.Response.ContentType = "text/html";
                         ctx.Response.StatusCode = 200;
+                        var encodedLocation = WebUtility.HtmlEncode(location);
                         var html = $@"
                         <html><head>
-                            <meta http-equiv='refresh' content='0;url={location}' />
+                            <meta http-equiv='refresh' content='0;url={encodedLocation}' />
                         </head></html>";
                         await ctx.Response.WriteAsync(html);
                     }
