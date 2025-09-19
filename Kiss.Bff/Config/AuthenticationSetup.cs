@@ -355,19 +355,24 @@ namespace Microsoft.Extensions.DependencyInjection
             });
         }
 
+        private static readonly HashSet<string> AllowedRedirectPaths = new()
+        {
+            "/",
+            "/home",
+            "/dashboard",
+            "/profile",
+            "/inbox",
+            "/settings"
+        };
+
         private static string GetSafeRedirectPath(string? userInput)
         {
             if (string.IsNullOrWhiteSpace(userInput))
                 return "/";
 
-            var url = new Uri(userInput, UriKind.RelativeOrAbsolute);
+            var normalizedPath = "/" + userInput.Trim().TrimStart('/');
             
-            if (!url.IsAbsoluteUri)
-            {
-                return "/" + userInput.Trim().TrimStart('/');
-            }
-            
-            return "/";
+            return AllowedRedirectPaths.Contains(normalizedPath) ? normalizedPath : "/";
         }
 
         private static async Task StrictSameSiteExternalAuthenticationMiddleware(HttpContext ctx, RequestDelegate next)
