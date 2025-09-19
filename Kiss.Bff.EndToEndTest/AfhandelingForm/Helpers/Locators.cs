@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 
 namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
 {
@@ -37,11 +38,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.GetByRole(AriaRole.Combobox, new() { Name = "Afhandeling" });
         }
 
-        // public static ILocator GetAfdelingField(this IPage page)
-        // {
-        //     return page.GetByRole(AriaRole.Combobox, new() { Name = "Afdeling" });
-        // }
-
         // This input is not associated with a label. This needs to be handled in development to ensure proper accessibility and identification.
         public static ILocator GetAfdelingVoorField(this IPage page)
         {
@@ -53,42 +49,32 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             return page.Locator("output[role='status']");
         }
 
-        // public static ILocator GetAnnulerenButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
         public static ILocator GetConfirmationJaButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Ja" });
         public static ILocator GetConfirmationNeeButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Nee" });
-        public static ILocator GetNieuwButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Nieuw" });
-        public static ILocator GetActiefTabButton(this IPage page) => page.GetByRole(AriaRole.Tab, new() { Name = "Actief" });
-        public static ILocator GetActiveSessions(this IPage page) => page.Locator("[data-testid='active-session']"); // Adjust selector as needed
-        public static ILocator GetFirstActiveSession(this IPage page) => page.GetActiveSessions().First;
-        public static ILocator GetContactverzoekPaneButton(this IPage page) => page.GetByRole(AriaRole.Button, new() { Name = "Contactverzoeken" });
-        public static ILocator GetTelefoonnummerField(this IPage page) => page.Locator("[data-testid='telefoonnummer-field']"); // Adjust as needed
-
-        public static async Task SearchAndSelectPerson(this IPage page, string personName)
+        public static async Task SearchAndSelectPerson(this IPage page, string bsn)
         {
-            // Implement person search and selection logic
-            await page.GetByTestId("person-search").FillAsync(personName);
-            await page.GetByText(personName).ClickAsync();
+            await page.PersonenBsnInput().FillAsync(bsn);
+            await page.PersonenThird_SearchButton().ClickAsync();
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
         }
 
-        public static async Task SearchAndSelectCompany(this IPage page, string companyName)
+        public static async Task SearchAndSelectCompany(this IPage page, string Vestigingsnr)
         {
-            // Implement company search and selection logic
-            await page.GetByTestId("company-search").FillAsync(companyName);
-            await page.GetByText(companyName).ClickAsync();
+            await page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
+            await page.Company_KvknummerInput().FillAsync(Vestigingsnr);
+            await page.Company_KvknummerSearchButton().ClickAsync();
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
         }
 
         public static async Task SearchAndSelectZaak(this IPage page, string zaakNumber)
         {
-            // Try different role types
-            await page.GetByRole(AriaRole.Tab, new() { Name = "Zaken" }).ClickAsync();
-            // OR
-            await page.GetByRole(AriaRole.Button, new() { Name = "Zaken" }).ClickAsync();
-
+            await page.GetByRole(AriaRole.Link, new() { Name = "Zaken" }).ClickAsync();
+            await page.GetByPlaceholder("Zoek op zaaknummer").FillAsync(zaakNumber);
+            await page.GetByTitle("Zoeken").ClickAsync();
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            var searchField = page.GetByRole(AriaRole.Textbox).First; // Get first textbox
-            await searchField.FillAsync(zaakNumber);
-            await page.GetByText(zaakNumber).ClickAsync();
         }
     }
 }
