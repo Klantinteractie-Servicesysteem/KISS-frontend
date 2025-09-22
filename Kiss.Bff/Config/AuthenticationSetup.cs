@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Net;
 using Duende.IdentityModel;
 using Kiss;
 using Microsoft.AspNetCore.Authentication;
@@ -27,11 +26,33 @@ namespace Kiss
     public static class UserExtensions
     {
         private const string ObjectIdentitifier = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-        public static string? GetId(this ClaimsPrincipal? user) => user?.FindFirstValue(ObjectIdentitifier) ?? user?.FindFirstValue(ClaimTypes.NameIdentifier);
-        public static string? GetEmail(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.Email) ?? user?.FindFirstValue(JwtClaimTypes.PreferredUserName);
-        public static string? GetLastName(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.FamilyName) ?? user?.FindFirstValue(JwtClaimTypes.Name) ?? user?.Identity?.Name;
-        public static string? GetFirstName(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.GivenName);
-        public static string? GetUserName(this ClaimsPrincipal? user) => user?.FindFirstValue(KissClaimTypes.KissUserNameClaimType);
+
+        public static string? GetId(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(ObjectIdentitifier) ?? user?.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        public static string? GetEmail(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.Email) ?? user?.FindFirstValue(JwtClaimTypes.PreferredUserName);
+        }
+
+        public static string? GetLastName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.FamilyName) ??
+                   user?.FindFirstValue(JwtClaimTypes.Name) ?? user?.Identity?.Name;
+        }
+
+        public static string? GetFirstName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.GivenName);
+        }
+
+        public static string? GetUserName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(KissClaimTypes.KissUserNameClaimType);
+        }
+
         public static JsonObject GetMedewerkerIdentificatie(this ClaimsPrincipal? user, int? truncate)
         {
             var userName = user?.GetUserName();
@@ -48,19 +69,25 @@ namespace Kiss
                 ["achternaam"] = Truncate(lastName, 200) ?? "",
                 ["identificatie"] = userName ?? "",
                 ["voorletters"] = Truncate(firstName, 20) ?? "",
-                ["voorvoegselAchternaam"] = "",
+                ["voorvoegselAchternaam"] = ""
             };
         }
-        private static string? Truncate(string? value, int maxLength) => value != null && value.Length > maxLength
-            ? value[..maxLength]
-            : value;
+
+        private static string? Truncate(string? value, int maxLength)
+        {
+            return value != null && value.Length > maxLength
+                ? value[..maxLength]
+                : value;
+        }
     }
 }
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate bool IsRedacteur(ClaimsPrincipal? user);
+
     public delegate bool IsKcm(ClaimsPrincipal? user);
+
     public delegate JsonObject? GetMedewerkerIdentificatie();
 
     public class KissAuthOptions
@@ -82,46 +109,33 @@ namespace Microsoft.Extensions.DependencyInjection
         private const string CookieSchemeName = "cookieScheme";
         private const string ChallengeSchemeName = "challengeScheme";
 
-        private static bool IsSafeLocalPath(string? path)
+        private static readonly HashSet<string> AllowedRedirectPaths = new()
         {
-            if (string.IsNullOrWhiteSpace(path)) return false;
+            "/",
+            "/afhandeling",
+            "/contactverzoeken",
+            "/personen",
+            "/bedrijven",
+            "/zaken",
+            "/links",
+            "/beheer"
+        };
 
-            path = path.Trim();
-
-            if (path.Contains('\r') || path.Contains('\n')) return false;
-
-            if (path.StartsWith("//") || path.StartsWith("\\")) return false;
-
-            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (path.Contains('\\')) return false;
-
-            if (path.Contains("..")) return false;
-
-            if (Uri.TryCreate(path, UriKind.Absolute, out _)) return false;
-
-            return true;
-        }
-
-        private static string BuildAppAbsoluteUrl(HttpRequest request, string relativePath)
-        {
-            var path = relativePath.StartsWith('/') ? relativePath : "/" + relativePath;
-            return $"{request.Scheme}://{request.Host}{request.PathBase}{path}";
-        }
-
-        public static IServiceCollection AddKissAuth(this IServiceCollection services, Action<KissAuthOptions> setOptions)
+        public static IServiceCollection AddKissAuth(this IServiceCollection services,
+            Action<KissAuthOptions> setOptions)
         {
             var authOptions = new KissAuthOptions();
             setOptions(authOptions);
 
-            var klantcontactmedewerkerRole = string.IsNullOrWhiteSpace(authOptions.KlantcontactmedewerkerRole) ? "Klantcontactmedewerker" : authOptions.KlantcontactmedewerkerRole;
-            var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole) ? "Redacteur" : authOptions.RedacteurRole;
-            var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType) ? "email" : authOptions.MedewerkerIdentificatieClaimType;
-
+            var klantcontactmedewerkerRole = string.IsNullOrWhiteSpace(authOptions.KlantcontactmedewerkerRole)
+                ? "Klantcontactmedewerker"
+                : authOptions.KlantcontactmedewerkerRole;
+            var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
+                ? "Redacteur"
+                : authOptions.RedacteurRole;
+            var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType)
+                ? "email"
+                : authOptions.MedewerkerIdentificatieClaimType;
 
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
@@ -129,7 +143,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
-                return () => accessor.HttpContext?.User?.GetMedewerkerIdentificatie(authOptions.TruncateMedewerkerIdentificatie);
+                return () =>
+                    accessor.HttpContext?.User?.GetMedewerkerIdentificatie(authOptions.TruncateMedewerkerIdentificatie);
             });
 
             var authBuilder = services.AddAuthentication(options =>
@@ -149,7 +164,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
-                options.Events.OnRedirectToAccessDenied = (ctx) =>
+                options.Events.OnRedirectToAccessDenied = ctx =>
                 {
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
@@ -186,7 +201,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     options.Events.OnRemoteFailure = RedirectToRoot;
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
-                    options.Events.OnRedirectToIdentityProvider = (ctx) =>
+                    options.Events.OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Request.Headers.ContainsKey("is-api"))
                         {
@@ -194,6 +209,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             ctx.Response.Headers.Location = ctx.ProtocolMessage.CreateAuthenticationRequestUrl();
                             ctx.HandleResponse();
                         }
+
                         return Task.CompletedTask;
                     };
                 });
@@ -210,7 +226,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtTokenAuthenticationSecret))
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(authOptions.JwtTokenAuthenticationSecret))
                     };
                 });
             }
@@ -241,9 +259,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     policy.RequireAuthenticatedUser();
                     policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
                 });
-
-
-
             });
 
             return services;
@@ -251,10 +266,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IApplicationBuilder UseKissAuthMiddlewares(this IApplicationBuilder app)
         {
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.All
-            });
+            app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
 
             app.Use((context, next) =>
             {
@@ -262,6 +274,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     context.Request.Scheme = "https";
                 }
+
                 return next();
             });
 
@@ -279,7 +292,8 @@ namespace Microsoft.Extensions.DependencyInjection
             return endpoints;
         }
 
-        private static Task RedirectToRoot<TOptions>(HandleRequestContext<TOptions> context) where TOptions : AuthenticationSchemeOptions
+        private static Task RedirectToRoot<TOptions>(HandleRequestContext<TOptions> context)
+            where TOptions : AuthenticationSchemeOptions
         {
             context.Response.Redirect("/");
             context.HandleResponse();
@@ -287,27 +301,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return Task.CompletedTask;
         }
 
-        public static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx) where TOptions : AuthenticationSchemeOptions
+        public static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx)
+            where TOptions : AuthenticationSchemeOptions
         {
             if (ctx.Request.Headers.ContainsKey("is-api"))
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                var redirect = ctx.RedirectUri ?? string.Empty;
-                if (Uri.TryCreate(redirect, UriKind.Absolute, out var absolute) &&
-                    string.Equals(absolute.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(absolute.Scheme, ctx.Request.Scheme, StringComparison.OrdinalIgnoreCase))
-                {
-                    ctx.Response.Headers.Location = string.IsNullOrEmpty(absolute.PathAndQuery) ? "/" : absolute.PathAndQuery;
-                }
-                else if (IsSafeLocalPath(redirect))
-                {
-                    ctx.Response.Headers.Location = "/" + redirect.TrimStart('/');
-                }
-                else
-                {
-                    ctx.Response.Headers.Location = "/";
-                }
+                ctx.Response.Headers.Location = ctx.RedirectUri;
             }
+
             return Task.CompletedTask;
         }
 
@@ -325,23 +327,24 @@ namespace Microsoft.Extensions.DependencyInjection
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
 
             var organisatieIds = httpContext.RequestServices
-                .GetService<IConfiguration>()
-                ?["ORGANISATIE_IDS"]
-                ?.Split('/')
-                ?? Array.Empty<string>();
+                                     .GetService<IConfiguration>()
+                                     ?["ORGANISATIE_IDS"]
+                                     ?.Split('/')
+                                 ?? Array.Empty<string>();
 
             return new KissUser(email, isLoggedIn, isKcm, isRedacteur, organisatieIds);
         }
-
-        private readonly record struct KissUser(string? Email, bool IsLoggedIn, bool IsKcm, bool IsRedacteur, IReadOnlyList<string> OrganisatieIds);
 
 
         private static Task ChallengeAsync(HttpContext httpContext)
         {
             var request = httpContext.Request;
-            var requestedReturnUrl = request.Query["returnUrl"].FirstOrDefault();
+            var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
+                .AsSpan()
+                .TrimStart('/');
 
-            var safeRedirectPath = GetSafeRedirectPath(requestedReturnUrl);
+            var normalizedPath = "/" + returnUrl.ToString();
+            var safeRedirectPath = AllowedRedirectPaths.Contains(normalizedPath) ? normalizedPath : "/";
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
@@ -349,32 +352,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return Task.CompletedTask;
             }
 
-            return httpContext.ChallengeAsync(new AuthenticationProperties
-            {
-                RedirectUri = safeRedirectPath,
-            });
-        }
-
-        private static readonly HashSet<string> AllowedRedirectPaths = new()
-        {
-            "/",
-            "/afhandeling",
-            "/contactverzoeken",
-            "/personen",
-            "/bedrijven",
-            "/zaken",
-            "/links",
-            "/beheer"
-        };
-
-        private static string GetSafeRedirectPath(string? userInput)
-        {
-            if (string.IsNullOrWhiteSpace(userInput))
-                return "/";
-
-            var normalizedPath = "/" + userInput.Trim().TrimStart('/');
-            
-            return AllowedRedirectPaths.Contains(normalizedPath) ? normalizedPath : "/";
+            return httpContext.ChallengeAsync(new AuthenticationProperties { RedirectUri = safeRedirectPath });
         }
 
         private static async Task StrictSameSiteExternalAuthenticationMiddleware(HttpContext ctx, RequestDelegate next)
@@ -384,7 +362,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             foreach (var scheme in await schemes.GetRequestHandlerSchemesAsync())
             {
-                if (await handlers.GetHandlerAsync(ctx, scheme.Name) is IAuthenticationRequestHandler handler && await handler.HandleRequestAsync())
+                if (await handlers.GetHandlerAsync(ctx, scheme.Name) is IAuthenticationRequestHandler handler &&
+                    await handler.HandleRequestAsync())
                 {
                     // start same-site cookie special handling
                     string? location = null;
@@ -401,10 +380,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         ctx.Response.ContentType = "text/html";
                         ctx.Response.StatusCode = 200;
-                        var encodedLocation = WebUtility.HtmlEncode(location);
                         var html = $@"
                         <html><head>
-                            <meta http-equiv='refresh' content='0;url={encodedLocation}' />
+                            <meta http-equiv='refresh' content='0;url={location}' />
                         </head></html>";
                         await ctx.Response.WriteAsync(html);
                     }
@@ -416,5 +394,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             await next(ctx);
         }
+
+        private readonly record struct KissUser(
+            string? Email,
+            bool IsLoggedIn,
+            bool IsKcm,
+            bool IsRedacteur,
+            IReadOnlyList<string> OrganisatieIds);
     }
 }
