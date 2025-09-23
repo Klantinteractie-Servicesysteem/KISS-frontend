@@ -6,10 +6,12 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
 jobs:
   deploy:
     runs-on: ubuntu-latest
-# Auto-deploys the frontend to a online development environment
+    # Auto-deploys the frontend to a online development environment
     steps:
       - name: Add helm repository to helm
         run: helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/development/helm

@@ -26,11 +26,33 @@ namespace Kiss
     public static class UserExtensions
     {
         private const string ObjectIdentitifier = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-        public static string? GetId(this ClaimsPrincipal? user) => user?.FindFirstValue(ObjectIdentitifier) ?? user?.FindFirstValue(ClaimTypes.NameIdentifier);
-        public static string? GetEmail(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.Email) ?? user?.FindFirstValue(JwtClaimTypes.PreferredUserName);
-        public static string? GetLastName(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.FamilyName) ?? user?.FindFirstValue(JwtClaimTypes.Name) ?? user?.Identity?.Name;
-        public static string? GetFirstName(this ClaimsPrincipal? user) => user?.FindFirstValue(JwtClaimTypes.GivenName);
-        public static string? GetUserName(this ClaimsPrincipal? user) => user?.FindFirstValue(KissClaimTypes.KissUserNameClaimType);
+
+        public static string? GetId(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(ObjectIdentitifier) ?? user?.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        public static string? GetEmail(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.Email) ?? user?.FindFirstValue(JwtClaimTypes.PreferredUserName);
+        }
+
+        public static string? GetLastName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.FamilyName) ??
+                   user?.FindFirstValue(JwtClaimTypes.Name) ?? user?.Identity?.Name;
+        }
+
+        public static string? GetFirstName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(JwtClaimTypes.GivenName);
+        }
+
+        public static string? GetUserName(this ClaimsPrincipal? user)
+        {
+            return user?.FindFirstValue(KissClaimTypes.KissUserNameClaimType);
+        }
+
         public static JsonObject GetMedewerkerIdentificatie(this ClaimsPrincipal? user, int? truncate)
         {
             var userName = user?.GetUserName();
@@ -47,19 +69,25 @@ namespace Kiss
                 ["achternaam"] = Truncate(lastName, 200) ?? "",
                 ["identificatie"] = userName ?? "",
                 ["voorletters"] = Truncate(firstName, 20) ?? "",
-                ["voorvoegselAchternaam"] = "",
+                ["voorvoegselAchternaam"] = ""
             };
         }
-        private static string? Truncate(string? value, int maxLength) => value != null && value.Length > maxLength
-            ? value[..maxLength]
-            : value;
+
+        private static string? Truncate(string? value, int maxLength)
+        {
+            return value != null && value.Length > maxLength
+                ? value[..maxLength]
+                : value;
+        }
     }
 }
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate bool IsRedacteur(ClaimsPrincipal? user);
+
     public delegate bool IsKcm(ClaimsPrincipal? user);
+
     public delegate JsonObject? GetMedewerkerIdentificatie();
 
     public class KissAuthOptions
@@ -81,15 +109,43 @@ namespace Microsoft.Extensions.DependencyInjection
         private const string CookieSchemeName = "cookieScheme";
         private const string ChallengeSchemeName = "challengeScheme";
 
-        public static IServiceCollection AddKissAuth(this IServiceCollection services, Action<KissAuthOptions> setOptions)
+
+        private static string GetSafeRedirectPath(HttpContext httpContext)
+        {
+            var redirectPath = "/";
+
+            if (httpContext.Request.Query.TryGetValue("returnUrl", out var returnUrlValues))
+            {
+                var requestedUrl = returnUrlValues.FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(requestedUrl))
+                {
+                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out Uri uri))  
+                    {
+                        if (requestedUrl.StartsWith("/") && !requestedUrl.StartsWith("//") && !requestedUrl.Contains(".."))
+                        {
+                            redirectPath = requestedUrl;
+                        }
+                    }
+                }
+            }
+            return redirectPath;
+        }
+        public static IServiceCollection AddKissAuth(this IServiceCollection services,
+            Action<KissAuthOptions> setOptions)
         {
             var authOptions = new KissAuthOptions();
             setOptions(authOptions);
 
-            var klantcontactmedewerkerRole = string.IsNullOrWhiteSpace(authOptions.KlantcontactmedewerkerRole) ? "Klantcontactmedewerker" : authOptions.KlantcontactmedewerkerRole;
-            var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole) ? "Redacteur" : authOptions.RedacteurRole;
-            var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType) ? "email" : authOptions.MedewerkerIdentificatieClaimType;
-
+            var klantcontactmedewerkerRole = string.IsNullOrWhiteSpace(authOptions.KlantcontactmedewerkerRole)
+                ? "Klantcontactmedewerker"
+                : authOptions.KlantcontactmedewerkerRole;
+            var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
+                ? "Redacteur"
+                : authOptions.RedacteurRole;
+            var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType)
+                ? "email"
+                : authOptions.MedewerkerIdentificatieClaimType;
 
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
@@ -97,7 +153,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
-                return () => accessor.HttpContext?.User?.GetMedewerkerIdentificatie(authOptions.TruncateMedewerkerIdentificatie);
+                return () =>
+                    accessor.HttpContext?.User?.GetMedewerkerIdentificatie(authOptions.TruncateMedewerkerIdentificatie);
             });
 
             var authBuilder = services.AddAuthentication(options =>
@@ -117,7 +174,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 //options.Events.OnSigningOut = (e) => e.HttpContext.RevokeRefreshTokenAsync();
-                options.Events.OnRedirectToAccessDenied = (ctx) =>
+                options.Events.OnRedirectToAccessDenied = ctx =>
                 {
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
@@ -154,7 +211,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     options.Events.OnRemoteFailure = RedirectToRoot;
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
-                    options.Events.OnRedirectToIdentityProvider = (ctx) =>
+                    options.Events.OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Request.Headers.ContainsKey("is-api"))
                         {
@@ -162,6 +219,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             ctx.Response.Headers.Location = ctx.ProtocolMessage.CreateAuthenticationRequestUrl();
                             ctx.HandleResponse();
                         }
+
                         return Task.CompletedTask;
                     };
                 });
@@ -178,7 +236,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.JwtTokenAuthenticationSecret))
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(authOptions.JwtTokenAuthenticationSecret))
                     };
                 });
             }
@@ -209,9 +269,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     policy.RequireAuthenticatedUser();
                     policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
                 });
-
-
-
             });
 
             return services;
@@ -219,10 +276,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IApplicationBuilder UseKissAuthMiddlewares(this IApplicationBuilder app)
         {
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.All
-            });
+            app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
 
             app.Use((context, next) =>
             {
@@ -230,6 +284,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     context.Request.Scheme = "https";
                 }
+
                 return next();
             });
 
@@ -247,7 +302,8 @@ namespace Microsoft.Extensions.DependencyInjection
             return endpoints;
         }
 
-        private static Task RedirectToRoot<TOptions>(HandleRequestContext<TOptions> context) where TOptions : AuthenticationSchemeOptions
+        private static Task RedirectToRoot<TOptions>(HandleRequestContext<TOptions> context)
+            where TOptions : AuthenticationSchemeOptions
         {
             context.Response.Redirect("/");
             context.HandleResponse();
@@ -255,13 +311,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return Task.CompletedTask;
         }
 
-        public static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx) where TOptions : AuthenticationSchemeOptions
+        public static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx)
+            where TOptions : AuthenticationSchemeOptions
         {
             if (ctx.Request.Headers.ContainsKey("is-api"))
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 ctx.Response.Headers.Location = ctx.RedirectUri;
             }
+
             return Task.CompletedTask;
         }
 
@@ -279,36 +337,27 @@ namespace Microsoft.Extensions.DependencyInjection
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
 
             var organisatieIds = httpContext.RequestServices
-                .GetService<IConfiguration>()
-                ?["ORGANISATIE_IDS"]
-                ?.Split('/')
-                ?? Array.Empty<string>();
+                                     .GetService<IConfiguration>()
+                                     ?["ORGANISATIE_IDS"]
+                                     ?.Split('/')
+                                 ?? Array.Empty<string>();
 
             return new KissUser(email, isLoggedIn, isKcm, isRedacteur, organisatieIds);
         }
 
-        private readonly record struct KissUser(string? Email, bool IsLoggedIn, bool IsKcm, bool IsRedacteur, IReadOnlyList<string> OrganisatieIds);
-
 
         private static Task ChallengeAsync(HttpContext httpContext)
         {
-            var request = httpContext.Request;
-            var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
-                .AsSpan()
-                .TrimStart('/');
 
-            var fullReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/{returnUrl}";
+            var safeRedirectPath = GetSafeRedirectPath(httpContext);
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
-                httpContext.Response.Redirect(fullReturnUrl);
+                httpContext.Response.Redirect(safeRedirectPath);
                 return Task.CompletedTask;
             }
 
-            return httpContext.ChallengeAsync(new AuthenticationProperties
-            {
-                RedirectUri = fullReturnUrl,
-            });
+            return httpContext.ChallengeAsync(new AuthenticationProperties { RedirectUri = safeRedirectPath });
         }
 
         private static async Task StrictSameSiteExternalAuthenticationMiddleware(HttpContext ctx, RequestDelegate next)
@@ -318,7 +367,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             foreach (var scheme in await schemes.GetRequestHandlerSchemesAsync())
             {
-                if (await handlers.GetHandlerAsync(ctx, scheme.Name) is IAuthenticationRequestHandler handler && await handler.HandleRequestAsync())
+                if (await handlers.GetHandlerAsync(ctx, scheme.Name) is IAuthenticationRequestHandler handler &&
+                    await handler.HandleRequestAsync())
                 {
                     // start same-site cookie special handling
                     string? location = null;
@@ -349,5 +399,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             await next(ctx);
         }
+
+        private readonly record struct KissUser(
+            string? Email,
+            bool IsLoggedIn,
+            bool IsKcm,
+            bool IsRedacteur,
+            IReadOnlyList<string> OrganisatieIds);
     }
 }
