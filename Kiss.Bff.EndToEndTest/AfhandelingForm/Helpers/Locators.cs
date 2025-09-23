@@ -76,5 +76,28 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         }
+        // Actief tab (summary element)
+        public static ILocator GetActiefTab(this IPage page) =>
+            page.Locator("summary.utrecht-button.utrecht-button--secondary-action");
+
+        // Active sessions (switchable sessions only - not the current/disabled one)
+        public static ILocator GetActiveSessions(this IPage page) =>
+            page.Locator("button[title='Wissel naar dit contactmoment']");
+
+        // Current active session (the disabled one)
+        public static ILocator GetCurrentActiveSession(this IPage page) =>
+            page.Locator("button.utrecht-button--subtle.is-current[disabled][title='Huidig contactmoment']");
+
+        // First switchable session
+        public static ILocator GetFirstActiveSession(this IPage page) =>
+            page.GetActiveSessions().First;
+
+        // Session count (switchable sessions only)
+        public static async Task<int> GetActiveSessionsCount(this IPage page) =>
+            await page.GetActiveSessions().CountAsync();
+
+        // Total session count (including current session)
+        public static async Task<int> GetTotalSessionsCount(this IPage page) =>
+            await page.Locator("button[class*='utrecht-button--subtle']").CountAsync();
     }
 }

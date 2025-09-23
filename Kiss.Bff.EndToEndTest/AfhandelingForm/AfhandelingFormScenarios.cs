@@ -357,12 +357,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("And click on contactverzoeken pane");
             await Page.CreateNewcontactVerzoekAsync();
 
-            await Step("And enter details in afdeling, note and telefoonnummer field");
-            await Page.GetAfdelingCombobox().FillAsync("Parkeren");
-            await Page.GetByText("Parkeren").ClickAsync();
-            await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
-            await Page.GetTelefoonnummerTextbox().FillAsync("0617138555");
-
             await Step("When user click on Annuleren");
             await Page.GetAnnulerenButton().ClickAsync();
 
@@ -441,6 +435,102 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("Then user should be redirected back to KISS HOME page");
             await Expect(Page).ToHaveURLAsync("/");
 
+        }
+        [TestMethod("11. Cancel from Multiple Sessions - Confirm with Ja")]
+        public async Task When_CancelFromMultipleSessionsAndConfirmJa_Expect_SessionClosed()
+        {
+            await Step("Given user is on KISS Home page");
+            await Page.GotoAsync("/");
+
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And click on Nieuw button TWICE to create multiple sessions");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Nieuw", Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Nieuw", Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("And click on actief");
+            await Page.GetActiefTab().ClickAsync();
+
+            await Step("And three sessions should be there (1 current + 2 switchable)");
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])"))).ToHaveCountAsync(2);
+
+            var initialSessionCount = await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).CountAsync();
+            Assert.AreEqual(2, initialSessionCount, "Expected 2 switchable sessions initially");
+
+            await Step("And user navigates to first switchable session");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).First.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("When click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
+
+            await Step("And click on Ja in confirmation pop-up");
+            await Page.GetConfirmationJaButton().ClickAsync();
+
+            await Step("Then the session should be closed and one switchable session should still be there");
+
+            // Click on Actief tab again to refresh the session list
+            await Page.GetActiefTab().ClickAsync();
+
+            // Wait for the session count to decrease to 1 switchable session
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])"))).ToHaveCountAsync(1);
+
+            var remainingSessionCount = await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).CountAsync();
+            Assert.AreEqual(1, remainingSessionCount, "Expected 1 remaining switchable session");
+        }
+
+        [TestMethod("12. Cancel from Multiple Sessions - Confirm with Nee")]
+        public async Task When_CancelFromMultipleSessionsAndConfirmNee_Expect_AllSessionsRemain()
+        {
+            await Step("Given user is on KISS Home page");
+            await Page.GotoAsync("/");
+
+            await Step("And click on Nieuw contactmoment");
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And click on Nieuw button TWICE to create multiple sessions");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Nieuw", Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Nieuw", Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("And click on actief");
+            await Page.GetActiefTab().ClickAsync();
+
+            await Step("And three sessions should be there (1 current + 2 switchable)");
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])"))).ToHaveCountAsync(2);
+
+            var initialSessionCount = await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).CountAsync();
+            Assert.AreEqual(2, initialSessionCount, "Expected 2 switchable sessions initially");
+
+            await Step("And user navigates to first switchable session");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).First.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("When click on Annuleren");
+            await Page.GetAnnulerenButton().ClickAsync();
+
+            await Step("And click on Nee in confirmation pop-up");
+            await Page.GetConfirmationNeeButton().ClickAsync();
+
+            await Step("Then the session should NOT be closed and all sessions should still be there");
+            await Page.GetActiefTab().ClickAsync();
+
+            // Verify that all sessions are still there (count should remain 2)
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])"))).ToHaveCountAsync(2);
+
+            var remainingSessionCount = await Page.GetByRole(AriaRole.Button, new() { Name = "Onbekende klant" }).And(Page.Locator(":not([disabled])")).CountAsync();
+            Assert.AreEqual(2, remainingSessionCount, "Expected all 2 switchable sessions to remain after clicking Nee");
+
+            await Step("And user should remain on the current session screen");
+
+            await Expect(Page.GetAnnulerenButton()).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentNotitieblokTextbox()).ToBeVisibleAsync();
         }
     }
 }
