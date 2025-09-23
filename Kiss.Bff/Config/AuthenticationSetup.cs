@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Nodes;
 using Duende.IdentityModel;
@@ -109,18 +109,28 @@ namespace Microsoft.Extensions.DependencyInjection
         private const string CookieSchemeName = "cookieScheme";
         private const string ChallengeSchemeName = "challengeScheme";
 
-        private static readonly HashSet<string> AllowedRedirectPaths = new()
-        {
-            "/",
-            "/afhandeling",
-            "/contactverzoeken",
-            "/personen",
-            "/bedrijven",
-            "/zaken",
-            "/links",
-            "/beheer"
-        };
 
+        private static string GetSafeRedirectPath(HttpContext httpContext)
+        {
+            var redirectPath = "/";
+
+            if (httpContext.Request.Query.TryGetValue("returnUrl", out var returnUrlValues))
+            {
+                var requestedUrl = returnUrlValues.FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(requestedUrl))
+                {
+                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out Uri uri))  
+                    {
+                        if (requestedUrl.StartsWith("/") && !requestedUrl.StartsWith("//") && !requestedUrl.Contains(".."))
+                        {
+                            redirectPath = requestedUrl;
+                        }
+                    }
+                }
+            }
+            return redirectPath;
+        }
         public static IServiceCollection AddKissAuth(this IServiceCollection services,
             Action<KissAuthOptions> setOptions)
         {
@@ -338,13 +348,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static Task ChallengeAsync(HttpContext httpContext)
         {
-            var request = httpContext.Request;
-            var returnUrl = (request.Query["returnUrl"].FirstOrDefault() ?? string.Empty)
-                .AsSpan()
-                .TrimStart('/');
 
-            var normalizedPath = "/" + returnUrl.ToString();
-            var safeRedirectPath = AllowedRedirectPaths.Contains(normalizedPath) ? normalizedPath : "/";
+            var safeRedirectPath = GetSafeRedirectPath(httpContext);
 
             if (httpContext.User.Identity?.IsAuthenticated ?? false)
             {
