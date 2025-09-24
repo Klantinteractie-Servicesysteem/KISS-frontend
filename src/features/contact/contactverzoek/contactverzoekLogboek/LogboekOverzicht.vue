@@ -287,7 +287,10 @@ const getActionTitle = (type: string) =>
   activiteitTitles.get(type) || "Onbekende actie";
 
 async function fetchObject(id: string) {
-  return await fetchLoggedIn("/api/afdelingen/api/v2/objects/" + id)
+  return await fetchLoggedIn(
+    "api/v2/objects?ordering=record__data__identificatie&data_attr=identificatie__exact__" +
+      id,
+  )
     .then(throwIfNotOk)
     .then(parseJson)
     .then((json) => json.record.data);
