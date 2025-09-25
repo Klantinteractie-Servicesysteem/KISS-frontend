@@ -253,15 +253,18 @@ async function enrichActiviteitWithDoorsturenInfo(
   const activiteiten = [];
   for (const heeftbetrekkingop of item.heeftBetrekkingOp) {
     if (heeftbetrekkingop.codeRegister === "obj") {
-      const orgeenheidOrmedewerker = await fetchObject(
-        heeftbetrekkingop.objectId,
-      );
+      const objectSearchResult = await fetchObject(heeftbetrekkingop.objectId);
+      if (objectSearchResult.results.length !== 1) {
+        throw new Error(
+          `Expected exactly one result from ${heeftbetrekkingop.objectId}, but got ${objectSearchResult.results.length}`,
+        );
+      }
       if (
         heeftbetrekkingop.codeObjecttype === "afd" ||
         heeftbetrekkingop.codeObjecttype === "grp"
       ) {
         activiteiten.push(
-          `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${orgeenheidOrmedewerker?.naam}`,
+          `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${objectSearchResult.results[0].record.data.naam}`,
         );
       }
     } else if (heeftbetrekkingop.codeRegister === "handmatig") {
