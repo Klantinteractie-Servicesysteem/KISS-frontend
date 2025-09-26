@@ -30,10 +30,10 @@ export async function searchBedrijvenInHandelsRegister(
     searchParams.append("type", "nevenvestiging");
   } else if ("postcodeHuisnummer" in query) {
     const {
-      postcode: { numbers, digits },
+      postcode: { numbers, letters },
       huisnummer,
     } = query.postcodeHuisnummer;
-    searchParams.set("postcode", numbers + digits);
+    searchParams.set("postcode", numbers + letters.toUpperCase()); //workaraound for kvk bug M2509 495
     searchParams.set("huisnummer", huisnummer);
   } else if ("kvkNummer" in query && query.kvkNummer) {
     searchParams.set("kvkNummer", query.kvkNummer);

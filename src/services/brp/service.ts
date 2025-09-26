@@ -105,7 +105,7 @@ export const searchPersonen = (query: PersoonQuery) => {
     sorter = compareNaam;
   } else {
     const {
-      postcode: { numbers, digits },
+      postcode: { numbers, letters },
       huisnummer,
       toevoeging,
       huisletter,
@@ -113,7 +113,7 @@ export const searchPersonen = (query: PersoonQuery) => {
     } = query.postcodeHuisnummerAchternaam;
 
     request = {
-      postcode: numbers + digits,
+      postcode: numbers + letters,
       huisnummer,
       huisnummertoevoeging: toevoeging || "",
       huisletter: huisletter || "",
