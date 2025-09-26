@@ -255,16 +255,19 @@ async function enrichActiviteitWithDoorsturenInfo(
     if (heeftbetrekkingop.codeRegister === "obj") {
         
       let naam = "";
+      let groepOrAfdeling = "";
       
       if (heeftbetrekkingop.codeObjecttype === "afd") {
-          naam = (await fetchAfdeling(heeftbetrekkingop.objectId))?.naam;          
+          naam = (await fetchAfdeling(heeftbetrekkingop.objectId))?.naam;   
+          groepOrAfdeling = codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name    
       }
       
       if (heeftbetrekkingop.codeObjecttype === "grp") {
-          naam = (await fetchGroep(heeftbetrekkingop.objectId))?.naam;         
+          naam = (await fetchGroep(heeftbetrekkingop.objectId))?.naam;     
+          groepOrAfdeling = codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name      
       }
       
-      activiteiten.push(`Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${naam}`);
+      activiteiten.push(`Contactverzoek doorgestuurd aan ${groepOrAfdeling} ${naam}`);
 
     } else if (heeftbetrekkingop.codeRegister === "handmatig") {
       activiteiten.push(
