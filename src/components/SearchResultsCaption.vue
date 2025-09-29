@@ -36,11 +36,11 @@ const zoekTermenCaption = computed(() => {
   } else if ("postcodeHuisnummer" in props.zoekTermen) {
     const { postcode, huisnummer, huisletter, toevoeging } =
       props.zoekTermen.postcodeHuisnummer;
-    return `voor '${postcode.numbers}${postcode.digits}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}'.`;
+    return `voor '${postcode.numbers}${postcode.letters}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}'.`;
   } else if ("postcodeHuisnummerAchternaam" in props.zoekTermen) {
     const { postcode, huisnummer, huisletter, toevoeging, achternaam } =
       props.zoekTermen.postcodeHuisnummerAchternaam;
-    return `voor '${postcode.numbers}${postcode.digits}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}${achternaam ? `, ${achternaam}` : ""}'.`;
+    return `voor '${postcode.numbers}${postcode.letters}, ${huisnummer}${huisletter ? `, ${huisletter}` : ""}${toevoeging ? `, ${toevoeging}` : ""}${achternaam ? `, ${achternaam}` : ""}'.`;
   } else if ("handelsnaam" in props.zoekTermen) {
     return `voor '${props.zoekTermen.handelsnaam}'.`;
   } else if ("kvkNummer" in props.zoekTermen) {
