@@ -7,7 +7,7 @@
 - Sluiten/annuleren van gestarte contactmomenten/verzoeken #1263
 
 ### Bugfixes
-
+- Zoeken op postcode bij bedrijven is hoofdlettergevoelig #1277
 
 ### Maintenance
 - Er zijn nieuwe release variabelen toegevoegd (LOGBOEK_BASE_URL, LOGBOEK_TOKEN, LOGBOEK_OBJECT_TYPE_URL, LOGBOEK_OBJECT_TYPE_VERSION ). Zie handleiding. 
