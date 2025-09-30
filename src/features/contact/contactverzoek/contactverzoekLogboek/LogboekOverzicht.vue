@@ -250,20 +250,25 @@ async function enrichActiviteitWithDoorsturenInfo(
   item: InputLogboekActiviteit,
 ) {
   activiteit.tekst = "";
-  const activiteiten = [];
+  const activiteiten: string[]  = [];
   for (const heeftbetrekkingop of item.heeftBetrekkingOp) {
     if (heeftbetrekkingop.codeRegister === "obj") {
-      const orgeenheidOrmedewerker = await fetchObject(
-        heeftbetrekkingop.objectId,
-      );
-      if (
-        heeftbetrekkingop.codeObjecttype === "afd" ||
-        heeftbetrekkingop.codeObjecttype === "grp"
-      ) {
-        activiteiten.push(
-          `Contactverzoek doorgestuurd aan ${codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name ?? ""} ${orgeenheidOrmedewerker?.naam}`,
-        );
+        
+      let naam = "";
+      let groepOrAfdeling = "";
+      
+      if (heeftbetrekkingop.codeObjecttype === "afd") {
+          naam = (await fetchAfdeling(heeftbetrekkingop.objectId))?.naam;   
+          groepOrAfdeling = codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name    
       }
+      
+      if (heeftbetrekkingop.codeObjecttype === "grp") {
+          naam = (await fetchGroep(heeftbetrekkingop.objectId))?.naam;     
+          groepOrAfdeling = codeObjecttype[heeftbetrekkingop.codeObjecttype]?.name      
+      }
+      
+      activiteiten.push(`Contactverzoek doorgestuurd aan ${groepOrAfdeling} ${naam}`);
+
     } else if (heeftbetrekkingop.codeRegister === "handmatig") {
       activiteiten.push(
         `Contactverzoek doorgestuurd aan medewerker ${heeftbetrekkingop.objectId}`,
@@ -286,12 +291,27 @@ const activiteitTitles = new Map<string, string>([
 const getActionTitle = (type: string) =>
   activiteitTitles.get(type) || "Onbekende actie";
 
-async function fetchObject(id: string) {
-  return await fetchLoggedIn("/api/afdelingen/api/v2/objects/" + id)
+async function fetchAfdelingOfGroep(id: string, path: string) {
+  return await fetchLoggedIn(
+    `${path}api/v2/objects?data_attr=identificatie__exact__${id}`,
+  )
     .then(throwIfNotOk)
     .then(parseJson)
-    .then((json) => json.record.data);
+    .then((json) => {
+
+        if (json.results.length !== 1 ) {
+            throw new Error(
+                `Expected exactly one result for afdeling or groep ${id}, but got ${json.results.length}`,
+            );
+        }
+
+        return json.results[0].record.data
+    });
 }
+
+async function fetchAfdeling(id: string) { return fetchAfdelingOfGroep(id, "/api/afdelingen/") }
+async function fetchGroep(id: string) { return fetchAfdelingOfGroep(id, "/api/groepen/") }
+
 </script>
 
 <style scoped>
