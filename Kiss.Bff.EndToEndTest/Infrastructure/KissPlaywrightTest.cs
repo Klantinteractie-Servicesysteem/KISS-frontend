@@ -54,6 +54,10 @@ namespace Kiss.Bff.EndToEndTest
         [TestInitialize]
         public virtual async Task TestInitialize()
         {
+            // Set global timeouts to 50 seconds
+            Page.SetDefaultTimeout(50000); // 50 seconds for all actions
+            Page.SetDefaultNavigationTimeout(50000); // 50 seconds for navigation
+
             // log in with azure ad
             var username = GetRequiredConfig("TestSettings:TEST_USERNAME");
             var password = GetRequiredConfig("TestSettings:TEST_PASSWORD");
