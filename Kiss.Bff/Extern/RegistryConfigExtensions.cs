@@ -1,4 +1,9 @@
-﻿namespace Kiss.Bff.Extern
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Web;
+
+namespace Kiss.Bff.Extern
 {
     public static class RegistryConfigExtensions
     {
@@ -60,7 +65,7 @@
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = item.GetHashCode().ToString(),
+                        Identifier = CreateIdentifier(item),
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
                             BaseUrl = klantinteractieBaseUrl,
@@ -79,7 +84,7 @@
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = item.GetHashCode().ToString(),
+                        Identifier = CreateIdentifier(item),
                         ContactmomentRegistry = new ContactmomentRegistry
                         {
                             BaseUrl = contactmomentenBaseUrl,
@@ -108,6 +113,21 @@
                 }
                 index++;
             }
+        }
+
+        private static string CreateIdentifier(Dictionary<string, string> item)
+        {
+            var serializedItem = JsonSerializer.Serialize(item);
+
+            var bytes = Encoding.UTF8.GetBytes(serializedItem);             
+            var hashValue = SHA256.HashData(bytes);
+             
+            var sb = new StringBuilder();
+
+            foreach (var b in hashValue)
+                sb.Append(b.ToString("x2"));
+
+            return sb.ToString();
         }
 
 
