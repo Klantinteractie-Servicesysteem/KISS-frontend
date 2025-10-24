@@ -37,6 +37,9 @@ namespace Kiss.Bff.EndToEndTest
         // this is used to build a test report for each test
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
 
+        // Counter for DataRow variations of the same test method
+        private static readonly ConcurrentDictionary<string, int> s_dataRowCounters = [];
+
         private readonly List<string> _steps = [];
 
         // clean up actions that are registered by the tests
@@ -168,7 +171,17 @@ namespace Kiss.Bff.EndToEndTest
     """;
 
             // Always add the test report, even for failed tests
-            s_testReports.TryAdd(TestContext.TestName!, html);
+            // For DataRow tests, MSTest appends parameters to TestName automatically
+            // Use a counter as fallback if the same key already exists
+            var baseKey = TestContext.TestName!;
+            var uniqueKey = baseKey;
+            var counter = 1;
+
+            while (!s_testReports.TryAdd(uniqueKey, html))
+            {
+                uniqueKey = $"{baseKey}_{counter}";
+                counter++;
+            }
 
             // Run cleanup actions in reverse order
             foreach (var cleanup in ((IEnumerable<Func<Task>>)_cleanupActions).Reverse())
@@ -206,7 +219,17 @@ namespace Kiss.Bff.EndToEndTest
 
                 if (testMethodAttribute != null && !string.IsNullOrEmpty(testMethodAttribute.DisplayName))
                 {
-                    return testMethodAttribute.DisplayName;
+                    var baseDisplayName = testMethodAttribute.DisplayName;
+
+                    if (testMethod?.GetCustomAttributes<DataRowAttribute>().Any() == true)
+                    {
+                        var methodName = testMethod.Name;
+                        var currentCount = s_dataRowCounters.AddOrUpdate(methodName, 1, (key, value) => value + 1);
+
+                        return $"{baseDisplayName} - Scenario {currentCount}";
+                    }
+
+                    return baseDisplayName;
                 }
 
                 return TestContext.TestName ?? "Unknown Test";
