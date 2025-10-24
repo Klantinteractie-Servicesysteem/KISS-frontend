@@ -1,4 +1,9 @@
-﻿namespace Kiss.Bff.Extern
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Web;
+
+namespace Kiss.Bff.Extern
 {
     public static class RegistryConfigExtensions
     {
@@ -30,6 +35,7 @@
         {
             var configs = configuration.GetSection("REGISTERS")?.Get<IEnumerable<Dictionary<string, string>>>() ?? [];
 
+            var index = 0;
             foreach (var item in configs)
             {
                 string? GetValue(string key) => item.TryGetValue(key, out var value) ? value : default;
@@ -105,14 +111,13 @@
 
                 if (registryVersion == RegistryVersion.OpenKlant2)
                 {
-                    var klantinteractieBaseUrl = GetValue("KLANTINTERACTIE_BASE_URL") ?? throw new Exception("Fout: base url ontbreekt voor klantinteractie");
-
+                    var klantinteractieBaseUrl = GetValue("KLANTINTERACTIE_BASE_URL") ?? throw new Exception($"Fout: REGISTERS__{index}__KLANTINTERACTIE_BASE_URL ontbreekt voor OpenKlant2 configuratie");
 
                     yield return new RegistrySystem
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = klantinteractieBaseUrl,
+                        Identifier = CreateIdentifier(item),
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
                             BaseUrl = klantinteractieBaseUrl,
@@ -123,7 +128,7 @@
                 }
                 else if (registryVersion == RegistryVersion.OpenKlant1)
                 {
-                    var contactmomentenBaseUrl = GetValue("CONTACTMOMENTEN_BASE_URL") ?? throw new Exception("Fout: base url ontbreekt voor contactmomenten");
+                    var contactmomentenBaseUrl = GetValue("CONTACTMOMENTEN_BASE_URL") ?? throw new Exception($"Fout: REGISTERS__{index}__CONTACTMOMENTEN_BASE_URL ontbreekt voor OpenKlant1 configuratie");
                     var interneTaakBaseUrl = GetValue("INTERNE_TAAK_BASE_URL");
                     var interneTaakObjectTypeUrl = GetValue("INTERNE_TAAK_OBJECT_TYPE_URL");
 
@@ -131,7 +136,7 @@
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = contactmomentenBaseUrl,
+                        Identifier = CreateIdentifier(item),
                         ContactmomentRegistry = new ContactmomentRegistry
                         {
                             BaseUrl = contactmomentenBaseUrl,
@@ -158,7 +163,23 @@
                         ZaaksysteemRegistry = zaaksysteem,
                     };
                 }
+                index++;
             }
+        }
+
+        private static string CreateIdentifier(Dictionary<string, string> item)
+        {
+            var serializedItem = JsonSerializer.Serialize(item);
+
+            var bytes = Encoding.UTF8.GetBytes(serializedItem);             
+            var hashValue = SHA256.HashData(bytes);
+             
+            var sb = new StringBuilder();
+
+            foreach (var b in hashValue)
+                sb.Append(b.ToString("x2"));
+
+            return sb.ToString();
         }
 
 
@@ -174,41 +195,42 @@
                 return "FOUT: Er zijn geen registraties geconfigureerd. Controleer of de configuratie correct is ingesteld. Voor OpenKlant2 moet ten minste een KlantinteractieRegistry aanwezig zijn. Voor OpenKlant1 moeten Contactmomenten, Klanten en Interne Taken correct geconfigureerd zijn.";
             }
 
-            foreach (var systeem in systemen)
+            for (int i = 0; i < systemen.Count; i++)
             {
+                var systeem = systemen[i];
                 switch (systeem.RegistryVersion)
                 {
                     case RegistryVersion.OpenKlant2:
                         if (string.IsNullOrWhiteSpace(systeem.KlantinteractieRegistry?.BaseUrl))
                         {
-                            return "FOUT: Bij OpenKlant2 moet voor het KlantinteractieRegister een BaseUrl geconfigureerd worden.";
+                            return $"FOUT: REGISTERS__{i}__KLANTINTERACTIE_BASE_URL ontbreekt voor OpenKlant2 configuratie.";
                         }
                         if (string.IsNullOrWhiteSpace(systeem.KlantinteractieRegistry?.Token))
                         {
-                            return "FOUT: Bij OpenKlant2 moet voor het KlantinteractieRegister een Token geconfigureerd worden.";
+                            return $"FOUT: REGISTERS__{i}__KLANTINTERACTIE_TOKEN ontbreekt voor OpenKlant2 configuratie.";
                         }
                         break;
 
                     case RegistryVersion.OpenKlant1:
                         if (string.IsNullOrWhiteSpace(systeem.ContactmomentRegistry?.BaseUrl))
                         {
-                            return "FOUT: Bij OpenKlant1/eSuite moet ContactmomentRegistry een BaseUrl hebben.";
+                            return $"FOUT: REGISTERS__{i}__CONTACTMOMENTEN_BASE_URL ontbreekt voor OpenKlant1/eSuite configuratie.";
                         }
                         if (string.IsNullOrWhiteSpace(systeem.ContactmomentRegistry?.ClientId) ||
                             string.IsNullOrWhiteSpace(systeem.ContactmomentRegistry?.ClientSecret))
                         {
-                            return "FOUT: Bij OpenKlant1/eSuite moet ContactmomentRegistry een ClientId en ClientSecret hebben.";
+                            return $"FOUT: REGISTERS__{i}__CONTACTMOMENTEN_API_CLIENT_ID en/of REGISTERS__{i}__CONTACTMOMENTEN_API_KEY ontbreken voor OpenKlant1/eSuite configuratie.";
                         }
 
                         if (systeem.InterneTaakRegistry != null)
                         {
                             if (string.IsNullOrWhiteSpace(systeem.InterneTaakRegistry.BaseUrl))
                             {
-                                return "FOUT: Bij OpenKlant1/eSuite moet InterneTaakRegistry een BaseUrl hebben.";
+                                return $"FOUT: REGISTERS__{i}__INTERNE_TAAK_BASE_URL ontbreekt voor OpenKlant1/eSuite configuratie.";
                             }
                             if (string.IsNullOrWhiteSpace(systeem.InterneTaakRegistry.ObjectTypeUrl))
                             {
-                                return "FOUT: Bij OpenKlant1/eSuite moet InterneTaakRegistry een ObjectTypeUrl hebben.";
+                                return $"FOUT: REGISTERS__{i}__INTERNE_TAAK_OBJECT_TYPE_URL ontbreekt voor OpenKlant1/eSuite configuratie.";
                             }
                             bool heeftToken = !string.IsNullOrWhiteSpace(systeem.InterneTaakRegistry.Token);
                             bool heeftClientIdEnSecret =
@@ -217,18 +239,18 @@
 
                             if (!heeftToken && !heeftClientIdEnSecret)
                             {
-                                return "FOUT: Bij OpenKlant1/eSuite moet InterneTaakRegistry óf een Token hebben, óf een ClientId en ClientSecret (voor eSuite).";
+                                return $"FOUT: REGISTERS__{i}__INTERNE_TAAK_TOKEN of REGISTERS__{i}__INTERNE_TAAK_CLIENT_ID/CLIENT_SECRET ontbreken voor OpenKlant1/eSuite configuratie.";
                             }
                         }
 
                         if (string.IsNullOrWhiteSpace(systeem.KlantRegistry?.BaseUrl))
                         {
-                            return "FOUT: Bij OpenKlant1/eSuite moet KlantRegistry een BaseUrl hebben.";
+                            return $"FOUT: REGISTERS__{i}__KLANTEN_BASE_URL ontbreekt voor OpenKlant1/eSuite configuratie.";
                         }
                         if (string.IsNullOrWhiteSpace(systeem.KlantRegistry?.ClientId) ||
                             string.IsNullOrWhiteSpace(systeem.KlantRegistry?.ClientSecret))
                         {
-                            return "FOUT: Bij OpenKlant1/eSuite moet KlantRegistry een ClientId en ClientSecret hebben.";
+                            return $"FOUT: REGISTERS__{i}__KLANTEN_CLIENT_ID en/of REGISTERS__{i}__KLANTEN_CLIENT_SECRET ontbreken voor OpenKlant1/eSuite configuratie.";
                         }
                         break;
                 }

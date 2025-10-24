@@ -15,7 +15,7 @@ export function customPhoneValidator(value: string): string[] {
 }
 interface Postcode {
   numbers: string;
-  digits: string;
+  letters : string;
 }
 
 export interface PostcodeHuisnummer {
@@ -23,6 +23,10 @@ export interface PostcodeHuisnummer {
   huisnummer: string;
   toevoeging?: string;
   huisletter?: string;
+}
+
+export interface PostcodeHuisnummerMetAchternaam extends PostcodeHuisnummer {
+  achternaam?: string;
 }
 
 export interface GeslachtsnaamGeboortedatum {
@@ -37,7 +41,7 @@ export function parsePostcode(input: string): Postcode | Error {
   }
   return {
     numbers: matches[1],
-    digits: matches[2],
+    letters: matches[2],
   };
 }
 

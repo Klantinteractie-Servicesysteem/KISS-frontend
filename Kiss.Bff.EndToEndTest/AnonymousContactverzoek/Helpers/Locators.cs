@@ -39,7 +39,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
 
         public static ILocator GetSpecifiekeVraagTextbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Textbox, new() { Name = "Specifieke vraag *" });
+            return page.GetByRole(AriaRole.Textbox, new() { Name = "Specifieke vraag (maximaal" });
+
         }
 
         public static ILocator GetTelefoonnummerTextbox(this IPage page)
@@ -56,8 +57,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
         {
             return page.GetByLabel("Afdeling / groep Afdeling:");
         }
-
-
         public static ILocator GetAfrondenButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Button, new() { Name = "Afronden" });
@@ -66,6 +65,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
         public static ILocator GetOpslaanButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
+        }
+
+        public static ILocator GetAnnulerenButton(this IPage page)
+        {
+            return page.GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
         }
 
         public static ILocator GetTelefoonnummer1field(this IPage page)
@@ -100,7 +104,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
 
         public static ILocator GetContactVerzoekSuccessToast(this IPage page)
         {
-            return page.Locator("output[role='status'].confirm");
+            return page.Locator("output[role='status']");
         }
     }
 }

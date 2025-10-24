@@ -1,10 +1,10 @@
 name: Playwright Tests
 on:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: "0 16 * * *"
   pull_request:
-    branches: [ main, master ]
-    paths: ['Kiss.Bff.EndToEndTest/**']
+    branches: [main, master]
+    paths: ["Kiss.Bff.EndToEndTest/**"]
   workflow_dispatch:
 
 permissions:
@@ -24,28 +24,36 @@ jobs:
       run:
         working-directory: ./Kiss.Bff.EndToEndTest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - run: dotnet build
-    - name: Ensure browsers are installed
-      run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
-    - name: Run your tests
-      id: e2e
-      run: dotnet test
-      env:
-        'TestSettings:TEST_USERNAME': ${{ secrets.PLAYWRIGHT_USERNAME }}
-        'TestSettings:TEST_PASSWORD': '${{ secrets.PLAYWRIGHT_PASSWORD }}'
-        'TestSettings:TEST_TOTP_SECRET': ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
-        'TestSettings:TEST_BASE_URL': ${{ secrets.PLAYWRIGHT_BASE_URL }}
-    - name: Upload artifact
-      if: ${{ always() }}
-      uses: actions/upload-pages-artifact@v3
-      with:
-        # directory of your reports
-        path: './Kiss.Bff.EndToEndTest/bin/Debug/net8.0/playwright-traces'
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build
+      - name: Ensure browsers are installed
+        run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
+      - name: Run your tests
+        id: e2e
+        run: dotnet test
+        env:
+          "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
+          "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
+          "TestSettings:TEST_TOTP_SECRET": ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
+          "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          "TestSettings:TEST_OPEN_KLANT_BASE_URL": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
+          "TestSettings:TEST_OPEN_KLANT_SECRET": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+      - name: Upload artifact
+        if: ${{ always() }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # directory of your reports
+          path: "./Kiss.Bff.EndToEndTest/bin/Debug/net8.0/playwright-traces"
+      - name: Upload Playwright screenshots
+        if: always() # Ensures this runs even if the tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: Kiss.Bff.EndToEndTest/bin/Debug/net8.0/screenshots/
   deploy:
     if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test

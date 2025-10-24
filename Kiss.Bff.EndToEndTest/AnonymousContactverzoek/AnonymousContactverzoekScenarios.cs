@@ -2,6 +2,8 @@
 using Kiss.Bff.EndToEndTest.AnonymousContactmoment.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
+using Kiss.Bff.EndToEndTest.Infrastructure.ApiClients.Dtos;
+using Microsoft.Playwright;
 
 
 namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
@@ -10,7 +12,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
     [TestClass]
     public class AnonymousContactVerzoekScenarios : KissPlaywrightTest
     {
-        [TestMethod("contactverzoek creation and search via telefoonnummer for an afdeling")]
+        [TestMethod("1. Contactverzoek creation and search via telefoonnummer for an afdeling")]
         public async Task AnonymousContactVerzoekTelefoonAfdeling()
         {
             await Step("Given the user is on the Startpagina");
@@ -47,7 +49,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Clean up later
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -60,8 +74,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetZoekenButton().ClickAsync();
 
             await Step("And contactverzoek details are displayed");
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test specific vraag")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617138555").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -69,7 +87,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("contactverzoek creation and search via email for an afdeling")]
+        [TestMethod("2. Contactverzoek creation and search via email for an afdeling")]
         public async Task AnonymousContactVerzoekEmailAfdeling()
         {
             await Step("Given the user is on the Startpagina");
@@ -106,7 +124,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -121,8 +151,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test specific vraag")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("testautomation@info.nl").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -130,7 +164,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("contactverzoek creation and search via telefoonnummer for group")]
+        [TestMethod("3. Contactverzoek creation and search via telefoonnummer for group")]
 
         public async Task AnonymousContactVerzoekTelefoonGroup()
         {
@@ -166,7 +200,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -181,16 +227,20 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617138556").First;
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
-
         }
 
-        [TestMethod("contactverzoek creation and search via email for group")]
+        [TestMethod("4. Contactverzoek creation and search via email for group")]
         public async Task AnonymousContactVerzoekEmailGroup()
         {
             await Step("Given the user is on the Startpagina");
@@ -225,7 +275,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetByLabel("Kanaal").SelectOptionAsync(["Balie"]);
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -240,7 +302,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And contactverzoek details are displayed");
 
-            await Page.Locator("summary").Filter(new() { HasText = "automation test" }).First.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("testautomation@example.com").First;
             await contactDetails.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -248,7 +315,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
 
-        [TestMethod("Validation of phone number field 1 in contactverzoek form")]
+        [TestMethod("5. Validation of phone number field 1 in contactverzoek form")]
         public async Task AnonymousContactVerzoekTelefoonValidation()
         {
             await Step("Given the user is on the Startpagina");
@@ -293,7 +360,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("Validation of telefoon nummer 2 field in contactverzoek form")]
+        [TestMethod("6. Validation of telefoon nummer 2 field in contactverzoek form")]
         public async Task AnonymousContactVerzoekTelefoon2Validation()
         {
             await Step("Given the user is on the Startpagina");
@@ -323,7 +390,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And the Contactverzoek section of the Afhandeling screen is loaded");
             await Expect(Page.GetByText("Contactverzoek maken voor")).ToBeVisibleAsync();
 
-            await Step("And user fills in 'Hoe gaat het' in the specific vraag field");
+            await Step("And user fills in 'automation test specific vraag' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test specific vraag");
 
             await Step("select channel from the list");
@@ -349,15 +416,26 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetTelefoonnummer2field().FillAsync("0617138777");
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
 
             await Expect(Page.GetContactVerzoekSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
-
         }
 
-        [TestMethod("Validation of Email field in contactverzoek form")]
+        [TestMethod("7. Validation of Email field in contactverzoek form")]
         public async Task AnonymousContactVerzoekEmailValidation()
         {
             await Step("Given the user is on the Startpagina");
@@ -418,7 +496,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
         }
 
-        [TestMethod("contactverzoek creation and search via telefoonnummer for medewerker")]
+        [TestMethod("8. Contactverzoek creation and search via telefoonnummer for medewerker")]
 
         public async Task AnonymousContactVerzoekTelefoonMedewerker()
         {
@@ -471,7 +549,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetTelefoonnummerTextbox().FillAsync("0617178888");
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("user starts a new Contactmoment and navigates to contactverzoek tab");
             await Page.CreateNewContactmomentAsync();
@@ -484,18 +574,19 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Page.GetZoekenButton().ClickAsync();
 
-
             await Step("And contactverzoek details are displayed");
-            var latestRequest = Page.Locator("summary").Filter(new() { HasText = "automation test" }).First;
-            await latestRequest.PressAsync("Enter");
+            var matchingRow = Page.Locator("table.overview tbody tr").Filter(new()
+            {
+                Has = Page.GetByText("automation test")
+            });
+
+            await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
             var contactDetails = Page.GetByText("0617178888").First;
             await contactDetails.WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
-
         }
-
     }
 
 

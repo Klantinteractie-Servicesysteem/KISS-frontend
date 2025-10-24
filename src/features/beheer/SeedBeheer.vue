@@ -20,15 +20,19 @@ import { computed, ref } from "vue";
 import { toast } from "@/stores/toast";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
-import { useCurrentUser } from "@/features/login";
+
 import { useLoader } from "@/services/use-loader";
 import { fetchLoggedIn } from "@/services";
+import { useUserStore } from "@/stores/user";
+import { storeToRefs } from "pinia";
 
 const seedLoading = ref(false);
 
-const user = useCurrentUser();
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
+
 const isRedacteur = computed(
-  () => user.success && user.data.isLoggedIn && user.data.isRedacteur,
+  () => user.value.isLoggedIn && user.value.isRedacteur,
 );
 
 const seedData = async () => {

@@ -5,6 +5,7 @@ using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.Config;
 using Kiss.Bff.Extern;
+using Kiss.Bff.Extern.Logboek;
 using Kiss.Bff.Groepen;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
@@ -109,6 +110,7 @@ try
     builder.Services.AddAfdelingenProxy(builder.Configuration["AFDELINGEN_BASE_URL"], builder.Configuration["AFDELINGEN_TOKEN"], builder.Configuration["AFDELINGEN_OBJECT_TYPE_URL"], builder.Configuration["AFDELINGEN_CLIENT_ID"], builder.Configuration["AFDELINGEN_CLIENT_SECRET"]);
     builder.Services.AddGroepenProxy(builder.Configuration["GROEPEN_BASE_URL"], builder.Configuration["GROEPEN_TOKEN"], builder.Configuration["GROEPEN_OBJECT_TYPE_URL"], builder.Configuration["GROEPEN_CLIENT_ID"], builder.Configuration["GROEPEN_CLIENT_SECRET"]);
     builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
+    builder.Services.AddLogboekProxy(builder.Configuration["LOGBOEK_BASE_URL"], builder.Configuration["LOGBOEK_TOKEN"], builder.Configuration["LOGBOEK_OBJECT_TYPE_URL"], builder.Configuration["LOGBOEK_OBJECT_TYPE_VERSION"]);
 
     builder.Host.UseSerilog((ctx, services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)

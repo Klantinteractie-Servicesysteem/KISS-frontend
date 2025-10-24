@@ -1,5 +1,21 @@
 @use "./icons/icons";
 
+// utility
+.sr-only {
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+}
+
+.preserve-newline {
+  white-space: pre-line;
+}
+
 * {
   outline-offset: -2px;
   outline-color: var(--utrecht-focus-outline-color);
@@ -27,7 +43,7 @@ body {
   display: grid;
   grid-template:
     "aside header" min-content "aside main" 1fr / var(--aside-width)
-    1fr;
+    minmax(0, 1fr);
   height: 100vh;
   overflow: auto;
 
@@ -73,7 +89,8 @@ body {
 }
 
 .klant-panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-large);
 }
 
@@ -194,6 +211,13 @@ label.disabled {
   color: var(--color-grey);
 }
 
+label > span.utrecht-form-field-description {
+  display: block;
+  position: absolute;
+  font-size: var(--utrecht-form-field-description-font-size);
+  line-height: var(--line-height-small);
+}
+
 menu {
   list-style: none;
 }
@@ -255,8 +279,16 @@ menu {
 .htmlcontent details {
   margin-block: var(--spacing-small);
 
+  /* 
+  the width of the summary toggle icon is device/browser dependant.
+  so either the summary icon should be custom styled to ensure a fixed width, 
+  or the content should not have a left marging (like what we do now)
+  this is a temporary best effort implementation specifically requested in https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/981 
+ */
+  padding-inline-start: var(--spacing-default);
+
   summary {
-    margin-block: var(--spacing-small);
+    margin-inline-start: calc(-1 * var(--spacing-default));
     font-weight: 800;
     cursor: pointer;
 
@@ -318,10 +350,6 @@ ul.overview {
     th,
     td {
       text-align: left;
-
-      &:not(.wrap) {
-        white-space: nowrap;
-      }
     }
 
     td {

@@ -21,42 +21,59 @@
         Zoeken
       </utrecht-button>
     </form>
-    <form @submit.prevent="zoekOpPostcode" class="zoekerForm">
-      <label class="utrecht-form-label">
-        Postcode
-        <input
-          v-validate="store.postcode"
-          required
-          class="utrecht-textbox utrecht-textbox--html-input"
-        />
-      </label>
-      <label class="utrecht-form-label">
-        Huisnummer
-        <input
-          v-validate="store.huisnummer"
-          required
-          inputmode="numeric"
-          class="utrecht-textbox utrecht-textbox--html-input"
-        />
-      </label>
-      <label class="utrecht-form-label">
-        Huisletter
-        <input
-          v-validate="store.huisletter"
-          class="utrecht-textbox utrecht-textbox--html-input"
-        />
-      </label>
-      <label class="utrecht-form-label">
-        Toevoeging
-        <input
-          v-validate="store.toevoeging"
-          class="utrecht-textbox utrecht-textbox--html-input"
-        />
-      </label>
-      <utrecht-button type="submit" appearance="primary-action-button">
-        Zoeken
-      </utrecht-button>
+    <form @submit.prevent="zoekOpPostcode" class="zoekerForm-postcode">
+      <div class="form-left">
+        <div class="row-top">
+          <label class="utrecht-form-label">
+            Postcode
+            <input
+              v-validate="store.postcode"
+              required
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Huisnummer
+            <input
+              v-validate="store.huisnummer"
+              required
+              inputmode="numeric"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Huisletter
+            <input
+              v-validate="store.huisletter"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Toevoeging
+            <input
+              v-validate="store.toevoeging"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+          <label class="utrecht-form-label">
+            Achternaam
+            <input
+              v-validate="store.achternaamPostcode"
+              class="utrecht-textbox utrecht-textbox--html-input"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div class="form-right">
+        <div class="row-bottom">
+          <utrecht-button type="submit" appearance="primary-action-button">
+            Zoeken
+          </utrecht-button>
+        </div>
+      </div>
     </form>
+
     <form @submit.prevent="zoekOpBsn" class="zoekerForm">
       <label class="utrecht-form-label">
         Bsn
@@ -134,6 +151,7 @@ const store = ensureState({
       huisnummer: validateWith(parseHuisnummer),
       toevoeging: validateWith(parseToevoeging),
       huisletter: validateWith(parseHuisletter),
+      achternaamPostcode: validateWith(parseAchternaam),
       bsn: validateWith(parseBsn),
       persoonSearchQuery: undefined as PersoonQuery | undefined,
       page: 1,
@@ -156,11 +174,12 @@ const zoekOpGeboortedatum = () => {
 const zoekOpPostcode = () => {
   if (store.value.postcode.validated && store.value.huisnummer.validated) {
     store.value.persoonSearchQuery = {
-      postcodeHuisnummer: {
+      postcodeHuisnummerAchternaam: {
         postcode: store.value.postcode.validated,
         huisnummer: store.value.huisnummer.validated,
         toevoeging: store.value.toevoeging.validated,
         huisletter: store.value.huisletter.validated,
+        achternaam: store.value.achternaamPostcode.validated,
       },
     };
     navigateOnSingleResult.value = true;
@@ -227,6 +246,33 @@ input[type="radio"] {
     display: flex;
     gap: var(--spacing-small);
     align-items: center;
+  }
+}
+
+.zoekerForm-postcode {
+  display: flex;
+  gap: var(--spacing-default);
+  background-color: var(--color-secondary);
+  padding: var(--spacing-default);
+
+  .form-left {
+    .row-top {
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: var(--spacing-default);
+
+      label {
+        flex: 1;
+      }
+    }
+  }
+
+  .form-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--spacing-small);
   }
 }
 </style>

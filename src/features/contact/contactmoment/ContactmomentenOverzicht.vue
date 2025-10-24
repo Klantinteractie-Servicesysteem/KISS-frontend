@@ -1,27 +1,77 @@
 <template>
-  <section>
-    <expandable-table-list :items="contactmomenten" item-key="url">
-      <template #header>
-        <span id="datum-header" class="icon-after sort-descending">Datum</span>
-        <span id="medewerker-header">Medewerker</span>
-        <span id="kanaal-header">Kanaal</span>
-        <span id="gespreksresultaat-header">Gespreksresultaat</span>
-        <span id="afdeling-header">Afdeling</span>
-      </template>
-
-      <template v-slot:item="{ item }">
-        <ContactmomentenOverzichtItem :contactmoment="item" />
-      </template>
-    </expandable-table-list>
-  </section>
+  <overview-detail-table
+    :records="mappedContactmomenten"
+    :overview-columns="[
+      'registratiedatum',
+      'medewerkerIdentificatie',
+      'kanaal',
+      'gespreksresultaat',
+      'verantwoordelijkeAfdeling',
+    ]"
+    :detail-groups="[
+      [
+        'registratiedatum',
+        'medewerkerIdentificatie',
+        'kanaal',
+        'gespreksresultaat',
+        'tekst',
+        'zaaknummers',
+        'vraag',
+        'specifiekeVraag',
+      ],
+    ]"
+    :key-prop="'url'"
+    :headings="{
+      kanaal: 'Kanaal',
+      medewerkerIdentificatie: 'Aangemaakt door',
+      registratiedatum: 'Aangemaakt op',
+      tekst: 'Notitie',
+      gespreksresultaat: 'Gespreksresultaat',
+      verantwoordelijkeAfdeling: 'Afdeling',
+      zaaknummers: 'Gekoppelde zaak',
+      vraag: 'Vraag',
+      specifiekeVraag: 'Specifieke vraag',
+    }"
+  >
+    <template #overview-heading>Contactmomenten</template>
+    <template #table-caption
+      ><slot name="caption">
+        <caption class="sr-only">
+          Contactmomenten
+        </caption>
+      </slot></template
+    >
+    <template #detail-button="{ record }"
+      >Details van het contactmoment dat plaats vond op
+      <dutch-date-time :date="record.registratiedatum" />
+    </template>
+    <template #detail-heading>Contactmoment</template>
+    <template #back-button>Alle contactmomenten</template>
+    <template #registratiedatum="{ value }">
+      <dutch-date-time :date="value" />
+    </template>
+  </overview-detail-table>
 </template>
 
 <script lang="ts" setup>
+import OverviewDetailTable from "@/components/OverviewDetailTable.vue";
 import type { ContactmomentViewModel } from "../types";
-import ContactmomentenOverzichtItem from "./ContactmomentenOverzichtItem.vue";
-import ExpandableTableList from "@/components/ExpandableTableList.vue";
+import { fullName } from "@/helpers/string";
+import DutchDateTime from "@/components/DutchDateTime.vue";
+import type { ContactmomentDetails } from "./types";
+import { computed } from "vue";
 
-defineProps<{
-  contactmomenten: ContactmomentViewModel[];
+const props = defineProps<{
+  contactmomenten: Array<
+    ContactmomentViewModel & Partial<ContactmomentDetails>
+  >;
 }>();
+
+const mappedContactmomenten = computed(() =>
+  props.contactmomenten.map((cm) => ({
+    ...cm,
+    zaaknummers: cm.zaaknummers.join(", "),
+    medewerkerIdentificatie: fullName(cm.medewerkerIdentificatie),
+  })),
+);
 </script>

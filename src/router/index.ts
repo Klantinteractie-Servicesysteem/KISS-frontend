@@ -83,14 +83,24 @@ const router = createRouter({
       name: "contactverzoeken",
       component: ContactenverzoekenView,
       beforeEnter: guardContactMoment,
-      meta: { showNav: true, showNotitie: true, showSearch: true },
+      meta: {
+        showNav: true,
+        showNotitie: true,
+        showSearch: true,
+        backTitle: "contactverzoeken zoeken",
+      },
     },
     {
       path: "/personen",
       name: "personen",
       component: PersonenView,
       beforeEnter: guardContactMoment,
-      meta: { showNav: true, showNotitie: true, showSearch: true },
+      meta: {
+        showNav: true,
+        showNotitie: true,
+        showSearch: true,
+        backTitle: "personen zoeken",
+      },
     },
     {
       path: "/personen/:internalKlantId",
@@ -105,7 +115,12 @@ const router = createRouter({
       name: "bedrijven",
       component: BedrijvenView,
       beforeEnter: guardContactMoment,
-      meta: { showNav: true, showNotitie: true, showSearch: true },
+      meta: {
+        showNav: true,
+        showNotitie: true,
+        showSearch: true,
+        backTitle: "bedrijven zoeken",
+      },
     },
     {
       path: "/bedrijven/:internalKlantId",
@@ -120,7 +135,12 @@ const router = createRouter({
       name: "zaken",
       component: ZakenView,
       beforeEnter: guardContactMoment,
-      meta: { showNav: true, showNotitie: true, showSearch: true },
+      meta: {
+        showNav: true,
+        showNotitie: true,
+        showSearch: true,
+        backTitle: "zaken zoeken",
+      },
     },
     {
       path: "/zaken/:zaakId",

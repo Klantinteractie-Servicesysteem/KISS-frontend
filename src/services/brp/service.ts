@@ -64,9 +64,7 @@ function mapPersoon(json: any): Persoon {
   const { plaats, land, datum } = geboorte ?? {};
 
   const { adresregel1, adresregel2, adresregel3 } = adressering ?? {};
-
   const { geslachtsnaam, voornamen, voorvoegsel } = naam ?? {};
-
   const geboortedatum = datum?.datum && new Date(datum.datum);
 
   return {
@@ -86,6 +84,7 @@ function mapPersoon(json: any): Persoon {
 
 export const searchPersonen = (query: PersoonQuery) => {
   let request, sorter: Compare<Persoon>;
+
   if ("bsn" in query) {
     request = {
       burgerservicenummer: [query.bsn],
@@ -106,19 +105,23 @@ export const searchPersonen = (query: PersoonQuery) => {
     sorter = compareNaam;
   } else {
     const {
-      postcode: { numbers, digits },
+      postcode: { numbers, letters },
       huisnummer,
       toevoeging,
       huisletter,
-    } = query.postcodeHuisnummer;
+      achternaam,
+    } = query.postcodeHuisnummerAchternaam;
+
     request = {
-      postcode: numbers + digits,
+      postcode: numbers + letters,
       huisnummer,
       huisnummertoevoeging: toevoeging || "",
       huisletter: huisletter || "",
       type: "ZoekMetPostcodeEnHuisnummer",
       fields: [...minimalFields],
+      geslachtsnaam: achternaam ? achternaam + "*" : undefined,
     };
+
     sorter = compareAdresThenNaam;
   }
 

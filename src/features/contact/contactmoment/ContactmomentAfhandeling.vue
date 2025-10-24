@@ -1,12 +1,5 @@
 <template>
   <prompt-modal
-    :dialog="cancelDialog"
-    message="Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens worden verwijderd."
-    cancel-message="Nee"
-    confirm-message="Ja"
-  />
-
-  <prompt-modal
     :dialog="removeVraagDialog"
     message="Weet je zeker dat je deze vraag wilt verwijderen? Alle gegevens in de vraag worden verwijderd."
     cancel-message="Nee"
@@ -316,7 +309,9 @@
               :class="['utrecht-form-label', { required: !vraag.vraag }]"
               :for="'specifiekevraag' + idx"
             >
-              Specifieke vraag
+              Specifieke vraag<span class="utrecht-form-field-description"
+                >(maximaal 180 tekens)</span
+              >
             </label>
             <input
               :required="!vraag.vraag"
@@ -324,16 +319,15 @@
               class="utrecht-textbox utrecht-textbox--html-input"
               :id="'specifiekevraag' + idx"
               v-model="vraag.specifiekevraag"
+              :maxlength="SPECIFIEKEVRAAG_MAXLENGTH"
             />
 
-            <label class="utrecht-form-label" :for="'notitie' + idx"
-              >Notitie</label
-            >
-            <textarea
-              class="utrecht-textarea"
-              :id="'notitie' + idx"
+            <max-length-text-area
               v-model="vraag.notitie"
-            ></textarea>
+              :maxlength="NOTITIE_MAXLENGTH"
+              :id="'notitie' + idx"
+            />
+
             <label :for="'kanaal' + idx" class="utrecht-form-label required"
               >Kanaal</label
             >
@@ -416,14 +410,7 @@
       </article>
       <menu>
         <li>
-          <utrecht-button
-            modelValue
-            type="button"
-            appearance="secondary-action-button"
-            @click="cancelDialog.reveal"
-          >
-            Annuleren
-          </utrecht-button>
+          <contactmoment-canceller />
         </li>
         <li>
           <utrecht-button type="submit" appearance="primary-action-button">
@@ -447,6 +434,7 @@ import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import {
   useContactmomentStore,
   type ContactmomentKlant,
+  type ContactmomentState,
   type Vraag,
 } from "@/stores/contactmoment";
 import { toast } from "@/stores/toast";
@@ -498,6 +486,12 @@ import {
   saveContactmoment,
 } from "@/services/openklant1";
 import type { Contactmoment, Klant } from "@/services/openklant/types";
+import {
+  SPECIFIEKEVRAAG_MAXLENGTH,
+  NOTITIE_MAXLENGTH,
+} from "@/services/openklant/service";
+import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
+import ContactmomentCanceller from "./ContactmomentCanceller.vue";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -646,7 +640,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
   const klanten = await ensureKlanten(systeem, vraag);
 
   const isContactverzoek = vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT;
-  const isAnoniem = !vraag.klanten.some((x) => x.shouldStore && x.klant.id);
+  const isAnoniem = !klanten.length;
   const isNietAnoniemContactmoment = !isContactverzoek && !isAnoniem;
 
   // gedeeld contactmoment voor contactmomentdetails
@@ -924,9 +918,20 @@ async function submit() {
     saving.value = true;
     errorMessage.value = "";
     if (!contactmomentStore.huidigContactmoment) return;
+    const validationMessage = validateContactmomentState(
+      contactmomentStore.huidigContactmoment,
+    );
+    if (validationMessage) {
+      toast({
+        type: "error",
+        text: validationMessage,
+        timeout: 30_000,
+        dismissable: true,
+      });
+      return;
+    }
 
     const { vragen } = contactmomentStore.huidigContactmoment;
-
     const saveVraagResult = await saveVraag(vragen[0]);
 
     if (saveVraagResult.errorMessage) {
@@ -1072,12 +1077,6 @@ function setUserChannel(e: Event) {
   userStore.setKanaal(e.target.value);
 }
 
-const cancelDialog = useConfirmDialog();
-cancelDialog.onConfirm(() => {
-  contactmomentStore.stop();
-  navigateToPersonen();
-});
-
 const removeVraagDialog = useConfirmDialog();
 
 const toggleRemoveVraagDialog = async (vraagId: number) => {
@@ -1167,6 +1166,31 @@ const ensureKlanten = async (systeem: Systeem, vraag: Vraag) => {
   }
   return result;
 };
+
+const validateContactmomentState = (cm: ContactmomentState) => {
+  const validateContactverzoekToelichtingLength = () => {
+    const TOELICHTING_MAX_LENGTH = 1_000;
+    for (const [index, vraag] of cm.vragen.entries()) {
+      if (vraag.gespreksresultaat === CONTACTVERZOEK_GEMAAKT) {
+        const contactverzoek = mapContactverzoekData({
+          data: vraag.contactverzoek,
+        });
+        const toelichtingLength = contactverzoek.toelichting?.length ?? 0;
+        if (toelichtingLength > TOELICHTING_MAX_LENGTH) {
+          return (
+            `De interne informatie van vraag ${index + 1} bevat ${toelichtingLength} tekens, ` +
+            `dit mag maximaal ${TOELICHTING_MAX_LENGTH} tekens zijn. ` +
+            `Verwijder ${toelichtingLength - TOELICHTING_MAX_LENGTH} tekens ` +
+            `uit de Interne toelichting voor de medewerker, ` +
+            `of uit de velden van een contactverzoekformulier.`
+          );
+        }
+      }
+    }
+  };
+
+  return validateContactverzoekToelichtingLength();
+};
 </script>
 
 <style scoped lang="scss">
@@ -1247,7 +1271,7 @@ select {
 }
 
 .contactverzoek-container {
-  :deep(label) {
+  :deep(.utrecht-form-label) {
     display: grid;
     grid-template-columns: var(--label-width) auto;
     gap: var(--label-gap);

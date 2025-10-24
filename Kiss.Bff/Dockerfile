@@ -1,17 +1,11 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
+RUN apk --no-cache add ca-certificates
 WORKDIR /app
 EXPOSE 8080
-ENV ASPNETCORE_URLS=http://*:8080
-RUN addgroup --group kiss --gid 2000 \
-    && adduser \    
-    --uid 1000 \
-    --gid 2000 \
-    "kiss" 
-RUN chown kiss:kiss  /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnetbuild
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS dotnetbuild
 WORKDIR /src
 COPY ["Kiss.Bff/Kiss.Bff.csproj", "Kiss.Bff/"]
 RUN dotnet restore "Kiss.Bff/Kiss.Bff.csproj"
@@ -29,7 +23,7 @@ WORKDIR "/src/Kiss.Bff.Test"
 RUN dotnet build "Kiss.Bff.Test.csproj" -c Release --no-restore
 RUN dotnet test -c Release --no-build --logger trx --results-directory /testresults -v n
 
-FROM node:18-alpine AS frontend
+FROM node:lts-alpine AS frontend
 WORKDIR /app
 COPY package*.json .
 RUN npm ci
@@ -47,7 +41,10 @@ COPY --from=frontendtest /testresults/*.xml .
 
 FROM dotnetbuild AS dotnetpublish
 WORKDIR "/src/Kiss.Bff"
-RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false
+ARG VERSION=0.0.0
+ARG REVISION=dev
+ENV VERSION=$VERSION REVISION=$REVISION
+RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$VERSION /p:SourceRevisionId=$REVISION /p:InformationalVersion=$VERSION+$REVISION
 
 FROM base AS final
 WORKDIR /app
@@ -55,5 +52,4 @@ COPY certificates /usr/local/share/ca-certificates
 RUN update-ca-certificates
 COPY --from=dotnetpublish /app/publish .
 COPY --from=frontendbuild /app/dist ./wwwroot
-USER kiss:kiss
 ENTRYPOINT ["dotnet", "Kiss.Bff.dll"]

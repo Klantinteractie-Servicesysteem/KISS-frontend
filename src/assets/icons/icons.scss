@@ -61,6 +61,11 @@
   rotate: (90deg);
 }
 
+.icon-before.chevron-left::before {
+  margin-inline-end: 0.5ch;
+  min-inline-size: 1.25ch;
+}
+
 .icon-before.circle-xmark::before,
 .icon-after.circle-xmark::after {
   mask-image: url("@/assets/icons/circle-xmark.svg");

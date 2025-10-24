@@ -182,6 +182,27 @@ interface ContactmomentenState {
   loading: boolean;
 }
 
+const getByCaseInsensitiveKey = <T extends Record<string, unknown>>(
+  obj: T | null | undefined,
+  key: string,
+) => {
+  if (!obj) {
+    return undefined;
+  }
+
+  const propertyKey = Object.keys(obj).find(
+    (x) => key.toLowerCase() === x.toLowerCase(),
+  );
+
+  if (!propertyKey) {
+    return undefined;
+  }
+
+  const value = obj[propertyKey];
+
+  return typeof value === "string" ? value.trim() : undefined;
+};
+
 export const useContactmomentStore = defineStore("contactmoment", {
   state: () => {
     return {
@@ -518,7 +539,10 @@ export const useContactmomentStore = defineStore("contactmoment", {
           kennisartikel: {
             //search type kennisartikel
             ...kennisartikel,
-            afdeling: kennisartikel.afdelingen?.[0]?.afdelingnaam?.trim(),
+            afdeling: getByCaseInsensitiveKey(
+              kennisartikel.afdelingen?.[0],
+              "afdelingnaam",
+            ),
           },
           shouldStore: true,
         };
@@ -560,7 +584,10 @@ export const useContactmomentStore = defineStore("contactmoment", {
         const vacVraag: Bron = {
           title: vraag.vraag,
           url,
-          afdeling: vraag.afdelingen?.[0]?.afdelingNaam?.trim(),
+          afdeling: getByCaseInsensitiveKey(
+            vraag.afdelingen?.[0],
+            "afdelingnaam",
+          ),
         };
         huidigeVraag.vacs.push({
           vac: vacVraag,

@@ -30,8 +30,8 @@
           />
         </label>
 
-        <label for="categorie" class="utrecht-form-label p-r">
-          <span>Categorie</span>
+        <div for="categorie" class="utrecht-form-label p-r">
+          <label>Categorie</label>
           <SearchCombobox
             v-model="link.categorie"
             class="utrecht-textbox utrecht-textbox--html-input"
@@ -41,8 +41,9 @@
             :loading="isLoadingCategorien"
             :disabled="false"
             @update:model-value="updateModelValue"
+            options-label="Categorieën"
           />
-        </label>
+        </div>
       </template>
       <template #formMenuListItems>
         <li>

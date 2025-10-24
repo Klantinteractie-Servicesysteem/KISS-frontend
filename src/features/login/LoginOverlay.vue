@@ -1,5 +1,5 @@
 <template>
-  <simple-spinner v-if="currentUserState.loading" />
+  <simple-spinner v-if="loading" />
   <template v-else>
     <slot v-if="initialized" :onLogout="onLogout"></slot>
     <dialog ref="dialogRef" @keyup.escape.prevent @keydown.escape.prevent>
@@ -17,15 +17,18 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, computed, ref } from "vue";
-import { useCurrentUser } from "./service";
+import { ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { handleLogin } from "@/services";
 import { loginUrl, redirectUrl, sessionStorageKey } from "./config";
-import { useUserStore, type User } from "@/stores/user";
+import { useUserStore } from "@/stores/user";
 import { logoutUrl } from "./config";
+import { meUrl } from "./config";
+import { fetchUser } from "./service";
 
 let newTab: Window | null = null;
+
+const loading = ref<boolean>(true);
 
 const loginTimeoutInSeconds = 60;
 
@@ -44,7 +47,6 @@ function tryCreateNewTab() {
   } catch {
     // popups are probably blocked
   }
-
   return !!newTab;
 }
 
@@ -55,8 +57,15 @@ function tryCloseTab() {
   newTab = null;
 }
 
-function refresh() {
-  currentUserState.refresh();
+async function refreshUser() {
+  try {
+    loading.value = true;
+    const fetchedUser = await fetchUser(meUrl);
+    userStore.setUser(fetchedUser);
+    initialized.value = true;
+  } finally {
+    loading.value = false;
+  }
 }
 
 // this channel is used to communicate between browser tabs/windows
@@ -65,34 +74,24 @@ const channel = new BroadcastChannel(
   "kiss-close-tab-channel-" + window.location.host,
 );
 
-channel.onmessage = (e) => {
+channel.onmessage = async (e) => {
   switch (e.data) {
     case messageTypes.closeTab:
       tryCloseTab();
       break;
-
     case messageTypes.refresh:
-      refresh();
+      await refreshUser();
       break;
   }
 };
 
 const dialogRef = ref<HTMLDialogElement>();
 
-const currentUserState = useCurrentUser();
 const userStore = useUserStore();
 
 const initialized = ref(false);
 
-const isLoggedInRef = computed(
-  () => currentUserState.success && currentUserState.data.isLoggedIn,
-);
-
-const isLoadingRef = computed(() => currentUserState.loading);
-
 function onLogin() {
-  initialized.value = true;
-
   handleLogin();
   channel.postMessage(messageTypes.refresh);
   channel.postMessage(messageTypes.closeTab);
@@ -141,23 +140,22 @@ function resetLoginTimeout() {
     clearTimeout(currentLoginTimoutId);
   }
   currentLoginTimoutId = setTimeout(() => {
-    if (!isLoggedInRef.value) {
+    if (!userStore.user.isLoggedIn) {
       location.reload();
     }
   }, loginTimeoutInSeconds * 1000);
 }
 
 watch(
-  [isLoadingRef, isLoggedInRef, dialogRef, initialized],
-  ([loading, isLoggedIn, dialog, isInitialized]) => {
-    if (loading) return;
+  [() => userStore.user.isLoggedIn, initialized],
+  ([isLoggedIn], [wasLoggedIn]) => {
     if (isLoggedIn) {
       onLogin();
       return;
     }
 
     // not logged in
-    if (!isInitialized) {
+    if (!wasLoggedIn) {
       // this is the first time you open this window.
       // we can immediately redirect to login.
       redirectToLogin();
@@ -167,24 +165,17 @@ watch(
     // you were logged in, but got logged out in another window or your session expired
     // the dialog element should be in the dom by now, so it shouldn't be undefined
     // the if is just there for type safety
-    if (!dialog) {
+    if (!dialogRef.value) {
       console.error(
         "we expected a dialog in the dom, but it seems to be missing...",
       );
     }
-
     resetLoginTimeout();
-    dialog?.showModal();
+    dialogRef.value?.showModal();
   },
 );
 
-const computedUser = computed<User>(() =>
-  !currentUserState.success ? { isLoggedIn: false } : currentUserState.data,
-);
-
-watch(computedUser, (u) => {
-  userStore.setUser(u);
-});
+refreshUser();
 </script>
 
 <style lang="scss" scoped>

@@ -1,6 +1,6 @@
 import type {
   GeslachtsnaamGeboortedatum,
-  PostcodeHuisnummer,
+  PostcodeHuisnummerMetAchternaam,
 } from "@/helpers/validation";
 
 export interface Persoon {
@@ -22,7 +22,7 @@ export type PersoonQuery =
       bsn: string;
     }
   | {
-      postcodeHuisnummer: PostcodeHuisnummer;
+      postcodeHuisnummerAchternaam: PostcodeHuisnummerMetAchternaam;
     }
   | {
       geslachtsnaamGeboortedatum: GeslachtsnaamGeboortedatum;
