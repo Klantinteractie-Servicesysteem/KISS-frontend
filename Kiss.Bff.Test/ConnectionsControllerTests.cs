@@ -74,8 +74,14 @@ namespace Kiss.Bff.Test
             Assert.AreEqual(registryConfig.Systemen[0].ContactmomentRegistry.BaseUrl.ToString(), registries[0].ContactmomentRegistry.ToString());
             Assert.AreEqual(registryConfig.Systemen[1].ContactmomentRegistry.BaseUrl.ToString(), registries[1].ContactmomentRegistry.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.BaseUrl.ToString(), registries[0].ZaaksysteemRegistry.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.BaseUrl.ToString(), registries[1].ZaaksysteemRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.ZakenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.ZakenBaseURl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.DocumentenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.DocumentenBaseUrl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.CatalogiBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.CatalogiBaseUrl.ToString());
+
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.ZakenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.ZakenBaseURl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.DocumentenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.DocumentenBaseUrl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.CatalogiBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.CatalogiBaseUrl.ToString());
+
 
             Assert.AreEqual(true, (bool)registries[0].IsDefault);
             Assert.AreEqual(false, (bool)registries[1].IsDefault);
@@ -123,7 +129,11 @@ namespace Kiss.Bff.Test
                         },
                         ZaaksysteemRegistry = new ZaaksysteemRegistry
                         {
-                            BaseUrl = "https://test-system.com/zaak",
+                            ClientSecret= "", 
+                            ClientId= "",
+                            ZakenBaseUrl = "https://test-zaken1.com",
+                            CatalogiBaseUrl = "https://test-catalogi1.com",
+                            DocumentenBaseUrl = "https://test-documenten1.com",
                         },
                     },
                     new RegistrySystem
@@ -139,7 +149,7 @@ namespace Kiss.Bff.Test
                         {
                             BaseUrl = "https://test-system.com/contact2",
                         },
-              InterneTaakRegistry = new InternetaakRegistry
+                        InterneTaakRegistry = new InternetaakRegistry
                         {
                             ObjectTypeUrl = "https://test-system.com/interne-taak/objecttype",
                             ObjectTypeVersion = "1.0",
@@ -151,7 +161,11 @@ namespace Kiss.Bff.Test
                         },
                         ZaaksysteemRegistry = new ZaaksysteemRegistry
                         {
-                            BaseUrl = "https://test-system.com/zaak2",
+                            ClientSecret= "",
+                            ClientId= "",
+                            ZakenBaseUrl = "https://test-zaken2.com",
+                            CatalogiBaseUrl = "https://test-catalogi2.com",
+                            DocumentenBaseUrl = "https://test-documenten2.com",
                         },
                     }
 
