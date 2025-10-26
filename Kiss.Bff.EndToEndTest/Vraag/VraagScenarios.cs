@@ -1,5 +1,4 @@
-﻿
-using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
@@ -83,16 +82,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
-
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").First.ClickAsync();
+            await SelectFromDropdownAsync("Vraag 1", "Parkeren");
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
-
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
+            await SelectFromDropdownAsync("Vraag 2", "Parkeren");
 
             await Step("And clicks on Opslaan button");
 
@@ -196,16 +189,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
-
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").First.ClickAsync();
+            await SelectFromDropdownAsync("Vraag 1", "Parkeren");
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
-
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
+            await SelectFromDropdownAsync("Vraag 2", "Parkeren");
 
             await Step("And clicks on Opslaan button");
 
@@ -701,5 +688,44 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Expect(Page.GetAfhandelingNotitieTextBox()).ToHaveJSPropertyAsync("validationMessage", "Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.");
         }
 
+        // Helper method for robust dropdown selection in CI environments
+        private async Task SelectFromDropdownAsync(string contextText, string optionText, int maxRetries = 3)
+        {
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    var searchInput = Page.Locator("article").Filter(new() { HasText = contextText })
+                        .Locator("input[type='search']");
+
+                    await searchInput.ClickAsync();
+                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+                    // Wait for dropdown to appear and option to be visible
+                    var option = Page.GetByText(optionText).First;
+                    await option.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+                    await option.ScrollIntoViewIfNeededAsync();
+                    await option.ClickAsync();
+
+                    // If we get here, selection was successful
+                    return;
+                }
+                catch (Exception) when (attempt < maxRetries)
+                {
+                    // Continue to next attempt without manual wait
+                }
+            }
+
+            // Final attempt without try-catch to let the exception bubble up
+            var finalSearchInput = Page.Locator("article").Filter(new() { HasText = contextText })
+                .Locator("input[type='search']");
+            await finalSearchInput.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            var finalOption = Page.GetByText(optionText).First;
+            await finalOption.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await finalOption.ScrollIntoViewIfNeededAsync();
+            await finalOption.ClickAsync();
+        }
     }
 }
