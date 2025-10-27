@@ -236,11 +236,17 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step($"And user search and fill '{searchTerm}'");
 
+            // Wait for any previous requests to complete before starting search
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            
+            // Add small delay to avoid overwhelming the search API when running in bulk
+            await Page.WaitForTimeoutAsync(1000);
+
             var searchResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
                 await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
             },
-            response => response.Url.Contains("api/elasticsearch/.ent-search-engine-documents-engine-crawler,search-kennisbank,search-smoelenboek,search-vac/_search")
+            response => response.Url.Contains("api/elasticsearch") && response.Url.Contains("_search")
             );
 
             // We will inspect the data from elasticsearch. This tells us whether the source data uses an afdelingnaam property with uppercase or lowercase

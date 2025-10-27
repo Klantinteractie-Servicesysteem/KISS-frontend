@@ -180,7 +180,7 @@ namespace Kiss.Bff.EndToEndTest
                 uniqueKey = $"{baseKey}_{counter}";
                 counter++;
             }
-            
+
             // Generate report if this might be the last test (fallback mechanism)
             await TryGenerateReportAsync();
 
@@ -247,20 +247,20 @@ namespace Kiss.Bff.EndToEndTest
                 }
 
                 // Create directory first
-            var tracesDir = Path.Combine(Environment.CurrentDirectory, "playwright-traces");
-            Directory.CreateDirectory(tracesDir);
+                var tracesDir = Path.Combine(Environment.CurrentDirectory, "playwright-traces");
+                Directory.CreateDirectory(tracesDir);
 
-            // Group tests by class name first, then by outcome
-            var testsByClass = s_testReports
-                .GroupBy(kvp => ExtractClassName(kvp.Value))
-                .OrderBy(group => group.Key)
-                .ToList();
+                // Group tests by class name first, then by outcome
+                var testsByClass = s_testReports
+                    .GroupBy(kvp => ExtractClassName(kvp.Value))
+                    .OrderBy(group => group.Key)
+                    .ToList();
 
-            var totalTests = s_testReports.Count;
-            var passedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Passed");
-            var failedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Failed");
+                var totalTests = s_testReports.Count;
+                var passedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Passed");
+                var failedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Failed");
 
-            var html = $$"""
+                var html = $$"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -397,9 +397,9 @@ namespace Kiss.Bff.EndToEndTest
 </html>
 """;
 
-            var htmlFilePath = Path.Combine(tracesDir, "index.html");
-            using var writer = File.CreateText(htmlFilePath);
-            await writer.WriteLineAsync(html);
+                var htmlFilePath = Path.Combine(tracesDir, "index.html");
+                using var writer = File.CreateText(htmlFilePath);
+                await writer.WriteLineAsync(html);
             }
             catch (Exception)
             {
