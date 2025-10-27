@@ -56,11 +56,12 @@
                 {
                     var klantinteractieBaseUrl = GetValue("KLANTINTERACTIE_BASE_URL") ?? throw new Exception($"Fout: REGISTERS__{index}__KLANTINTERACTIE_BASE_URL ontbreekt voor OpenKlant2 configuratie");
 
+
                     yield return new RegistrySystem
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = item.GetHashCode().ToString(),
+                        Identifier = klantinteractieBaseUrl,
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
                             BaseUrl = klantinteractieBaseUrl,
@@ -79,7 +80,7 @@
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = item.GetHashCode().ToString(),
+                        Identifier = contactmomentenBaseUrl,
                         ContactmomentRegistry = new ContactmomentRegistry
                         {
                             BaseUrl = contactmomentenBaseUrl,
