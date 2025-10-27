@@ -40,9 +40,7 @@ namespace Kiss.Bff.EndToEndTest
         // Counter for DataRow variations of the same test method
         private static readonly ConcurrentDictionary<string, int> s_dataRowCounters = [];
 
-        private readonly List<string> _steps = [];
-
-        // clean up actions that are registered by the tests
+        private readonly List<string> _steps = [];        // clean up actions that are registered by the tests
         private readonly List<Func<Task>> _cleanupActions = [];
 
         public KissPlaywrightTest()
