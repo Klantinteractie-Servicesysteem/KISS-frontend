@@ -82,10 +82,14 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
-            await SelectFromDropdownAsync("Vraag 1", "Parkeren");
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
+                .Locator("input[type='search']").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
-            await SelectFromDropdownAsync("Vraag 2", "Parkeren");
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .Locator("input[type='search']").ClickAsync();
+            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
@@ -119,9 +123,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -189,10 +193,14 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
-            await SelectFromDropdownAsync("Vraag 1", "Parkeren");
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
+                .Locator("input[type='search']").ClickAsync();
+            await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
-            await SelectFromDropdownAsync("Vraag 2", "Parkeren");
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .Locator("input[type='search']").ClickAsync();
+            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
@@ -217,9 +225,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -637,7 +645,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 await Page.GetOpslaanButton().ClickAsync();
             },
                 response => response.Url.Contains("/postklantcontacten")
-
             );
 
             // Clean up later
@@ -658,8 +665,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             Assert.AreEqual(expectedOnderwerp, onderwerp, $"Expected 'onderwerp' to be exactly: {expectedOnderwerp}, but got: {onderwerp}");
 
-
             await Step("And Afhandeling form is successfully submitted");
+
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
@@ -686,46 +693,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("Then user sees a validation message: “Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.”");
 
             await Expect(Page.GetAfhandelingNotitieTextBox()).ToHaveJSPropertyAsync("validationMessage", "Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.");
-        }
-
-        // Helper method for robust dropdown selection in CI environments
-        private async Task SelectFromDropdownAsync(string contextText, string optionText, int maxRetries = 3)
-        {
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
-            {
-                try
-                {
-                    var searchInput = Page.Locator("article").Filter(new() { HasText = contextText })
-                        .Locator("input[type='search']");
-
-                    await searchInput.ClickAsync();
-                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-                    // Wait for dropdown to appear and option to be visible
-                    var option = Page.GetByText(optionText).First;
-                    await option.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-                    await option.ScrollIntoViewIfNeededAsync();
-                    await option.ClickAsync();
-
-                    // If we get here, selection was successful
-                    return;
-                }
-                catch (Exception) when (attempt < maxRetries)
-                {
-                    // Continue to next attempt without manual wait
-                }
-            }
-
-            // Final attempt without try-catch to let the exception bubble up
-            var finalSearchInput = Page.Locator("article").Filter(new() { HasText = contextText })
-                .Locator("input[type='search']");
-            await finalSearchInput.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            var finalOption = Page.GetByText(optionText).First;
-            await finalOption.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            await finalOption.ScrollIntoViewIfNeededAsync();
-            await finalOption.ClickAsync();
         }
     }
 }
