@@ -37,9 +37,10 @@ namespace Kiss.Bff.EndToEndTest
         // this is used to build a test report for each test
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
 
-        private readonly List<string> _steps = [];
+        // Counter for DataRow variations of the same test method
+        private static readonly ConcurrentDictionary<string, int> s_dataRowCounters = [];
 
-        // clean up actions that are registered by the tests
+        private readonly List<string> _steps = [];        // clean up actions that are registered by the tests
         private readonly List<Func<Task>> _cleanupActions = [];
 
         public KissPlaywrightTest()
@@ -168,7 +169,20 @@ namespace Kiss.Bff.EndToEndTest
     """;
 
             // Always add the test report, even for failed tests
-            s_testReports.TryAdd(TestContext.TestName!, html);
+            // For DataRow tests, MSTest appends parameters to TestName automatically
+            // Use a counter as fallback if the same key already exists
+            var baseKey = TestContext.TestName!;
+            var uniqueKey = baseKey;
+            var counter = 1;
+
+            while (!s_testReports.TryAdd(uniqueKey, html))
+            {
+                uniqueKey = $"{baseKey}_{counter}";
+                counter++;
+            }
+
+            // Generate report if this might be the last test (fallback mechanism)
+            await TryGenerateReportAsync();
 
             // Run cleanup actions in reverse order
             foreach (var cleanup in ((IEnumerable<Func<Task>>)_cleanupActions).Reverse())
@@ -213,6 +227,7 @@ namespace Kiss.Bff.EndToEndTest
             }
             catch (Exception)
             {
+                // Silently handle exceptions in test name generation
                 return TestContext.TestName ?? "Unknown Test";
             }
         }
@@ -221,29 +236,31 @@ namespace Kiss.Bff.EndToEndTest
         /// This is run after all tests in a test class are done
         /// </summary>
         /// <returns></returns>
-        [ClassCleanup(InheritanceBehavior.BeforeEachDerivedClass)]
-        public static async Task ClassCleanup()
+        [AssemblyCleanup]
+        public static async Task AssemblyCleanup()
         {
-            if (s_testReports.Count == 0)
+            try
             {
-                return;
-            }
+                if (s_testReports.Count == 0)
+                {
+                    return;
+                }
 
-            // Create directory first
-            var tracesDir = Path.Combine(Environment.CurrentDirectory, "playwright-traces");
-            Directory.CreateDirectory(tracesDir);
+                // Create directory first
+                var tracesDir = Path.Combine(Environment.CurrentDirectory, "playwright-traces");
+                Directory.CreateDirectory(tracesDir);
 
-            // Group tests by class name first, then by outcome
-            var testsByClass = s_testReports
-                .GroupBy(kvp => ExtractClassName(kvp.Value))
-                .OrderBy(group => group.Key)
-                .ToList();
+                // Group tests by class name first, then by outcome
+                var testsByClass = s_testReports
+                    .GroupBy(kvp => ExtractClassName(kvp.Value))
+                    .OrderBy(group => group.Key)
+                    .ToList();
 
-            var totalTests = s_testReports.Count;
-            var passedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Passed");
-            var failedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Failed");
+                var totalTests = s_testReports.Count;
+                var passedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Passed");
+                var failedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Failed");
 
-            var html = $$"""
+                var html = $$"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -380,9 +397,14 @@ namespace Kiss.Bff.EndToEndTest
 </html>
 """;
 
-            var htmlFilePath = Path.Combine(tracesDir, "index.html");
-            using var writer = File.CreateText(htmlFilePath);
-            await writer.WriteLineAsync(html);
+                var htmlFilePath = Path.Combine(tracesDir, "index.html");
+                using var writer = File.CreateText(htmlFilePath);
+                await writer.WriteLineAsync(html);
+            }
+            catch (Exception)
+            {
+                // Don't throw - we want to continue even if report generation fails
+            }
         }
 
         private static string GenerateClassSection(string className, IGrouping<string, KeyValuePair<string, string>> classTests)
@@ -506,6 +528,184 @@ namespace Kiss.Bff.EndToEndTest
         protected void RegisterCleanup(Func<Task> cleanupFunc)
         {
             _cleanupActions.Add(cleanupFunc);
+        }
+
+        private static bool s_reportGenerated = false;
+        private static readonly object s_reportLock = new object();
+
+        private static async Task TryGenerateReportAsync()
+        {
+            lock (s_reportLock)
+            {
+                if (s_reportGenerated || s_testReports.Count == 0)
+                {
+                    return;
+                }
+                s_reportGenerated = true;
+            }
+
+            try
+            {
+
+                // Create directory first
+                var tracesDir = Path.Combine(Environment.CurrentDirectory, "playwright-traces");
+                Directory.CreateDirectory(tracesDir);
+
+                // Group tests by class name first, then by outcome
+                var testsByClass = s_testReports
+                    .GroupBy(kvp => ExtractClassName(kvp.Value))
+                    .OrderBy(group => group.Key)
+                    .ToList();
+
+                var totalTests = s_testReports.Count;
+                var passedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Passed");
+                var failedTests = s_testReports.Count(kvp => ExtractOutcome(kvp.Value) == "Failed");
+
+                var html = $$"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src https://unpkg.com/simpledotcss@2.3.3/simple.min.css 'sha256-l0D//z1BZPnhAdIJ0lA8dsfuil0AB4xBpnOa/BhNVoU=' 'unsafe-inline';">
+    <title>KISS E2E Test Report</title>
+    <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.3.3/simple.min.css">
+    <style>
+        [data-outcome=Failed] { border-left: 4px solid #dc3545; }
+        [data-outcome=Passed] { border-left: 4px solid #28a745; }
+        
+        .test-group { margin-bottom: 2rem; }
+        .class-group { margin-bottom: 3rem; border: 2px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .class-header { 
+            background: linear-gradient(135deg, var(--accent), var(--accent-bg)); 
+            color: var(--accent-text);
+            padding: 1.5rem; 
+            margin: 0;
+            border-bottom: 2px solid var(--border);
+        }
+        .class-header h2 { margin: 0; color: inherit; }
+        .class-content { padding: 1.5rem; }
+        
+        .outcome-group { margin-bottom: 2rem; }
+        .group-header { 
+            background: var(--accent-bg); 
+            padding: 1rem; 
+            border-radius: 8px; 
+            margin-bottom: 1rem;
+        }
+        
+        .test-item { 
+            background: var(--bg); 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            padding: 1rem; 
+            margin-bottom: 0.5rem; 
+        }
+        
+        .test-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 0.5rem; 
+        }
+        .test-header h3 { margin: 0; }
+        .test-header h4 { margin: 0; font-size: 1.1rem; }
+        
+        .outcome-badge { 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 4px; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+        }
+        .outcome-passed { background: #d4edda; color: #155724; }
+        .outcome-failed { background: #f8d7da; color: #721c24; }
+        
+        .test-details code {
+            background: var(--accent-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+        }
+        
+        .summary { 
+            background: var(--accent-bg); 
+            padding: 1.5rem; 
+            border-radius: 8px; 
+            margin-bottom: 2rem; 
+            text-align: center;
+        }
+        
+        /* Enhanced styles for failed tests */
+        .error-details {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 0.75rem;
+            margin: 0.5rem 0 0 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #721c24;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .test-item[data-outcome="Failed"] {
+            background: #fff5f5;
+        }
+        
+        .test-item[data-outcome="Passed"] {
+            background: #f0fff4;
+        }
+        
+        .class-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .stat { padding: 0.25rem 0.5rem; border-radius: 4px; }
+        .stat-passed { background: #d4edda; color: #155724; }
+        .stat-failed { background: #f8d7da; color: #721c24; }
+        .stat-total { background: var(--accent-bg); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🧪 KISS End-to-End Test Report</h1>
+        <p>Generated on {{DateTime.Now:yyyy-MM-dd HH:mm:ss}}</p>
+    </header>
+    
+    <main>
+        <section class="summary">
+            <h2>📊 Test Summary</h2>
+            <p><strong>Total:</strong> {{totalTests}} | <strong style="color: #28a745;">Passed:</strong> {{passedTests}} | <strong style="color: #dc3545;">Failed:</strong> {{failedTests}}</p>
+            <p><strong>Test Classes:</strong> {{testsByClass.Count}}</p>
+        </section>
+
+        {{string.Join("", testsByClass.Select(classGroup => GenerateClassSection(classGroup.Key, classGroup)))}}
+    </main>
+</body>
+</html>
+""";
+
+                var htmlFilePath = Path.Combine(tracesDir, "index.html");
+                using var writer = File.CreateText(htmlFilePath);
+                await writer.WriteLineAsync(html);
+            }
+            catch (Exception)
+            {
+                // Silently handle report generation errors
+            }
         }
     }
 }
