@@ -1,4 +1,5 @@
-﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+﻿
+using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
@@ -82,13 +83,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
+
             await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .Locator("input[type='search']").ClickAsync();
+            .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
+
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("input[type='search']").ClickAsync();
+            .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
             await Step("And clicks on Opslaan button");
@@ -123,9 +126,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("And user enters “000037178598” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000037178598");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -193,13 +196,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetAfhandelingField().Nth(1).SelectOptionAsync(new[] { new SelectOptionValue { Label = "test Gespreksresultaat TEST" } });
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
+
             await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .Locator("input[type='search']").ClickAsync();
+            .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").First.ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
+
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("input[type='search']").ClickAsync();
+            .Locator("input[type='search']").ClickAsync();
             await Page.GetByText("Parkeren").Nth(0).ClickAsync();
 
             await Step("And clicks on Opslaan button");
@@ -225,9 +230,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “000037178598” in Vestigingsnummer field");
+            await Step("And user enters “990000996048” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("000037178598");
+            await Page.Company_KvknummerInput().FillAsync("990000996048");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -645,6 +650,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
                 await Page.GetOpslaanButton().ClickAsync();
             },
                 response => response.Url.Contains("/postklantcontacten")
+
             );
 
             // Clean up later
@@ -665,8 +671,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             Assert.AreEqual(expectedOnderwerp, onderwerp, $"Expected 'onderwerp' to be exactly: {expectedOnderwerp}, but got: {onderwerp}");
 
-            await Step("And Afhandeling form is successfully submitted");
 
+            await Step("And Afhandeling form is successfully submitted");
             await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
@@ -694,5 +700,6 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Expect(Page.GetAfhandelingNotitieTextBox()).ToHaveJSPropertyAsync("validationMessage", "Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.");
         }
+
     }
 }
