@@ -238,9 +238,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             // Wait for any previous requests to complete before starting search
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            
-            // Add small delay to avoid overwhelming the search API when running in bulk
-            await Page.WaitForTimeoutAsync(1000);
 
             var searchResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
