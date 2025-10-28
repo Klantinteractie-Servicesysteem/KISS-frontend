@@ -23,7 +23,7 @@ export const fetchZaakIdentificatieByUrlOrId = (
 ) => {
   const id = urlOrId.split("/").at(-1) || urlOrId;
 
-  return fetchWithSysteemId(systeemId, `${zaaksysteemBaseUri}/zaken/${id}`)
+  return fetchWithSysteemId(systeemId, `${zakenApiPrefix}/zaken/${id}`)
     .then(throwIfNotOk)
     .then(parseJson)
     .then(({ identificatie }) => identificatie as string);
