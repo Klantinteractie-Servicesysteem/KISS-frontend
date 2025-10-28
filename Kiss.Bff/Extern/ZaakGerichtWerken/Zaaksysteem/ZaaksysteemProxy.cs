@@ -6,22 +6,43 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
     public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger) : ControllerBase
     {
         /// <summary>
-        /// Wordt gebruikt voor het proxien van alle zaaksysteem calls waarbij we al weten in welk zaaksysteem de gegevens zitten
-        /// gebruik wanneer de bron niet bekend is een custom functie volgens het stramien van Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem.GetZaken
+        /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="zaaksysteemId"></param>
-        /// <returns></returns>
         [HttpGet("api/zaken/{**path}")]
+        public IActionResult GetZaken(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
+            => ProxyToEndpoint(path, systemIdentifier, "zaken");
+
+        /// <summary>
+        /// Proxyt catalogi API calls naar het juiste zaaksysteem endpoint
+        /// </summary>
+        [HttpGet("api/catalogi/{**path}")]
+        public IActionResult GetCatalogi(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
+            => ProxyToEndpoint(path, systemIdentifier, "catalogi");
+
+        /// <summary>
+        /// Proxyt documenten API calls naar het juiste zaaksysteem endpoint
+        /// </summary>
         [HttpGet("api/documenten/{**path}")]
-        public IActionResult Get(
-            string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
+        public IActionResult GetDocumenten(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
+            => ProxyToEndpoint(path, systemIdentifier, "documenten");
+
+        /// <summary>
+        /// Generieke proxy methode die routeert naar het juiste zaaksysteem endpoint gebaseerd op API type
+        /// Ondersteunt zowel OpenZaak formaat (enkele BaseUrl) als Rx.Mission formaat (aparte endpoints)
+        /// </summary>
+        /// <param name="path">Het API pad om te proxyen</param>
+        /// <param name="systemIdentifier">De systeem identifier uit de header</param>
+        /// <param name="apiType">Het type API (zaken, catalogi, documenten)</param>
+        /// <returns></returns>
+        private IActionResult ProxyToEndpoint(string path, string systemIdentifier, string apiType)
         {
             var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
 
             if (config == null)
             {
-                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}", systemIdentifier[..(systemIdentifier.Length < 15 ? systemIdentifier.Length - 1 : 15)] + "..." );
+                var sanitizedSystemIdentifier = systemIdentifier.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}",
+                    sanitizedSystemIdentifier[..(sanitizedSystemIdentifier.Length < 15 ? sanitizedSystemIdentifier.Length - 1 : 15)] + "...");
                 return Problem(
                     title: "Configuratieprobleem",
                     detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
@@ -29,13 +50,33 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 );
             }
 
+            var baseUrl = GetBaseUrlForApiType(config, apiType);
+
             return new ProxyResult(() =>
             {
-                var url = $"{config.BaseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
+                var url = $"{baseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
                 var message = new HttpRequestMessage(HttpMethod.Get, url);
                 config.ApplyHeaders(message.Headers, User);
                 return message;
             });
+        }
+
+        /// <summary>
+        /// Bepaalt de base URL voor het opgegeven API type.
+        /// Valt terug naar OpenZaak formaat als specifieke URLs niet zijn geconfigureerd.
+        /// </summary>
+        /// <param name="config">De zaaksysteem registry configuratie</param>
+        /// <param name="apiType">Het API type (zaken, catalogi, documenten)</param>
+        /// <returns>De base URL voor het API type</returns>
+        private static string GetBaseUrlForApiType(ZaaksysteemRegistry config, string apiType)
+        {
+            return apiType switch
+            {
+                "zaken" => config.ZakenBaseUrl,
+                "catalogi" => config.CatalogiBaseUrl,
+                "documenten" => config.DocumentenBaseUrl,
+                _ => throw new ArgumentException($"Unknown API type: {apiType}", nameof(apiType))
+            };
         }
     }
 }

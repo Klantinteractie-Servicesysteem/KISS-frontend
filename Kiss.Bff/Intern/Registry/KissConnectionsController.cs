@@ -38,7 +38,12 @@ namespace Kiss.Bff.Intern.Environment
                     IsDefault = system.IsDefault,
                     RegistryVersion = system.RegistryVersion.ToString(),
                     KlantinteractieRegistry = system.KlantinteractieRegistry?.BaseUrl,
-                    ZaaksysteemRegistry = system.ZaaksysteemRegistry?.BaseUrl,
+                    ZaaksysteemRegistry = new ZaaksysteemRegistryModel
+                    {
+                        ZakenBaseURl = system.ZaaksysteemRegistry?.ZakenBaseUrl,
+                        DocumentenBaseUrl = system.ZaaksysteemRegistry?.DocumentenBaseUrl,
+                        CatalogiBaseUrl = system.ZaaksysteemRegistry?.CatalogiBaseUrl
+                    },
                     KlantRegistry = system.KlantRegistry?.BaseUrl,
                     InterneTaakRegistry = system.InterneTaakRegistry?.BaseUrl,
                     ContactmomentRegistry = system.ContactmomentRegistry?.BaseUrl

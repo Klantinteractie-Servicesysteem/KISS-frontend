@@ -68,17 +68,27 @@ namespace Kiss.Bff.Extern
         }
     }
 
-    public record ZaaksysteemRegistry : RegistryBase
+    public record ZaaksysteemRegistry 
     {
-        public override void ApplyHeaders(HttpRequestHeaders headers, System.Security.Claims.ClaimsPrincipal user)
+        public void ApplyHeaders(HttpRequestHeaders headers, System.Security.Claims.ClaimsPrincipal user)
         {
-            var authHeaderProvider = new AuthenticationHeaderProvider(Token, ClientId, ClientSecret);
+            var authHeaderProvider = new AuthenticationHeaderProvider(null, ClientId, ClientSecret);
             authHeaderProvider.ApplyAuthorizationHeader(headers, user);
             headers.Add(CrsHeaderConstants.AcceptCrs, CrsHeaderConstants.Value);
             headers.Add(CrsHeaderConstants.ContentCrs, CrsHeaderConstants.Value);
         }
+
+        public required string ClientId { get; init; }
+        public required string ClientSecret { get; init; }
+    
+
         public string? DeeplinkUrl { get; init; }
         public string? DeeplinkProperty { get; init; }
+
+
+        public required string ZakenBaseUrl { get; init; }
+        public required string CatalogiBaseUrl { get; init; }
+        public required string DocumentenBaseUrl { get; init; }
     }
 
     public static class CrsHeaderConstants
