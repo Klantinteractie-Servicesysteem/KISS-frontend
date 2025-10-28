@@ -1,9 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Web;
-
-namespace Kiss.Bff.Extern
+﻿namespace Kiss.Bff.Extern
 {
     public static class RegistryConfigExtensions
     {
@@ -113,11 +108,12 @@ namespace Kiss.Bff.Extern
                 {
                     var klantinteractieBaseUrl = GetValue("KLANTINTERACTIE_BASE_URL") ?? throw new Exception($"Fout: REGISTERS__{index}__KLANTINTERACTIE_BASE_URL ontbreekt voor OpenKlant2 configuratie");
 
+
                     yield return new RegistrySystem
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = CreateIdentifier(item),
+                        Identifier = klantinteractieBaseUrl,
                         KlantinteractieRegistry = new KlantinteractieRegistry
                         {
                             BaseUrl = klantinteractieBaseUrl,
@@ -136,7 +132,7 @@ namespace Kiss.Bff.Extern
                     {
                         IsDefault = isDefault,
                         RegistryVersion = registryVersion,
-                        Identifier = CreateIdentifier(item),
+                        Identifier = contactmomentenBaseUrl,
                         ContactmomentRegistry = new ContactmomentRegistry
                         {
                             BaseUrl = contactmomentenBaseUrl,
@@ -165,21 +161,6 @@ namespace Kiss.Bff.Extern
                 }
                 index++;
             }
-        }
-
-        private static string CreateIdentifier(Dictionary<string, string> item)
-        {
-            var serializedItem = JsonSerializer.Serialize(item);
-
-            var bytes = Encoding.UTF8.GetBytes(serializedItem);             
-            var hashValue = SHA256.HashData(bytes);
-             
-            var sb = new StringBuilder();
-
-            foreach (var b in hashValue)
-                sb.Append(b.ToString("x2"));
-
-            return sb.ToString();
         }
 
 
