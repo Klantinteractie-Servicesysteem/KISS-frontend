@@ -27,7 +27,7 @@ try
 {
 
 
- 
+
 
     builder.WebHost.ConfigureKestrel(x =>
     {
@@ -38,7 +38,7 @@ try
     builder.Services.AddControllers();
 
     const string AuthorityKey = "OIDC_AUTHORITY";
-    
+
     var authority = builder.Configuration[AuthorityKey];
 
     if (string.IsNullOrWhiteSpace(authority))
@@ -53,6 +53,7 @@ try
         options.ClientSecret = builder.Configuration["OIDC_CLIENT_SECRET"];
         options.KlantcontactmedewerkerRole = builder.Configuration["OIDC_KLANTCONTACTMEDEWERKER_ROLE"];
         options.RedacteurRole = builder.Configuration["OIDC_REDACTEUR_ROLE"];
+        options.KennisbankRole = builder.Configuration["OIDC_KENNISBANK_ROLE"];
         options.MedewerkerIdentificatieClaimType = builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM"];
         if (int.TryParse(builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE"], out var truncate))
         {
@@ -79,7 +80,7 @@ try
     builder.Services.AddDbContext<BeheerDbContext>(o => o.UseNpgsql(connStr));
     builder.Services.AddEnterpriseSearch(builder.Configuration["ENTERPRISE_SEARCH_BASE_URL"], builder.Configuration["ENTERPRISE_SEARCH_PRIVATE_API_KEY"]);
 
-    if(int.TryParse(builder.Configuration["EMAIL_PORT"], out var emailPort)) 
+    if (int.TryParse(builder.Configuration["EMAIL_PORT"], out var emailPort))
     {
         builder.Services.AddSmtpClient(
             builder.Configuration["EMAIL_HOST"],
