@@ -9,7 +9,7 @@
       >
         <global-search
           class="search-bar"
-          v-if="isKcm && route.meta.showSearch"
+          v-if="(isKcm || isKennisbank) && route.meta.showSearch"
         />
 
         <nav>
@@ -127,6 +127,9 @@ const isRedacteur = computed(
 );
 
 const isKcm = computed(() => user.value.isLoggedIn && user.value.isKcm);
+const isKennisbank = computed(
+  () => user.value.isLoggedIn && user.value.isKennisbank,
+);
 </script>
 
 <style lang="scss" scoped>
