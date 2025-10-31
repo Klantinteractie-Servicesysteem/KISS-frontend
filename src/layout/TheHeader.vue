@@ -112,6 +112,7 @@ import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import { ServiceResult, type ServiceData } from "@/services";
 
 const route = useRoute();
 
@@ -120,7 +121,12 @@ const { user } = storeToRefs(userStore);
 
 const contactmomentStore = useContactmomentStore();
 
-const featuredWerkberichtenCount = useFeaturedWerkberichtenCount();
+const featuredWerkberichtenCount = computed(() => {
+  if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
+    useFeaturedWerkberichtenCount();
+  }
+  return ServiceResult.init() as ServiceData<number>; // Temporary solution. Should be changed
+});
 
 const isRedacteur = computed(
   () => user.value.isLoggedIn && user.value.isRedacteur,

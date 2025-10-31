@@ -136,6 +136,7 @@ import { useUserStore } from "@/stores/user";
 import { ensureState } from "@/stores/create-store";
 import { type Berichttype, berichtTypes } from "@/features/werkbericht/types";
 import SeedBeheer from "@/features/beheer/SeedBeheer.vue";
+import { ServiceResult, type LookupList, type ServiceData } from "@/services";
 
 const state = ensureState({
   stateId: "HomeView",
@@ -154,11 +155,16 @@ const state = ensureState({
 
 const userStore = useUserStore();
 
-const skills = useSkills();
+const skills = computed(() => {
+  if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
+    useSkills();
+  }
+  return ServiceResult.init() as ServiceData<LookupList<number, string>>; // Temporary solution. Should be changed
+});
 
 const selectedSkills = computed(() => {
-  if (skills.state !== "success") return undefined;
-  return skills.data.entries
+  if (skills.value.state !== "success") return undefined;
+  return skills.value.data.entries
     .map(([id, name]) => ({
       id,
       name,
