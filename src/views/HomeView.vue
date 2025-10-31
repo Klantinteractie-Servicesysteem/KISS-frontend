@@ -5,13 +5,16 @@
       v-if="
         userStore.user.isLoggedIn &&
         !userStore.user.isKcm &&
-        !userStore.user.isRedacteur
+        !userStore.user.isRedacteur &&
+        !userStore.user.isKennisbank
       "
     >
       Je hebt niet de juist rechten voor het gebruik van deze applicatie. Neem
       contact op met Functioneel Beheer.
     </p>
-    <template v-else-if="userStore.user.isLoggedIn">
+    <template
+      v-else-if="userStore.user.isLoggedIn && !userStore.user.isKennisbank"
+    >
       <header>
         <utrecht-heading :level="1">Startscherm</utrecht-heading>
       </header>

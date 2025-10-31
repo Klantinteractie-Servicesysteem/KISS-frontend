@@ -17,6 +17,7 @@ namespace Kiss
         public const string ExternSysteemPolicy = "ExternSysteemPolicy";
         public const string KcmOrRedactiePolicy = "KcmOrRedactiePolicy";
         public const string KennisbankPolicy = "KennisbankPolicy";
+        public const string KcmOrRedactieOrKennisbankPolicy = "KcmOrRedactieOrKennisbankPolicy";
     }
 
     public static class KissClaimTypes
@@ -270,9 +271,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         .RequireRole(redacteurRole)
                         .Build());
 
-                options.AddPolicy(Policies.KennisbankPolicy,
+                options.AddPolicy(Policies.KcmOrRedactieOrKennisbankPolicy,
                     new AuthorizationPolicyBuilder()
-                        .RequireRole(kennisBankRole)
+                        .RequireRole(kennisBankRole, klantcontactmedewerkerRole, redacteurRole)
                         .Build());
 
                 //endpoints beschermd met een authorize attribuut, met de policy extrensysteem,
