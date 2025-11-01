@@ -19,14 +19,14 @@ namespace Kiss.Bff.Intern.Seed.Features
                 {
                     DateCreated = DateTimeOffset.UtcNow,
                     Titel = "Beheerhandleiding KISS",
-                    Url = "https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/",
+                    Url = "https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/stable/manual/manual.html",
                     Categorie = "KISS"
                 },
                 new()
                 {
                     DateCreated = DateTimeOffset.UtcNow,
                     Titel = "Documentatie KISS",
-                    Url = "https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/MANUAL/",
+                    Url = "https://kiss-klantinteractie-servicesysteem.readthedocs.io/",
                     Categorie = "KISS"
                 },
                 new()
