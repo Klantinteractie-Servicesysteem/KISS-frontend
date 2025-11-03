@@ -58,7 +58,7 @@
                   <span>Nieuws en werkinstructies</span>
                   <span
                     v-if="
-                      featuredWerkberichtenCount.success &&
+                      featuredWerkberichtenCount?.success &&
                       featuredWerkberichtenCount.data > 0
                     "
                     class="featured-indicator"
@@ -112,7 +112,6 @@ import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import { ServiceResult, type ServiceData } from "@/services";
 
 const route = useRoute();
 
@@ -123,9 +122,9 @@ const contactmomentStore = useContactmomentStore();
 
 const featuredWerkberichtenCount = computed(() => {
   if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
-    useFeaturedWerkberichtenCount();
+    return useFeaturedWerkberichtenCount();
   }
-  return ServiceResult.init() as ServiceData<number>; // Temporary solution. Should be changed
+  return undefined;
 });
 
 const isRedacteur = computed(
