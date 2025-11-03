@@ -216,12 +216,52 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
         // If it finds it there and it has an afdeling, then this afdeling will be prefilled in the Afhandeling form of the contactmoment
         // However in OverigeObjecten the name of the afdelingen property can be 'afdelingNaam' or 'afdelingnaam'. It should work with both.
 
-        [TestMethod("4. Prefilling Afdeling Field Based on Selected article")]
-        [DataRow("This VAC has a property afdelingnaam with lower case n", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)", true)]
-        [DataRow("This VAC has a property afdelingNaam with Upper Case N", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)", false)]
-        [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen", true)]
-        [DataRow("Wegenverkeerswet - afdelingNaam", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen", false)]
-        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled(string searchTerm, string resultName, string expectedAfdeling, bool expectLowerCaseAfdelingPropertyName)
+        // NOTE: These scenarios (4a, 4b, 4c, 4d) were separated from a single DataRow test because they randomly fail when run in DataRow sequence
+        [TestMethod("4a. Prefilling Afdeling Field Based on Selected article - afdelingnaam lower case n")]
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled_4a()
+        {
+            await RunAfdelingPrefillScenario(
+                "This VAC has a property afdelingnaam with lower case n",
+                "VAC This VAC has a property afdelingnaam with lower case n",
+                "Advies, support en kennis (ASK)",
+                true
+            );
+        }
+
+        [TestMethod("4b. Prefilling Afdeling Field Based on Selected article - afdelingNaam upper case N")]
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled_4b()
+        {
+            await RunAfdelingPrefillScenario(
+                "This VAC has a property afdelingNaam with Upper Case N",
+                "VAC This VAC has a property afdelingNaam with Upper Case N",
+                "Advies, support en kennis (ASK)",
+                false
+            );
+        }
+
+        [TestMethod("4c. Prefilling Afdeling Field Based on Selected article - Wegenverkeerswet")]
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled_4c()
+        {
+            await RunAfdelingPrefillScenario(
+                "Wegenverkeerswet",
+                "Kennisbank Wegenverkeerswet, ontheffing",
+                "Publiekscontacten Vergunningen",
+                true
+            );
+        }
+
+        [TestMethod("4d. Prefilling Afdeling Field Based on Selected article - Wegenverkeerswet afdelingNaam")]
+        public async Task When_SearchResultWithAfdelingSelected_Expect_AfhandelingFormAfdelingPrefilled_4d()
+        {
+            await RunAfdelingPrefillScenario(
+                "Wegenverkeerswet - afdelingNaam",
+                "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam",
+                "Publiekscontacten Vergunningen",
+                false
+            );
+        }
+
+        private async Task RunAfdelingPrefillScenario(string searchTerm, string resultName, string expectedAfdeling, bool expectLowerCaseAfdelingPropertyName)
         {
             await Step("Given the user is on KISS home page ");
             await Page.GotoAsync("/");
@@ -393,8 +433,8 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Step("And click on Nieuw contactmoment");
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("And navigates to Bedrijfinformatie page of company \"990000996048\"");
-            await Page.SearchAndSelectCompany("990000996048");
+            await Step("And navigates to Bedrijfinformatie page of company \"000037178598\"");
+            await Page.SearchAndSelectCompany("000037178598");
 
             await Step("And click on Annuleren");
             await Page.GetAnnulerenButton().ClickAsync();
