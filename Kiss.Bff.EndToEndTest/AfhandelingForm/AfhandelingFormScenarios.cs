@@ -1,5 +1,4 @@
-﻿
-using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AfhandelingForm.Models;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using System.Text.Json;
@@ -218,8 +217,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
         // However in OverigeObjecten the name of the afdelingen property can be 'afdelingNaam' or 'afdelingnaam'. It should work with both.
 
         [TestMethod("4. Prefilling Afdeling Field Based on Selected article")]
-        // To make it easier to analyse the result, make the search so specific that it only returns one result
-        [DataRow("VAC This VAC has a property afdelingnaam with lower case n", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)", true)]
+        [DataRow("This VAC has a property afdelingnaam with lower case n", "VAC This VAC has a property afdelingnaam with lower case n", "Advies, support en kennis (ASK)", true)]
         [DataRow("This VAC has a property afdelingNaam with Upper Case N", "VAC This VAC has a property afdelingNaam with Upper Case N", "Advies, support en kennis (ASK)", false)]
         [DataRow("Wegenverkeerswet", "Kennisbank Wegenverkeerswet, ontheffing", "Publiekscontacten Vergunningen", true)]
         [DataRow("Wegenverkeerswet - afdelingNaam", "Kennisbank Wegenverkeerswet, ontheffing - afdelingNaam", "Publiekscontacten Vergunningen", false)]
@@ -235,8 +233,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetContactmomentNotitieblokTextbox().FillAsync("Note field for test");
 
             await Step($"And user search and fill '{searchTerm}'");
-
-            // Wait for any previous requests to complete before starting search
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             var searchResponse = await Page.RunAndWaitForResponseAsync(async () =>
@@ -246,9 +242,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             response => response.Url.Contains("api/elasticsearch") && response.Url.Contains("_search")
             );
 
-            // We will inspect the data from elasticsearch. This tells us whether the source data uses an afdelingnaam property with uppercase or lowercase
-            // If we don't do this we won't know if the test succeeds because KISS handles both property names correctly
-            // or because the testdata just happens is not representative (anymore) and only contains records that all have afdelingnaam properties with the same casing
             var deserializedSearchResponse = await searchResponse.JsonAsync<Rootobject>();
 
             Afdelingen firstAfdeling;
@@ -264,8 +257,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             var afdelingnaamLower = firstAfdeling.afdelingnaam;
             var afdelingnaamUpper = firstAfdeling.afdelingNaam;
 
-            // If we expect that this testcase used the all lowercase afdelingnaam property 
-            // then afdelingnaam should have a value and afdelingNaam should not have a value
             if (expectLowerCaseAfdelingPropertyName)
             {
                 Assert.IsNotNull(afdelingnaamLower, "Expected 'afdelingnaam' (lowercase) to have a value");
@@ -298,7 +289,6 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            // Clean up later
             RegisterCleanup(async () =>
             {
                 await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
