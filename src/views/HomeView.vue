@@ -63,7 +63,7 @@
           <form
             class="skills-form"
             method="get"
-            v-if="skills.state === 'success'"
+            v-if="skills?.state === 'success'"
           >
             <multi-select
               name="skillIds"
@@ -136,7 +136,6 @@ import { useUserStore } from "@/stores/user";
 import { ensureState } from "@/stores/create-store";
 import { type Berichttype, berichtTypes } from "@/features/werkbericht/types";
 import SeedBeheer from "@/features/beheer/SeedBeheer.vue";
-import { ServiceResult, type LookupList, type ServiceData } from "@/services";
 
 const state = ensureState({
   stateId: "HomeView",
@@ -157,13 +156,13 @@ const userStore = useUserStore();
 
 const skills = computed(() => {
   if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
-    useSkills();
+    return useSkills();
   }
-  return ServiceResult.init() as ServiceData<LookupList<number, string>>; // Temporary solution. Should be changed
+  return undefined;
 });
 
 const selectedSkills = computed(() => {
-  if (skills.value.state !== "success") return undefined;
+  if (skills.value?.state !== "success") return undefined;
   return skills.value.data.entries
     .map(([id, name]) => ({
       id,
