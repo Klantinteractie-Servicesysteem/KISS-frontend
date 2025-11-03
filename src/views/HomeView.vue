@@ -60,15 +60,11 @@
           </form>
         </li>
         <li>
-          <form
-            class="skills-form"
-            method="get"
-            v-if="skills?.state === 'success'"
-          >
+          <form class="skills-form" method="get" v-if="skills">
             <multi-select
               name="skillIds"
               label="Filter op categorie"
-              :options="skills.data.entries"
+              :options="skills.entries"
               v-model="userStore.preferences.skills"
             />
             <menu class="delete-skills-menu">
@@ -130,12 +126,13 @@
 <script setup lang="ts">
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { computed } from "vue";
-import { useSkills, WerkBerichten } from "@/features/werkbericht";
+import { fetchSkills, WerkBerichten } from "@/features/werkbericht";
 import MultiSelect from "@/components/MultiSelect.vue";
 import { useUserStore } from "@/stores/user";
 import { ensureState } from "@/stores/create-store";
 import { type Berichttype, berichtTypes } from "@/features/werkbericht/types";
 import SeedBeheer from "@/features/beheer/SeedBeheer.vue";
+import { useLoader } from "@/services";
 
 const state = ensureState({
   stateId: "HomeView",
@@ -154,16 +151,14 @@ const state = ensureState({
 
 const userStore = useUserStore();
 
-const skills = computed(() => {
-  if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
-    return useSkills();
+const { data: skills } = useLoader(() => {
+  if (userStore.user.isKcm || userStore.user.isRedacteur) {
+    return fetchSkills();
   }
-  return undefined;
 });
 
 const selectedSkills = computed(() => {
-  if (skills.value?.state !== "success") return undefined;
-  return skills.value.data.entries
+  return skills.value?.entries
     .map(([id, name]) => ({
       id,
       name,

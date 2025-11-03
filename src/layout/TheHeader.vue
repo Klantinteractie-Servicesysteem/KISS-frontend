@@ -57,14 +57,11 @@
                 <router-link :to="{ name: 'home' }">
                   <span>Nieuws en werkinstructies</span>
                   <span
-                    v-if="
-                      featuredWerkberichtenCount?.success &&
-                      featuredWerkberichtenCount.data > 0
-                    "
+                    v-if="featuredWerkberichtenCount"
                     class="featured-indicator"
                     >{{
-                      featuredWerkberichtenCount.data < 10
-                        ? featuredWerkberichtenCount.data
+                      featuredWerkberichtenCount < 10
+                        ? featuredWerkberichtenCount
                         : "9+"
                     }}</span
                   >
@@ -104,7 +101,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useFeaturedWerkberichtenCount } from "@/features/werkbericht";
+import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
@@ -112,6 +109,7 @@ import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import { useLoader } from "@/services";
 
 const route = useRoute();
 
@@ -120,11 +118,10 @@ const { user } = storeToRefs(userStore);
 
 const contactmomentStore = useContactmomentStore();
 
-const featuredWerkberichtenCount = computed(() => {
-  if (userStore.user.isLoggedIn && !userStore.user.isKennisbank) {
-    return useFeaturedWerkberichtenCount();
+const { data: featuredWerkberichtenCount } = useLoader(() => {
+  if (userStore.user.isKcm || userStore.user.isRedacteur) {
+    return fetchFeaturedWerkberichten();
   }
-  return undefined;
 });
 
 const isRedacteur = computed(
