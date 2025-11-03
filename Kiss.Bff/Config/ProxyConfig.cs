@@ -166,7 +166,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             Path = "/api/enterprisesearch/api/as/v1/engines/{engine}/search_explain",
                             Methods = new[] { "POST" }
                         },
-                        AuthorizationPolicy = Kiss.Policies.KcmOrRedactieOrKennisbankPolicy,
+                        AuthorizationPolicy = Kiss.Policies.KcmOrKennisbankPolicy,
                         Transforms = new[]
                         {
                             new Dictionary<string, string>
@@ -192,7 +192,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             Path = "/api/elasticsearch/{index}/_search",
                             Methods = new[] { "POST" }
                         },
-                        AuthorizationPolicy = Kiss.Policies.KcmOrRedactieOrKennisbankPolicy,
+                        AuthorizationPolicy = Kiss.Policies.KcmOrKennisbankPolicy,
                         Transforms = new[]
                         {
                             new Dictionary<string, string>
