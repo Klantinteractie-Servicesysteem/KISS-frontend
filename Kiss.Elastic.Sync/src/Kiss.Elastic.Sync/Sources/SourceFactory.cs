@@ -6,6 +6,7 @@
         {
             "vac" => GetVacClient(),
             "smoelenboek" => GetMedewerkerClient(),
+            "sharepoint" => GetSharePointClient(),
             _ => GetProductClient(),
         };
 
@@ -61,6 +62,19 @@
             var objecten = new ObjectenClient(objectenBaseUri, objectenToken, objectenClientId, objectenClientSecret);
 
             return new ObjectenVacClient(objecten, typeurl);
+        }
+
+        private static SharePointPageSourceClient GetSharePointClient()
+        {
+            var tenantId = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_TENANT_ID");
+            var clientId = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_ID");
+            var clientSecret = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_SECRET");
+            var siteUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_SITE_URL");
+            var pageUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_PAGE_URL");
+
+            var sharePointClient = new SharePoint.SharePointClient(tenantId, clientId, clientSecret, siteUrl);
+
+            return new SharePointPageSourceClient(sharePointClient, pageUrl);
         }
     }
 }
