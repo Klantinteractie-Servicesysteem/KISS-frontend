@@ -51,20 +51,18 @@ function parseWerkbericht({
 }
 
 /**
- * Returns a reactive ServiceData object promising a LookupList of skills
+ * Fetches a LookupList of skills with ID number and Name of the skills
+ * @returns A Promise that contains a LookupList<number,string>
  */
-export function useSkills(): ServiceData<LookupList<number, string>> {
-  const url = "/api/skills";
-  const fetcher = (u: string) =>
-    fetchLoggedIn(u)
-      .then(throwIfNotOk)
-      .then(parseJson)
-      .then((j: any[]) =>
-        createLookupList(
-          j.map(({ id, naam }: { id: number; naam: string }) => [id, naam])
-        )
-      );
-  return ServiceResult.fromFetcher(url, fetcher);
+export async function fetchSkills(): Promise<LookupList<number, string>> {
+  const r = await fetchLoggedIn("/api/skills");
+
+  if (!r.ok) throw new Error(r.status.toString());
+
+  const json = await r.json();
+  return createLookupList(
+    json.map(({ id, naam }: { id: number; naam: string }) => [id, naam]),
+  );
 }
 
 /**
@@ -73,7 +71,7 @@ export function useSkills(): ServiceData<LookupList<number, string>> {
  * @param parameters
  */
 export function useWerkberichten(
-  parameters?: Ref<UseWerkberichtenParams>
+  parameters?: Ref<UseWerkberichtenParams>,
 ): ServiceData<Paginated<Werkbericht>> {
   function getUrl() {
     const base = "/api/berichten/published";
@@ -133,24 +131,18 @@ export function useWerkberichten(
   return ServiceResult.fromFetcher(getUrl, fetchBerichten, { poll: true });
 }
 
-export function useFeaturedWerkberichtenCount() {
-  async function fetchFeaturedWerkberichten(url: string): Promise<number> {
-    const r = await fetchLoggedIn(url);
+/**
+ * Fetches the number of Werkberichten
+ * @returns Returns a Promise that contains the number of Werkberichten
+ */
+export async function fetchFeaturedWerkberichten(): Promise<number> {
+  const r = await fetchLoggedIn("/api/berichten/featuredcount");
 
-    if (!r.ok) throw new Error(r.status.toString());
+  if (!r.ok) throw new Error(r.status.toString());
 
-    const json = await r.json();
+  const json = await r.json();
 
-    return json.count;
-  }
-
-  return ServiceResult.fromFetcher(
-    "/api/berichten/featuredcount",
-    fetchFeaturedWerkberichten,
-    {
-      poll: true,
-    }
-  );
+  return json.count;
 }
 
 export async function putBerichtRead(id: string, isGelezen: boolean) {
