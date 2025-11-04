@@ -50,7 +50,8 @@ namespace Kiss.Elastic.Sync.Sources
                 Object: data,
                 Title: pageData.title,
                 ObjectMeta: pageData.content,
-                Id: $"sharepoint_{pageData.id}"
+                Id: $"sharepoint_{pageData.id}",
+                Url: _pageUrl
             );
 
             Console.WriteLine($"Page indexed: {pageData.title}");

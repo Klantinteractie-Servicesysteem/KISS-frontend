@@ -115,19 +115,9 @@ namespace Kiss.Elastic.Sync.SharePoint
         {
             var textParts = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(page.Title))
-            {
-                textParts.Add(page.Title);
-            }
-
-            if (!string.IsNullOrWhiteSpace(page.Description))
-            {
-                textParts.Add(page.Description);
-            }
-
             if (page is not SitePage sitePage || sitePage.CanvasLayout == null)
             {
-                return string.Join("\n\n", textParts.Where(t => !string.IsNullOrWhiteSpace(t)));
+                return string.Empty;
             }
 
             if (sitePage.CanvasLayout.HorizontalSections != null)
