@@ -44,9 +44,7 @@ namespace Kiss.Elastic.Sync.Sources
                 lastModifiedBy = page.LastModifiedBy?.User?.DisplayName
             };
 
-            var json = JsonSerializer.Serialize(pageData);
-            using var doc = JsonDocument.Parse(json);
-            var data = doc.RootElement.Clone();
+            var data = JsonSerializer.SerializeToElement(pageData);
 
             yield return new KissEnvelope(
                 Object: data,
