@@ -23,7 +23,6 @@ import { handleLogin } from "@/services";
 import { loginUrl, redirectUrl, sessionStorageKey } from "./config";
 import { useUserStore } from "@/stores/user";
 import { logoutUrl } from "./config";
-import { meUrl } from "./config";
 import { fetchUser } from "./service";
 
 let newTab: Window | null = null;
@@ -60,7 +59,9 @@ function tryCloseTab() {
 async function refreshUser() {
   try {
     loading.value = true;
-    const fetchedUser = await fetchUser(meUrl);
+    const promise = fetchUser();
+    userStore.setPromise(promise);
+    const fetchedUser = await promise;
     userStore.setUser(fetchedUser);
     initialized.value = true;
   } finally {
