@@ -1,7 +1,8 @@
 import type { User } from "@/stores/user";
+import { meUrl } from "./config";
 
-export async function fetchUser(url: string): Promise<User> {
-  const response = await fetch(url, {
+export async function fetchUser(): Promise<User> {
+  const response = await fetch(meUrl, {
     credentials: "include",
   });
 

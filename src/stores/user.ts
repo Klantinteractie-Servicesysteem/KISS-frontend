@@ -16,6 +16,7 @@ export type User = {
 export const useUserStore = defineStore("user", {
   state: () => {
     const newState = {
+      promise: Promise.resolve(),
       preferences: useStorage("preferences", {
         kanaal: "",
         skills: [],
@@ -46,6 +47,9 @@ export const useUserStore = defineStore("user", {
     },
     setUser(user: User) {
       this.user = user;
+    },
+    setPromise(promise: Promise<User>) {
+      this.promise = promise.then();
     },
   },
 });
