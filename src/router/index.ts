@@ -15,6 +15,7 @@ import {
   createWebHistory,
   type NavigationGuard,
 } from "vue-router";
+import { useUserStore } from "@/stores/user";
 //import ContactverzoekenDetailView from "@/views/ContactverzoekenDetailView.vue";
 
 const NieuwsEnWerkinstructiesBeheer = () =>
@@ -51,6 +52,16 @@ const VacsBeheer = () => import("@/views/Beheer/vacs/VacsBeheer.vue");
 const guardContactMoment: NavigationGuard = (to, from, next) => {
   const contactmoment = useContactmomentStore();
   if (contactmoment.contactmomentLoopt) {
+    next();
+  } else {
+    next("/");
+  }
+};
+
+const guardIsKcmOrRedacteur: NavigationGuard = async (to, from, next) => {
+  const userStore = useUserStore();
+  await userStore.promise;
+  if (userStore.user.isKcm || userStore.user.isRedacteur) {
     next();
   } else {
     next("/");
@@ -155,6 +166,7 @@ const router = createRouter({
     {
       path: "/links",
       name: "links",
+      beforeEnter: guardIsKcmOrRedacteur,
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
@@ -163,6 +175,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
+      beforeEnter: guardIsKcmOrRedacteur,
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
@@ -282,6 +295,21 @@ const router = createRouter({
     },
     redirectRoute,
   ],
+});
+
+router.beforeEach(async (to, from, next) => {
+  // Check if the user is logged in for all routes except 'home'
+  if (to.name !== "home") {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (userStore.user.isLoggedIn) {
+      next();
+    } else {
+      next("/");
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;
