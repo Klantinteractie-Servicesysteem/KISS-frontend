@@ -68,6 +68,16 @@ const guardIsKcmOrRedacteur: NavigationGuard = async (to, from, next) => {
   }
 };
 
+const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
+  const userStore = useUserStore();
+  await userStore.promise;
+  if (userStore.user.isRedacteur) {
+    next();
+  } else {
+    next("/");
+  }
+};
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -175,7 +185,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardIsKcmOrRedacteur,
+      beforeEnter: guardIsRedacteur,
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
