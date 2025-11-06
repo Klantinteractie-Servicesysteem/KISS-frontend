@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Kiss.Bff.Extern;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Intern.Environment
@@ -32,6 +33,7 @@ namespace Kiss.Bff.Intern.Environment
         }
 
         [HttpGet("build-info")]
+        [Authorize(Policy = Policies.KcmOrRedactieOrKennisbankPolicy)]
         public IActionResult GetBuildInfo()
         {
             var buildInfo = Assembly.GetExecutingAssembly()

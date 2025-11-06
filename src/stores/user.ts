@@ -3,15 +3,15 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
-export type User =
-  {
-    isLoggedIn: boolean;
-    isRedacteur: boolean;
-    isKcm: boolean;
-    email: string;
-    organisatieIds: string[];
-    isSessionExpired: boolean;
-  };
+export type User = {
+  isLoggedIn: boolean;
+  isRedacteur: boolean;
+  isKcm: boolean;
+  isKennisbank: boolean;
+  email: string;
+  organisatieIds: string[];
+  isSessionExpired: boolean;
+};
 
 export const useUserStore = defineStore("user", {
   state: () => {
@@ -39,7 +39,7 @@ export const useUserStore = defineStore("user", {
   actions: {
     setKanaal(kanaal: string) {
       this.preferences.kanaal = kanaal;
-    },    
+    },
     setSessionExpired() {
       this.user.isSessionExpired = this.user.isLoggedIn ? true : false; //can only be false After the user has been logged in
       this.user.isLoggedIn = false;

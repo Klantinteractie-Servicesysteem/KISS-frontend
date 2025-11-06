@@ -16,6 +16,9 @@ namespace Kiss
         public const string RedactiePolicy = "RedactiePolicy";
         public const string ExternSysteemPolicy = "ExternSysteemPolicy";
         public const string KcmOrRedactiePolicy = "KcmOrRedactiePolicy";
+        public const string KennisbankPolicy = "KennisbankPolicy";
+        public const string KcmOrKennisbankPolicy = "KcmOrKennisbankPolicy";
+        public const string KcmOrRedactieOrKennisbankPolicy = "KcmOrRedactieOrKennisbankPolicy";
     }
 
     public static class KissClaimTypes
@@ -88,6 +91,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public delegate bool IsKcm(ClaimsPrincipal? user);
 
+    public delegate bool IsKennisbank(ClaimsPrincipal? user);
+
     public delegate JsonObject? GetMedewerkerIdentificatie();
 
     public class KissAuthOptions
@@ -97,6 +102,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public string ClientSecret { get; set; } = "";
         public string? KlantcontactmedewerkerRole { get; set; }
         public string? RedacteurRole { get; set; }
+        public string? KennisbankRole { get; set; }
         public string? MedewerkerIdentificatieClaimType { get; set; }
         public int? TruncateMedewerkerIdentificatie { get; set; }
 
@@ -120,7 +126,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 if (!string.IsNullOrEmpty(requestedUrl))
                 {
-                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out Uri uri))  
+                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out Uri uri))
                     {
                         if (requestedUrl.StartsWith("/") && !requestedUrl.StartsWith("//") && !requestedUrl.Contains(".."))
                         {
@@ -143,6 +149,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
                 ? "Redacteur"
                 : authOptions.RedacteurRole;
+            var kennisBankRole = string.IsNullOrWhiteSpace(authOptions.KennisbankRole)
+                ? "Kennisbank"
+                : authOptions.KennisbankRole;
             var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType)
                 ? "email"
                 : authOptions.MedewerkerIdentificatieClaimType;
@@ -150,6 +159,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
+            services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -262,6 +272,16 @@ namespace Microsoft.Extensions.DependencyInjection
                         .RequireRole(redacteurRole)
                         .Build());
 
+                options.AddPolicy(Policies.KcmOrKennisbankPolicy,
+                    new AuthorizationPolicyBuilder()
+                        .RequireRole(klantcontactmedewerkerRole, kennisBankRole)
+                        .Build());
+
+                options.AddPolicy(Policies.KcmOrRedactieOrKennisbankPolicy,
+                    new AuthorizationPolicyBuilder()
+                        .RequireRole(klantcontactmedewerkerRole, redacteurRole, kennisBankRole)
+                        .Build());
+
                 //endpoints beschermd met een authorize attribuut, met de policy extrensysteem,
                 //worden geautoriseerd adhv het jwt token scheme
                 options.AddPolicy(Policies.ExternSysteemPolicy, policy =>
@@ -335,6 +355,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var email = httpContext.User.GetEmail();
             var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
+            var isKennisbank = httpContext.RequestServices.GetService<IsKennisbank>()?.Invoke(httpContext.User) ?? false;
 
             var organisatieIds = httpContext.RequestServices
                                      .GetService<IConfiguration>()
@@ -342,7 +363,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                      ?.Split('/')
                                  ?? Array.Empty<string>();
 
-            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, organisatieIds);
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isKennisbank, organisatieIds);
         }
 
 
@@ -405,6 +426,7 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsLoggedIn,
             bool IsKcm,
             bool IsRedacteur,
+            bool IsKennisbank,
             IReadOnlyList<string> OrganisatieIds);
     }
 }
