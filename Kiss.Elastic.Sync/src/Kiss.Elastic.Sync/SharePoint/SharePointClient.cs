@@ -1,7 +1,6 @@
-using Azure.Identity;
+﻿using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using System.Linq;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
@@ -9,14 +8,12 @@ namespace Kiss.Elastic.Sync.SharePoint
     {
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
-        private readonly HttpClient _httpClient;
         private readonly string _siteUrl;
 
         public SharePointClient(string tenantId, string clientId, string clientSecret, string siteUrl)
         {
             var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
             _graphClient = new GraphServiceClient(credential);
-            _httpClient = new HttpClient();
             _siteUrl = siteUrl;
             _siteIdentifier = ParseSiteIdentifierFromUrl(siteUrl);
         }
@@ -29,7 +26,7 @@ namespace Kiss.Elastic.Sync.SharePoint
             return $"{uri.Host}:{uri.AbsolutePath}";
         }
 
-        public async Task<BaseSitePage?> GetPageByUrl(string pageUrl, CancellationToken token)
+        public async Task<SitePage?> GetPageByUrl(string pageUrl, CancellationToken token)
         {
             try
             {
@@ -46,7 +43,13 @@ namespace Kiss.Elastic.Sync.SharePoint
                 var pagesResponse = await _graphClient
                     .Sites[site.Id]
                     .Pages
-                    .GetAsync(cancellationToken: token);
+                    .GraphSitePage
+                    .GetAsync(x=>
+                    {
+                        // we filteren nu nog op de url van de pagina. in de toekomst halen we alle pagina's bij een site op.
+                        x.QueryParameters.Filter = $"webUrl eq '{pageUrl}'";
+                        x.QueryParameters.Expand = ["webparts"];
+                    }, cancellationToken: token);
 
                 if (pagesResponse?.Value == null || pagesResponse.Value.Count == 0)
                 {
@@ -54,55 +57,8 @@ namespace Kiss.Elastic.Sync.SharePoint
                     return null;
                 }
 
-                // Filter op specifieke pagina (heeft nog niet de canvasLayout)
-                var uri = new Uri(pageUrl);
-                var pageFileName = Path.GetFileName(uri.AbsolutePath);  
-                var pageMetadata = pagesResponse.Value.FirstOrDefault(p =>
-                    p.Name?.Equals(pageFileName, StringComparison.OrdinalIgnoreCase) == true);
-
-                if (pageMetadata == null)
-                {
-                    Console.WriteLine($"Pagina {pageFileName} niet gevonden. Beschikbare pagina's:");
-                    foreach (var p in pagesResponse.Value)
-                    {
-                        Console.WriteLine($"  - {p.Name} (ID: {p.Id})");
-                    }
-                    return null;
-                }
-
-                // Haal canvasLayout van pagina op
-                try
-                {
-                    // Maak alleen een RequestInformation object
-                    var graphPageRequest = _graphClient
-                        .Sites[site.Id]
-                        .Pages[pageMetadata.Id]
-                        .ToGetRequestInformation();
-
-                    // Workaround: De expand canvasLayout werkt alleen met type cast /microsoft.graph.sitePage.
-                    graphPageRequest.UrlTemplate =
-                        $"{{+baseurl}}/sites/{site.Id}/pages/{pageMetadata.Id}/microsoft.graph.sitePage?$expand=canvasLayout";
-
-                    // Gebruik batch request om aangepaste UrlTemplate te versturen (GetAsync ondersteunt dit niet)
-                    var content = new Microsoft.Graph.BatchRequestContentCollection(_graphClient);
-                    var requestStepId = await content.AddBatchRequestStepAsync(graphPageRequest);
-                    var batchResult = await _graphClient.Batch.PostAsync(content, cancellationToken: token);
-                    var graphPage = await batchResult.GetResponseByIdAsync<SitePage>(requestStepId);
-
-                    if (graphPage?.CanvasLayout != null)
-                    {
-                        var sectionCount = graphPage.CanvasLayout.HorizontalSections?.Count ?? 0;
-                        return graphPage;
-                    }
-
-                    Console.WriteLine($"CanvasLayout is leeg");
-                    return pageMetadata;
-                }
-                catch (Exception canvasEx)
-                {
-                    Console.WriteLine($"Fout bij ophalen CanvasLayout: {canvasEx.Message}");
-                    return pageMetadata;
-                }
+                var firstPage = pagesResponse.Value[0];
+                return firstPage;
             }
             catch (Exception ex)
             {
@@ -111,52 +67,32 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        public static string ExtractTextFromPage(BaseSitePage page)
+        public static IReadOnlyCollection<string> ExtractTextFromPage(SitePage sitePage) =>
+            GetWebParts(sitePage)
+                .SelectMany(GetHtml)
+                .Select(StripHtmlTags)
+                .ToHashSet();
+
+        private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
+            sitePage.WebParts
+                ?.AsEnumerable() ?? [];
+
+        private static IEnumerable<string> GetHtml(WebPart webPart)
         {
-            var textParts = new List<string>();
-
-            if (page is not SitePage sitePage || sitePage.CanvasLayout == null)
+            if (webPart is TextWebPart textWebPart
+                && !string.IsNullOrWhiteSpace(textWebPart.InnerHtml))
             {
-                return string.Empty;
+                yield return textWebPart.InnerHtml;
             }
 
-            if (sitePage.CanvasLayout.HorizontalSections != null)
+            var additionalData = webPart.AdditionalData;
+            if (additionalData != null 
+                && additionalData.TryGetValue("innerHtml", out var innerHtmlObj)
+                && innerHtmlObj?.ToString() is string innerHtml
+                && !string.IsNullOrWhiteSpace(innerHtml))
             {
-                foreach (var section in sitePage.CanvasLayout.HorizontalSections)
-                {
-                    if (section?.Columns == null) continue;
-
-                    foreach (var column in section.Columns)
-                    {
-                        if (column?.Webparts == null) continue;
-
-                        foreach (var webpart in column.Webparts)
-                        {
-                            if (webpart is Microsoft.Graph.Models.TextWebPart textWebPart)
-                            {
-                                if (!string.IsNullOrWhiteSpace(textWebPart.InnerHtml))
-                                {
-                                    var plainText = StripHtmlTags(textWebPart.InnerHtml);
-                                    textParts.Add(plainText);
-                                }
-                            }
-
-                            var additionalData = webpart.AdditionalData;
-                            if (additionalData != null && additionalData.TryGetValue("innerHtml", out var innerHtmlObj))
-                            {
-                                var innerHtml = innerHtmlObj?.ToString();
-                                if (!string.IsNullOrWhiteSpace(innerHtml))
-                                {
-                                    var plainText = StripHtmlTags(innerHtml);
-                                    textParts.Add(plainText);
-                                }
-                            }
-                        }
-                    }
-                }
+                yield return innerHtml;
             }
-
-            return string.Join("\n\n", textParts.Where(t => !string.IsNullOrWhiteSpace(t)));
         }
 
         private static string StripHtmlTags(string html)
@@ -179,7 +115,7 @@ namespace Kiss.Elastic.Sync.SharePoint
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            _graphClient.Dispose();
         }
     }
 }
