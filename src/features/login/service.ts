@@ -1,7 +1,8 @@
 import type { User } from "@/stores/user";
+import { meUrl } from "./config";
 
-export async function fetchUser(url: string): Promise<User> {
-  const response = await fetch(url, {
+export async function fetchUser(): Promise<User> {
+  const response = await fetch(meUrl, {
     credentials: "include",
   });
 
@@ -11,6 +12,7 @@ export async function fetchUser(url: string): Promise<User> {
       email: "",
       isRedacteur: false,
       isKcm: false,
+      isKennisbank: false,
       isSessionExpired: false,
       organisatieIds: [],
     };
@@ -25,6 +27,7 @@ export async function fetchUser(url: string): Promise<User> {
   const email = json?.email;
   const isRedacteur = !!json?.isRedacteur;
   const isKcm = !!json?.isKcm;
+  const isKennisbank = !!json?.isKennisbank;
   const isSessionExpired = false;
 
   if (isLoggedIn && (typeof email !== "string" || !email))
@@ -40,6 +43,7 @@ export async function fetchUser(url: string): Promise<User> {
     isRedacteur,
     organisatieIds,
     isKcm,
+    isKennisbank,
     isSessionExpired,
   };
 }
