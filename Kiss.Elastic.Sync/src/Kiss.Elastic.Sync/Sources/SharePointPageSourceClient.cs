@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Kiss.Elastic.Sync.SharePoint;
 
@@ -49,7 +49,7 @@ namespace Kiss.Elastic.Sync.Sources
             yield return new KissEnvelope(
                 Object: data,
                 Title: pageData.title,
-                ObjectMeta: pageData.content,
+                ObjectMeta: string.Join('\n', pageData.content),
                 Id: $"sharepoint_{pageData.id}",
                 Url: _pageUrl
             );
