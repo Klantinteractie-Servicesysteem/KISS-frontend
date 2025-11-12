@@ -33,11 +33,13 @@ namespace Kiss.Elastic.Sync.SharePoint
 
         public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
+            // Check site via Graph API lookup (GUID is nodig om paginas en subsites op te halen)
             var rootSite = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
             if (rootSite == null)
             {
                 yield break;
             }
+            // Haal alle sites op met GUID
             await foreach (var subSite in GetAllSitesRecursive(rootSite, token))
             {
                 await foreach (var page in GetAllPages(subSite, token))
