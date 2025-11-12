@@ -132,6 +132,7 @@ namespace Kiss.Elastic.Sync.SharePoint
         public void Dispose()
         {
             _graphClient.Dispose();
+            _context.Dispose();
         }
 
         private class MyMarkupFormatter : IMarkupFormatter
