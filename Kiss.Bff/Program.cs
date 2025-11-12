@@ -107,7 +107,18 @@ try
 
     builder.Services.AddHealthChecks();
 
-    builder.Services.AddElasticsearch(builder.Configuration["ELASTIC_BASE_URL"], builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"]);
+    // builder.Services.AddElasticsearch(builder.Configuration["ELASTIC_BASE_URL"], builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"]);
+    builder.Services.AddHttpClient("elasticsearch", client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ELASTIC_BASE_URL"] ?? "");
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(
+                $"{builder.Configuration["ELASTIC_USERNAME"]}:{builder.Configuration["ELASTIC_PASSWORD"]}"
+            ))
+        );
+    }
+    ).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
     builder.Services.AddAfdelingenProxy(builder.Configuration["AFDELINGEN_BASE_URL"], builder.Configuration["AFDELINGEN_TOKEN"], builder.Configuration["AFDELINGEN_OBJECT_TYPE_URL"], builder.Configuration["AFDELINGEN_CLIENT_ID"], builder.Configuration["AFDELINGEN_CLIENT_SECRET"]);
     builder.Services.AddGroepenProxy(builder.Configuration["GROEPEN_BASE_URL"], builder.Configuration["GROEPEN_TOKEN"], builder.Configuration["GROEPEN_OBJECT_TYPE_URL"], builder.Configuration["GROEPEN_CLIENT_ID"], builder.Configuration["GROEPEN_CLIENT_SECRET"]);
     builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
