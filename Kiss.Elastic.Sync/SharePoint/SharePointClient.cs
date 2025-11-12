@@ -124,7 +124,7 @@ namespace Kiss.Elastic.Sync.SharePoint
                 .Select(x => x.TextContent)
                 .ToHashSet();
 
-            var content = doc.ToHtml(MyMarkupFormatter.Instance).Trim();
+            var content = doc.ToHtml(TextWithWhitespaceFormatter.Instance).Trim();
 
             return (content, headings);
         }
@@ -135,11 +135,11 @@ namespace Kiss.Elastic.Sync.SharePoint
             _context.Dispose();
         }
 
-        private class MyMarkupFormatter : IMarkupFormatter
+        private class TextWithWhitespaceFormatter : IMarkupFormatter
         {
-            public static readonly IMarkupFormatter Instance = new MyMarkupFormatter();
+            public static readonly IMarkupFormatter Instance = new TextWithWhitespaceFormatter();
 
-            private MyMarkupFormatter()
+            private TextWithWhitespaceFormatter()
             {
                 
             }
