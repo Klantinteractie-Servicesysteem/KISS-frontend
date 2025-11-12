@@ -203,44 +203,41 @@ const filterKvkResultZaken = async (
 ): Promise<ZaakDetails[]> => {
   const filteredByCompany = await Promise.all(
     zaken.map(async (zaak) => {
-      const rollen = await getRollen({
-        url: zaak.url,
-        zaaksysteemId: systeem.identifier,
-      });
+      const matchingRoles = zaak.rollen.filter(
+        ({ betrokkeneIdentificatie }) => {
+          if (!betrokkeneIdentificatie) return false;
 
-      const matchingRoles = rollen.filter(({ betrokkeneIdentificatie }) => {
-        if (!betrokkeneIdentificatie) return false;
+          // ignore if it is a vestiging
+          if (
+            "vestigingsNummer" in betrokkeneIdentificatie &&
+            betrokkeneIdentificatie.vestigingsNummer
+          )
+            return false;
 
-        // ignore if it is a vestiging
-        if (
-          "vestigingsNummer" in betrokkeneIdentificatie &&
-          betrokkeneIdentificatie.vestigingsNummer
-        )
-          return false;
+          if (
+            // ignore if it has a kvkNummer AND
+            "kvkNummer" in betrokkeneIdentificatie &&
+            betrokkeneIdentificatie.kvkNummer &&
+            // the kvkNummer is of another company
+            betrokkeneIdentificatie.kvkNummer !== id.kvkNummer
+          )
+            return false;
 
-        if (
-          // ignore if it has a kvkNummer AND
-          "kvkNummer" in betrokkeneIdentificatie &&
-          betrokkeneIdentificatie.kvkNummer &&
-          // the kvkNummer is of another company
-          betrokkeneIdentificatie.kvkNummer !== id.kvkNummer
-        )
-          return false;
+          if (
+            // ignore if it has a innNnpId AND
+            "innNnpId" in betrokkeneIdentificatie &&
+            betrokkeneIdentificatie.innNnpId &&
+            // the value doesn't match our kvkNummer AND
+            betrokkeneIdentificatie.innNnpId !== id.kvkNummer &&
+            // the value doesn't match our rsin
+            betrokkeneIdentificatie.innNnpId !== id.rsin
+          )
+            return false;
 
-        if (
-          // ignore if it has a innNnpId AND
-          "innNnpId" in betrokkeneIdentificatie &&
-          betrokkeneIdentificatie.innNnpId &&
-          // the value doesn't match our kvkNummer AND
-          betrokkeneIdentificatie.innNnpId !== id.kvkNummer &&
-          // the value doesn't match our rsin
-          betrokkeneIdentificatie.innNnpId !== id.rsin
-        )
-          return false;
-
-        // otherwise it is a match
-        return true;
-      });
+          // otherwise it is a match
+          return true;
+        },
+      );
 
       const zaakIsForTheRightCompany = matchingRoles.length > 0;
       return zaakIsForTheRightCompany ? zaak : null;
@@ -455,6 +452,7 @@ const mapZaakDetails = async (zaak: {
     aanvrager: getNamePerRoltype(rollen, "initiator"),
     startdatum,
     url: zaak.url,
+    rollen: rollen,
   } as ZaakDetails;
 };
 
