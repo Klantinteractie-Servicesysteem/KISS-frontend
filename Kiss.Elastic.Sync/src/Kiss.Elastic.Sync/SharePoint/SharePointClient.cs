@@ -1,8 +1,11 @@
-﻿using AngleSharp;
+﻿using System.Runtime.CompilerServices;
+using AngleSharp;
 using AngleSharp.Dom;
 using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
+using Channel = System.Threading.Channels.Channel;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
@@ -11,13 +14,11 @@ namespace Kiss.Elastic.Sync.SharePoint
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
         private readonly IBrowsingContext _context;
-        private readonly string _siteUrl;
 
         public SharePointClient(string tenantId, string clientId, string clientSecret, string siteUrl)
         {
             var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
             _graphClient = new GraphServiceClient(credential);
-            _siteUrl = siteUrl;
             _siteIdentifier = ParseSiteIdentifierFromUrl(siteUrl);
             _context = BrowsingContext.New(Configuration.Default);
         }
@@ -30,44 +31,19 @@ namespace Kiss.Elastic.Sync.SharePoint
             return $"{uri.Host}:{uri.AbsolutePath}";
         }
 
-        public async Task<SitePage?> GetPageByUrl(string pageUrl, CancellationToken token)
+        public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
-            try
+            var rootSite = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
+            if (rootSite == null)
             {
-                // Check site via Graph API lookup (GUID is nodig om paginas op te halen)
-                var site = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
-
-                if (site?.Id == null)
-                {
-                    Console.WriteLine($"Site niet gevonden: {_siteUrl} (identifier: {_siteIdentifier})");
-                    return null;
-                }
-
-                // Haal alle pagina's op met GUID
-                var pagesResponse = await _graphClient
-                    .Sites[site.Id]
-                    .Pages
-                    .GraphSitePage
-                    .GetAsync(x =>
-                    {
-                        // we filteren nu nog op de url van de pagina. in de toekomst halen we alle pagina's bij een site op.
-                        x.QueryParameters.Filter = $"webUrl eq '{pageUrl}'";
-                        x.QueryParameters.Expand = ["webparts"];
-                    }, cancellationToken: token);
-
-                if (pagesResponse?.Value == null || pagesResponse.Value.Count == 0)
-                {
-                    Console.WriteLine($"Geen pagina's gevonden op site: {site.DisplayName} ({_siteUrl})");
-                    return null;
-                }
-
-                var firstPage = pagesResponse.Value[0];
-                return firstPage;
+                yield break;
             }
-            catch (Exception ex)
+            await foreach (var subSite in GetAllSitesRecursive(rootSite, token))
             {
-                Console.WriteLine($"Fout bij ophalen SharePoint pagina: {ex.Message}");
-                return null;
+                await foreach (var page in GetAllPages(subSite, token))
+                {
+                    yield return page;
+                }
             }
         }
 
@@ -89,6 +65,72 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
 
             return (allContent, allHeadings);
+        }
+
+        private async IAsyncEnumerable<Site> GetAllSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
+        {
+            yield return root;
+            await foreach (var site in GetAllSubSites(root, token))
+            {
+                await foreach (var subSite in GetAllSitesRecursive(site, token))
+                {
+                    yield return subSite;
+                }
+            }
+        }
+
+        private IAsyncEnumerable<Site> GetAllSubSites(Site root, CancellationToken token)
+        {
+            var request = _graphClient.Sites[root.Id]
+                .Sites
+                .ToGetRequestInformation();
+
+            return IterateAllEntities<SiteCollectionResponse, Site>(request, token);
+        }
+
+        private IAsyncEnumerable<SitePage> GetAllPages(Site site, CancellationToken token)
+        {
+            // Haal alle pagina's op met GUID
+            var pagesRequest = _graphClient
+                .Sites[site.Id]
+                .Pages
+                .GraphSitePage
+                .ToGetRequestInformation(x => x.QueryParameters.Expand = ["webparts"]);
+
+            return IterateAllEntities<SitePageCollectionResponse, SitePage>(pagesRequest, token);
+        }
+
+        /// <summary>
+        /// Returns an asynchronous sequence that iterates over all entities across paginated responses for the
+        /// specified request.
+        /// </summary>
+        /// <remarks>Entities are streamed as they are retrieved, allowing for efficient processing of
+        /// large datasets. The iteration completes when all pages have been processed or when the cancellation token is
+        /// triggered.</remarks>
+        /// <typeparam name="TCollection">The type representing the paginated collection response. Must inherit from
+        /// BaseCollectionPaginationCountResponse and have a parameterless constructor.</typeparam>
+        /// <typeparam name="TEntity">The type of entity contained within each page of the collection.</typeparam>
+        /// <param name="request">The request information used to retrieve the paginated data.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous iteration.</param>
+        /// <returns>An IAsyncEnumerable of TEntity that yields each entity from all pages of the response.</returns>
+        private IAsyncEnumerable<TEntity> IterateAllEntities<TCollection, TEntity>(RequestInformation request, CancellationToken token) where TCollection : BaseCollectionPaginationCountResponse, new()
+        {
+            var channel = Channel.CreateUnbounded<TEntity>();
+
+            Task.Run(async () =>
+            {
+                var response = await _graphClient.RequestAdapter.SendAsync<TCollection>(request, (_) => new(), cancellationToken: token);
+                if (response == null) return;
+                var iterator = PageIterator<TEntity, TCollection>.CreatePageIterator(_graphClient, response, async (x) =>
+                {
+                    await channel.Writer.WriteAsync(x, token);
+                    return true;
+                });
+                await iterator.IterateAsync(token);
+                channel.Writer.Complete();
+            }, token);
+
+            return channel.Reader.ReadAllAsync(token);
         }
 
         private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
@@ -141,7 +183,7 @@ namespace Kiss.Elastic.Sync.SharePoint
 
             private TextWithWhitespaceFormatter()
             {
-                
+
             }
 
             public string CloseTag(IElement element, bool selfClosing) => "";
