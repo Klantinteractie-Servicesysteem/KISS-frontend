@@ -70,11 +70,10 @@
             var clientId = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_ID");
             var clientSecret = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_SECRET");
             var siteUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_SITE_URL");
-            var pageUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_PAGE_URL");
 
             var sharePointClient = new SharePoint.SharePointClient(tenantId, clientId, clientSecret, siteUrl);
 
-            return new SharePointPageSourceClient(sharePointClient, pageUrl);
+            return new SharePointPageSourceClient(sharePointClient);
         }
     }
 }
