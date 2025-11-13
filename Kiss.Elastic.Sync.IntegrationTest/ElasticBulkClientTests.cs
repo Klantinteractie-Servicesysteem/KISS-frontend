@@ -8,8 +8,8 @@ namespace Kiss.Elastic.Sync.IntegrationTest
 {
     public class ElasticBulkClientTests(ElasticFixture fixture) : IClassFixture<ElasticFixture>
     {
-        const string IndexWithoutPrefix = "my_index";
-        const string IndexWithPrefix = $"search-{IndexWithoutPrefix}";
+        const string SourceName = "my_index";
+        static readonly string s_indexName = Helpers.GenerateValidIndexName(SourceName);
 
         [Fact]
         public async Task Bulk_insert_works_for_inserts_updates_and_deletes()
@@ -51,12 +51,12 @@ namespace Kiss.Elastic.Sync.IntegrationTest
                 .Select(Map)
                 .AsAsyncEnumerable();
 
-            await bulkClient.IndexBulk(envelopes, IndexWithoutPrefix, [], default);
+            await bulkClient.IndexBulk(envelopes, SourceName, s_indexName, [], default);
 
-            var refreshResponse = await elastic.Indices.RefreshAsync(IndexWithPrefix);
+            var refreshResponse = await elastic.Indices.RefreshAsync(s_indexName);
             Assert.True(refreshResponse.IsSuccess());
 
-            var searchResponse = await elastic.SearchAsync<KissEnvelope>(IndexWithPrefix);
+            var searchResponse = await elastic.SearchAsync<KissEnvelope>(s_indexName);
             Assert.True(searchResponse.IsSuccess());
 
             var actualRecords = searchResponse.Hits.ToDictionary(x => x.Id!, x => x.Source.Title!);
