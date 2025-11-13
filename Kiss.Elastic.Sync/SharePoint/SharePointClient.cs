@@ -1,4 +1,6 @@
-﻿using Azure.Identity;
+﻿using AngleSharp;
+using AngleSharp.Dom;
+using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 
@@ -8,6 +10,7 @@ namespace Kiss.Elastic.Sync.SharePoint
     {
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
+        private readonly IBrowsingContext _context;
         private readonly string _siteUrl;
 
         public SharePointClient(string tenantId, string clientId, string clientSecret, string siteUrl)
@@ -16,6 +19,7 @@ namespace Kiss.Elastic.Sync.SharePoint
             _graphClient = new GraphServiceClient(credential);
             _siteUrl = siteUrl;
             _siteIdentifier = ParseSiteIdentifierFromUrl(siteUrl);
+            _context = BrowsingContext.New(Configuration.Default);
         }
 
         private static string ParseSiteIdentifierFromUrl(string siteUrl)
@@ -44,7 +48,7 @@ namespace Kiss.Elastic.Sync.SharePoint
                     .Sites[site.Id]
                     .Pages
                     .GraphSitePage
-                    .GetAsync(x=>
+                    .GetAsync(x =>
                     {
                         // we filteren nu nog op de url van de pagina. in de toekomst halen we alle pagina's bij een site op.
                         x.QueryParameters.Filter = $"webUrl eq '{pageUrl}'";
@@ -67,11 +71,25 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        public static IReadOnlyCollection<string> ExtractTextFromPage(SitePage sitePage) =>
-            GetWebParts(sitePage)
-                .SelectMany(GetHtml)
-                .Select(StripHtmlTags)
-                .ToHashSet();
+        public async Task<(IReadOnlyCollection<string> Content, IReadOnlyCollection<string> Headings)> ExtractTextFromPage(SitePage sitePage)
+        {
+            var allContent = new HashSet<string>();
+            var allHeadings = new HashSet<string>();
+            var allHtml = GetWebParts(sitePage)
+                .SelectMany(GetHtml);
+
+            foreach (var html in allHtml)
+            {
+                var (content, headings) = await ParseHtml(html);
+                allContent.Add(content);
+                foreach (var heading in headings)
+                {
+                    allHeadings.Add(heading);
+                }
+            }
+
+            return (allContent, allHeadings);
+        }
 
         private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
             sitePage.WebParts
@@ -86,7 +104,7 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
 
             var additionalData = webPart.AdditionalData;
-            if (additionalData != null 
+            if (additionalData != null
                 && additionalData.TryGetValue("innerHtml", out var innerHtmlObj)
                 && innerHtmlObj?.ToString() is string innerHtml
                 && !string.IsNullOrWhiteSpace(innerHtml))
@@ -95,27 +113,56 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        private static string StripHtmlTags(string html)
+        private async Task<(string Content, IReadOnlyCollection<string> Headings)> ParseHtml(string html)
         {
             if (string.IsNullOrWhiteSpace(html))
-                return string.Empty;
+                return ("", []);
 
-            var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
+            using var doc = await _context.OpenAsync(req => req.Content(html));
 
-            text = text.Replace("&nbsp;", " ")
-                       .Replace("&amp;", "&")
-                       .Replace("&lt;", "<")
-                       .Replace("&gt;", ">")
-                       .Replace("&quot;", "\"");
+            var headings = doc.QuerySelectorAll("h1,h2,h3,h4,h5,h6")
+                .Select(x => x.TextContent)
+                .ToHashSet();
 
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
+            var content = doc.ToHtml(TextWithWhitespaceFormatter.Instance).Trim();
 
-            return text.Trim();
+            return (content, headings);
         }
 
         public void Dispose()
         {
             _graphClient.Dispose();
+            _context.Dispose();
+        }
+
+        private class TextWithWhitespaceFormatter : IMarkupFormatter
+        {
+            public static readonly IMarkupFormatter Instance = new TextWithWhitespaceFormatter();
+
+            private TextWithWhitespaceFormatter()
+            {
+                
+            }
+
+            public string CloseTag(IElement element, bool selfClosing) => "";
+
+            public string Comment(IComment comment) => "";
+
+            public string Doctype(IDocumentType doctype) => "";
+
+            public string LiteralText(ICharacterData text) => text.Data.Trim();
+
+            public string OpenTag(IElement element, bool selfClosing) => element.LocalName switch
+            {
+                "p" => "\n\n",
+                "br" => "\n",
+                "span" => " ",
+                _ => ""
+            };
+
+            public string Processing(IProcessingInstruction processing) => "";
+
+            public string Text(ICharacterData text) => text.Data.Trim();
         }
     }
 }

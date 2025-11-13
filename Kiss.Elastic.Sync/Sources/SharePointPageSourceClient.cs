@@ -32,12 +32,13 @@ namespace Kiss.Elastic.Sync.Sources
                 yield break;
             }
 
-            var content = SharePoint.SharePointClient.ExtractTextFromPage(page);
+            var (content, headings) = await _sharePointClient.ExtractTextFromPage(page);
             var pageData = new
             {
                 id = page.Id,
                 title = page.Title ?? "Geen titel",
-                content = content,
+                content,
+                headings,
                 url = _pageUrl,
                 lastModified = page.LastModifiedDateTime?.UtcDateTime ?? DateTime.UtcNow,
                 createdBy = page.CreatedBy?.User?.DisplayName,
@@ -49,7 +50,7 @@ namespace Kiss.Elastic.Sync.Sources
             yield return new KissEnvelope(
                 Object: data,
                 Title: pageData.title,
-                ObjectMeta: string.Join('\n', pageData.content),
+                ObjectMeta: "",
                 Id: $"sharepoint_{pageData.id}",
                 Url: _pageUrl
             );
