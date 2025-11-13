@@ -4,9 +4,9 @@ using Kiss.Elastic.Sync.SharePoint;
 
 namespace Kiss.Elastic.Sync.Sources
 {
-    public sealed class SharePointPageSourceClient(SharePointClient sharePointClient) : IKissSourceClient
+    public sealed class SharePointPageSourceClient(SharePointClient sharePointClient, string source) : IKissSourceClient
     {
-        public string Source => "SharePoint";
+        public string Source => source;
 
         public IReadOnlyList<string> CompletionFields { get; } = new[]
         {

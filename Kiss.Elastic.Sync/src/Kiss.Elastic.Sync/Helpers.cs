@@ -3,10 +3,11 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace Kiss.Elastic.Sync
 {
-    public static class Helpers
+    public static partial class Helpers
     {
         public const string CompletionField = "_completion_all";
         public const string CrawlEngineName = "engine-crawler";
@@ -78,5 +79,17 @@ namespace Kiss.Elastic.Sync
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
         }
+
+        public static string GenerateValidIndexName(string input)
+        {
+            var escaped = EscapeElasticsearchRegex()
+                .Replace(input, "-")
+                .ToLowerInvariant();
+
+            return $"search-{escaped}";
+        }
+
+        [GeneratedRegex("""[?|*|<|>|"| |\\|/|,|\|]+""")]
+        private static partial Regex EscapeElasticsearchRegex();
     }
 }

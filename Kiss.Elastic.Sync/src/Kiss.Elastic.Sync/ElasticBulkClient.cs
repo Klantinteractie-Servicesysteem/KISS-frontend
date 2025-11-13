@@ -60,16 +60,11 @@ namespace Kiss.Elastic.Sync
             return new ElasticBulkClient(elasticBaseUri, username, password);
         }
 
-        public async Task<string> IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, IReadOnlyList<string> completionFields, CancellationToken token)
-        {
-            const string Prefix = "search-";
-            var indexName = string.Create(bron.Length + Prefix.Length, bron, (a, b) =>
-            {
-                Prefix.CopyTo(a);
-                b.AsSpan().ToLowerInvariant(a[Prefix.Length..]);
-            });
 
-            if (!await EnsureIndex(bron, indexName, completionFields, token)) return indexName;
+
+        public async Task IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
+        {
+            if (!await EnsureIndex(bron, indexName, completionFields, token)) return;
 
             var existingIds = await GetExistingIds(indexName, token);
 
@@ -115,8 +110,6 @@ namespace Kiss.Elastic.Sync
                 using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
                 await Helpers.LogResponse(response, token);
             }
-
-            return indexName;
         }
 
         public async Task<bool> UpdateMappingForCrawlEngine(CancellationToken token)
