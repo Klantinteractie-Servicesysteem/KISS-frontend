@@ -32,15 +32,16 @@ namespace Kiss.Elastic.Sync.SharePoint
 
         public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
-            // Check site via Graph API lookup (GUID is nodig om paginas en subsites op te halen)
+            // Check site via Graph API lookup (Guid is necessary to retrieve pages and subsites)
             var rootSite = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
             if (rootSite == null)
             {
                 yield break;
             }
-            // Haal alle sites op met GUID
+            // Retrieve all subsites, this includes the root site as well
             await foreach (var subSite in GetAllSitesRecursive(rootSite, token))
             {
+                // Retrieve all pages for each subsite
                 await foreach (var page in GetAllPages(subSite, token))
                 {
                     yield return page;
@@ -68,6 +69,12 @@ namespace Kiss.Elastic.Sync.SharePoint
             return (allContent, allHeadings);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private async IAsyncEnumerable<Site> GetAllSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
         {
             yield return root;
@@ -100,29 +107,51 @@ namespace Kiss.Elastic.Sync.SharePoint
             return IterateAllEntities(firstPage, x => x.Value, token);
         }
 
+        /// <summary>
+        /// Asynchronously iterates over all entities in a paginated collection, retrieving items from each page until
+        /// no further pages are available.
+        /// </summary>
+        /// <remarks>This method transparently handles pagination by following the OData next link in each
+        /// collection response. Entities are yielded as they are retrieved from each page. The iteration stops if the
+        /// cancellation token is triggered or if no further pages are available.</remarks>
+        /// <typeparam name="TCollection">The type of the paginated collection response, which must inherit from BaseCollectionPaginationCountResponse
+        /// and have a parameterless constructor.</typeparam>
+        /// <typeparam name="TEntity">The type of the entity contained within each collection page.</typeparam>
+        /// <param name="firstPageTask">A task that, when completed, provides the first page of the collection to begin iteration.</param>
+        /// <param name="getEntities">A function that extracts the list of entities from a given collection page. Returns null or an empty list if
+        /// no entities are present.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous iteration.</param>
+        /// <returns>An asynchronous sequence of entities of type TEntity from all pages in the collection. The sequence ends
+        /// when there are no more pages to retrieve.</returns>
         private async IAsyncEnumerable<TEntity> IterateAllEntities<TCollection, TEntity>(
             Task<TCollection?> firstPageTask,
             Func<TCollection, List<TEntity>?> getEntities,
             [EnumeratorCancellation] CancellationToken token)
             where TCollection : BaseCollectionPaginationCountResponse, new()
         {
+            // Retrieve the first page
             var response = await firstPageTask;
 
+            // Iterate through all pages
             while (response != null && getEntities(response) is { } entities)
             {
+                // Yield each entity from the current page
                 foreach (var item in entities)
                 {
                     yield return item;
                 }
                 if (string.IsNullOrEmpty(response.OdataNextLink))
                 {
+                    // No more pages to retrieve
                     yield break;
                 }
+                // Prepare request to retrieve the next page
                 var requestInfo = new RequestInformation
                 {
                     HttpMethod = Method.GET,
                     UrlTemplate = response.OdataNextLink,
                 };
+                // Retrieve the next page
                 response = await _graphClient.RequestAdapter.SendAsync<TCollection>(requestInfo, (_) => new(), cancellationToken: token);
             }
         }
