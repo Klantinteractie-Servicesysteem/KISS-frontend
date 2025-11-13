@@ -5,7 +5,6 @@ using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
-using Channel = System.Threading.Channels.Channel;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
@@ -83,56 +82,49 @@ namespace Kiss.Elastic.Sync.SharePoint
 
         private IAsyncEnumerable<Site> GetAllSubSites(Site root, CancellationToken token)
         {
-            var request = _graphClient.Sites[root.Id]
+            var firstPage = _graphClient.Sites[root.Id]
                 .Sites
-                .ToGetRequestInformation();
+                .GetAsync(cancellationToken: token);
 
-            return IterateAllEntities<SiteCollectionResponse, Site>(request, token);
+            return IterateAllEntities(firstPage, x => x.Value, token);
         }
 
         private IAsyncEnumerable<SitePage> GetAllPages(Site site, CancellationToken token)
         {
-            // Haal alle pagina's op met GUID
-            var pagesRequest = _graphClient
+            var firstPage = _graphClient
                 .Sites[site.Id]
                 .Pages
                 .GraphSitePage
-                .ToGetRequestInformation(x => x.QueryParameters.Expand = ["webparts"]);
+                .GetAsync(x => x.QueryParameters.Expand = ["webparts"], token);
 
-            return IterateAllEntities<SitePageCollectionResponse, SitePage>(pagesRequest, token);
+            return IterateAllEntities(firstPage, x => x.Value, token);
         }
 
-        /// <summary>
-        /// Returns an asynchronous sequence that iterates over all entities across paginated responses for the
-        /// specified request.
-        /// </summary>
-        /// <remarks>Entities are streamed as they are retrieved, allowing for efficient processing of
-        /// large datasets. The iteration completes when all pages have been processed or when the cancellation token is
-        /// triggered.</remarks>
-        /// <typeparam name="TCollection">The type representing the paginated collection response. Must inherit from
-        /// BaseCollectionPaginationCountResponse and have a parameterless constructor.</typeparam>
-        /// <typeparam name="TEntity">The type of entity contained within each page of the collection.</typeparam>
-        /// <param name="request">The request information used to retrieve the paginated data.</param>
-        /// <param name="token">A cancellation token that can be used to cancel the asynchronous iteration.</param>
-        /// <returns>An IAsyncEnumerable of TEntity that yields each entity from all pages of the response.</returns>
-        private IAsyncEnumerable<TEntity> IterateAllEntities<TCollection, TEntity>(RequestInformation request, CancellationToken token) where TCollection : BaseCollectionPaginationCountResponse, new()
+        private async IAsyncEnumerable<TEntity> IterateAllEntities<TCollection, TEntity>(
+            Task<TCollection?> firstPageTask,
+            Func<TCollection, List<TEntity>?> getEntities,
+            [EnumeratorCancellation] CancellationToken token)
+            where TCollection : BaseCollectionPaginationCountResponse, new()
         {
-            var channel = Channel.CreateUnbounded<TEntity>();
+            var response = await firstPageTask;
 
-            Task.Run(async () =>
+            while (response != null && getEntities(response) is { } entities)
             {
-                var response = await _graphClient.RequestAdapter.SendAsync<TCollection>(request, (_) => new(), cancellationToken: token);
-                if (response == null) return;
-                var iterator = PageIterator<TEntity, TCollection>.CreatePageIterator(_graphClient, response, async (x) =>
+                foreach (var item in entities)
                 {
-                    await channel.Writer.WriteAsync(x, token);
-                    return true;
-                });
-                await iterator.IterateAsync(token);
-                channel.Writer.Complete();
-            }, token);
-
-            return channel.Reader.ReadAllAsync(token);
+                    yield return item;
+                }
+                if (string.IsNullOrEmpty(response.OdataNextLink))
+                {
+                    yield break;
+                }
+                var requestInfo = new RequestInformation
+                {
+                    HttpMethod = Method.GET,
+                    UrlTemplate = response.OdataNextLink,
+                };
+                response = await _graphClient.RequestAdapter.SendAsync<TCollection>(requestInfo, (_) => new(), cancellationToken: token);
+            }
         }
 
         private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
