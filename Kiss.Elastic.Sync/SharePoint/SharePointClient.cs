@@ -70,11 +70,15 @@ namespace Kiss.Elastic.Sync.SharePoint
         }
 
         /// <summary>
-        /// 
+        /// Enumerates the specified site and all of its descendant sub-sites recursively.
         /// </summary>
-        /// <param name="root"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <remarks>Enumeration is performed in a depth-first manner. The returned sequence includes the
+        /// root site as the first element, followed by all sub-sites recursively. If cancellation is requested via
+        /// <paramref name="token"/>, the enumeration will be stopped.</remarks>
+        /// <param name="root">The root <see cref="Site"/> from which to begin the recursive enumeration. Cannot be null.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous enumeration.</param>
+        /// <returns>An asynchronous sequence of <see cref="Site"/> objects, including the root site and all sub-sites in the
+        /// hierarchy.</returns>
         private async IAsyncEnumerable<Site> GetAllSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
         {
             yield return root;
