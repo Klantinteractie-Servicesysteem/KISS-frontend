@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: kiss-elastic-sync-job-sharepoint
+  name: kiss-elastic-sync-job-my-sharepoint
 spec:
   schedule: "*/59 * * * *"
   jobTemplate:
@@ -9,24 +9,26 @@ spec:
       template:
         spec:
           containers:
-          - name: kiss-elastic-sync
-            image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
-            imagePullPolicy: Always
-            args:
-            - sharepoint
-            env:
-            - name: SHAREPOINT_PAGE_URL
-              value: "https://icattnl.sharepoint.com/sites/synctooltestsite/SitePages/SyncTool-test-pagina.aspx"
-            envFrom:
-            - secretRef:
-                name: kiss-secrets
-            - configMapRef:
-                name: kiss-config
-            securityContext:
-              allowPrivilegeEscalation: false
-              runAsNonRoot: true
-              readOnlyRootFilesystem: true
-              runAsUser: 10000
-              capabilities:
-                drop: [ALL]
+            - name: kiss-elastic-sync
+              image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
+              imagePullPolicy: Always
+              args:
+                - sharepoint
+              env:
+                - name: SHAREPOINT_SOURCE_NAME
+                  value: "My Sharepoint Test Site"
+                - name: SHAREPOINT_SITE_URL
+                  value: https://my-tenant.sharepoint.com/sites/my-site
+              envFrom:
+                - secretRef:
+                    name: my-secrets
+                - configMapRef:
+                    name: my-config
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                runAsUser: 10000
+                capabilities:
+                  drop: [ALL]
           restartPolicy: Never
