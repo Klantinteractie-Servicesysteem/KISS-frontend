@@ -10,6 +10,7 @@ import BedrijvenView from "@/views/BedrijvenView.vue";
 import BedrijfDetailView from "@/views/BedrijfDetailView.vue";
 import LinksView from "@/views/LinksView.vue";
 import ContactenverzoekenView from "@/views/ContactenverzoekenView.vue";
+import SignalenView from "@/views/SignalenView.vue";
 import {
   createRouter,
   createWebHistory,
@@ -157,6 +158,19 @@ const router = createRouter({
       name: "links",
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
+    },
+
+    {
+      path: "/signalen",
+      name: "signalen",
+      component: SignalenView,
+      beforeEnter: guardContactMoment,
+      meta: {
+        showNav: true,
+        showNotitie: true,
+        showSearch: true,
+        backTitle: "signalen zoeken",
+      },
     },
 
     {

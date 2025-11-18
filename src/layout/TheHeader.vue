@@ -51,6 +51,16 @@
                   ><span>Zaken</span></router-link
                 >
               </li>
+
+              <li
+                v-if="
+                  contactmomentStore.contactmomentLoopt && route.meta.showNav
+                "
+              >
+                <router-link :to="{ name: 'signalen' }"
+                  ><span>Signalen</span></router-link
+                >
+              </li>
             </template>
             <template v-if="isKcm || isRedacteur">
               <li v-if="route.meta.showNav">
