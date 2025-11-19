@@ -6,7 +6,7 @@
         'app-layout',
         {
           'contactmoment-loopt': contactmomentStore.contactmomentLoopt,
-          'hide-sidebar': route.meta.hideSidebar || userStore.user.isKennisbank,
+          'hide-sidebar': route.meta.hideSidebar || !userStore.user.isKcm,
         },
       ]"
     >
