@@ -69,6 +69,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 }
 
                 // Transform request (apply role-based filtering)
+                ApplyRequestTransform(elasticqQuery);
 
                 // Forward request to Elasticsearch
                 var modifiedRequestBody = elasticqQuery.ToJsonString();
@@ -88,11 +89,12 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
 
                 // Transform response (if needed)
+                var transformedResponse = ApplyResponseTransform(responseBody);
 
                 // Return transformed response
                 return new ContentResult
                 {
-                    Content = "transformedResponse",
+                    Content = transformedResponse,
                     ContentType = "application/json",
                     StatusCode = (int)esResponse.StatusCode
                 };
@@ -107,7 +109,25 @@ namespace Kiss.Bff.Extern.ElasticSearch
             }
         }
 
+        /// <summary>
+        /// Transform the request query based on user role
+        /// Applies field exclusions for Kennisbank users
+        /// </summary>
+        private void ApplyRequestTransform(JsonObject query)
+        {
+            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
+        }
 
+        /// <summary>
+        /// Transform the response body if needed
+        /// Currently passes through unchanged, but can be extended for response filtering
+        /// </summary>
+        private string ApplyResponseTransform(string responseBody)
+        {
+            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
+            // For now, just pass through
+            return responseBody;
+        }
 
         /// <summary>
         /// Apply Basic Authentication headers to the request
