@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Kiss.Bff.Beheer.Verwerking.VerwerkingMiddleware;
 
 namespace Kiss.Bff.Extern.ElasticSearch
 {
@@ -19,10 +20,12 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private readonly string _elasticsearchBaseUrl;
         private readonly string _elasticsearchUsername;
         private readonly string _elasticsearchPassword;
+        private readonly ILogger<ElasticsearchController> _logger;
 
         public ElasticsearchController(
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<ElasticsearchController> logger)
         {
             _httpClientFactory = httpClientFactory;
 
@@ -30,6 +33,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
             _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
             _elasticsearchUsername = configuration["ELASTIC_USERNAME"] ?? throw new InvalidOperationException("ELASTIC_USERNAME not configured");
             _elasticsearchPassword = configuration["ELASTIC_PASSWORD"] ?? throw new InvalidOperationException("ELASTIC_PASSWORD not configured");
+            _logger = logger;
         }
 
         [HttpPost("{index}/_search")]
@@ -65,6 +69,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 }
                 catch (JsonException ex)
                 {
+                    _logger.LogError(ex, "Invalid JSON in request body");
                     return BadRequest(new { error = "Invalid JSON in request body" });
                 }
 
@@ -101,10 +106,12 @@ namespace Kiss.Bff.Extern.ElasticSearch
             }
             catch (HttpRequestException ex)
             {
+                _logger.LogError(ex, "Error connecting to search service");
                 return StatusCode(502, new { error = "Error connecting to search service" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An unexpected error occurred");
                 return StatusCode(500, new { error = "An unexpected error occurred" });
             }
         }

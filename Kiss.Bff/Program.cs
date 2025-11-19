@@ -107,7 +107,6 @@ try
 
     builder.Services.AddHealthChecks();
 
-    // builder.Services.AddElasticsearch(builder.Configuration["ELASTIC_BASE_URL"], builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"]);
     builder.Services.AddHttpClient("elasticsearch", client =>
     {
         client.BaseAddress = new Uri(builder.Configuration["ELASTIC_BASE_URL"] ?? "");
