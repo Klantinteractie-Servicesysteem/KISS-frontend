@@ -2,7 +2,7 @@
 {
     public static class SourceFactory
     {
-        public static IKissSourceClient CreateClient(string? source) => (source?.ToLowerInvariant()) switch
+        public static IKissSourceClient CreateClient(string[]? args) => (args?.FirstOrDefault()?.ToLowerInvariant()) switch
         {
             "vac" => GetVacClient(),
             "smoelenboek" => GetMedewerkerClient(),
@@ -70,11 +70,11 @@
             var clientId = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_ID");
             var clientSecret = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_CLIENT_SECRET");
             var siteUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_SITE_URL");
-            var pageUrl = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_PAGE_URL");
+            var sourceName = Helpers.GetRequiredEnvironmentVariable("SHAREPOINT_SOURCE_NAME");
 
             var sharePointClient = new SharePoint.SharePointClient(tenantId, clientId, clientSecret, siteUrl);
 
-            return new SharePointPageSourceClient(sharePointClient, pageUrl);
+            return new SharePointPageSourceClient(sharePointClient, sourceName);
         }
     }
 }
