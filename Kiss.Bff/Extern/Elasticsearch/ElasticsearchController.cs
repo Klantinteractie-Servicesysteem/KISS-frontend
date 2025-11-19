@@ -78,6 +78,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     Content = new StringContent(modifiedRequestBody, Encoding.UTF8, "application/json")
                 };
 
+                ApplyAuthenticationHeaders(httpRequest.Headers);
 
                 // Send request
                 var client = _httpClientFactory.CreateClient();
@@ -91,7 +92,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 // Return transformed response
                 return new ContentResult
                 {
-                    Content = "something",
+                    Content = "transformedResponse",
                     ContentType = "application/json",
                     StatusCode = (int)esResponse.StatusCode
                 };
@@ -107,6 +108,17 @@ namespace Kiss.Bff.Extern.ElasticSearch
         }
 
 
+
+        /// <summary>
+        /// Apply Basic Authentication headers to the request
+        /// </summary>
+        private void ApplyAuthenticationHeaders(HttpRequestHeaders headers)
+        {
+            var authValue = Convert.ToBase64String(
+                Encoding.ASCII.GetBytes($"{_elasticsearchUsername}:{_elasticsearchPassword}")
+            );
+            headers.Authorization = new AuthenticationHeaderValue("Basic", authValue);
+        }
     }
 }
 
