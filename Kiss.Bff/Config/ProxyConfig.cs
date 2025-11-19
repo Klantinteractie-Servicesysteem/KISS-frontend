@@ -180,32 +180,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         }
                     });
                 }
-                // else if (proxyRoute.Route == ElasticsearchProxyConfig.ROUTE)
-                // {
-                //     // Only allow POST to _search endpoint
-                //     allRoutes.Add(new RouteConfig
-                //     {
-                //         RouteId = $"{proxyRoute.Route}-search",
-                //         ClusterId = proxyRoute.Route,
-                //         Match = new RouteMatch 
-                //         { 
-                //             Path = "/api/elasticsearch/{index}/_search",
-                //             Methods = new[] { "POST" }
-                //         },
-                //         AuthorizationPolicy = Kiss.Policies.KcmOrKennisbankPolicy,
-                //         Transforms = new[]
-                //         {
-                //             new Dictionary<string, string>
-                //             {
-                //                 ["PathRemovePrefix"] = "/api/elasticsearch",
-                //             },
-                //             new Dictionary<string, string>
-                //             {
-                //                 ["RequestHeaderRemove"] = "Cookie",
-                //             }
-                //         }
-                //     });
-                // }
                 else
                 {
                     // For all other proxy routes, use the original wildcard pattern
