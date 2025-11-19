@@ -60,7 +60,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 try
                 {
                     var queryNode = JsonNode.Parse(requestBody);
-                    elasticqQuery = queryNode as JsonObject;
+                    elasticqQuery = queryNode?.AsObject();
 
                     if (elasticqQuery == null)
                     {
