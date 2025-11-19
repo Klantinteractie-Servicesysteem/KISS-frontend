@@ -1,8 +1,10 @@
-﻿using AngleSharp;
+﻿using System.Runtime.CompilerServices;
+using AngleSharp;
 using AngleSharp.Dom;
 using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
@@ -11,13 +13,11 @@ namespace Kiss.Elastic.Sync.SharePoint
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
         private readonly IBrowsingContext _context;
-        private readonly string _siteUrl;
 
         public SharePointClient(string tenantId, string clientId, string clientSecret, string siteUrl)
         {
             var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
             _graphClient = new GraphServiceClient(credential);
-            _siteUrl = siteUrl;
             _siteIdentifier = ParseSiteIdentifierFromUrl(siteUrl);
             _context = BrowsingContext.New(Configuration.Default);
         }
@@ -30,44 +30,22 @@ namespace Kiss.Elastic.Sync.SharePoint
             return $"{uri.Host}:{uri.AbsolutePath}";
         }
 
-        public async Task<SitePage?> GetPageByUrl(string pageUrl, CancellationToken token)
+        public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
-            try
+            // Check site via Graph API lookup (Guid is necessary to retrieve pages and subsites)
+            var rootSite = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
+            if (rootSite == null)
             {
-                // Check site via Graph API lookup (GUID is nodig om paginas op te halen)
-                var site = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
-
-                if (site?.Id == null)
-                {
-                    Console.WriteLine($"Site niet gevonden: {_siteUrl} (identifier: {_siteIdentifier})");
-                    return null;
-                }
-
-                // Haal alle pagina's op met GUID
-                var pagesResponse = await _graphClient
-                    .Sites[site.Id]
-                    .Pages
-                    .GraphSitePage
-                    .GetAsync(x =>
-                    {
-                        // we filteren nu nog op de url van de pagina. in de toekomst halen we alle pagina's bij een site op.
-                        x.QueryParameters.Filter = $"webUrl eq '{pageUrl}'";
-                        x.QueryParameters.Expand = ["webparts"];
-                    }, cancellationToken: token);
-
-                if (pagesResponse?.Value == null || pagesResponse.Value.Count == 0)
-                {
-                    Console.WriteLine($"Geen pagina's gevonden op site: {site.DisplayName} ({_siteUrl})");
-                    return null;
-                }
-
-                var firstPage = pagesResponse.Value[0];
-                return firstPage;
+                yield break;
             }
-            catch (Exception ex)
+            // Retrieve all subsites, this includes the root site as well
+            await foreach (var subSite in GetAllSitesRecursive(rootSite, token))
             {
-                Console.WriteLine($"Fout bij ophalen SharePoint pagina: {ex.Message}");
-                return null;
+                // Retrieve all pages for each subsite
+                await foreach (var page in GetAllPages(subSite, token))
+                {
+                    yield return page;
+                }
             }
         }
 
@@ -89,6 +67,97 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
 
             return (allContent, allHeadings);
+        }
+
+        /// <summary>
+        /// Enumerates the specified site and all of its descendant sub-sites recursively.
+        /// </summary>
+        /// <remarks>Enumeration is performed in a depth-first manner. The returned sequence includes the
+        /// root site as the first element, followed by all sub-sites recursively. If cancellation is requested via
+        /// <paramref name="token"/>, the enumeration will be stopped.</remarks>
+        /// <param name="root">The root <see cref="Site"/> from which to begin the recursive enumeration. Cannot be null.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous enumeration.</param>
+        /// <returns>An asynchronous sequence of <see cref="Site"/> objects, including the root site and all sub-sites in the
+        /// hierarchy.</returns>
+        private async IAsyncEnumerable<Site> GetAllSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
+        {
+            yield return root;
+            await foreach (var site in GetAllSubSites(root, token))
+            {
+                await foreach (var subSite in GetAllSitesRecursive(site, token))
+                {
+                    yield return subSite;
+                }
+            }
+        }
+
+        private IAsyncEnumerable<Site> GetAllSubSites(Site root, CancellationToken token)
+        {
+            var firstPage = _graphClient.Sites[root.Id]
+                .Sites
+                .GetAsync(cancellationToken: token);
+
+            return IterateAllEntities(firstPage, x => x.Value, token);
+        }
+
+        private IAsyncEnumerable<SitePage> GetAllPages(Site site, CancellationToken token)
+        {
+            var firstPage = _graphClient
+                .Sites[site.Id]
+                .Pages
+                .GraphSitePage
+                .GetAsync(x => x.QueryParameters.Expand = ["webparts"], token);
+
+            return IterateAllEntities(firstPage, x => x.Value, token);
+        }
+
+        /// <summary>
+        /// Asynchronously iterates over all entities in a paginated collection, retrieving items from each page until
+        /// no further pages are available.
+        /// </summary>
+        /// <remarks>This method transparently handles pagination by following the OData next link in each
+        /// collection response. Entities are yielded as they are retrieved from each page. The iteration stops if the
+        /// cancellation token is triggered or if no further pages are available.</remarks>
+        /// <typeparam name="TCollection">The type of the paginated collection response, which must inherit from BaseCollectionPaginationCountResponse
+        /// and have a parameterless constructor.</typeparam>
+        /// <typeparam name="TEntity">The type of the entity contained within each collection page.</typeparam>
+        /// <param name="firstPageTask">A task that, when completed, provides the first page of the collection to begin iteration.</param>
+        /// <param name="getEntities">A function that extracts the list of entities from a given collection page. Returns null or an empty list if
+        /// no entities are present.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous iteration.</param>
+        /// <returns>An asynchronous sequence of entities of type TEntity from all pages in the collection. The sequence ends
+        /// when there are no more pages to retrieve.</returns>
+        private async IAsyncEnumerable<TEntity> IterateAllEntities<TCollection, TEntity>(
+            Task<TCollection?> firstPageTask,
+            Func<TCollection, List<TEntity>?> getEntities,
+            [EnumeratorCancellation] CancellationToken token)
+            where TCollection : BaseCollectionPaginationCountResponse, new()
+        {
+            // Retrieve the first page
+            var response = await firstPageTask;
+
+            // Iterate through all pages
+            while (response != null && getEntities(response) is { } entities)
+            {
+                // Yield each entity from the current page
+                foreach (var item in entities)
+                {
+                    yield return item;
+                }
+                if (string.IsNullOrEmpty(response.OdataNextLink))
+                {
+                    // No more pages to retrieve
+                    yield break;
+                }
+                // Prepare request to retrieve the next page
+                var requestInfo = new RequestInformation
+                {
+                    HttpMethod = Method.GET,
+                    UrlTemplate = response.OdataNextLink,
+                };
+                // Retrieve the next page
+                response = await _graphClient.RequestAdapter.SendAsync<TCollection>(requestInfo, (_) => new(), cancellationToken: token);
+            }
         }
 
         private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
@@ -141,7 +210,7 @@ namespace Kiss.Elastic.Sync.SharePoint
 
             private TextWithWhitespaceFormatter()
             {
-                
+
             }
 
             public string CloseTag(IElement element, bool selfClosing) => "";

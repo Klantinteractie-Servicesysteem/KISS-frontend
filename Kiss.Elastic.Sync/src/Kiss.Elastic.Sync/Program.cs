@@ -29,13 +29,11 @@ if (args.Length == 2 && args[0] == "domain")
     return;
 }
 
-var source = args.FirstOrDefault();
-
-
-using var sourceClient = SourceFactory.CreateClient(source);
+using var sourceClient = SourceFactory.CreateClient(args);
 Console.WriteLine("Start syncing source " + sourceClient.Source);
+var indexName = Helpers.GenerateValidIndexName(sourceClient.Source);
 
 var records = sourceClient.Get(cancelSource.Token);
-var indexName = await elasticClient.IndexBulk(records, sourceClient.Source, sourceClient.CompletionFields, cancelSource.Token);
+await elasticClient.IndexBulk(records, sourceClient.Source, indexName, sourceClient.CompletionFields, cancelSource.Token);
 await enterpriseClient.AddIndexEngineAsync(indexName, cancelSource.Token);
 Console.WriteLine("Finished indexing source " + sourceClient.Source);
