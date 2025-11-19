@@ -1,89 +1,112 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Extern.ElasticSearch
 {
+    /// <summary>
+    /// Elasticsearch proxy controller with request and response body transformation
+    /// </summary>
     [Route("api/elasticsearch")]
     [ApiController]
     public class ElasticsearchController : ControllerBase
     {
-        private readonly string _elasticsearchBaseUrl;
-        private readonly string _kennisbankRole;
         private readonly IHttpClientFactory _httpClientFactory;
-        public ElasticsearchController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+
+        private readonly string _elasticsearchBaseUrl;
+        private readonly string _elasticsearchUsername;
+        private readonly string _elasticsearchPassword;
+
+        public ElasticsearchController(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
-            _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? "";
-            _kennisbankRole = configuration["OIDC_KENNISBANK_ROLE"] ?? "Kennisbank";
-        }
 
+            // Load configuration
+            _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
+            _elasticsearchUsername = configuration["ELASTIC_USERNAME"] ?? throw new InvalidOperationException("ELASTIC_USERNAME not configured");
+            _elasticsearchPassword = configuration["ELASTIC_PASSWORD"] ?? throw new InvalidOperationException("ELASTIC_PASSWORD not configured");
+        }
 
         [HttpPost("{index}/_search")]
         [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
-        public async Task<ActionResult> Search([FromRoute] string index)
+        public async Task<IActionResult> Search([FromRoute] string index)
         {
-            try
-            {   
-                // Get the body from the request and change it to JSON.
+            var cancellationToken = Request.HttpContext.RequestAborted;
 
+            try
+            {
+                // Read and parse request body
                 string requestBody;
-                var cancellationToken = Request.HttpContext.RequestAborted;
-                
                 using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
                 {
                     requestBody = await reader.ReadToEndAsync();
                 }
 
-                JsonObject? query;
+                if (string.IsNullOrWhiteSpace(requestBody))
+                {
+                    return BadRequest(new { error = "Request body cannot be empty" });
+                }
+
+                JsonObject? elasticqQuery;
                 try
                 {
                     var queryNode = JsonNode.Parse(requestBody);
-                    query = queryNode as JsonObject;
-                    // do some refactoring to the JSON body
+                    elasticqQuery = queryNode as JsonObject;
+
+                    if (elasticqQuery == null)
+                    {
+                        return BadRequest(new { error = "Invalid query format: expected JSON object" });
+                    }
                 }
-                catch (Exception error)
+                catch (JsonException ex)
                 {
-                    //do something
+                    return BadRequest(new { error = "Invalid JSON in request body" });
                 }
 
-                // Create an HTTPClient that will be used to forward the request.
+                // Transform request (apply role-based filtering)
 
-                var client = _httpClientFactory.CreateClient("elasticsearch");
-                var esResponse = await client.PostAsync($"{_elasticsearchBaseUrl}/{index}/_search", new StringContent(requestBody, Encoding.UTF8, "application/json"), cancellationToken);
+                // Forward request to Elasticsearch
+                var modifiedRequestBody = elasticqQuery.ToJsonString();
 
-                // Now setup the response that goes back to the frontend to be similar to the Elasticsearch response.
-
-                Response.StatusCode = (int)esResponse.StatusCode;
-
-                // Copy RESPONSE headers
-                foreach (var header in esResponse.Headers)
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_elasticsearchBaseUrl}/{index}/_search")
                 {
-                    // Skip transfer-encoding header as it indicates the content will be 'chunked',
-                    // and that does not lineup with the way we create our response.
-                    if (header.Key.Equals("transfer-encoding", StringComparison.OrdinalIgnoreCase)) continue;
+                    Content = new StringContent(modifiedRequestBody, Encoding.UTF8, "application/json")
+                };
 
-                    Response.Headers[header.Key] = header.Value.ToArray();
-                }
 
-                // Copy CONTENT headers
-                foreach (var header in esResponse.Content.Headers)
+                // Send request
+                var client = _httpClientFactory.CreateClient();
+                var esResponse = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
+
+                // Read response body
+                var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+
+                // Transform response (if needed)
+
+                // Return transformed response
+                return new ContentResult
                 {
-                    Response.Headers[header.Key] = header.Value.ToArray();
-                }
-
-                // Stream response back to client
-                await esResponse.Content.CopyToAsync(Response.Body, cancellationToken);
-
-                return new EmptyResult();
+                    Content = "something",
+                    ContentType = "application/json",
+                    StatusCode = (int)esResponse.StatusCode
+                };
+            }
+            catch (HttpRequestException ex)
+            {
+                return StatusCode(502, new { error = "Error connecting to search service" });
             }
             catch (Exception ex)
             {
-                // do something
-                return StatusCode(502, new { error = "Error connecting to search service" });
+                return StatusCode(500, new { error = "An unexpected error occurred" });
             }
         }
+
+
     }
 }
 
