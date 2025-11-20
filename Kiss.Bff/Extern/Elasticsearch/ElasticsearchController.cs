@@ -141,14 +141,14 @@ namespace Kiss.Bff.Extern.ElasticSearch
             {
                 query["_source"] = new JsonObject
                 {
-                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*."+fieldName))])
+                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))])
                 };
             }
             else if (query["_source"] is JsonObject sourceObj)
             {
                 if (!sourceObj.ContainsKey("excludes"))
                 {
-                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*."+fieldName))]);
+                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))]);
                 }
                 else if (sourceObj["excludes"] is JsonArray existingExcludes)
                 {
@@ -165,14 +165,88 @@ namespace Kiss.Bff.Extern.ElasticSearch
         }
 
         /// <summary>
-        /// Transform the response body if needed
-        /// Currently passes through unchanged, but can be extended for response filtering
+        /// Transform the response body by removing excluded fields from the search results
+        /// Filters out any restricted fields for Kennisbank users
         /// </summary>
         private string ApplyResponseTransform(string responseBody)
         {
-            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
-            // For now, just pass through
-            return responseBody;
+            // Check if user is Kennisbank
+            var isKennisbank = User?.IsInRole(_kennisbankRole) ?? false;
+
+            if (!isKennisbank || _excludedFieldsForKennisbank.Length == 0)
+            {
+                return responseBody; // No transformation needed
+            }
+
+            try
+            {
+                // Parse response JSON
+                var responseNode = JsonNode.Parse(responseBody);
+                if (responseNode is not JsonObject response)
+                {
+                    return responseBody; // Invalid format, return as-is
+                }
+
+                // Navigate to hits.hits array
+                if (response["hits"]?["hits"] is not JsonArray hitsArray)
+                {
+                    return responseBody; // No hits to filter
+                }
+
+                // Process each hit
+                foreach (var hitNode in hitsArray)
+                {
+                    if (hitNode is not JsonObject hit)
+                        continue;
+
+                    // Get the _source object
+                    if (hit["_source"] is not JsonObject source)
+                        continue;
+
+                    // Remove excluded fields from _source
+                    RemoveExcludedFields(source, _excludedFieldsForKennisbank);
+
+                }
+
+                // Serialize back to JSON
+                return response.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to transform Elasticsearch response");
+                return responseBody; // Return original on error
+            }
+        }
+
+        /// <summary>
+        /// Recursively remove excluded fields from a JSON object
+        /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.toelichting, etc.
+        /// </summary>
+        private static void RemoveExcludedFields(JsonObject obj, string[] excludedFields)
+        {
+            foreach (var fieldName in excludedFields)
+            {
+                // Remove this field recursively from all objects
+                RemoveFieldRecursively(obj, fieldName);
+            }
+        }
+
+        /// <summary>
+        /// Recursively remove a field with the given name from all objects
+        /// </summary>
+        private static void RemoveFieldRecursively(JsonNode? node, string fieldName)
+        {
+            if (node is JsonObject obj)
+            {
+                // Remove the field if it exists
+                obj.Remove(fieldName);
+
+                // Recursively process all child objects
+                foreach (var property in obj.ToList()) // ToList to avoid modification during iteration
+                {
+                    RemoveFieldRecursively(property.Value, fieldName);
+                }
+            }
         }
 
         /// <summary>
