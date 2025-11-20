@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Kiss.Bff.Beheer.Verwerking.VerwerkingMiddleware;
 
 namespace Kiss.Bff.Extern.ElasticSearch
 {
@@ -20,6 +19,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private readonly string _elasticsearchBaseUrl;
         private readonly string _elasticsearchUsername;
         private readonly string _elasticsearchPassword;
+        private readonly string[] _excludedFieldsForKennisbank;
+        private readonly string _kennisbankRole;
         private readonly ILogger<ElasticsearchController> _logger;
 
         public ElasticsearchController(
@@ -33,7 +34,12 @@ namespace Kiss.Bff.Extern.ElasticSearch
             _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
             _elasticsearchUsername = configuration["ELASTIC_USERNAME"] ?? throw new InvalidOperationException("ELASTIC_USERNAME not configured");
             _elasticsearchPassword = configuration["ELASTIC_PASSWORD"] ?? throw new InvalidOperationException("ELASTIC_PASSWORD not configured");
+            _kennisbankRole = configuration["OIDC_KENNISBANK_ROLE"] ?? "Kennisbank";
             _logger = logger;
+            var excludedFields = configuration["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"];
+            _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields)
+                ? []
+                : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
         [HttpPost("{index}/_search")]
@@ -122,7 +128,40 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
+            // Check if user is Kennisbank
+            var isKennisbank = User?.IsInRole(_kennisbankRole) ?? false;
+
+            if (!isKennisbank || _excludedFieldsForKennisbank.Length == 0)
+            {
+                return; // No transformation needed
+            }
+
+            // Add _source.excludes to query
+            if (!query.ContainsKey("_source"))
+            {
+                query["_source"] = new JsonObject
+                {
+                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*."+fieldName))])
+                };
+            }
+            else if (query["_source"] is JsonObject sourceObj)
+            {
+                if (!sourceObj.ContainsKey("excludes"))
+                {
+                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*."+fieldName))]);
+                }
+                else if (sourceObj["excludes"] is JsonArray existingExcludes)
+                {
+                    // Merge with existing excludes
+                    foreach (var field in _excludedFieldsForKennisbank)
+                    {
+                        if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
+                        {
+                            existingExcludes.Add(JsonValue.Create(field));
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
