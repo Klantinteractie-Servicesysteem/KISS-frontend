@@ -1,5 +1,4 @@
-﻿
-using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
+﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
@@ -85,14 +84,27 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").First.ClickAsync();
+                .Locator("input[type='search']").ClickAsync();
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
+                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
+                .Locator("input[type='search']").ClickAsync();
+            // Always select "Wegenverkeerswet, ontheffing - afdelingNaam" if present, else fallback to "Wegenverkeerswet, ontheffing"
+            var vraag2ListItems = await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .Locator("ul[role='listbox'] li").AllTextContentsAsync();
+            if (vraag2ListItems.Any(x => x.Trim() == "Wegenverkeerswet, ontheffing - afdelingNaam"))
+            {
+                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                    .GetByText("Wegenverkeerswet, ontheffing - afdelingNaam", new() { Exact = true }).ClickAsync();
+            }
+            else
+            {
+                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                    .GetByText("Wegenverkeerswet, ontheffing", new() { Exact = true }).ClickAsync();
+            }
 
             await Step("And clicks on Opslaan button");
 
@@ -198,14 +210,27 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").First.ClickAsync();
+                .Locator("input[type='search']").ClickAsync();
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
+                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-            .Locator("input[type='search']").ClickAsync();
-            await Page.GetByText("Parkeren").Nth(0).ClickAsync();
+                .Locator("input[type='search']").ClickAsync();
+            // Always select "Wegenverkeerswet, ontheffing - afdelingNaam" if present, else fallback to "Wegenverkeerswet, ontheffing"
+            var vraag2ListItems = await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .Locator("ul[role='listbox'] li").AllTextContentsAsync();
+            if (vraag2ListItems.Any(x => x.Trim() == "Wegenverkeerswet, ontheffing - afdelingNaam"))
+            {
+                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                    .GetByText("Wegenverkeerswet, ontheffing - afdelingNaam", new() { Exact = true }).ClickAsync();
+            }
+            else
+            {
+                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                    .GetByText("Wegenverkeerswet, ontheffing", new() { Exact = true }).ClickAsync();
+            }
 
             await Step("And clicks on Opslaan button");
 
@@ -238,7 +263,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.Company_KvknummerSearchButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("user is navigated to Bedrijfinformatie page of Prijsknaller B.V.");
+            await Step("user is navigated to Bedrijfsinformatie page of Prijsknaller B.V.");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactmoment tab to view the created contact moment");
@@ -282,15 +307,15 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
-            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").ClickAsync();
-            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").ClickAsync();
+            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
+            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
 
             await Step("return to search and click on second result");
 
             await Page.GetByRole(AriaRole.Combobox).ClickAsync();
             await Page.GetByRole(AriaRole.Combobox).FillAsync("het");
-            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").ClickAsync();
-            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").ClickAsync();
+            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
+            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
 
             await Step("When user enters “test vraag 1 in Notitieblok");
 
@@ -309,8 +334,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
-            await Page.GetByText("De boom van de buren is veel").Nth(0).ClickAsync();
-            await Page.GetByText("De boom van de buren is veel").ClickAsync();
+            await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
+            await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
 
             await Step("When user enters “test vraag 2 in Notitieblok");
 
@@ -703,3 +728,4 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
     }
 }
+// No changes needed here. To revert changes for AfhandelingFormScenarios.cs, use git or restore the previous version of that file.
