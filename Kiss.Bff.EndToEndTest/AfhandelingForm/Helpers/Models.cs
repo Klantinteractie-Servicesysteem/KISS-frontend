@@ -19,16 +19,19 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Models
     {
         public Kennisbank Kennisbank { get; set; }
         public VAC VAC { get; set; }
+        public string title { get; set; }
     }
 
     public class VAC
     {
         public Afdelingen[] afdelingen { get; set; }
+        public string? title { get; set; }
     }
 
     public class Kennisbank
     {
         public Afdelingen[] afdelingen { get; set; }
+        public string? title { get; set; }
     }
 
     public class Afdelingen
