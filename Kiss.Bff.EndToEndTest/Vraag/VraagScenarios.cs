@@ -92,19 +92,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
                 .Locator("input[type='search']").ClickAsync();
-            // Always select "Wegenverkeerswet, ontheffing - afdelingNaam" if present, else fallback to "Wegenverkeerswet, ontheffing"
-            var vraag2ListItems = await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("ul[role='listbox'] li").AllTextContentsAsync();
-            if (vraag2ListItems.Any(x => x.Trim() == "Wegenverkeerswet, ontheffing - afdelingNaam"))
-            {
-                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                    .GetByText("Wegenverkeerswet, ontheffing - afdelingNaam", new() { Exact = true }).ClickAsync();
-            }
-            else
-            {
-                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                    .GetByText("Wegenverkeerswet, ontheffing", new() { Exact = true }).ClickAsync();
-            }
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
@@ -218,19 +207,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
                 .Locator("input[type='search']").ClickAsync();
-            // Always select "Wegenverkeerswet, ontheffing - afdelingNaam" if present, else fallback to "Wegenverkeerswet, ontheffing"
-            var vraag2ListItems = await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("ul[role='listbox'] li").AllTextContentsAsync();
-            if (vraag2ListItems.Any(x => x.Trim() == "Wegenverkeerswet, ontheffing - afdelingNaam"))
-            {
-                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                    .GetByText("Wegenverkeerswet, ontheffing - afdelingNaam", new() { Exact = true }).ClickAsync();
-            }
-            else
-            {
-                await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                    .GetByText("Wegenverkeerswet, ontheffing", new() { Exact = true }).ClickAsync();
-            }
+            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
+                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And clicks on Opslaan button");
 
