@@ -90,7 +90,12 @@ const fetchZakenForSingleSysteem = async (
   const baseQuery = new URLSearchParams([["ordering", "-startdatum"]]);
 
   if (isVestigingIdentifier(id)) {
-    return fetchZakenByVestiging(systeem, baseQuery, id.vestigingsnummer);
+    return fetchZakenByVestiging(
+      systeem,
+      baseQuery,
+      id.vestigingsnummer,
+      id.kvkNummer,
+    );
   }
 
   if (isNietNatuurlijkPersoonIdentifier(id)) {
@@ -113,17 +118,91 @@ const isNietNatuurlijkPersoonIdentifier = (
   return "rsin" in id && !!id.rsin && !!id.kvkNummer;
 };
 
-const fetchZakenByVestiging = (
+const fetchZakenByVestiging = async (
   systeem: Systeem,
   baseQuery: URLSearchParams,
   vestigingsnummer: string,
+  kvkNummer: string,
 ): Promise<ZaakDetails[]> => {
-  const query = new URLSearchParams(baseQuery);
-  query.set(
+  const zaken = (
+    await fetchZakenByMultipleVestigingQueries(
+      systeem,
+      baseQuery,
+      vestigingsnummer,
+      kvkNummer,
+    )
+  ).flat();
+
+  // filter duplicates
+  const uniqueZaken = filterDuplicateZakenByUuid(zaken);
+
+  // filter by business rules
+  const filteredZaken = filterVestigingResultZaken(
+    uniqueZaken,
+    vestigingsnummer,
+    kvkNummer,
+  );
+
+  return filteredZaken;
+};
+
+const fetchZakenByMultipleVestigingQueries = async (
+  systeem: Systeem,
+  baseQuery: URLSearchParams,
+  vestigingsnummer: string,
+  kvkNummer: string,
+): Promise<[ZaakDetails[] | null, ZaakDetails[] | null]> => {
+  const vestigingQuery = new URLSearchParams(baseQuery);
+  vestigingQuery.set(
     "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
     vestigingsnummer,
   );
-  return fetchZaakOverview(systeem, query);
+
+  const nnpQuery = new URLSearchParams(baseQuery);
+  nnpQuery.set(
+    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__vestigingsNummer",
+    vestigingsnummer,
+  );
+
+  nnpQuery.set(
+    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
+    kvkNummer,
+  );
+
+  // This call can create expected bad http requests
+  // So wrap each individual fetch to deal with expected exceptions
+  return Promise.all([
+    handleExpectedError(fetchZaakOverview(systeem, vestigingQuery)),
+    handleExpectedError(fetchZaakOverview(systeem, nnpQuery)),
+  ]);
+};
+
+const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
+  try {
+    return await promise;
+  } catch (error) {
+    if (error instanceof ResponseError && error.response.status === 400) {
+      // ignore this kind of http responses
+      return null;
+    }
+    // For all other errors, re-throw to be caught
+    throw error;
+  }
+};
+
+const filterDuplicateZakenByUuid = (
+  zaken: (ZaakDetails | null)[],
+): ZaakDetails[] => {
+  const seenUuids = new Set<string>();
+
+  return zaken.filter((zaak): zaak is ZaakDetails => {
+    if (!zaak) return false;
+    if (seenUuids.has(zaak.uuid)) {
+      return false;
+    }
+    seenUuids.add(zaak.uuid);
+    return true;
+  });
 };
 
 const fetchZakenByNietNatuurlijkPersoon = async (
@@ -131,21 +210,50 @@ const fetchZakenByNietNatuurlijkPersoon = async (
   baseQuery: URLSearchParams,
   id: ZaakBedrijfIdentifier & { rsin: string; kvkNummer: string },
 ): Promise<ZaakDetails[]> => {
-  const [zakenByRsin, zakenByInnNnpKvk, zakenByKvkNummer] =
-    await fetchZakenByMultipleNnpQueries(systeem, baseQuery, id);
+  const zaken = (
+    await fetchZakenByMultipleNnpQueries(systeem, baseQuery, id)
+  ).flat();
 
-  const filteredKvkResults = zakenByKvkNummer
-    ? await filterKvkResultZaken(zakenByKvkNummer, id, systeem, [
-        zakenByRsin,
-        zakenByInnNnpKvk,
-      ])
-    : [];
+  // filter duplicates
+  const uniqueZaken = filterDuplicateZakenByUuid(zaken);
 
-  return [
-    ...(zakenByRsin ?? []),
-    ...(zakenByInnNnpKvk ?? []),
-    ...filteredKvkResults,
-  ];
+  // filter by business rules
+  const filteredZaken = filterNnpResultZaken(uniqueZaken, id);
+
+  return filteredZaken;
+};
+
+const filterVestigingResultZaken = (
+  zaken: ZaakDetails[],
+  vestigingsnummer: string,
+  kvkNummer: string,
+): ZaakDetails[] => {
+  return zaken.filter((zaak) => {
+    const matchingRoles = zaak.rollen.filter(({ betrokkeneIdentificatie }) => {
+      if (!betrokkeneIdentificatie) return false;
+
+      // ignore if it is not a vestiging OR if it is not the vestiging we're looking for
+      if (
+        !("vestigingsNummer" in betrokkeneIdentificatie) ||
+        betrokkeneIdentificatie.vestigingsNummer !== vestigingsnummer
+      )
+        return false;
+
+      if (
+        // ignore if it has a kvkNummer AND
+        "kvkNummer" in betrokkeneIdentificatie &&
+        betrokkeneIdentificatie.kvkNummer &&
+        // the kvkNummer is of another company
+        betrokkeneIdentificatie.kvkNummer !== kvkNummer
+      )
+        return false;
+      // otherwise it is a match
+      return true;
+    });
+
+    const zaakIsForTheRightCompany = matchingRoles.length > 0;
+    return zaakIsForTheRightCompany;
+  });
 };
 
 const fetchZakenByMultipleNnpQueries = async (
@@ -182,80 +290,47 @@ const fetchZakenByMultipleNnpQueries = async (
   ]);
 };
 
-const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
-  try {
-    return await promise;
-  } catch (error) {
-    if (error instanceof ResponseError && error.response.status === 400) {
-      // ignore this kind of http responses
-      return null;
-    }
-    // For all other errors, re-throw to be caught
-    throw error;
-  }
-};
-
-const filterKvkResultZaken = async (
+const filterNnpResultZaken = (
   zaken: ZaakDetails[],
   id: ZaakBedrijfIdentifier,
-  systeem: Systeem,
-  existingResults: (ZaakDetails[] | null)[],
-): Promise<ZaakDetails[]> => {
-  const filteredByCompany = await Promise.all(
-    zaken.map(async (zaak) => {
-      const matchingRoles = zaak.rollen.filter(
-        ({ betrokkeneIdentificatie }) => {
-          if (!betrokkeneIdentificatie) return false;
+): ZaakDetails[] => {
+  return zaken.filter((zaak) => {
+    const matchingRoles = zaak.rollen.filter(({ betrokkeneIdentificatie }) => {
+      if (!betrokkeneIdentificatie) return false;
 
-          // ignore if it is a vestiging
-          if (
-            "vestigingsNummer" in betrokkeneIdentificatie &&
-            betrokkeneIdentificatie.vestigingsNummer
-          )
-            return false;
+      // ignore if it is a vestiging
+      if (
+        "vestigingsNummer" in betrokkeneIdentificatie &&
+        betrokkeneIdentificatie.vestigingsNummer
+      )
+        return false;
 
-          if (
-            // ignore if it has a kvkNummer AND
-            "kvkNummer" in betrokkeneIdentificatie &&
-            betrokkeneIdentificatie.kvkNummer &&
-            // the kvkNummer is of another company
-            betrokkeneIdentificatie.kvkNummer !== id.kvkNummer
-          )
-            return false;
+      if (
+        // ignore if it has a kvkNummer AND
+        "kvkNummer" in betrokkeneIdentificatie &&
+        betrokkeneIdentificatie.kvkNummer &&
+        // the kvkNummer is of another company
+        betrokkeneIdentificatie.kvkNummer !== id.kvkNummer
+      )
+        return false;
 
-          if (
-            // ignore if it has a innNnpId AND
-            "innNnpId" in betrokkeneIdentificatie &&
-            betrokkeneIdentificatie.innNnpId &&
-            // the value doesn't match our kvkNummer AND
-            betrokkeneIdentificatie.innNnpId !== id.kvkNummer &&
-            // the value doesn't match our rsin
-            betrokkeneIdentificatie.innNnpId !== id.rsin
-          )
-            return false;
+      if (
+        // ignore if it has a innNnpId AND
+        "innNnpId" in betrokkeneIdentificatie &&
+        betrokkeneIdentificatie.innNnpId &&
+        // the value doesn't match our kvkNummer AND
+        betrokkeneIdentificatie.innNnpId !== id.kvkNummer &&
+        // the value doesn't match our rsin
+        betrokkeneIdentificatie.innNnpId !== id.rsin
+      )
+        return false;
 
-          // otherwise it is a match
-          return true;
-        },
-      );
+      // otherwise it is a match
+      return true;
+    });
 
-      const zaakIsForTheRightCompany = matchingRoles.length > 0;
-      return zaakIsForTheRightCompany ? zaak : null;
-    }),
-  );
-
-  // Filter out nulls and duplicates that are already in existingResults
-  return filteredByCompany.filter((kvkZaak): kvkZaak is ZaakDetails => {
-    if (!kvkZaak) return false;
-
-    // Check if already in any of the existing results
-    return !existingResults.some(
-      (existingResult) =>
-        existingResult &&
-        existingResult.some(
-          (existingZaak) => existingZaak.uuid === kvkZaak.uuid,
-        ),
-    );
+    const zaakIsForTheRightCompany = matchingRoles.length > 0;
+    return zaakIsForTheRightCompany;
   });
 };
 
