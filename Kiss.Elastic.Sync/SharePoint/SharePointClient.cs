@@ -4,7 +4,9 @@ using AngleSharp.Dom;
 using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Serialization;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
@@ -13,6 +15,12 @@ namespace Kiss.Elastic.Sync.SharePoint
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
         private readonly IBrowsingContext _context;
+        
+        // this is the same error mapping that is used by the GraphServiceClient internally 
+        private static readonly Dictionary<string, ParsableFactory<IParsable>> s_errorMapping = new()
+        {
+            ["XXX"] = ODataError.CreateFromDiscriminatorValue,
+        };
 
         public SharePointClient(string tenantId, string clientId, string clientSecret, string siteUrl)
         {
@@ -33,16 +41,40 @@ namespace Kiss.Elastic.Sync.SharePoint
         public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
             // Check site via Graph API lookup (Guid is necessary to retrieve pages and subsites)
-            var rootSite = await _graphClient.Sites[_siteIdentifier].GetAsync(cancellationToken: token);
-            if (rootSite == null)
+            var startingSite = await _graphClient.Sites[_siteIdentifier].GetAsync(
+                x=> x.QueryParameters.Select = [
+                    // we need the id to get all pages for the site
+                    "id", 
+                    // we need the sharePointIds to get related sites if the starting site is a hub
+                    "sharepointIds", 
+                    // we need the parentReference to see if the starting site is a sub site
+                    "parentReference"
+                ],
+                token);
+            
+            if (startingSite == null)
             {
                 yield break;
             }
-            // Retrieve all subsites, this includes the root site as well
-            await foreach (var subSite in GetAllSitesRecursive(rootSite, token))
+            
+            // Retrieve all pages that are directly in the starting site
+            await foreach (var page in GetAllPages(startingSite, token))
             {
-                // Retrieve all pages for each subsite
-                await foreach (var page in GetAllPages(subSite, token))
+                yield return page;
+            }
+
+            Func<Site, CancellationToken, IAsyncEnumerable<Site>> getAllSites = IsSubsite(startingSite)
+                // a subsite can never be a hub site, so we MUST ONLY look for nested subsites
+                ? GetAllSubSitesRecursive 
+                // a root site can be a hub site. the method below returns all linked sites and all (nested) subsites
+                // we should never call this method if the starting site is a subsite, because then it includes it's parent(s)
+                : GetAllLinkedSites;
+
+            // loop through all the related / subsites
+            await foreach (var site in getAllSites(startingSite, token))
+            {
+                // Retrieve all pages for each related / subsite
+                await foreach (var page in GetAllPages(site, token))
                 {
                     yield return page;
                 }
@@ -69,28 +101,54 @@ namespace Kiss.Elastic.Sync.SharePoint
             return (allContent, allHeadings);
         }
 
-        /// <summary>
-        /// Enumerates the specified site and all of its descendant sub-sites recursively.
-        /// </summary>
-        /// <remarks>Enumeration is performed in a depth-first manner. The returned sequence includes the
-        /// root site as the first element, followed by all sub-sites recursively. If cancellation is requested via
-        /// <paramref name="token"/>, the enumeration will be stopped.</remarks>
-        /// <param name="root">The root <see cref="Site"/> from which to begin the recursive enumeration. Cannot be null.</param>
-        /// <param name="token">A cancellation token that can be used to cancel the asynchronous enumeration.</param>
-        /// <returns>An asynchronous sequence of <see cref="Site"/> objects, including the root site and all sub-sites in the
-        /// hierarchy.</returns>
-        private async IAsyncEnumerable<Site> GetAllSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
+        private static bool IsSubsite(Site site) =>
+            !string.IsNullOrWhiteSpace(site?.ParentReference?.SiteId);
+
+        private async IAsyncEnumerable<Site> GetAllLinkedSites(Site rootSite, [EnumeratorCancellation] CancellationToken token)
         {
-            yield return root;
+            if (!Guid.TryParse(rootSite.SharepointIds?.SiteId, out var siteId))
+            {
+                yield break;
+            }
+            
+            var requestInfo = _graphClient.Sites.ToGetRequestInformation(x =>
+            {
+                x.QueryParameters.Select = ["id"];
+            });
+            
+            // prepend the url template with the `search` query parameter.
+            // NB: this is NOT the `$search` odata parameter
+            requestInfo.UrlTemplate = requestInfo.UrlTemplate?.Replace("{?", "{?search,");
+            // fill in the `search` query parameter. DepartmentId is a legacy field,
+            // but it's the only way to get the sites that are linked to a hub site.
+            requestInfo.QueryParameters.Add("search", $"DepartmentId:{{{siteId}}}");
+            
+            var firstPage = _graphClient.RequestAdapter.SendAsync(
+                requestInfo,
+                SiteCollectionResponse.CreateFromDiscriminatorValue, 
+                s_errorMapping, 
+                token);
+
+            await foreach (var site in IterateAllEntities(firstPage, x => x.Value, token))
+            {
+                // this query also returns the root site, we don't want that
+                if(site.Id == rootSite.Id) continue;
+                yield return site;
+            }
+        }
+        
+        private async IAsyncEnumerable<Site> GetAllSubSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
+        {
             await foreach (var site in GetAllSubSites(root, token))
             {
-                await foreach (var subSite in GetAllSitesRecursive(site, token))
+                yield return site;
+                await foreach (var subSite in GetAllSubSitesRecursive(site, token))
                 {
                     yield return subSite;
                 }
             }
         }
-
+        
         private IAsyncEnumerable<Site> GetAllSubSites(Site root, CancellationToken token)
         {
             var firstPage = _graphClient.Sites[root.Id]
@@ -156,7 +214,11 @@ namespace Kiss.Elastic.Sync.SharePoint
                     UrlTemplate = response.OdataNextLink,
                 };
                 // Retrieve the next page
-                response = await _graphClient.RequestAdapter.SendAsync<TCollection>(requestInfo, (_) => new(), cancellationToken: token);
+                response = await _graphClient.RequestAdapter.SendAsync<TCollection>(
+                    requestInfo, 
+                    (_) => new(),
+                    s_errorMapping,
+                    token);
             }
         }
 
