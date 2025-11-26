@@ -152,7 +152,7 @@ const fetchZakenByMultipleVestigingQueries = async (
   vestigingsnummer: string,
   kvkNummer: string,
 ): Promise<ZaakDetails[][]> => {
-  const promises = [];
+  const queries = [];
 
   if (systeem.registryVersion === registryVersions.ok2) {
     const nnpQuery = new URLSearchParams(baseQuery);
@@ -166,7 +166,7 @@ const fetchZakenByMultipleVestigingQueries = async (
       kvkNummer,
     );
 
-    promises.push(handleExpectedError(fetchZaakOverview(systeem, nnpQuery)));
+    queries.push(nnpQuery);
   }
 
   const vestigingQuery = new URLSearchParams(baseQuery);
@@ -175,13 +175,13 @@ const fetchZakenByMultipleVestigingQueries = async (
     vestigingsnummer,
   );
 
-  promises.push(
-    handleExpectedError(fetchZaakOverview(systeem, vestigingQuery)),
-  );
+  queries.push(vestigingQuery);
 
   // This call can create expected bad http requests
   // So wrap each individual fetch to deal with expected exceptions
-  return Promise.all(promises);
+  return Promise.all(
+    queries.map((q) => fetchZaakOverview(systeem, q)).map(handleExpectedError),
+  );
 };
 
 const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
@@ -268,7 +268,7 @@ const fetchZakenByMultipleNnpQueries = async (
   baseQuery: URLSearchParams,
   id: { rsin: string; kvkNummer: string },
 ): Promise<ZaakDetails[][]> => {
-  const promises = [];
+  const queries = [];
 
   if (systeem.registryVersion === registryVersions.ok2) {
     const kvkQuery = new URLSearchParams(baseQuery);
@@ -276,7 +276,7 @@ const fetchZakenByMultipleNnpQueries = async (
       "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
       id.kvkNummer,
     );
-    promises.push(handleExpectedError(fetchZaakOverview(systeem, kvkQuery)));
+    queries.push(kvkQuery);
   }
 
   const rsinQuery = new URLSearchParams(baseQuery);
@@ -285,7 +285,7 @@ const fetchZakenByMultipleNnpQueries = async (
     id.rsin,
   );
 
-  promises.push(handleExpectedError(fetchZaakOverview(systeem, rsinQuery)));
+  queries.push(rsinQuery);
 
   const innNnpKvkQuery = new URLSearchParams(baseQuery);
   innNnpKvkQuery.set(
@@ -293,13 +293,13 @@ const fetchZakenByMultipleNnpQueries = async (
     id.kvkNummer,
   );
 
-  promises.push(
-    handleExpectedError(fetchZaakOverview(systeem, innNnpKvkQuery)),
-  );
+  queries.push(innNnpKvkQuery);
 
   // This call can create expected bad http requests
   // So wrap each individual fetch to deal with expected exceptions
-  return Promise.all(promises);
+  return Promise.all(
+    queries.map((q) => fetchZaakOverview(systeem, q)).map(handleExpectedError),
+  );
 };
 
 const filterNnpResultZaken = (
