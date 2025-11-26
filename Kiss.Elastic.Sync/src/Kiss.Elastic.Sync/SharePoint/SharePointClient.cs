@@ -15,8 +15,9 @@ namespace Kiss.Elastic.Sync.SharePoint
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
         private readonly IBrowsingContext _context;
-        
-        // this is the same error mapping that is used by the GraphServiceClient internally 
+
+        // This is the same error mapping that is used by the GraphServiceClient internally.
+        // Keys typically map HTTP ranges ("4XX", "5XX") to a factory that can deserialize error payloads.
         private static readonly Dictionary<string, ParsableFactory<IParsable>> s_errorMapping = new()
         {
             ["XXX"] = ODataError.CreateFromDiscriminatorValue,
@@ -42,7 +43,7 @@ namespace Kiss.Elastic.Sync.SharePoint
         {
             // Check site via Graph API lookup (Guid is necessary to retrieve pages and subsites)
             var startingSite = await _graphClient.Sites[_siteIdentifier].GetAsync(
-                x=> x.QueryParameters.Select = [
+                x => x.QueryParameters.Select = [
                     // we need the id to get all pages for the site
                     "id", 
                     // we need the sharePointIds to get related sites if the starting site is a hub
@@ -51,12 +52,12 @@ namespace Kiss.Elastic.Sync.SharePoint
                     "parentReference"
                 ],
                 token);
-            
+
             if (startingSite == null)
             {
                 yield break;
             }
-            
+
             // Retrieve all pages that are directly in the starting site
             await foreach (var page in GetAllPages(startingSite, token))
             {
@@ -64,11 +65,19 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
 
             Func<Site, CancellationToken, IAsyncEnumerable<Site>> getAllSites = IsSubsite(startingSite)
-                // a subsite can never be a hub site, so we MUST ONLY look for nested subsites
-                ? GetAllSubSitesRecursive 
-                // a root site can be a hub site. the method below returns all linked sites and all (nested) subsites
-                // we should never call this method if the starting site is a subsite, because then it includes it's parent(s)
-                : GetAllLinkedSites;
+                // If the starting site is a **subsite**, it cannot be a hub site.
+                // Therefore, the only valid related sites are its own nested subsites.
+                // IMPORTANT: We **must not** use GetAllHubRelatedSitesAndSubSites here, because hub-site
+                // discovery would incorrectly traverse *upwards* to parent sites
+                ? GetAllSubSitesRecursive
+                // If the starting site is a **root site**, it may be a hub site.
+                // GetAllHubRelatedSitesAndSubSites returns:
+                //   - all hub-associated sites (if the root is a hub), AND
+                //   - all (nested) subsites of those sites.
+                // IMPORTANT: This method must only be used when starting from a root site,
+                // because calling it for subsites would also include their parent sites,
+                // which is not desired.
+                : GetAllHubRelatedSitesAndSubSites;
 
             // loop through all the related / subsites
             await foreach (var site in getAllSites(startingSite, token))
@@ -104,39 +113,6 @@ namespace Kiss.Elastic.Sync.SharePoint
         private static bool IsSubsite(Site site) =>
             !string.IsNullOrWhiteSpace(site?.ParentReference?.SiteId);
 
-        private async IAsyncEnumerable<Site> GetAllLinkedSites(Site rootSite, [EnumeratorCancellation] CancellationToken token)
-        {
-            if (!Guid.TryParse(rootSite.SharepointIds?.SiteId, out var siteId))
-            {
-                yield break;
-            }
-            
-            var requestInfo = _graphClient.Sites.ToGetRequestInformation(x =>
-            {
-                x.QueryParameters.Select = ["id"];
-            });
-            
-            // prepend the url template with the `search` query parameter.
-            // NB: this is NOT the `$search` odata parameter
-            requestInfo.UrlTemplate = requestInfo.UrlTemplate?.Replace("{?", "{?search,");
-            // fill in the `search` query parameter. DepartmentId is a legacy field,
-            // but it's the only way to get the sites that are linked to a hub site.
-            requestInfo.QueryParameters.Add("search", $"DepartmentId:{{{siteId}}}");
-            
-            var firstPage = _graphClient.RequestAdapter.SendAsync(
-                requestInfo,
-                SiteCollectionResponse.CreateFromDiscriminatorValue, 
-                s_errorMapping, 
-                token);
-
-            await foreach (var site in IterateAllEntities(firstPage, x => x.Value, token))
-            {
-                // this query also returns the root site, we don't want that
-                if(site.Id == rootSite.Id) continue;
-                yield return site;
-            }
-        }
-        
         private async IAsyncEnumerable<Site> GetAllSubSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
         {
             await foreach (var site in GetAllSubSites(root, token))
@@ -148,7 +124,47 @@ namespace Kiss.Elastic.Sync.SharePoint
                 }
             }
         }
-        
+
+        private async IAsyncEnumerable<Site> GetAllHubRelatedSitesAndSubSites(Site rootSite, [EnumeratorCancellation] CancellationToken token)
+        {
+            // Hub-related sites are discovered by searching for the hub's DepartmentId (which is its SiteId)
+            if (!Guid.TryParse(rootSite.SharepointIds?.SiteId, out var siteId))
+            {
+                yield break;
+            }
+
+            var requestInfo = _graphClient.Sites.ToGetRequestInformation(x =>
+            {
+                x.QueryParameters.Select = ["id", "sharepointIds"];
+            });
+
+            // prepend the url template with the `search` query parameter.
+            // NB: this is NOT the `$search` odata parameter
+            // we can't use the `$search` parameter directly because it doesn't allow filtering by DepartmentId
+            requestInfo.UrlTemplate = requestInfo.UrlTemplate?.Replace("{?", "{?search,");
+            requestInfo.QueryParameters.Add("search", $"DepartmentId:{{{siteId}}}");
+
+            var firstPage = _graphClient.RequestAdapter.SendAsync(
+                requestInfo,
+                SiteCollectionResponse.CreateFromDiscriminatorValue,
+                s_errorMapping,
+                token);
+
+            await foreach (var site in IterateAllEntities(firstPage, x => x.Value, token))
+            {
+                if (
+                    // this query also returns the root site, we don't want that
+                    site.Id != rootSite.Id &&
+                    // to be completely safe in case the DepartmentId query stops working as expected at some point in the futre,
+                    // we double-check that the site indeed has the correct SiteId
+                    site.SharepointIds?.SiteId == rootSite.SharepointIds.SiteId
+                    )
+                {
+                    yield return site;
+                }
+            }
+        }
+
         private IAsyncEnumerable<Site> GetAllSubSites(Site root, CancellationToken token)
         {
             var firstPage = _graphClient.Sites[root.Id]
@@ -202,21 +218,25 @@ namespace Kiss.Elastic.Sync.SharePoint
                 {
                     yield return item;
                 }
+
                 if (string.IsNullOrEmpty(response.OdataNextLink))
                 {
                     // No more pages to retrieve
                     yield break;
                 }
+
                 // Prepare request to retrieve the next page
                 var requestInfo = new RequestInformation
                 {
                     HttpMethod = Method.GET,
+                    // OdataNextLink already contains a fully-qualified URL, so we reuse it as UrlTemplate
                     UrlTemplate = response.OdataNextLink,
                 };
+
                 // Retrieve the next page
                 response = await _graphClient.RequestAdapter.SendAsync<TCollection>(
-                    requestInfo, 
-                    (_) => new(),
+                    requestInfo,
+                    _ => new(),
                     s_errorMapping,
                     token);
             }
@@ -266,6 +286,9 @@ namespace Kiss.Elastic.Sync.SharePoint
             _context.Dispose();
         }
 
+        /// <summary>
+        /// Custom formatter that turns HTML into plain-ish text while keeping some structural whitespace.
+        /// </summary>
         private class TextWithWhitespaceFormatter : IMarkupFormatter
         {
             public static readonly IMarkupFormatter Instance = new TextWithWhitespaceFormatter();
@@ -281,12 +304,16 @@ namespace Kiss.Elastic.Sync.SharePoint
 
             public string Doctype(IDocumentType doctype) => "";
 
+            // Used for <script>, <style>, etc. We trim to avoid carrying over layout noise.
             public string LiteralText(ICharacterData text) => text.Data.Trim();
 
             public string OpenTag(IElement element, bool selfClosing) => element.LocalName switch
             {
+                // Paragraph = blank line
                 "p" => "\n\n",
+                // Line break = single newline
                 "br" => "\n",
+                // Span = inline, separated by a space
                 "span" => " ",
                 _ => ""
             };
