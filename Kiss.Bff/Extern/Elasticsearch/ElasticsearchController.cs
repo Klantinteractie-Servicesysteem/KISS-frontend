@@ -137,7 +137,6 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            // If the user is Kennisbank
             if (!_isKennisbank(User) || _excludedFieldsForKennisbank.Length == 0)
             {
                 return;
