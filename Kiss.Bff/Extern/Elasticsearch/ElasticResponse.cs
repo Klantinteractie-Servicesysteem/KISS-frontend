@@ -28,7 +28,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
     public class Hit
     {
         [JsonPropertyName("_source")]
-        public JsonElement Source { get; set; }
+        public JsonObject? Source { get; set; }
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? HitsExtensionData { get; set; }
     }

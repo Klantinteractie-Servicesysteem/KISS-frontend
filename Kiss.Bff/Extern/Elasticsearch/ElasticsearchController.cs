@@ -19,13 +19,14 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private readonly string _elasticsearchUsername;
         private readonly string _elasticsearchPassword;
         private readonly string[] _excludedFieldsForKennisbank;
-        private readonly string _kennisbankRole;
         private readonly ILogger<ElasticsearchController> _logger;
+        private readonly IsKennisbank _isKennisbank;
 
         public ElasticsearchController(
             HttpClient httpClient,
             IConfiguration configuration,
-            ILogger<ElasticsearchController> logger)
+            ILogger<ElasticsearchController> logger,
+            IsKennisbank isKennisbank)
         {
             // Load configuration
             _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
@@ -35,6 +36,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(_elasticsearchBaseUrl);
             _logger = logger;
+            _isKennisbank = isKennisbank;
+
             var excludedFields = configuration["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"];
             _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields)
                 ? []
@@ -134,12 +137,10 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            // Check if user is Kennisbank
-            var isKennisbank = User?.IsInRole(_kennisbankRole) ?? false;
-
-            if (!isKennisbank || _excludedFieldsForKennisbank.Length == 0)
+            // If the user is Kennisbank
+            if (!_isKennisbank(User) || _excludedFieldsForKennisbank.Length == 0)
             {
-                return; // No transformation needed
+                return;
             }
 
             // Add _source.excludes to query
@@ -176,66 +177,38 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private string ApplyResponseTransform(ElasticResponse? responseBody)
         {
-            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
-            // For now, just pass through
+            // User has Kennisbank role and there are fields to exclude
+            if (_isKennisbank(User) && _excludedFieldsForKennisbank.Length > 0)
+            {
+                try
+                {
+                    if (responseBody?.Hits?.Hits != null)
+                    {
+                        foreach (var hit in responseBody.Hits.Hits)
+                        {
+                            if (hit.Source != null)
+                                // Remove excluded fields from _source
+                                RemoveExcludedFields(hit.Source, _excludedFieldsForKennisbank);
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Failed to transform Elasticsearch response");
+                    return JsonSerializer.Serialize(responseBody);
+                }
+            }
             return JsonSerializer.Serialize(responseBody);
-            // Check if user is Kennisbank
-            var isKennisbank = User?.IsInRole(_kennisbankRole) ?? false;
-
-            if (!isKennisbank || _excludedFieldsForKennisbank.Length == 0)
-            {
-                return responseBody; // No transformation needed
-            }
-
-            try
-            {
-                // Parse response JSON
-                var responseNode = JsonNode.Parse(responseBody);
-                if (responseNode is not JsonObject response)
-                {
-                    return responseBody; // Invalid format, return as-is
-                }
-
-                // Navigate to hits.hits array
-                if (response["hits"]?["hits"] is not JsonArray hitsArray)
-                {
-                    return responseBody; // No hits to filter
-                }
-
-                // Process each hit
-                foreach (var hitNode in hitsArray)
-                {
-                    if (hitNode is not JsonObject hit)
-                        continue;
-
-                    // Get the _source object
-                    if (hit["_source"] is not JsonObject source)
-                        continue;
-
-                    // Remove excluded fields from _source
-                    RemoveExcludedFields(source, _excludedFieldsForKennisbank);
-
-                }
-
-                // Serialize back to JSON
-                return response.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "Failed to transform Elasticsearch response");
-                return responseBody; // Return original on error
-            }
         }
 
         /// <summary>
         /// Recursively remove excluded fields from a JSON object
         /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.toelichting, etc.
         /// </summary>
-        private static void RemoveExcludedFields(JsonObject obj, string[] excludedFields)
+        private void RemoveExcludedFields(JsonNode obj, string[] excludedFields)
         {
             foreach (var fieldName in excludedFields)
             {
-                // Remove this field recursively from all objects
                 RemoveFieldRecursively(obj, fieldName);
             }
         }
@@ -243,17 +216,27 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// <summary>
         /// Recursively remove a field with the given name from all objects
         /// </summary>
-        private static void RemoveFieldRecursively(JsonNode? node, string fieldName)
+        private void RemoveFieldRecursively(JsonNode? node, string fieldName)
         {
-            if (node is JsonObject obj)
-            {
-                // Remove the field if it exists
-                obj.Remove(fieldName);
+            if (node == null) return;
 
-                // Recursively process all child objects
-                foreach (var property in obj.ToList()) // ToList to avoid modification during iteration
+            if (node is JsonObject jsonObject)
+            {
+                // Remove the field if it exists at this level
+                jsonObject.Remove(fieldName);
+
+                // Recursively process all nested objects and arrays
+                foreach (var property in jsonObject.ToList()) // ToList() to avoid modification during iteration
                 {
                     RemoveFieldRecursively(property.Value, fieldName);
+                }
+            }
+            else if (node is JsonArray jsonArray)
+            {
+                // Recursively process all array elements
+                foreach (var item in jsonArray)
+                {
+                    RemoveFieldRecursively(item, fieldName);
                 }
             }
         }
