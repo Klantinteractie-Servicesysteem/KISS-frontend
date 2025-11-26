@@ -89,7 +89,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 var esResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
                 // Read response body
-                var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+                // var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+                var responseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
 
                 // Catch any invalid statuscode here in order to add responseBody as reference to logger.
                 if (!esResponse.IsSuccessStatusCode)
@@ -134,11 +135,11 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// Transform the response body if needed
         /// Currently passes through unchanged, but can be extended for response filtering
         /// </summary>
-        private string ApplyResponseTransform(string responseBody)
+        private string ApplyResponseTransform(ElasticResponse? responseBody)
         {
             // TODO: implement code to remove any fields that are not allowed for the role the current user has.
             // For now, just pass through
-            return responseBody;
+            return JsonSerializer.Serialize(responseBody);
         }
 
         /// <summary>
