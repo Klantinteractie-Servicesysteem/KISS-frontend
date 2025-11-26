@@ -268,11 +268,24 @@ const fetchZakenByMultipleNnpQueries = async (
   baseQuery: URLSearchParams,
   id: { rsin: string; kvkNummer: string },
 ): Promise<ZaakDetails[][]> => {
+  const promises = [];
+
+  if (systeem.registryVersion === registryVersions.ok2) {
+    const kvkQuery = new URLSearchParams(baseQuery);
+    kvkQuery.set(
+      "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
+      id.kvkNummer,
+    );
+    promises.push(handleExpectedError(fetchZaakOverview(systeem, kvkQuery)));
+  }
+
   const rsinQuery = new URLSearchParams(baseQuery);
   rsinQuery.set(
     "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
     id.rsin,
   );
+
+  promises.push(handleExpectedError(fetchZaakOverview(systeem, rsinQuery)));
 
   const innNnpKvkQuery = new URLSearchParams(baseQuery);
   innNnpKvkQuery.set(
@@ -280,19 +293,13 @@ const fetchZakenByMultipleNnpQueries = async (
     id.kvkNummer,
   );
 
-  const kvkQuery = new URLSearchParams(baseQuery);
-  kvkQuery.set(
-    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
-    id.kvkNummer,
+  promises.push(
+    handleExpectedError(fetchZaakOverview(systeem, innNnpKvkQuery)),
   );
 
   // This call can create expected bad http requests
   // So wrap each individual fetch to deal with expected exceptions
-  return Promise.all([
-    handleExpectedError(fetchZaakOverview(systeem, rsinQuery)),
-    handleExpectedError(fetchZaakOverview(systeem, innNnpKvkQuery)),
-    handleExpectedError(fetchZaakOverview(systeem, kvkQuery)),
-  ]);
+  return Promise.all(promises);
 };
 
 const filterNnpResultZaken = (
