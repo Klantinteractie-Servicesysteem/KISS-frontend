@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Duende.IdentityModel;
 using Ganss.Xss;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Feedback
@@ -22,6 +23,7 @@ namespace Kiss.Bff.Feedback
         }
 
         [HttpPost("api/feedback")]
+        [Authorize(Policy = Policies.KcmOrRedactieOrKennisbankPolicy)]
         public async Task<IActionResult> Post(FeedbackModel model, CancellationToken token)
         {
             var from = _configuration["FEEDBACK_EMAIL_FROM"];

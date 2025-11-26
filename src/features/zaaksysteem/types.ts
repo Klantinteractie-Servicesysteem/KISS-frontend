@@ -10,6 +10,7 @@ export type ZaakDetails = {
   aanvrager: string;
   omschrijving: string;
   toelichting: string;
+  rollen: RolType[];
 };
 
 export interface ZaakDocument {
