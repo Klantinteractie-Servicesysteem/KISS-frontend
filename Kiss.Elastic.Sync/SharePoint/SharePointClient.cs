@@ -113,6 +113,16 @@ namespace Kiss.Elastic.Sync.SharePoint
         private static bool IsSubsite(Site site) =>
             !string.IsNullOrWhiteSpace(site?.ParentReference?.SiteId);
 
+        /// <summary>
+        /// Recursively retrieves all descendant sub-sites of the specified root site as an asynchronous stream.
+        /// </summary>
+        /// <remarks>Enumeration is performed recursively and may result in a large number of results if
+        /// the site hierarchy is deep. The operation is performed lazily; sub-sites are retrieved as the stream is
+        /// enumerated. The caller is responsible for handling cancellation via the provided token.</remarks>
+        /// <param name="root">The root <see cref="Site"/> from which to begin retrieving sub-sites. Cannot be null.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>An asynchronous stream of <see cref="Site"/> objects representing all sub-sites under the specified root,
+        /// including nested descendants. The stream is empty if the root has no sub-sites.</returns>
         private async IAsyncEnumerable<Site> GetAllSubSitesRecursive(Site root, [EnumeratorCancellation] CancellationToken token)
         {
             await foreach (var site in GetAllSubSites(root, token))
