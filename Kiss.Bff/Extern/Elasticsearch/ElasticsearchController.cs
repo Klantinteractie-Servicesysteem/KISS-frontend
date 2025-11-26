@@ -14,8 +14,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
     [ApiController]
     public class ElasticsearchController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
+        private readonly HttpClient _httpClient;
         private readonly string _elasticsearchBaseUrl;
         private readonly string _elasticsearchUsername;
         private readonly string _elasticsearchPassword;
@@ -24,17 +23,17 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private readonly ILogger<ElasticsearchController> _logger;
 
         public ElasticsearchController(
-            IHttpClientFactory httpClientFactory,
+            HttpClient httpClient,
             IConfiguration configuration,
             ILogger<ElasticsearchController> logger)
         {
-            _httpClientFactory = httpClientFactory;
-
             // Load configuration
             _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
             _elasticsearchUsername = configuration["ELASTIC_USERNAME"] ?? throw new InvalidOperationException("ELASTIC_USERNAME not configured");
             _elasticsearchPassword = configuration["ELASTIC_PASSWORD"] ?? throw new InvalidOperationException("ELASTIC_PASSWORD not configured");
-            _kennisbankRole = configuration["OIDC_KENNISBANK_ROLE"] ?? "Kennisbank";
+
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri(_elasticsearchBaseUrl);
             _logger = logger;
             var excludedFields = configuration["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"];
             _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields)
@@ -85,7 +84,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 // Forward request to Elasticsearch
                 var modifiedRequestBody = elasticqQuery.ToJsonString();
 
-                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_elasticsearchBaseUrl}/{index}/_search")
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{index}/_search")
                 {
                     Content = new StringContent(modifiedRequestBody, Encoding.UTF8, "application/json")
                 };
@@ -93,11 +92,18 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 ApplyAuthenticationHeaders(httpRequest.Headers);
 
                 // Send request
-                var client = _httpClientFactory.CreateClient();
-                var esResponse = await client.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
+                var esResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
                 // Read response body
-                var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+                // var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+                var responseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
+
+                // Catch any invalid statuscode here in order to add responseBody as reference to logger.
+                if (!esResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Elasticsearch returned error. Status: {statusCode}, Elastcsearch error response: {Body}", esResponse.StatusCode, responseBody);
+                    return StatusCode(502, new { error = responseBody });
+                }
 
                 // Transform response (if needed)
                 var transformedResponse = ApplyResponseTransform(responseBody);
@@ -168,8 +174,11 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// Transform the response body by removing excluded fields from the search results
         /// Filters out any restricted fields for Kennisbank users
         /// </summary>
-        private string ApplyResponseTransform(string responseBody)
+        private string ApplyResponseTransform(ElasticResponse? responseBody)
         {
+            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
+            // For now, just pass through
+            return JsonSerializer.Serialize(responseBody);
             // Check if user is Kennisbank
             var isKennisbank = User?.IsInRole(_kennisbankRole) ?? false;
 
