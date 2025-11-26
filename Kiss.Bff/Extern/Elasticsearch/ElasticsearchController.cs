@@ -164,7 +164,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     {
                         if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
                         {
-                            existingExcludes.Add(JsonValue.Create(field));
+                            existingExcludes.Add(JsonValue.Create("*." + field));
                         }
                     }
                 }
