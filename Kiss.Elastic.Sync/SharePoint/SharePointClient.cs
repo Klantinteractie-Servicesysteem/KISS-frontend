@@ -135,6 +135,18 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
+        /// <summary>
+        /// Asynchronously retrieves all sites and subsites related to the specified SharePoint hub site, excluding the
+        /// root site itself.
+        /// </summary>
+        /// <remarks>This method queries for sites that share the same DepartmentId (SiteId) as the root
+        /// hub site. The root site itself is not included in the results. The enumeration is performed asynchronously
+        /// and supports cancellation.</remarks>
+        /// <param name="rootSite">The root SharePoint site representing the hub. Must have a valid SharePoint SiteId in its SharepointIds
+        /// property.</param>
+        /// <param name="token">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>An asynchronous stream of Site objects representing all sites and subsites associated with the specified hub
+        /// site, excluding the root site. The stream is empty if the root site does not have a valid SiteId.</returns>
         private async IAsyncEnumerable<Site> GetAllHubRelatedSitesAndSubSites(Site rootSite, [EnumeratorCancellation] CancellationToken token)
         {
             // Hub-related sites are discovered by searching for the hub's DepartmentId (which is its SiteId)
