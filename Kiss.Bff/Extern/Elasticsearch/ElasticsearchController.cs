@@ -214,10 +214,11 @@ namespace Kiss.Bff.Extern.ElasticSearch
         }
 
         /// <summary>
-        /// Recursively remove a field with the given name from all objects
+        /// Recursively remove a field with the given name from all (nested) objects
         /// </summary>
         private void RemoveFieldRecursively(JsonNode? node, string fieldName)
         {
+            // Base case
             if (node == null) return;
 
             if (node is JsonObject jsonObject)
@@ -225,15 +226,15 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 // Remove the field if it exists at this level
                 jsonObject.Remove(fieldName);
 
-                // Recursively process all nested objects and arrays
-                foreach (var property in jsonObject.ToList()) // ToList() to avoid modification during iteration
+                // Recursively remove fields from all nested objects
+                foreach (var property in jsonObject.ToList())
                 {
                     RemoveFieldRecursively(property.Value, fieldName);
                 }
             }
             else if (node is JsonArray jsonArray)
             {
-                // Recursively process all array elements
+                // Recursively remove fields from all array elements
                 foreach (var item in jsonArray)
                 {
                     RemoveFieldRecursively(item, fieldName);
