@@ -97,16 +97,16 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 // Send request
                 var esResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
-                // Read response body
-                // var responseBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
-                var responseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
-
                 // Catch any invalid statuscode here in order to add responseBody as reference to logger.
                 if (!esResponse.IsSuccessStatusCode)
                 {
-                    _logger.LogError("Elasticsearch returned error. Status: {statusCode}, Elastcsearch error response: {Body}", esResponse.StatusCode, responseBody);
-                    return StatusCode(502, new { error = responseBody });
+                    var errorBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogError("Elasticsearch returned error. Status: {statusCode}, Elastcsearch error response: {Body}", esResponse.StatusCode, errorBody);
+                    return StatusCode(502, new { error = errorBody, statusCode = (int)esResponse.StatusCode });
                 }
+
+                // Read response body
+                var responseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
 
                 // Transform response (if needed)
                 var transformedResponse = ApplyResponseTransform(responseBody);
