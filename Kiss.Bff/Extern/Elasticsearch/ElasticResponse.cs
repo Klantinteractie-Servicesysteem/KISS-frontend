@@ -1,13 +1,8 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Kiss.Bff.Extern.ElasticSearch
 {
-    /// <summary>
-    /// Elasticsearch response object containing only the essential structure
-    /// for accessing hits and their _source properties
-    /// </summary>
     public class ElasticResponse
     {
         [JsonPropertyName("hits")]
@@ -28,8 +23,17 @@ namespace Kiss.Bff.Extern.ElasticSearch
     public class Hit
     {
         [JsonPropertyName("_source")]
-        public JsonNode? Source { get; set; }
+        public SourceData? Source { get; set; }
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? HitsExtensionData { get; set; }
+    }
+
+    public class SourceData
+    {
+        [JsonPropertyName("object_bron")]
+        public string? ObjectBron { get; set; }
+
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? SourceExtensionData { get; set; }
     }
 }
