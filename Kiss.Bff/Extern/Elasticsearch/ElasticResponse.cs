@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Kiss.Bff.Extern.ElasticSearch
@@ -23,17 +24,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
     public class Hit
     {
         [JsonPropertyName("_source")]
-        public SourceData? Source { get; set; }
+        public JsonNode? Source { get; set; }
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? HitsExtensionData { get; set; }
-    }
-
-    public class SourceData
-    {
-        [JsonPropertyName("object_bron")]
-        public string? ObjectBron { get; set; }
-
-        [JsonExtensionData]
-        public Dictionary<string, JsonElement>? SourceExtensionData { get; set; }
     }
 }

@@ -147,14 +147,14 @@ namespace Kiss.Bff.Extern.ElasticSearch
             {
                 query["_source"] = new JsonObject
                 {
-                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))])
+                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))])
                 };
             }
             else if (query["_source"] is JsonObject sourceObj)
             {
                 if (!sourceObj.ContainsKey("excludes"))
                 {
-                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))]);
+                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))]);
                 }
                 else if (sourceObj["excludes"] is JsonArray existingExcludes)
                 {
@@ -163,7 +163,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     {
                         if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
                         {
-                            existingExcludes.Add(JsonValue.Create(field));
+                            existingExcludes.Add(JsonValue.Create("*." + field));
                         }
                     }
                 }
@@ -186,9 +186,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
                         foreach (var hit in responseBody.Hits.Hits)
                         {
                             if (hit.Source != null)
-                            {
+                                // Remove excluded fields from _source
                                 RemoveExcludedFields(hit.Source, _excludedFieldsForKennisbank);
-                            }
                         }
                     }
                 }
@@ -202,34 +201,55 @@ namespace Kiss.Bff.Extern.ElasticSearch
         }
 
         /// <summary>
-        /// Remove excluded fields from source data by finding the source and removing any specified labels.
-        /// Example: excluded field "VAC.toelichting" removes the field from VAC.toelichting, but not from Kennisartikel.toelichting.
+        /// Recursively remove excluded fields from a JSON object
+        /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.vertalingen.toelichting, etc.
         /// </summary>
-        private void RemoveExcludedFields(SourceData obj, string[] excludedFields)
+        private void RemoveExcludedFields(JsonNode obj, string[] excludedFields)
         {
-            if (obj.SourceExtensionData == null) return;
-
-            foreach (var fieldName in excludedFields)
+            foreach (var fieldPath in excludedFields)
             {
-                var sourceAndFieldName = splitExcludedFieldNameFromObjectSource(fieldName);
-
-                if (obj.ObjectBron?.Equals(sourceAndFieldName.Key) ?? false)
+                var splitPath = fieldPath.Split('.');
+                var sourceName = splitPath.ElementAtOrDefault(0) ?? "";
+                var objectBron = obj["object_bron"]?.ToString();
+                if (objectBron?.Equals(sourceName) ?? false)
                 {
-                    // Try to find source element by name in the source data. 
-                    if (obj.SourceExtensionData.TryGetValue(sourceAndFieldName.Key, out var sourceElement)
-                        && sourceElement.ValueKind == JsonValueKind.Object)
-                    {
-                        // The source element needs to be deserialized into dictionary for easy removal of the excluded field.
-                        var dict = sourceElement.Deserialize<Dictionary<string, JsonElement>>();
-                        if (dict != null && dict.Remove(sourceAndFieldName.Value))
-                        {
-                            // After successful removal the new filtered source element can be returned into the source data.
-                            obj.SourceExtensionData[sourceAndFieldName.Key] =
-                                JsonSerializer.SerializeToElement(dict);
-                        }
-                    }
+                    var fieldName = splitPath.Skip(1).ToArray();
+                    RemoveFieldRecursively(obj[objectBron], fieldName);
                 }
             }
+        }
+
+        /// <summary>
+        /// Recursively moves down the field path and removes the field object if it is found.
+        /// </summary>
+        private void RemoveFieldRecursively(JsonNode? node, string[] fieldPath)
+        {
+            // Base cases
+            if (node == null || fieldPath.Length == 0) return;
+
+            if (fieldPath.Length == 1 && node is JsonObject fieldObject)
+            {
+                fieldObject.Remove(fieldPath[0]);
+                return;
+            }
+
+            var headOfPath = fieldPath[0];
+            var tailOfPath = fieldPath[1..];
+
+            // Check if the current head of the path is in the given node object.
+            if (node is JsonObject jsonObject && jsonObject.ContainsKey(headOfPath))
+            {
+                RemoveFieldRecursively(jsonObject[headOfPath], tailOfPath);
+            }
+            else if (node is JsonArray jsonArray)
+            {
+                foreach (var item in jsonArray)
+                {
+                    // If the node is an array, don't skip the field path until an object is encountered.
+                    RemoveFieldRecursively(item, fieldPath);
+                }
+            }
+
         }
 
         /// <summary>
@@ -241,16 +261,6 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 Encoding.ASCII.GetBytes($"{_elasticsearchUsername}:{_elasticsearchPassword}")
             );
             headers.Authorization = new AuthenticationHeaderValue("Basic", authValue);
-        }
-
-        /// <summary>
-        /// Splits a given source.fieldname string on the '.' symbol.
-        /// Returns a key-value pair of strings: (source, fieldname).
-        /// </summary>
-        private KeyValuePair<string, string> splitExcludedFieldNameFromObjectSource(string stringToSplit)
-        {
-            var splittedString = stringToSplit.Split('.', StringSplitOptions.TrimEntries);
-            return new KeyValuePair<string, string>(splittedString.ElementAtOrDefault(0) ?? "", splittedString.LastOrDefault() ?? "");
         }
     }
 }
