@@ -202,43 +202,54 @@ namespace Kiss.Bff.Extern.ElasticSearch
 
         /// <summary>
         /// Recursively remove excluded fields from a JSON object
-        /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.toelichting, etc.
+        /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.vertalingen.toelichting, etc.
         /// </summary>
         private void RemoveExcludedFields(JsonNode obj, string[] excludedFields)
         {
-            foreach (var fieldName in excludedFields)
+            foreach (var fieldPath in excludedFields)
             {
-                RemoveFieldRecursively(obj, fieldName);
+                var splitPath = fieldPath.Split('.');
+                var sourceName = splitPath.ElementAtOrDefault(0) ?? "";
+                var objectBron = obj["object_bron"]?.ToString();
+                if (objectBron?.Equals(sourceName) ?? false)
+                {
+                    var fieldName = splitPath.Skip(1).ToArray();
+                    RemoveFieldRecursively(obj[objectBron], fieldName);
+                }
             }
         }
 
         /// <summary>
-        /// Recursively remove a field with the given name from all (nested) objects
+        /// Recursively moves down the field path and removes the field object if it is found.
         /// </summary>
-        private void RemoveFieldRecursively(JsonNode? node, string fieldName)
+        private void RemoveFieldRecursively(JsonNode? node, string[] fieldPath)
         {
-            // Base case
-            if (node == null) return;
+            // Base cases
+            if (node == null || fieldPath.Length == 0) return;
 
-            if (node is JsonObject jsonObject)
+            if (fieldPath.Length == 1 && node is JsonObject fieldObject)
             {
-                // Remove the field if it exists at this level
-                jsonObject.Remove(fieldName);
+                fieldObject.Remove(fieldPath[0]);
+                return;
+            }
 
-                // Recursively remove fields from all nested objects
-                foreach (var property in jsonObject.ToList())
-                {
-                    RemoveFieldRecursively(property.Value, fieldName);
-                }
+            var headOfPath = fieldPath[0];
+            var tailOfPath = fieldPath[1..];
+
+            // Check if the current head of the path is in the given node object.
+            if (node is JsonObject jsonObject && jsonObject.ContainsKey(headOfPath))
+            {
+                RemoveFieldRecursively(jsonObject[headOfPath], tailOfPath);
             }
             else if (node is JsonArray jsonArray)
             {
-                // Recursively remove fields from all array elements
                 foreach (var item in jsonArray)
                 {
-                    RemoveFieldRecursively(item, fieldName);
+                    // If the node is an array, don't skip the field path until an object is encountered.
+                    RemoveFieldRecursively(item, fieldPath);
                 }
             }
+
         }
 
         /// <summary>
