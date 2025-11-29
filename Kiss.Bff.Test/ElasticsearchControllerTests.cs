@@ -36,7 +36,7 @@ namespace Kiss.Bff.Test
             _configurationMock.Setup(c => c["ELASTIC_BASE_URL"]).Returns("https://elasticsearch.example.com");
             _configurationMock.Setup(c => c["ELASTIC_USERNAME"]).Returns("testuser");
             _configurationMock.Setup(c => c["ELASTIC_PASSWORD"]).Returns("testpass");
-            _configurationMock.Setup(c => c["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"]).Returns("VAC.toelichting,internalField");
+            _configurationMock.Setup(c => c["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
             _httpContext = new DefaultHttpContext
             {
@@ -102,7 +102,7 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(sourceExcludes);
             Assert.AreEqual(2, sourceExcludes.Count);
             Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "VAC.toelichting"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "internalField"));
+            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo"));
         }
 
         [TestMethod]
@@ -178,7 +178,7 @@ namespace Kiss.Bff.Test
             Assert.AreEqual(3, sourceExcludes.Count);
             Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "existingField"));
             Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "VAC.toelichting"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "internalField"));
+            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo"));
         }
 
         [TestMethod]
@@ -236,29 +236,10 @@ namespace Kiss.Bff.Test
 
             var requestBody = JsonSerializer.Serialize(new { query = new { match_all = new { } } });
 
-            var elasticResponse = new
-            {
-                hits = new
-                {
-                    total = new { value = 1 },
-                    hits = new[]
-                    {
-                        new
-                        {
-                            _source = new
-                            {
-                                title = "Test Document",
-                                toelichting = "This should be removed",
-                                internalField = "This should also be removed",
-                                allowedField = "This should remain"
-                            }
-                        }
-                    }
-                }
-            };
+            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
 
             _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", JsonSerializer.Serialize(elasticResponse));
+                .Respond("application/json", elasticResponse);
 
             _httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
 
@@ -270,13 +251,12 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(contentResult);
 
             var responseJson = JsonNode.Parse(contentResult.Content!);
-            var source = responseJson!["hits"]?["hits"]?[0]?["_source"]?.AsObject();
+            var sourceVAC = responseJson!["hits"]?["hits"]?[0]?["_source"]?["VAC"]?.AsObject();
 
-            Assert.IsNotNull(source);
-            Assert.IsFalse(source.ContainsKey("toelichting"));
-            Assert.IsFalse(source.ContainsKey("internalField"));
-            Assert.IsTrue(source.ContainsKey("allowedField"));
-            Assert.AreEqual("This should remain", source["allowedField"]?.ToString());
+            Assert.IsNotNull(sourceVAC);
+            Assert.IsFalse(sourceVAC.ContainsKey("toelichting"));
+            Assert.IsTrue(sourceVAC.ContainsKey("allowedField"));
+            Assert.AreEqual("This should remain", sourceVAC["allowedField"]?.ToString());
         }
 
         [TestMethod]
@@ -287,35 +267,10 @@ namespace Kiss.Bff.Test
 
             var requestBody = JsonSerializer.Serialize(new { query = new { match_all = new { } } });
 
-            var elasticResponse = new
-            {
-                hits = new
-                {
-                    hits = new[]
-                    {
-                        new
-                        {
-                            _source = new
-                            {
-                                VAC = new
-                                {
-                                    title = "VAC Document",
-                                    toelichting = "Should be removed from VAC"
-                                },
-                                Kennisartikel = new
-                                {
-                                    content = "Content",
-                                    toelichting = "Should be removed from Kennisartikel",
-                                    internalField = "Should also be removed"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
 
             _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", JsonSerializer.Serialize(elasticResponse));
+                .Respond("application/json", elasticResponse);
 
             _httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
 
@@ -327,18 +282,13 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(contentResult);
 
             var responseJson = JsonNode.Parse(contentResult.Content!);
-            var source = responseJson!["hits"]?["hits"]?[0]?["_source"]?.AsObject();
 
-            var vac = source?["VAC"]?.AsObject();
-            Assert.IsNotNull(vac);
-            Assert.IsFalse(vac.ContainsKey("toelichting"));
-            Assert.IsTrue(vac.ContainsKey("title"));
+            var sourceKennisbank = responseJson!["hits"]?["hits"]?[1]?["_source"]?["Kennisbank"]?.AsObject();
 
-            var kennisartikel = source?["Kennisartikel"]?.AsObject();
-            Assert.IsNotNull(kennisartikel);
-            Assert.IsFalse(kennisartikel.ContainsKey("toelichting"));
-            Assert.IsFalse(kennisartikel.ContainsKey("internalField"));
-            Assert.IsTrue(kennisartikel.ContainsKey("content"));
+            Assert.IsNotNull(sourceKennisbank);
+            Assert.IsFalse(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
+            Assert.IsTrue(sourceKennisbank.ContainsKey("existingField"));
+            Assert.AreEqual("This has to stay", sourceKennisbank["existingField"]?.ToString());
         }
 
         [TestMethod]
@@ -349,37 +299,10 @@ namespace Kiss.Bff.Test
 
             var requestBody = JsonSerializer.Serialize(new { query = new { match_all = new { } } });
 
-            var elasticResponse = new
-            {
-                hits = new
-                {
-                    hits = new[]
-                    {
-                        new
-                        {
-                            _source = new
-                            {
-                                items = new object[]
-                                {
-                                    new
-                                    {
-                                        name = "Item 1",
-                                        toelichting = "Should be removed"
-                                    },
-                                    new
-                                    {
-                                        name = "Item 2",
-                                        internalField = "Should also be removed"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":[{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}]}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
 
             _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", JsonSerializer.Serialize(elasticResponse));
+                .Respond("application/json", elasticResponse);
 
             _httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
 
@@ -391,20 +314,13 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(contentResult);
 
             var responseJson = JsonNode.Parse(contentResult.Content!);
-            var items = responseJson!["hits"]?["hits"]?[0]?["_source"]?["items"]?.AsArray();
 
-            Assert.IsNotNull(items);
-            Assert.AreEqual(2, items.Count);
+            var sourceVAC = responseJson!["hits"]?["hits"]?[0]?["_source"]?["VAC"]?[0]?.AsObject();
 
-            var item1 = items[0]?.AsObject();
-            Assert.IsNotNull(item1);
-            Assert.IsFalse(item1.ContainsKey("toelichting"));
-            Assert.IsTrue(item1.ContainsKey("name"));
-
-            var item2 = items[1]?.AsObject();
-            Assert.IsNotNull(item2);
-            Assert.IsFalse(item2.ContainsKey("internalField"));
-            Assert.IsTrue(item2.ContainsKey("name"));
+            Assert.IsNotNull(sourceVAC);
+            Assert.IsFalse(sourceVAC.ContainsKey("toelichting"));
+            Assert.IsTrue(sourceVAC.ContainsKey("allowedField"));
+            Assert.AreEqual("This should remain", sourceVAC["allowedField"]?.ToString());
         }
 
         #endregion
