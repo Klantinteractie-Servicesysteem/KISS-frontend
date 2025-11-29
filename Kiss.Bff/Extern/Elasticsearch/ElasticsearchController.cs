@@ -68,6 +68,10 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 try
                 {
                     var queryNode = JsonNode.Parse(requestBody);
+                    if (queryNode is not JsonObject)
+                    {
+                        return BadRequest(new { error = "Invalid query format: expected JSON object" });
+                    }
                     elasticqQuery = queryNode?.AsObject();
 
                     if (elasticqQuery == null)
@@ -147,14 +151,14 @@ namespace Kiss.Bff.Extern.ElasticSearch
             {
                 query["_source"] = new JsonObject
                 {
-                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))])
+                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))])
                 };
             }
             else if (query["_source"] is JsonObject sourceObj)
             {
                 if (!sourceObj.ContainsKey("excludes"))
                 {
-                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create("*." + fieldName))]);
+                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))]);
                 }
                 else if (sourceObj["excludes"] is JsonArray existingExcludes)
                 {
@@ -163,7 +167,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     {
                         if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
                         {
-                            existingExcludes.Add(JsonValue.Create("*." + field));
+                            existingExcludes.Add(JsonValue.Create(field));
                         }
                     }
                 }
@@ -209,13 +213,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
             foreach (var fieldPath in excludedFields)
             {
                 var splitPath = fieldPath.Split('.');
-                var sourceName = splitPath.ElementAtOrDefault(0) ?? "";
-                var objectBron = obj["object_bron"]?.ToString();
-                if (objectBron?.Equals(sourceName) ?? false)
-                {
-                    var fieldName = splitPath.Skip(1).ToArray();
-                    RemoveFieldRecursively(obj[objectBron], fieldName);
-                }
+                RemoveFieldRecursively(obj, splitPath);
             }
         }
 
