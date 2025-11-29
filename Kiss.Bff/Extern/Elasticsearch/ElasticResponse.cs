@@ -4,10 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace Kiss.Bff.Extern.ElasticSearch
 {
-    /// <summary>
-    /// Elasticsearch response object containing only the essential structure
-    /// for accessing hits and their _source properties
-    /// </summary>
     public class ElasticResponse
     {
         [JsonPropertyName("hits")]
