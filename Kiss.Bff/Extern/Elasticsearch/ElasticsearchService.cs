@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kiss.Bff.Extern.ElasticSearch;
 
@@ -6,10 +5,6 @@ public class ElasticsearchService
 {
     public readonly HttpClient _httpClient;
 
-    /// <summary>
-    /// Initializes a new instance of the ElasticsearchService
-    /// </summary>
-    /// <param name="httpClient">HTTP client configured for Elasticsearch communication</param>
     public ElasticsearchService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -19,8 +14,7 @@ public class ElasticsearchService
     /// Executes an Elasticsearch search request with request/response transformations
     /// </summary>
     /// <param name="url">The Elasticsearch endpoint URL</param>
-    /// <param name="elasticQuery">The query object to send to Elasticsearch</param>
-    /// <param name="cancellationToken">Cancellation token for the async operation</param>
+    /// <param name="elasticQuery">The JSON query object to send to Elasticsearch</param>
     /// <returns>Transformed Elasticsearch response</returns>
     public async Task<ElasticResponse> Search(string url, JsonObject elasticQuery, CancellationToken cancellationToken)
     {

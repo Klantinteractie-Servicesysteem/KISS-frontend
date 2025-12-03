@@ -34,8 +34,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// Performs an Elasticsearch search on the specified index with role-based transformations
         /// </summary>
         /// <param name="index">The Elasticsearch index to search</param>
-        /// <param name="elasticQuery">The Elasticsearch query object</param>
-        /// <param name="cancellationToken">Cancellation token for the async operation</param>
+        /// <param name="elasticQuery">The Elasticsearch JSON query object</param>
         /// <returns>Search results from Elasticsearch</returns>
         [HttpPost("{index}/_search")]
         [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
