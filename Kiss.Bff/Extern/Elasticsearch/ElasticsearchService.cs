@@ -127,7 +127,10 @@ namespace Kiss.Bff.Extern.ElasticSearch
 
             if (fieldPath.Length == 1 && node is JsonObject fieldObject)
             {
-                fieldObject.Remove(fieldPath[0]);
+                if (fieldObject.ContainsKey(fieldPath[0]))
+                {
+                    fieldObject.Remove(fieldPath[0]);
+                }
                 return;
             }
 
