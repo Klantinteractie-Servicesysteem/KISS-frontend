@@ -10,12 +10,13 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private readonly ClaimsPrincipal _user;
         private readonly string[] _excludedFieldsForKennisbank;
 
-        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, ClaimsPrincipal user)
+        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, ClaimsPrincipal user, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _isKennisbank = isKennisbank;
             _user = user;
-            _excludedFieldsForKennisbank = ["Kennisbank.vertalingen.deskMemo"];
+            var excludedFields = configuration["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"];
+            _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields) ? [] : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
         /// <summary>
