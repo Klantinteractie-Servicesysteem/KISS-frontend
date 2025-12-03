@@ -14,144 +14,46 @@ namespace Kiss.Bff.Extern.ElasticSearch
     [ApiController]
     public class ElasticsearchController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _elasticsearchBaseUrl;
-        private readonly string _elasticsearchUsername;
-        private readonly string _elasticsearchPassword;
+        private readonly ElasticsearchService _elasticsearchService;
         private readonly ILogger<ElasticsearchController> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the ElasticsearchController
+        /// </summary>
+        /// <param name="elasticsearchService">Service for handling Elasticsearch operations</param>
+        /// <param name="logger">Logger instance for logging errors and information</param>
         public ElasticsearchController(
-            HttpClient httpClient,
-            IConfiguration configuration,
+            ElasticsearchService elasticsearchService,
             ILogger<ElasticsearchController> logger)
         {
-            // Load configuration
-            _elasticsearchBaseUrl = configuration["ELASTIC_BASE_URL"] ?? throw new InvalidOperationException("ELASTIC_BASE_URL not configured");
-            _elasticsearchUsername = configuration["ELASTIC_USERNAME"] ?? throw new InvalidOperationException("ELASTIC_USERNAME not configured");
-            _elasticsearchPassword = configuration["ELASTIC_PASSWORD"] ?? throw new InvalidOperationException("ELASTIC_PASSWORD not configured");
-
-            _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(_elasticsearchBaseUrl);
+            _elasticsearchService = elasticsearchService;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Performs an Elasticsearch search on the specified index with role-based transformations
+        /// </summary>
+        /// <param name="index">The Elasticsearch index to search</param>
+        /// <param name="elasticQuery">The Elasticsearch query object</param>
+        /// <param name="cancellationToken">Cancellation token for the async operation</param>
+        /// <returns>Search results from Elasticsearch</returns>
         [HttpPost("{index}/_search")]
         [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
-        public async Task<IActionResult> Search([FromRoute] string index)
+        public async Task<IActionResult> Search([FromRoute] string index, [FromBody] JsonObject elasticQuery, CancellationToken cancellationToken)
         {
-            var cancellationToken = Request.HttpContext.RequestAborted;
-
             try
             {
-                // Read and parse request body
-                string requestBody;
-                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-                {
-                    requestBody = await reader.ReadToEndAsync();
-                }
-
-                if (string.IsNullOrWhiteSpace(requestBody))
-                {
-                    return BadRequest(new { error = "Request body cannot be empty" });
-                }
-
-                JsonObject? elasticqQuery;
-                try
-                {
-                    var queryNode = JsonNode.Parse(requestBody);
-                    elasticqQuery = queryNode?.AsObject();
-
-                    if (elasticqQuery == null)
-                    {
-                        return BadRequest(new { error = "Invalid query format: expected JSON object" });
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogError(ex, "Invalid JSON in request body");
-                    return BadRequest(new { error = "Invalid JSON in request body" });
-                }
-
-                // Transform request (apply role-based filtering)
-                ApplyRequestTransform(elasticqQuery);
-
-                // Forward request to Elasticsearch
-                var modifiedRequestBody = elasticqQuery.ToJsonString();
-
-                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{index}/_search")
-                {
-                    Content = new StringContent(modifiedRequestBody, Encoding.UTF8, "application/json")
-                };
-
-                ApplyAuthenticationHeaders(httpRequest.Headers);
-
-                // Send request
-                var esResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken);
-
-                // Catch any invalid statuscode here in order to add responseBody as reference to logger.
-                if (!esResponse.IsSuccessStatusCode)
-                {
-                    var errorBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
-                    _logger.LogError("Elasticsearch returned error. Status: {statusCode}, Elastcsearch error response: {Body}", esResponse.StatusCode, errorBody);
-                    return StatusCode(502, new { error = errorBody, statusCode = (int)esResponse.StatusCode });
-                }
-
-                // Read response body
-                var responseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
-
-                // Transform response (if needed)
-                var transformedResponse = ApplyResponseTransform(responseBody);
-
-                // Return transformed response
-                return new ContentResult
-                {
-                    Content = transformedResponse,
-                    ContentType = "application/json",
-                    StatusCode = (int)esResponse.StatusCode
-                };
+                var searchUrl = index + "/_search";
+                var responseBody = await _elasticsearchService.Search(searchUrl, elasticQuery, cancellationToken);
+                return Ok(responseBody);
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Error connecting to search service");
-                return StatusCode(502, new { error = "Error connecting to search service" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An unexpected error occurred");
-                return StatusCode(500, new { error = "An unexpected error occurred" });
+                _logger.LogError(ex, $"Elastic search responded with: {ex.Message}");
+                return StatusCode((int)ex.StatusCode);
             }
         }
 
-        /// <summary>
-        /// Transform the request query based on user role
-        /// Applies field exclusions for Kennisbank users
-        /// </summary>
-        private void ApplyRequestTransform(JsonObject query)
-        {
-            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
-        }
-
-        /// <summary>
-        /// Transform the response body if needed
-        /// Currently passes through unchanged, but can be extended for response filtering
-        /// </summary>
-        private string ApplyResponseTransform(ElasticResponse? responseBody)
-        {
-            // TODO: implement code to remove any fields that are not allowed for the role the current user has.
-            // For now, just pass through
-            return JsonSerializer.Serialize(responseBody);
-        }
-
-        /// <summary>
-        /// Apply Basic Authentication headers to the request
-        /// </summary>
-        private void ApplyAuthenticationHeaders(HttpRequestHeaders headers)
-        {
-            var authValue = Convert.ToBase64String(
-                Encoding.ASCII.GetBytes($"{_elasticsearchUsername}:{_elasticsearchPassword}")
-            );
-            headers.Authorization = new AuthenticationHeaderValue("Basic", authValue);
-        }
     }
 }
 
