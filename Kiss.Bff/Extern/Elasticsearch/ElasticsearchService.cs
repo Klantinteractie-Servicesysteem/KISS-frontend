@@ -16,17 +16,21 @@ public class ElasticsearchService
     /// <param name="url">The Elasticsearch endpoint URL</param>
     /// <param name="elasticQuery">The JSON query object to send to Elasticsearch</param>
     /// <returns>Transformed Elasticsearch response</returns>
-    public async Task<ElasticResponse> Search(string url, JsonObject elasticQuery, CancellationToken cancellationToken)
+    public async Task<ElasticResponse?> Search(string url, JsonObject elasticQuery, CancellationToken cancellationToken)
     {
         ApplyRequestTransform(elasticQuery);
-        var response = await _httpClient.PostAsJsonAsync(url, elasticQuery, cancellationToken);
+        var esResponse = await _httpClient.PostAsJsonAsync(url, elasticQuery, cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        if (!esResponse.IsSuccessStatusCode)
+        {
+            var errorBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException($"Elasticsearch request failed: {errorBody}", null, esResponse.StatusCode);
+        }
 
-        var responseBody = await response.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
-        ApplyResponseTransform(responseBody);
+        var esResponseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
+        ApplyResponseTransform(esResponseBody);
 
-        return responseBody;
+        return esResponseBody;
     }
 
 
@@ -43,7 +47,7 @@ public class ElasticsearchService
     /// Transform the response body if needed
     /// Currently passes through unchanged, but can be extended for response filtering
     /// </summary>
-    private ElasticResponse ApplyResponseTransform(ElasticResponse? responseBody)
+    private ElasticResponse? ApplyResponseTransform(ElasticResponse? responseBody)
     {
         // TODO: implement code to remove any fields that are not allowed for the role the current user has.
         // For now, just pass through

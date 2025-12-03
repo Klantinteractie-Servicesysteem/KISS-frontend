@@ -48,8 +48,8 @@ namespace Kiss.Bff.Extern.ElasticSearch
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, $"Elastic search responded with: {ex.Message}");
-                return StatusCode((int)ex.StatusCode);
+                _logger.LogError(ex.Message);
+                return StatusCode((int?)ex.StatusCode ?? StatusCodes.Status500InternalServerError);
             }
         }
 
