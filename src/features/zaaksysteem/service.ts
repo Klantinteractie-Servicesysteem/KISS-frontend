@@ -154,7 +154,7 @@ const fetchZakenByMultipleVestigingQueries = async (
 ): Promise<ZaakDetails[][]> => {
   const queries = [];
 
-  if (systeem.registryVersion === registryVersions.ok2) {
+  if (systeem.useExperimentalQueries) {
     const nnpQuery = new URLSearchParams(baseQuery);
     nnpQuery.set(
       "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__vestigingsNummer",
@@ -270,7 +270,7 @@ const fetchZakenByMultipleNnpQueries = async (
 ): Promise<ZaakDetails[][]> => {
   const queries = [];
 
-  if (systeem.registryVersion === registryVersions.ok2) {
+  if (systeem.useExperimentalQueries) {
     const kvkQuery = new URLSearchParams(baseQuery);
     kvkQuery.set(
       "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
