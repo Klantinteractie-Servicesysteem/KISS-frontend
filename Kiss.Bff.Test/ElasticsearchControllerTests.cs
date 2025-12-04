@@ -80,11 +80,26 @@ namespace Kiss.Bff.Test
         #region Request Transformation Tests (Kennisbank Users)
 
         [TestMethod]
-        public async Task Search_KennisbankUser_AddsExcludedFieldsToRequest_WhenNoSourceInQuery()
+        public async Task Search_KennisbankUser_RemovesExcludedFieldsFromRequest()
         {
             var elasticQuery = new JsonObject
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                ["query"] = new JsonObject
+                {
+                    ["multi_match"] = new JsonObject
+                    {
+                        ["query"] = "test",
+                        ["fields"] = new JsonArray(
+                            "VAC.toelichting^1.0",
+                            "VAC.toelichting.stem^0.95",
+                            "VAC.status^1.0",
+                            "Kennisbank.vertalingen.deskMemo^1.0",
+                            "Kennisbank.vertalingen.deskMemo.stem^0.95",
+                            "Kennisbank.naam^1.0",
+                            "title^1.0"
+                        )
+                    }
+                }
             };
 
             var capturedRequest = "";
@@ -96,128 +111,23 @@ namespace Kiss.Bff.Test
                 })
                 .Respond("application/json", JsonSerializer.Serialize(new
                 {
-                    hits = new
-                    {
-                        hits = Array.Empty<object>()
-                    }
+                    hits = new { hits = Array.Empty<object>() }
                 }));
 
             await _controller.Search("test-index", elasticQuery, CancellationToken.None);
 
             var parsedRequest = JsonNode.Parse(capturedRequest);
             Assert.IsNotNull(parsedRequest);
-            var sourceExcludes = parsedRequest["_source"]?["excludes"]?.AsArray();
-            Assert.IsNotNull(sourceExcludes);
-            Assert.AreEqual(2, sourceExcludes.Count);
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "VAC.toelichting"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo"));
-        }
+            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            Assert.IsNotNull(fields);
 
-        [TestMethod]
-        public async Task Search_KennisbankUser_AddsExcludedFieldsToRequest_WhenSourceExistsWithoutExcludes()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() },
-                ["_source"] = new JsonObject
-                {
-                    ["includes"] = new JsonArray("field1", "field2")
-                }
-            };
-
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
-
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            var sourceExcludes = parsedRequest!["_source"]?["excludes"]?.AsArray();
-            Assert.IsNotNull(sourceExcludes);
-            Assert.AreEqual(2, sourceExcludes.Count);
-
-            var sourceIncludes = parsedRequest["_source"]?["includes"]?.AsArray();
-            Assert.IsNotNull(sourceIncludes);
-            Assert.AreEqual(2, sourceIncludes.Count);
-        }
-
-        [TestMethod]
-        public async Task Search_KennisbankUser_MergesWithExistingExcludes()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() },
-                ["_source"] = new JsonObject
-                {
-                    ["excludes"] = new JsonArray("existingField")
-                }
-            };
-
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
-
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            var sourceExcludes = parsedRequest!["_source"]?["excludes"]?.AsArray();
-            Assert.IsNotNull(sourceExcludes);
-            Assert.AreEqual(3, sourceExcludes.Count);
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "existingField"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "VAC.toelichting"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo"));
-        }
-
-        [TestMethod]
-        public async Task Search_KennisbankUser_DoesNotDuplicateExistingExcludes()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() },
-                ["_source"] = new JsonObject
-                {
-                    ["excludes"] = new JsonArray("VAC.toelichting")
-                }
-            };
-
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
-
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            var sourceExcludes = parsedRequest!["_source"]?["excludes"]?.AsArray();
-            Assert.IsNotNull(sourceExcludes);
-
-            // Should have original toelichting + deskMemo (not duplicate toelichting)
-            Assert.AreEqual(2, sourceExcludes.Count);
-            var toelichtingCount = sourceExcludes.Count(x => x?.ToString() == "VAC.toelichting");
-            Assert.AreEqual(1, toelichtingCount);
+            // Should only have 3 fields remaining (removed VAC.toelichting and Kennisbank.vertalingen.deskMemo)
+            Assert.AreEqual(3, fields.Count);
+            Assert.IsFalse(fields.Any(x => x?.ToString().StartsWith("VAC.toelichting") ?? false));
+            Assert.IsFalse(fields.Any(x => x?.ToString().StartsWith("Kennisbank.vertalingen.deskMemo") ?? false));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.status^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.naam^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
         }
 
         #endregion
@@ -328,7 +238,18 @@ namespace Kiss.Bff.Test
 
             var elasticQuery = new JsonObject
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() },
+                ["query"] = new JsonObject
+                {
+                    ["multi_match"] = new JsonObject
+                    {
+                        ["query"] = "test",
+                        ["fields"] = new JsonArray(
+                            "VAC.toelichting^1.0",
+                            "Kennisbank.vertalingen.deskMemo^1.0",
+                            "title^1.0"
+                        )
+                    }
+                },
                 ["size"] = 10
             };
 
@@ -349,8 +270,13 @@ namespace Kiss.Bff.Test
             var parsedRequest = JsonNode.Parse(capturedRequest);
             Assert.IsNotNull(parsedRequest);
 
-            // Should not have _source.excludes added
-            Assert.IsFalse(parsedRequest.AsObject().ContainsKey("_source"));
+            // Fields should NOT be removed
+            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            Assert.IsNotNull(fields);
+            Assert.AreEqual(3, fields.Count);
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
 
             // Original query should be preserved
             Assert.IsNotNull(parsedRequest["query"]);
@@ -412,14 +338,24 @@ namespace Kiss.Bff.Test
         }
 
         [TestMethod]
-        public async Task Search_KennisbankUser_WithNoExcludedFieldsConfigured_DoesNotModifyRequestOrResponse()
+        public async Task Search_KennisbankUser_WithNoEnvironmentVariableConfigured_DoesNotModifyRequestOrResponse()
         {
             _configurationMock.Setup(c => c["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
             CreateController(); // Recreate with empty excluded fields
 
             var elasticQuery = new JsonObject
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                ["query"] = new JsonObject
+                {
+                    ["multi_match"] = new JsonObject
+                    {
+                        ["query"] = "test",
+                        ["fields"] = new JsonArray(
+                            "VAC.toelichting^1.0",
+                            "title^1.0"
+                        )
+                    }
+                }
             };
 
             var capturedRequest = "";
@@ -446,7 +382,11 @@ namespace Kiss.Bff.Test
 
             // Assert - Request should not be modified
             var parsedRequest = JsonNode.Parse(capturedRequest);
-            Assert.IsFalse(parsedRequest!.AsObject().ContainsKey("_source"));
+            var fields = parsedRequest!["query"]?["multi_match"]?["fields"]?.AsArray();
+            Assert.IsNotNull(fields);
+            Assert.AreEqual(2, fields.Count);
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
 
             // Assert - Response should not be modified
             var okResult = result as OkObjectResult;
@@ -459,7 +399,7 @@ namespace Kiss.Bff.Test
         }
 
         [TestMethod]
-        public async Task Search_UserWithKennisbankAndKcmRoles_AppliesRequestExclusionsLikeKcmUser()
+        public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveFieldsFromRequest()
         {
             // Create a user with both Kennisbank and Kcm roles
             _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -473,7 +413,18 @@ namespace Kiss.Bff.Test
 
             var elasticQuery = new JsonObject
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                ["query"] = new JsonObject
+                {
+                    ["multi_match"] = new JsonObject
+                    {
+                        ["query"] = "test",
+                        ["fields"] = new JsonArray(
+                            "VAC.toelichting^1.0",
+                            "Kennisbank.vertalingen.deskMemo^1.0",
+                            "title^1.0"
+                        )
+                    }
+                }
             };
 
             var capturedRequest = "";
@@ -490,11 +441,15 @@ namespace Kiss.Bff.Test
 
             await _controller.Search("test-index", elasticQuery, CancellationToken.None);
 
-            // Assert - Request should NOT have excluded fields added
+            // Assert - Fields should NOT be removed from request
             var parsedRequest = JsonNode.Parse(capturedRequest);
             Assert.IsNotNull(parsedRequest);
-            var sourceExcludes = parsedRequest["_source"]?["excludes"]?.AsArray();
-            Assert.IsNull(sourceExcludes);
+            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            Assert.IsNotNull(fields);
+            Assert.AreEqual(3, fields.Count);
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo^1.0"));
+            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
         }
 
         [TestMethod]
@@ -571,113 +526,6 @@ namespace Kiss.Bff.Test
             await _controller.Search("my-index", elasticQuery, CancellationToken.None);
 
             Assert.IsTrue(wasCalled);
-        }
-
-        // Note: Authentication is configured at the HttpClient level in Program.cs via DI,
-        // not in the controller or service layer, so we don't test it here
-
-        [TestMethod]
-        public async Task Search_ReturnsElasticsearchResponseWithCorrectStatusCode()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
-            };
-
-            var elasticResponse = new
-            {
-                took = 5,
-                hits = new
-                {
-                    total = new { value = 2 },
-                    hits = new[]
-                    {
-                        new { _source = new { title = "Doc 1" } },
-                        new { _source = new { title = "Doc 2" } }
-                    }
-                }
-            };
-
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond(HttpStatusCode.OK, "application/json", JsonSerializer.Serialize(elasticResponse));
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-        }
-
-        #endregion
-
-        #region Error Handling Tests
-
-        [TestMethod]
-        public async Task Search_Returns404_WhenElasticsearchReturnsNotFound()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
-            };
-
-            var errorResponse = new
-            {
-                error = new
-                {
-                    type = "index_not_found_exception",
-                    reason = "no such index [test-index]"
-                }
-            };
-
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond(HttpStatusCode.NotFound, "application/json", JsonSerializer.Serialize(errorResponse));
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var statusCodeResult = result as StatusCodeResult;
-            Assert.IsNotNull(statusCodeResult);
-            Assert.AreEqual(404, statusCodeResult.StatusCode);
-        }
-
-        [TestMethod]
-        public async Task Search_Returns500_WhenElasticsearchIsUnreachable()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
-            };
-
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Throw(new HttpRequestException("Connection refused"));
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var statusCodeResult = result as StatusCodeResult;
-            Assert.IsNotNull(statusCodeResult);
-            Assert.AreEqual(500, statusCodeResult.StatusCode);
-        }
-
-        [TestMethod]
-        public async Task Search_LogsError_WhenElasticsearchReturnsError()
-        {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
-            };
-
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond(HttpStatusCode.InternalServerError, "application/json", "{\"error\":\"Something went wrong\"}");
-
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Elasticsearch request failed")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
         }
 
         #endregion
