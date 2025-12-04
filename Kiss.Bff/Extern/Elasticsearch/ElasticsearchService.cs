@@ -19,7 +19,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             _isRedacteur = isRedacteur;
             _isKcm = isKcm;
             _user = user;
-            var excludedFields = configuration["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"];
+            var excludedFields = configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"];
             _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields) ? [] : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
