@@ -1,11 +1,8 @@
-﻿using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kiss.Bff.Extern.ElasticSearch
+namespace Kiss.Bff.Extern.Elasticsearch
 {
     /// <summary>
     /// Elasticsearch proxy controller with request and response body transformation
@@ -42,7 +39,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
         {
             try
             {
-                var searchUrl = index + "/_search";
+                var searchUrl = $"{index}/_search";
                 var responseBody = await _elasticsearchService.Search(searchUrl, elasticQuery, cancellationToken);
                 return Ok(responseBody);
             }
