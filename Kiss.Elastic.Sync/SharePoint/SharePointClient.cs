@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
 using Azure.Identity;
@@ -10,7 +11,7 @@ using Microsoft.Kiota.Abstractions.Serialization;
 
 namespace Kiss.Elastic.Sync.SharePoint
 {
-    public sealed class SharePointClient : IDisposable
+    public sealed partial class SharePointClient : IDisposable
     {
         private readonly GraphServiceClient _graphClient;
         private readonly string _siteIdentifier;
@@ -39,7 +40,7 @@ namespace Kiss.Elastic.Sync.SharePoint
             return $"{uri.Host}:{uri.AbsolutePath}";
         }
 
-        public async IAsyncEnumerable<SitePage> GetAllPages([EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<SharePointPage> GetAllPages([EnumeratorCancellation] CancellationToken token)
         {
             // Check site via Graph API lookup (Guid is necessary to retrieve pages and subsites)
             var startingSite = await _graphClient.Sites[_siteIdentifier].GetAsync(
@@ -90,25 +91,7 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        public async Task<(IReadOnlyCollection<string> Content, IReadOnlyCollection<string> Headings)> ExtractTextFromPage(SitePage sitePage)
-        {
-            var allContent = new HashSet<string>();
-            var allHeadings = new HashSet<string>();
-            var allHtml = GetWebParts(sitePage)
-                .SelectMany(GetHtml);
-
-            foreach (var html in allHtml)
-            {
-                var (content, headings) = await ParseHtml(html);
-                allContent.Add(content);
-                foreach (var heading in headings)
-                {
-                    allHeadings.Add(heading);
-                }
-            }
-
-            return (allContent, allHeadings);
-        }
+        
 
         private static bool IsSubsite(Site site) =>
             !string.IsNullOrWhiteSpace(site?.ParentReference?.SiteId);
@@ -196,15 +179,81 @@ namespace Kiss.Elastic.Sync.SharePoint
             return IterateAllEntities(firstPage, x => x.Value, token);
         }
 
-        private IAsyncEnumerable<SitePage> GetAllPages(Site site, CancellationToken token)
+        private async IAsyncEnumerable<SharePointPage> GetModernPages(Site site, [EnumeratorCancellation] CancellationToken token)
         {
             var firstPage = _graphClient
                 .Sites[site.Id]
                 .Pages
                 .GraphSitePage
-                .GetAsync(x => x.QueryParameters.Expand = ["webparts"], token);
+                .GetAsync(x => { }, token);
 
-            return IterateAllEntities(firstPage, x => x.Value, token);
+            await foreach (var page in IterateAllEntities(firstPage, x => x.Value, token))
+            {
+                var htmlStrings = page.WebParts?.SelectMany(GetHtml) ?? [];
+                var (content, headings) = await ExtractTextFromPage(htmlStrings, token);
+
+                yield return new SharePointPage
+                {
+                    Id = page.Id!,
+                    Title = page.Title ?? "",
+                    LastModified = page.LastModifiedDateTime,
+                    CreatedBy = page.CreatedBy?.User?.DisplayName,
+                    LastModifiedBy = page.LastModifiedBy?.User?.DisplayName,
+                    Url = page.WebUrl,
+                    Content = content,
+                    Headings = headings
+                };
+            }
+        }
+
+        private async IAsyncEnumerable<SharePointPage> GetAllPages(Site site, [EnumeratorCancellation] CancellationToken token)
+        {
+            await foreach (var modernPage in GetModernPages(site, token))
+            {
+                yield return modernPage;
+            }
+
+            await foreach (var classicPage in GetClassicPages(site, token))
+            {
+                yield return classicPage;
+            }
+        }
+
+        private async IAsyncEnumerable<SharePointPage> GetClassicPages(Site site, [EnumeratorCancellation] CancellationToken token)
+        {
+            var firstPage = _graphClient
+                .Sites[site.Id]
+                .Lists
+                .GetAsync(x =>
+                {
+                    x.QueryParameters.Expand = ["items($expand=fields)"];
+                }, cancellationToken: token);
+
+            await foreach (var list in IterateAllEntities(firstPage, x => x.Value, token))
+            {
+                foreach (var item in list.Items ?? [])
+                {
+                    if (item.WebUrl?.EndsWith(".aspx") != true || !item.AdditionalData.TryGetValue("WikiField", out var obj) || obj is not string html)
+                    {
+                        //  we don't support this type of page
+                        continue;
+                    }
+
+                    var (content, headings) = await ExtractTextFromPage([html], token);
+
+                    yield return new SharePointPage
+                    {
+                        Id = item.Id!,
+                        Title = item.Name ?? ExtractTitleFromUrl(item.WebUrl) ?? "Geen titel",
+                        Url = item.WebUrl,
+                        LastModified = item.LastModifiedDateTime,
+                        LastModifiedBy = item.LastModifiedBy?.User?.DisplayName,
+                        CreatedBy = item.CreatedBy?.User?.DisplayName,
+                        Content = content,
+                        Headings = headings
+                    };
+                }
+            }
         }
 
         /// <summary>
@@ -264,10 +313,6 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        private static IEnumerable<WebPart> GetWebParts(SitePage sitePage) =>
-            sitePage.WebParts
-                ?.AsEnumerable() ?? [];
-
         private static IEnumerable<string> GetHtml(WebPart webPart)
         {
             if (webPart is TextWebPart textWebPart
@@ -286,12 +331,12 @@ namespace Kiss.Elastic.Sync.SharePoint
             }
         }
 
-        private async Task<(string Content, IReadOnlyCollection<string> Headings)> ParseHtml(string html)
+        private async Task<(string Content, IReadOnlyCollection<string> Headings)> ParseHtml(string html, CancellationToken token)
         {
             if (string.IsNullOrWhiteSpace(html))
                 return ("", []);
 
-            using var doc = await _context.OpenAsync(req => req.Content(html));
+            using var doc = await _context.OpenAsync(req => req.Content(html), cancel: token);
 
             var headings = doc.QuerySelectorAll("h1,h2,h3,h4,h5,h6")
                 .Select(x => x.TextContent)
@@ -300,6 +345,28 @@ namespace Kiss.Elastic.Sync.SharePoint
             var content = doc.ToHtml(TextWithWhitespaceFormatter.Instance).Trim();
 
             return (content, headings);
+        }
+
+        private static string? ExtractTitleFromUrl(string? url) => string.IsNullOrWhiteSpace(url) ? url : Uri.UnescapeDataString(UrlRegex().Replace(url, "$2"));
+        [GeneratedRegex("(.*/)+(.*)\\..*")]
+        private static partial Regex UrlRegex();
+
+        public async Task<(IReadOnlyCollection<string> Content, IReadOnlyCollection<string> Headings)> ExtractTextFromPage(IEnumerable<string> allHtml, CancellationToken token)
+        {
+            var allContent = new HashSet<string>();
+            var allHeadings = new HashSet<string>();
+
+            foreach (var html in allHtml)
+            {
+                var (content, headings) = await ParseHtml(html, token);
+                allContent.Add(content);
+                foreach (var heading in headings)
+                {
+                    allHeadings.Add(heading);
+                }
+            }
+
+            return (allContent, allHeadings);
         }
 
         public void Dispose()
@@ -331,12 +398,13 @@ namespace Kiss.Elastic.Sync.SharePoint
 
             public string OpenTag(IElement element, bool selfClosing) => element.LocalName switch
             {
-                // Paragraph = blank line
-                "p" => "\n\n",
+                // Paragraph or heading = blank line
+                "p" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6" => "\n\n",
                 // Line break = single newline
                 "br" => "\n",
                 // Span = inline, separated by a space
                 "span" => " ",
+                // otherwise don't add any whitespace
                 _ => ""
             };
 
