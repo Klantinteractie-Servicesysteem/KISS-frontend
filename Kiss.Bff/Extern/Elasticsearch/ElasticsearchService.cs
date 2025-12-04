@@ -48,38 +48,62 @@ namespace Kiss.Bff.Extern.ElasticSearch
 
 
         /// <summary>
-        /// Transform the request query based on user role
-        /// Applies field exclusions for Kennisbank users
+        /// Transform the request query based on user role.
+        /// Removes fields that should not be searched from the query.
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
+            if (isOnlyKennisbank())
             {
-                // Add _source.excludes to query
-                if (!query.ContainsKey("_source"))
+                foreach (var excludedField in _excludedFieldsForKennisbank)
                 {
-                    query["_source"] = new JsonObject
-                    {
-                        ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))])
-                    };
+                    RemoveMatchingFieldsRecursive(query, excludedField);
                 }
-                else if (query["_source"] is JsonObject sourceObj)
+            }
+        }
+
+        /// <summary>
+        /// Recursively traverses JSON structure and removes values starting with fieldName from arrays and objects
+        /// </summary>
+        private static void RemoveMatchingFieldsRecursive(JsonNode? node, string fieldName)
+        {
+            if (node == null) return;
+
+            if (node is JsonObject jsonObject)
+            {
+                foreach (var property in jsonObject)
                 {
-                    if (!sourceObj.ContainsKey("excludes"))
+                    if (property.Value is JsonArray jsonArray)
                     {
-                        sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))]);
-                    }
-                    else if (sourceObj["excludes"] is JsonArray existingExcludes)
-                    {
-                        // Merge with existing excludes
-                        foreach (var field in _excludedFieldsForKennisbank)
+                        var itemsToRemove = new List<JsonNode?>();
+
+                        foreach (var item in jsonArray)
                         {
-                            if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
+                            if (item is JsonValue itemValue)
                             {
-                                existingExcludes.Add(JsonValue.Create(field));
+                                var valueStr = itemValue.ToString();
+
+                                if (valueStr.StartsWith(fieldName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    itemsToRemove.Add(item);
+                                }
                             }
                         }
+
+                        foreach (var item in itemsToRemove)
+                        {
+                            jsonArray.Remove(item);
+                        }
                     }
+
+                    RemoveMatchingFieldsRecursive(property.Value, fieldName);
+                }
+            }
+            else if (node is JsonArray jsonArray)
+            {
+                foreach (var item in jsonArray)
+                {
+                    RemoveMatchingFieldsRecursive(item, fieldName);
                 }
             }
         }
@@ -90,7 +114,6 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private ElasticResponse? ApplyResponseTransform(ElasticResponse? responseBody)
         {
-            // User has Kennisbank role and there are fields to exclude
             if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
                 if (responseBody?.Hits?.Hits != null)
@@ -98,8 +121,13 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     foreach (var hit in responseBody.Hits.Hits)
                     {
                         if (hit.Source != null)
-                            // Remove excluded fields from _source
-                            RemoveExcludedFields(hit.Source, _excludedFieldsForKennisbank);
+                        {
+                            foreach (var fieldPath in _excludedFieldsForKennisbank)
+                            {
+                                var splitPath = fieldPath.Split('.');
+                                RemoveFieldRecursively(hit.Source, splitPath);
+                            }
+                        }
                     }
                 }
             }
@@ -107,24 +135,10 @@ namespace Kiss.Bff.Extern.ElasticSearch
         }
 
         /// <summary>
-        /// Recursively remove excluded fields from a JSON object
-        /// Example: "toelichting" removes the field from VAC.toelichting, Kennisartikel.vertalingen.toelichting, etc.
-        /// </summary>
-        private void RemoveExcludedFields(JsonNode obj, string[] excludedFields)
-        {
-            foreach (var fieldPath in excludedFields)
-            {
-                var splitPath = fieldPath.Split('.');
-                RemoveFieldRecursively(obj, splitPath);
-            }
-        }
-
-        /// <summary>
         /// Recursively moves down the field path and removes the field object if it is found.
         /// </summary>
         private void RemoveFieldRecursively(JsonNode? node, string[] fieldPath)
         {
-            // Base cases
             if (node == null || fieldPath.Length == 0) return;
 
             if (fieldPath.Length == 1 && node is JsonObject fieldObject)
@@ -140,9 +154,19 @@ namespace Kiss.Bff.Extern.ElasticSearch
             var tailOfPath = fieldPath[1..];
 
             // Check if the current head of the path is in the given node object.
-            if (node is JsonObject jsonObject && jsonObject.ContainsKey(headOfPath))
+            if (node is JsonObject jsonObject)
             {
-                RemoveFieldRecursively(jsonObject[headOfPath], tailOfPath);
+                if (jsonObject.ContainsKey(headOfPath))
+                {
+                    RemoveFieldRecursively(jsonObject[headOfPath], tailOfPath);
+                }
+                else
+                {
+                    foreach (var field in jsonObject)
+                    {
+                        RemoveFieldRecursively(field.Value, fieldPath);
+                    }
+                }
             }
             else if (node is JsonArray jsonArray)
             {
@@ -152,7 +176,6 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     RemoveFieldRecursively(item, fieldPath);
                 }
             }
-
         }
         /// <summary>
         /// Checks if the user only has the Kennisbank role.
