@@ -23,7 +23,6 @@ namespace Kiss.Bff.Test
         private DefaultHttpContext _httpContext = null!;
         private IsKennisbank _isKennisbank = null!;
         private IsKcm _isKcm = null!;
-        private IsRedacteur _isRedacteur = null!;
 
         [TestInitialize]
         public void Setup()
@@ -33,7 +32,6 @@ namespace Kiss.Bff.Test
             _mockHttp = new MockHttpMessageHandler();
             _isKennisbank = (user) => user?.IsInRole("Kennisbank") ?? false;
             _isKcm = (user) => user?.IsInRole("Kcm") ?? false;
-            _isRedacteur = (user) => user?.IsInRole("Redacteur") ?? false;
 
             // Setup default configuration
             _configurationMock.Setup(c => c["ELASTIC_BASE_URL"]).Returns("https://elasticsearch.example.com");
@@ -61,7 +59,6 @@ namespace Kiss.Bff.Test
             var elasticsearchService = new ElasticsearchService(
                 httpClient,
                 _isKennisbank,
-                _isRedacteur,
                 _isKcm,
                 _httpContext.User,
                 _configurationMock.Object
