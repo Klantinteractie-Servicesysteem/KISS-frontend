@@ -179,6 +179,19 @@ namespace Kiss.Elastic.Sync.SharePoint
             return IterateAllEntities(firstPage, x => x.Value, token);
         }
 
+        private async IAsyncEnumerable<SharePointPage> GetAllPages(Site site, [EnumeratorCancellation] CancellationToken token)
+        {
+            await foreach (var modernPage in GetModernPages(site, token))
+            {
+                yield return modernPage;
+            }
+
+            await foreach (var classicPage in GetClassicPages(site, token))
+            {
+                yield return classicPage;
+            }
+        }
+
         private async IAsyncEnumerable<SharePointPage> GetModernPages(Site site, [EnumeratorCancellation] CancellationToken token)
         {
             var firstPage = _graphClient
@@ -195,7 +208,7 @@ namespace Kiss.Elastic.Sync.SharePoint
                 yield return new SharePointPage
                 {
                     Id = page.Id!,
-                    Title = page.Title ?? "",
+                    Title = string.IsNullOrWhiteSpace(page.Title) ? "Geen titel" : page.Title,
                     LastModified = page.LastModifiedDateTime,
                     CreatedBy = page.CreatedBy?.User?.DisplayName,
                     LastModifiedBy = page.LastModifiedBy?.User?.DisplayName,
@@ -203,19 +216,6 @@ namespace Kiss.Elastic.Sync.SharePoint
                     Content = content,
                     Headings = headings
                 };
-            }
-        }
-
-        private async IAsyncEnumerable<SharePointPage> GetAllPages(Site site, [EnumeratorCancellation] CancellationToken token)
-        {
-            await foreach (var modernPage in GetModernPages(site, token))
-            {
-                yield return modernPage;
-            }
-
-            await foreach (var classicPage in GetClassicPages(site, token))
-            {
-                yield return classicPage;
             }
         }
 
@@ -233,18 +233,47 @@ namespace Kiss.Elastic.Sync.SharePoint
             {
                 foreach (var item in list.Items ?? [])
                 {
-                    if (item.WebUrl?.EndsWith(".aspx") != true || !item.AdditionalData.TryGetValue("WikiField", out var obj) || obj is not string html)
+                    if (
+                        item is not { WebUrl: { } url, Fields.AdditionalData: { } data } ||
+                        !url.EndsWith(".aspx") ||
+                        !data.TryGetValue("WikiField", out var wikiField) || 
+                        wikiField is not string html
+                        )
                     {
-                        //  we don't support this type of page
+                        // this is not a page or we don't support it
+                        Console.WriteLine($"skipped item because not a page or unsupported: {item.WebUrl ?? item.Id}");
+                        continue;
+                    }
+
+                    // unfortunately, to get a safe id, we need to do another call
+                    var itemWithOnlyIds = await _graphClient
+                        .Sites[site.Id]
+                        .Lists[list.Id]
+                        .Items[item.Id]
+                        .GetAsync(x => x.QueryParameters.Select = ["sharepointIds", "id"], token);
+
+                    if (itemWithOnlyIds is not { SharepointIds.TenantId: { } tenantId, SharepointIds.SiteId: { } siteId, SharepointIds.ListItemUniqueId: { } itemId })
+                    {
+                        Console.WriteLine($"skipped item because we couldn't find a unique id: {item.WebUrl ?? item.Id}");
                         continue;
                     }
 
                     var (content, headings) = await ExtractTextFromPage([html], token);
 
+                    var title = item.Name;
+                    if (string.IsNullOrWhiteSpace(title))
+                    {
+                        title = ExtractTitleFromUrl(item.WebUrl);
+                    }
+                    if (string.IsNullOrWhiteSpace(title))
+                    {
+                        title = "Geen titel";
+                    }
+
                     yield return new SharePointPage
                     {
-                        Id = item.Id!,
-                        Title = item.Name ?? ExtractTitleFromUrl(item.WebUrl) ?? "Geen titel",
+                        Id = string.Join("/", tenantId, siteId, itemId),
+                        Title = title,
                         Url = item.WebUrl,
                         LastModified = item.LastModifiedDateTime,
                         LastModifiedBy = item.LastModifiedBy?.User?.DisplayName,
