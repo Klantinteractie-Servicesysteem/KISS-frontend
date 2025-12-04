@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 
-namespace Kiss.Bff.Extern.ElasticSearch
+namespace Kiss.Bff.Extern.Elasticsearch
 {
     public class ElasticsearchService
     {
@@ -19,7 +19,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
             _isRedacteur = isRedacteur;
             _isKcm = isKcm;
             _user = user;
-            var excludedFields = configuration["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"];
+            var excludedFields = configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"];
             _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields) ? [] : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
@@ -53,7 +53,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            if (isOnlyKennisbank())
+            if (IsOnlyKennisbank())
             {
                 foreach (var excludedField in _excludedFieldsForKennisbank)
                 {
@@ -112,9 +112,9 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// Transform the response body by removing excluded fields from the search results
         /// Filters out any restricted fields for Kennisbank users
         /// </summary>
-        private ElasticResponse? ApplyResponseTransform(ElasticResponse? responseBody)
+        private void ApplyResponseTransform(ElasticResponse? responseBody)
         {
-            if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
+            if (IsOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
                 if (responseBody?.Hits?.Hits != null)
                 {
@@ -131,7 +131,6 @@ namespace Kiss.Bff.Extern.ElasticSearch
                     }
                 }
             }
-            return responseBody;
         }
 
         /// <summary>
@@ -180,7 +179,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// <summary>
         /// Checks if the user only has the Kennisbank role.
         /// </summary>
-        private bool isOnlyKennisbank()
+        private bool IsOnlyKennisbank()
         {
             return _isKennisbank(_user) && !_isKcm(_user) && !_isRedacteur(_user);
         }

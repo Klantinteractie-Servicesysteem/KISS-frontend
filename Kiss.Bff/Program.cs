@@ -6,7 +6,7 @@ using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Verwerking;
 using Kiss.Bff.Config;
 using Kiss.Bff.Extern;
-using Kiss.Bff.Extern.ElasticSearch;
+using Kiss.Bff.Extern.Elasticsearch;
 using Kiss.Bff.Extern.Logboek;
 using Kiss.Bff.Groepen;
 using Kiss.Bff.Intern.Seed.Features;
