@@ -4,7 +4,7 @@ using Kiss.Elastic.Sync.SharePoint;
 
 namespace Kiss.Elastic.Sync.Sources
 {
-    public sealed class SharePointPageSourceClient(SharePointClient sharePointClient, string source) : IKissSourceClient
+    public sealed partial class SharePointPageSourceClient(SharePointClient sharePointClient, string source) : IKissSourceClient
     {
         public string Source => source;
 
@@ -16,32 +16,19 @@ namespace Kiss.Elastic.Sync.Sources
 
         public async IAsyncEnumerable<KissEnvelope> Get([EnumeratorCancellation] CancellationToken token)
         {
-            await foreach (var page in sharePointClient.GetAllPages(token))
+            await foreach (var pageData in sharePointClient.GetAllPages(token))
             {
-                var (content, headings) = await sharePointClient.ExtractTextFromPage(page);
-                var pageData = new
-                {
-                    id = page.Id,
-                    title = page.Title ?? "Geen titel",
-                    content,
-                    headings,
-                    url = page.WebUrl,
-                    lastModified = page.LastModifiedDateTime?.UtcDateTime ?? DateTime.UtcNow,
-                    createdBy = page.CreatedBy?.User?.DisplayName,
-                    lastModifiedBy = page.LastModifiedBy?.User?.DisplayName
-                };
-
                 var data = JsonSerializer.SerializeToElement(pageData);
 
                 yield return new KissEnvelope(
                     Object: data,
-                    Title: pageData.title,
+                    Title: pageData.Title,
                     ObjectMeta: "",
-                    Id: $"sharepoint_{pageData.id}",
-                    Url: page.WebUrl
+                    Id: $"${Helpers.GenerateValidIndexName(Source)}_{pageData.Id}",
+                    Url: pageData.Url
                 );
 
-                Console.WriteLine($"Page indexed: {pageData.title}");
+                Console.WriteLine($"Page indexed: {pageData.Title}");
             }
         }
 
