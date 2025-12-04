@@ -53,7 +53,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            if (isOnlyKennisbank())
+            if (IsOnlyKennisbank())
             {
                 foreach (var excludedField in _excludedFieldsForKennisbank)
                 {
@@ -112,9 +112,9 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// Transform the response body by removing excluded fields from the search results
         /// Filters out any restricted fields for Kennisbank users
         /// </summary>
-        private ElasticResponse? ApplyResponseTransform(ElasticResponse? responseBody)
+        private void ApplyResponseTransform(ElasticResponse? responseBody)
         {
-            if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
+            if (IsOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
                 if (responseBody?.Hits?.Hits != null)
                 {
@@ -131,7 +131,6 @@ namespace Kiss.Bff.Extern.Elasticsearch
                     }
                 }
             }
-            return responseBody;
         }
 
         /// <summary>
@@ -180,7 +179,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// <summary>
         /// Checks if the user only has the Kennisbank role.
         /// </summary>
-        private bool isOnlyKennisbank()
+        private bool IsOnlyKennisbank()
         {
             return _isKennisbank(_user) && !_isKcm(_user) && !_isRedacteur(_user);
         }
