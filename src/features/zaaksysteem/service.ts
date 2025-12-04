@@ -151,30 +151,37 @@ const fetchZakenByMultipleVestigingQueries = async (
   baseQuery: URLSearchParams,
   vestigingsnummer: string,
   kvkNummer: string,
-): Promise<[ZaakDetails[] | null, ZaakDetails[] | null]> => {
+): Promise<ZaakDetails[][]> => {
+  const queries = [];
+
+  if (systeem.useExperimentalQueries) {
+    const nnpQuery = new URLSearchParams(baseQuery);
+    nnpQuery.set(
+      "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__vestigingsNummer",
+      vestigingsnummer,
+    );
+
+    nnpQuery.set(
+      "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
+      kvkNummer,
+    );
+
+    queries.push(nnpQuery);
+  }
+
   const vestigingQuery = new URLSearchParams(baseQuery);
   vestigingQuery.set(
     "rol__betrokkeneIdentificatie__vestiging__vestigingsNummer",
     vestigingsnummer,
   );
 
-  const nnpQuery = new URLSearchParams(baseQuery);
-  nnpQuery.set(
-    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__vestigingsNummer",
-    vestigingsnummer,
-  );
-
-  nnpQuery.set(
-    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
-    kvkNummer,
-  );
+  queries.push(vestigingQuery);
 
   // This call can create expected bad http requests
   // So wrap each individual fetch to deal with expected exceptions
-  return Promise.all([
-    handleExpectedError(fetchZaakOverview(systeem, vestigingQuery)),
-    handleExpectedError(fetchZaakOverview(systeem, nnpQuery)),
-  ]);
+  return Promise.all(
+    queries.map((q) => fetchZaakOverview(systeem, q)).map(handleExpectedError),
+  );
 };
 
 const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
@@ -183,7 +190,7 @@ const handleExpectedError = async (promise: Promise<ZaakDetails[]>) => {
   } catch (error) {
     if (error instanceof ResponseError && error.response.status === 400) {
       // ignore this kind of http responses
-      return null;
+      return [];
     }
     // For all other errors, re-throw to be caught
     throw error;
@@ -260,14 +267,25 @@ const fetchZakenByMultipleNnpQueries = async (
   systeem: Systeem,
   baseQuery: URLSearchParams,
   id: { rsin: string; kvkNummer: string },
-): Promise<
-  [ZaakDetails[] | null, ZaakDetails[] | null, ZaakDetails[] | null]
-> => {
+): Promise<ZaakDetails[][]> => {
+  const queries = [];
+
+  if (systeem.useExperimentalQueries) {
+    const kvkQuery = new URLSearchParams(baseQuery);
+    kvkQuery.set(
+      "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
+      id.kvkNummer,
+    );
+    queries.push(kvkQuery);
+  }
+
   const rsinQuery = new URLSearchParams(baseQuery);
   rsinQuery.set(
     "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__innNnpId",
     id.rsin,
   );
+
+  queries.push(rsinQuery);
 
   const innNnpKvkQuery = new URLSearchParams(baseQuery);
   innNnpKvkQuery.set(
@@ -275,19 +293,13 @@ const fetchZakenByMultipleNnpQueries = async (
     id.kvkNummer,
   );
 
-  const kvkQuery = new URLSearchParams(baseQuery);
-  kvkQuery.set(
-    "rol__betrokkeneIdentificatie__nietNatuurlijkPersoon__kvkNummer",
-    id.kvkNummer,
-  );
+  queries.push(innNnpKvkQuery);
 
   // This call can create expected bad http requests
   // So wrap each individual fetch to deal with expected exceptions
-  return Promise.all([
-    handleExpectedError(fetchZaakOverview(systeem, rsinQuery)),
-    handleExpectedError(fetchZaakOverview(systeem, innNnpKvkQuery)),
-    handleExpectedError(fetchZaakOverview(systeem, kvkQuery)),
-  ]);
+  return Promise.all(
+    queries.map((q) => fetchZaakOverview(systeem, q)).map(handleExpectedError),
+  );
 };
 
 const filterNnpResultZaken = (

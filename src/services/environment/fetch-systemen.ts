@@ -14,6 +14,7 @@ export type Systeem = {
   registryVersion: ValueOf<typeof registryVersions>;
   deeplinkUrl?: string;
   deeplinkProperty?: string;
+  useExperimentalQueries: boolean;
 };
 
 const _fetchSystemen = () =>

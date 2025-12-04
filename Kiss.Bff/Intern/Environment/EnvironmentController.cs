@@ -56,7 +56,8 @@ namespace Kiss.Bff.Intern.Environment
                         x.Identifier,
                         x.RegistryVersion,
                         x.ZaaksysteemRegistry?.DeeplinkUrl,
-                        x.ZaaksysteemRegistry?.DeeplinkProperty
+                        x.ZaaksysteemRegistry?.DeeplinkProperty,
+                        x.ZaaksysteemRegistry?.UseExperimentalQueries,
                     })
             };
 

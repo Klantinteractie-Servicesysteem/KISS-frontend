@@ -68,7 +68,7 @@ namespace Kiss.Bff.Extern
         }
     }
 
-    public record ZaaksysteemRegistry 
+    public record ZaaksysteemRegistry
     {
         public void ApplyHeaders(HttpRequestHeaders headers, System.Security.Claims.ClaimsPrincipal user)
         {
@@ -80,10 +80,11 @@ namespace Kiss.Bff.Extern
 
         public required string ClientId { get; init; }
         public required string ClientSecret { get; init; }
-    
+
 
         public string? DeeplinkUrl { get; init; }
         public string? DeeplinkProperty { get; init; }
+        public bool UseExperimentalQueries { get; init; }
 
 
         public required string ZakenBaseUrl { get; init; }
