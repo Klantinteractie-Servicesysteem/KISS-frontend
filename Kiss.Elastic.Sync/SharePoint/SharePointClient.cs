@@ -198,7 +198,7 @@ namespace Kiss.Elastic.Sync.SharePoint
                 .Sites[site.Id]
                 .Pages
                 .GraphSitePage
-                .GetAsync(x => { }, token);
+                .GetAsync(x => x.QueryParameters.Expand = ["webparts"], token);
 
             await foreach (var page in IterateAllEntities(firstPage, x => x.Value, token))
             {
