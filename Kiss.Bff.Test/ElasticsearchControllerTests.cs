@@ -2,7 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Kiss.Bff.Extern.ElasticSearch;
+using Kiss.Bff.Extern.Elasticsearch;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -39,7 +39,7 @@ namespace Kiss.Bff.Test
             _configurationMock.Setup(c => c["ELASTIC_BASE_URL"]).Returns("https://elasticsearch.example.com");
             _configurationMock.Setup(c => c["ELASTIC_USERNAME"]).Returns("testuser");
             _configurationMock.Setup(c => c["ELASTIC_PASSWORD"]).Returns("testpass");
-            _configurationMock.Setup(c => c["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            _configurationMock.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
             _httpContext = new DefaultHttpContext
             {
@@ -340,7 +340,7 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_WithNoEnvironmentVariableConfigured_DoesNotModifyRequestOrResponse()
         {
-            _configurationMock.Setup(c => c["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
+            _configurationMock.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
             CreateController(); // Recreate with empty excluded fields
 
             var elasticQuery = new JsonObject
