@@ -22,6 +22,8 @@ namespace Kiss.Bff.Test
         private ElasticsearchController _controller = null!;
         private DefaultHttpContext _httpContext = null!;
         private IsKennisbank _isKennisbank = null!;
+        private IsKcm _isKcm = null!;
+        private IsRedacteur _isRedacteur = null!;
 
         [TestInitialize]
         public void Setup()
@@ -30,12 +32,14 @@ namespace Kiss.Bff.Test
             _loggerMock = new Mock<ILogger<ElasticsearchController>>();
             _mockHttp = new MockHttpMessageHandler();
             _isKennisbank = (user) => user?.IsInRole("Kennisbank") ?? false;
+            _isKcm = (user) => user?.IsInRole("Kcm") ?? false;
+            _isRedacteur = (user) => user?.IsInRole("Redacteur") ?? false;
 
             // Setup default configuration
             _configurationMock.Setup(c => c["ELASTIC_BASE_URL"]).Returns("https://elasticsearch.example.com");
             _configurationMock.Setup(c => c["ELASTIC_USERNAME"]).Returns("testuser");
             _configurationMock.Setup(c => c["ELASTIC_PASSWORD"]).Returns("testpass");
-            _configurationMock.Setup(c => c["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            _configurationMock.Setup(c => c["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
             _httpContext = new DefaultHttpContext
             {
@@ -57,6 +61,8 @@ namespace Kiss.Bff.Test
             var elasticsearchService = new ElasticsearchService(
                 httpClient,
                 _isKennisbank,
+                _isRedacteur,
+                _isKcm,
                 _httpContext.User,
                 _configurationMock.Object
             );
@@ -408,7 +414,7 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_WithNoExcludedFieldsConfigured_DoesNotModifyRequestOrResponse()
         {
-            _configurationMock.Setup(c => c["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"]).Returns("");
+            _configurationMock.Setup(c => c["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
             CreateController(); // Recreate with empty excluded fields
 
             var elasticQuery = new JsonObject
@@ -453,7 +459,7 @@ namespace Kiss.Bff.Test
         }
 
         [TestMethod]
-        public async Task Search_UserWithKennisbankAndKcmRoles_AppliesExclusionsLikeKennisbankUser()
+        public async Task Search_UserWithKennisbankAndKcmRoles_AppliesRequestExclusionsLikeKcmUser()
         {
             // Create a user with both Kennisbank and Kcm roles
             _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -484,18 +490,15 @@ namespace Kiss.Bff.Test
 
             await _controller.Search("test-index", elasticQuery, CancellationToken.None);
 
-            // Assert - Request should have excluded fields added
+            // Assert - Request should NOT have excluded fields added
             var parsedRequest = JsonNode.Parse(capturedRequest);
             Assert.IsNotNull(parsedRequest);
             var sourceExcludes = parsedRequest["_source"]?["excludes"]?.AsArray();
-            Assert.IsNotNull(sourceExcludes);
-            Assert.AreEqual(2, sourceExcludes.Count);
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "VAC.toelichting"));
-            Assert.IsTrue(sourceExcludes.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo"));
+            Assert.IsNull(sourceExcludes);
         }
 
         [TestMethod]
-        public async Task Search_UserWithKennisbankAndKcmRoles_RemovesExcludedFieldsFromResponse()
+        public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveExcludedFieldsFromResponse()
         {
             // Create a user with both Kennisbank and Kcm roles
             _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -524,16 +527,16 @@ namespace Kiss.Bff.Test
             var responseBody = okResult.Value as ElasticResponse;
             Assert.IsNotNull(responseBody);
 
-            // Verify VAC.toelichting is removed
+            // Verify VAC.toelichting is NOT removed
             var sourceVAC = responseBody.Hits?.Hits?[0].Source?["VAC"]?.AsObject();
             Assert.IsNotNull(sourceVAC);
-            Assert.IsFalse(sourceVAC.ContainsKey("toelichting"));
+            Assert.IsTrue(sourceVAC.ContainsKey("toelichting"));
             Assert.IsTrue(sourceVAC.ContainsKey("allowedField"));
 
-            // Verify Kennisbank.vertalingen.deskMemo is removed
+            // Verify Kennisbank.vertalingen.deskMemo is NOT removed
             var sourceKennisbank = responseBody.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
             Assert.IsNotNull(sourceKennisbank);
-            Assert.IsFalse(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
+            Assert.IsTrue(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
             Assert.IsTrue(sourceKennisbank.ContainsKey("existingField"));
         }
 
