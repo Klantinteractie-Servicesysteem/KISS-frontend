@@ -7,15 +7,19 @@ namespace Kiss.Bff.Extern.ElasticSearch
     {
         private readonly HttpClient _httpClient;
         private readonly IsKennisbank _isKennisbank;
+        private readonly IsRedacteur _isRedacteur;
+        private readonly IsKcm _isKcm;
         private readonly ClaimsPrincipal _user;
         private readonly string[] _excludedFieldsForKennisbank;
 
-        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, ClaimsPrincipal user, IConfiguration configuration)
+        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, IsRedacteur isRedacteur, IsKcm isKcm, ClaimsPrincipal user, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _isKennisbank = isKennisbank;
+            _isRedacteur = isRedacteur;
+            _isKcm = isKcm;
             _user = user;
-            var excludedFields = configuration["ELASTICSEARCH_KENNISBANK_EXCLUDED_FIELDS"];
+            var excludedFields = configuration["ELASTICSEARCH_EXCLUDED_FIELDS_KENNISBANK"];
             _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields) ? [] : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
@@ -49,33 +53,31 @@ namespace Kiss.Bff.Extern.ElasticSearch
         /// </summary>
         private void ApplyRequestTransform(JsonObject query)
         {
-            if (!_isKennisbank(_user) || _excludedFieldsForKennisbank.Length == 0)
+            if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
-                return;
-            }
-
-            // Add _source.excludes to query
-            if (!query.ContainsKey("_source"))
-            {
-                query["_source"] = new JsonObject
+                // Add _source.excludes to query
+                if (!query.ContainsKey("_source"))
                 {
-                    ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))])
-                };
-            }
-            else if (query["_source"] is JsonObject sourceObj)
-            {
-                if (!sourceObj.ContainsKey("excludes"))
-                {
-                    sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))]);
-                }
-                else if (sourceObj["excludes"] is JsonArray existingExcludes)
-                {
-                    // Merge with existing excludes
-                    foreach (var field in _excludedFieldsForKennisbank)
+                    query["_source"] = new JsonObject
                     {
-                        if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
+                        ["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))])
+                    };
+                }
+                else if (query["_source"] is JsonObject sourceObj)
+                {
+                    if (!sourceObj.ContainsKey("excludes"))
+                    {
+                        sourceObj["excludes"] = new JsonArray([.. _excludedFieldsForKennisbank.Select(fieldName => JsonValue.Create(fieldName))]);
+                    }
+                    else if (sourceObj["excludes"] is JsonArray existingExcludes)
+                    {
+                        // Merge with existing excludes
+                        foreach (var field in _excludedFieldsForKennisbank)
                         {
-                            existingExcludes.Add(JsonValue.Create(field));
+                            if (!existingExcludes.Any(existingField => existingField?.ToString() == field))
+                            {
+                                existingExcludes.Add(JsonValue.Create(field));
+                            }
                         }
                     }
                 }
@@ -89,7 +91,7 @@ namespace Kiss.Bff.Extern.ElasticSearch
         private ElasticResponse? ApplyResponseTransform(ElasticResponse? responseBody)
         {
             // User has Kennisbank role and there are fields to exclude
-            if (_isKennisbank(_user) && _excludedFieldsForKennisbank.Length > 0)
+            if (isOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
                 if (responseBody?.Hits?.Hits != null)
                 {
@@ -151,6 +153,13 @@ namespace Kiss.Bff.Extern.ElasticSearch
                 }
             }
 
+        }
+        /// <summary>
+        /// Checks if the user only has the Kennisbank role.
+        /// </summary>
+        private bool isOnlyKennisbank()
+        {
+            return _isKennisbank(_user) && !_isKcm(_user) && !_isRedacteur(_user);
         }
     }
 }
