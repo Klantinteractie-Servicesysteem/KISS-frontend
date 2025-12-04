@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 
-namespace Kiss.Bff.Extern.ElasticSearch
+namespace Kiss.Bff.Extern.Elasticsearch
 {
     public class ElasticsearchService
     {
