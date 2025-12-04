@@ -7,16 +7,14 @@ namespace Kiss.Bff.Extern.Elasticsearch
     {
         private readonly HttpClient _httpClient;
         private readonly IsKennisbank _isKennisbank;
-        private readonly IsRedacteur _isRedacteur;
         private readonly IsKcm _isKcm;
         private readonly ClaimsPrincipal _user;
         private readonly string[] _excludedFieldsForKennisbank;
 
-        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, IsRedacteur isRedacteur, IsKcm isKcm, ClaimsPrincipal user, IConfiguration configuration)
+        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, IsKcm isKcm, ClaimsPrincipal user, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _isKennisbank = isKennisbank;
-            _isRedacteur = isRedacteur;
             _isKcm = isKcm;
             _user = user;
             var excludedFields = configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"];
@@ -181,7 +179,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// </summary>
         private bool IsOnlyKennisbank()
         {
-            return _isKennisbank(_user) && !_isKcm(_user) && !_isRedacteur(_user);
+            return _isKennisbank(_user) && !_isKcm(_user);
         }
     }
 }
