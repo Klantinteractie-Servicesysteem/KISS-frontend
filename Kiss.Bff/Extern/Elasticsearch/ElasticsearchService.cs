@@ -49,7 +49,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// Transform the request query based on user role.
         /// Removes fields that should not be searched from the query.
         /// </summary>
-        private void ApplyRequestTransform(JsonObject query)
+        public void ApplyRequestTransform(JsonObject query)
         {
             if (IsOnlyKennisbank())
             {
@@ -110,7 +110,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         /// Transform the response body by removing excluded fields from the search results
         /// Filters out any restricted fields for Kennisbank users
         /// </summary>
-        private void ApplyResponseTransform(ElasticResponse? responseBody)
+        public void ApplyResponseTransform(ElasticResponse? responseBody)
         {
             if (IsOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
             {
