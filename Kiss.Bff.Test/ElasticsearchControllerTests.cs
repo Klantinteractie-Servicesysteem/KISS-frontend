@@ -1,13 +1,7 @@
-using System.Net;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kiss.Bff.Extern.Elasticsearch;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using RichardSzalay.MockHttp;
 
@@ -16,69 +10,16 @@ namespace Kiss.Bff.Test
     [TestClass]
     public class ElasticsearchControllerTests
     {
-        private Mock<IConfiguration> _configurationMock = null!;
-        private Mock<ILogger<ElasticsearchController>> _loggerMock = null!;
-        private MockHttpMessageHandler _mockHttp = null!;
-        private ElasticsearchController _controller = null!;
-        private DefaultHttpContext _httpContext = null!;
-        private IsKennisbank _isKennisbank = null!;
-        private IsKcm _isKcm = null!;
-        private ElasticsearchService _service = null!;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            _configurationMock = new Mock<IConfiguration>();
-            _loggerMock = new Mock<ILogger<ElasticsearchController>>();
-            _mockHttp = new MockHttpMessageHandler();
-            _isKennisbank = (user) => user?.IsInRole("Kennisbank") ?? false;
-            _isKcm = (user) => user?.IsInRole("Kcm") ?? false;
-
-            // Setup default configuration
-            _configurationMock.Setup(c => c["ELASTIC_BASE_URL"]).Returns("https://elasticsearch.example.com");
-            _configurationMock.Setup(c => c["ELASTIC_USERNAME"]).Returns("testuser");
-            _configurationMock.Setup(c => c["ELASTIC_PASSWORD"]).Returns("testpass");
-            _configurationMock.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            _httpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity(
-                [
-                    new Claim(ClaimTypes.Email, "test@example.com"),
-                    new Claim(ClaimTypes.Role, "Kennisbank")
-                ], "TestAuth"))
-            };
-
-            CreateController();
-        }
-
-        private void CreateController()
-        {
-            CreateService();
-
-            _controller = new ElasticsearchController(
-                _service,
-                _loggerMock.Object
-            );
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = _httpContext
-            };
-        }
-
-        private void CreateService()
-        {
-            var httpClient = _mockHttp.ToHttpClient();
-            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
-
-            _service = new ElasticsearchService(httpClient, _isKennisbank, _isKcm, _httpContext.User, _configurationMock.Object);
-        }
-
         #region Request Transformation Tests (Kennisbank Users)
 
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromRequest()
         {
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+
             var elasticQuery = new JsonObject
             {
                 ["query"] = new JsonObject
@@ -99,7 +40,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyRequestTransform(elasticQuery);
+            service.ApplyRequestTransform(elasticQuery);
 
             var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
@@ -120,6 +61,11 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromResponse()
         {
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+
             var elasticResponse = new ElasticResponse
             {
                 Hits = new HitsWrapper
@@ -159,7 +105,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyResponseTransform(elasticResponse);
+            service.ApplyResponseTransform(elasticResponse);
 
             var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
 
@@ -174,6 +120,11 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromNestedObjects()
         {
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+
             var elasticResponse = new ElasticResponse
             {
                 Hits = new HitsWrapper
@@ -213,7 +164,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyResponseTransform(elasticResponse);
+            service.ApplyResponseTransform(elasticResponse);
 
             var sourceKennisbank = elasticResponse.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
 
@@ -226,6 +177,11 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromArrays()
         {
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+
             var elasticResponse = new ElasticResponse
             {
                 Hits = new HitsWrapper
@@ -265,7 +221,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyResponseTransform(elasticResponse);
+            service.ApplyResponseTransform(elasticResponse);
 
             var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?["VAC"]?[0]?.AsObject();
 
@@ -282,14 +238,10 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_NonKennisbankUser_DoesNotModifyRequest()
         {
-            // Create a non-Kennisbank user
-            _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Email, "test@example.com"),
-                new Claim(ClaimTypes.Role, "OtherRole")
-            }, "TestAuth"));
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
-            CreateController(); // Recreate with new user
+            var service = new ElasticsearchService(null!, (isKennisBank) => false, (isKcm) => true, null!, configuration.Object);
 
             var elasticQuery = new JsonObject
             {
@@ -308,7 +260,7 @@ namespace Kiss.Bff.Test
                 ["size"] = 10
             };
 
-            _service.ApplyRequestTransform(elasticQuery);
+            service.ApplyRequestTransform(elasticQuery);
 
             // Fields should NOT be removed
             var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
@@ -326,14 +278,10 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_NonKennisbankUser_DoesNotModifyResponse()
         {
-            // Create a non-Kennisbank user
-            _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Email, "test@example.com"),
-                new Claim(ClaimTypes.Role, "OtherRole")
-            }, "TestAuth"));
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
-            CreateController(); // Recreate with new user
+            var service = new ElasticsearchService(null!, (isKennisBank) => false, (isKcm) => true, null!, configuration.Object);
 
             var elasticResponse = new ElasticResponse
             {
@@ -354,6 +302,8 @@ namespace Kiss.Bff.Test
                 }
             };
 
+            service.ApplyResponseTransform(elasticResponse);
+
             var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
 
             Assert.IsNotNull(source);
@@ -365,8 +315,10 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_WithNoEnvironmentVariableConfigured_DoesNotModifyRequestOrResponse()
         {
-            _configurationMock.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
-            CreateController(); // Recreate with empty excluded fields
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
+
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
 
             var elasticQuery = new JsonObject
             {
@@ -401,7 +353,7 @@ namespace Kiss.Bff.Test
             };
 
             // Assert - Request should not be modified
-            _service.ApplyRequestTransform(elasticQuery);
+            service.ApplyRequestTransform(elasticQuery);
             var fields = elasticQuery!["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
             Assert.AreEqual(2, fields.Count);
@@ -409,7 +361,7 @@ namespace Kiss.Bff.Test
             Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
 
             // Assert - Response should not be modified
-            _service.ApplyResponseTransform(elasticResponse);
+            service.ApplyResponseTransform(elasticResponse);
             var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
             Assert.IsNotNull(source);
             Assert.IsTrue(source.ContainsKey("toelichting"));
@@ -418,15 +370,10 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveFieldsFromRequest()
         {
-            // Create a user with both Kennisbank and Kcm roles
-            _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
-            [
-                new Claim(ClaimTypes.Email, "test@example.com"),
-                new Claim(ClaimTypes.Role, "Kennisbank"),
-                new Claim(ClaimTypes.Role, "Kcm")
-            ], "TestAuth"));
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
-            CreateController(); // Recreate with new user
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => true, null!, configuration.Object);
 
             var elasticQuery = new JsonObject
             {
@@ -444,7 +391,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyRequestTransform(elasticQuery);
+            service.ApplyRequestTransform(elasticQuery);
 
             var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
@@ -457,15 +404,10 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveExcludedFieldsFromResponse()
         {
-            // Create a user with both Kennisbank and Kcm roles
-            _httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
-            [
-                new Claim(ClaimTypes.Email, "test@example.com"),
-                new Claim(ClaimTypes.Role, "Kennisbank"),
-                new Claim(ClaimTypes.Role, "Kcm")
-            ], "TestAuth"));
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
-            CreateController(); // Recreate with new user
+            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => true, null!, configuration.Object);
 
             var responseBody = new ElasticResponse
             {
@@ -506,7 +448,7 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            _service.ApplyResponseTransform(responseBody);
+            service.ApplyResponseTransform(responseBody);
 
             // Verify VAC.toelichting is NOT removed
             var sourceVAC = responseBody.Hits?.Hits?[0].Source?["VAC"]?.AsObject();
@@ -528,17 +470,12 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_ForwardsRequestToElasticsearch()
         {
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["term"] = new JsonObject { ["field"] = "value" }
-                },
-                ["size"] = 20
-            };
+            var configuration = new Mock<IConfiguration>();
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
 
+            var mockHttp = new MockHttpMessageHandler();
             var wasCalled = false;
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/my-index/_search")
+            mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/my-index/_search")
                 .With(req =>
                 {
                     wasCalled = true;
@@ -549,7 +486,21 @@ namespace Kiss.Bff.Test
                     hits = new { hits = Array.Empty<object>() }
                 }));
 
-            await _controller.Search("my-index", elasticQuery, CancellationToken.None);
+            var httpClient = mockHttp.ToHttpClient();
+            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
+
+            var service = new ElasticsearchService(httpClient, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+
+            var elasticQuery = new JsonObject
+            {
+                ["query"] = new JsonObject
+                {
+                    ["term"] = new JsonObject { ["field"] = "value" }
+                },
+                ["size"] = 20
+            };
+
+            await service.Search("my-index/_search", elasticQuery, CancellationToken.None);
 
             Assert.IsTrue(wasCalled);
         }
