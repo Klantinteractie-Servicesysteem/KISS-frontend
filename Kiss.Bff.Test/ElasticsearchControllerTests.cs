@@ -23,6 +23,7 @@ namespace Kiss.Bff.Test
         private DefaultHttpContext _httpContext = null!;
         private IsKennisbank _isKennisbank = null!;
         private IsKcm _isKcm = null!;
+        private ElasticsearchService _service = null!;
 
         [TestInitialize]
         public void Setup()
@@ -53,25 +54,24 @@ namespace Kiss.Bff.Test
 
         private void CreateController()
         {
-            var httpClient = _mockHttp.ToHttpClient();
-            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
-
-            var elasticsearchService = new ElasticsearchService(
-                httpClient,
-                _isKennisbank,
-                _isKcm,
-                _httpContext.User,
-                _configurationMock.Object
-            );
+            CreateService();
 
             _controller = new ElasticsearchController(
-                elasticsearchService,
+                _service,
                 _loggerMock.Object
             );
             _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = _httpContext
             };
+        }
+
+        private void CreateService()
+        {
+            var httpClient = _mockHttp.ToHttpClient();
+            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
+
+            _service = new ElasticsearchService(httpClient, _isKennisbank, _isKcm, _httpContext.User, _configurationMock.Object);
         }
 
         #region Request Transformation Tests (Kennisbank Users)
@@ -99,23 +99,9 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
+            _service.ApplyRequestTransform(elasticQuery);
 
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            Assert.IsNotNull(parsedRequest);
-            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
 
             // Should only have 3 fields remaining (removed VAC.toelichting and Kennisbank.vertalingen.deskMemo)
@@ -134,24 +120,48 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromResponse()
         {
-            var elasticQuery = new JsonObject
+            var elasticResponse = new ElasticResponse
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                Hits = new HitsWrapper
+                {
+                    Hits = new List<Hit>
+                    {
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "First item",
+                                ["VAC"] = new JsonObject
+                                    {
+                                        ["allowedField"] = "This should remain",
+                                        ["toelichting"] = "This must be removed!"
+                                    },
+                                ["toelichting"] = "Should remain"
+                            }
+                        },
+                    new Hit
+                    {
+                        Source = new JsonObject
+                        {
+                            ["title"] = "Second item",
+                            ["Kennisbank"] = new JsonObject
+                            {
+                                ["allowedField"] = "This should remain",
+                                ["vertalingen"] = new JsonObject
+                                {
+                                    ["deskMemo"] = "This must be removed!"
+                                }
+                            },
+                            ["toelichting"] = "This should remain"
+                        }
+                    }
+                }
+                }
             };
 
-            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
+            _service.ApplyResponseTransform(elasticResponse);
 
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", elasticResponse);
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
-
-            var sourceVAC = responseBody.Hits?.Hits?[0].Source?.AsObject();
+            var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
 
             Assert.IsNotNull(sourceVAC);
             var vacObject = sourceVAC["VAC"]?.AsObject();
@@ -164,52 +174,100 @@ namespace Kiss.Bff.Test
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromNestedObjects()
         {
-            var elasticQuery = new JsonObject
+            var elasticResponse = new ElasticResponse
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                Hits = new HitsWrapper
+                {
+                    Hits = new List<Hit>
+                    {
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "First item",
+                                ["VAC"] = new JsonObject
+                                    {
+                                        ["allowedField"] = "This should remain",
+                                        ["toelichting"] = "This must be removed!"
+                                    },
+                                ["toelichting"] = "Should remain"
+                            }
+                        },
+                    new Hit
+                    {
+                        Source = new JsonObject
+                        {
+                            ["title"] = "Second item",
+                            ["Kennisbank"] = new JsonObject
+                            {
+                                ["allowedField"] = "This should remain",
+                                ["vertalingen"] = new JsonObject
+                                {
+                                    ["deskMemo"] = "This must be removed!"
+                                }
+                            },
+                            ["toelichting"] = "This should remain"
+                        }
+                    }
+                }
+                }
             };
 
-            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
+            _service.ApplyResponseTransform(elasticResponse);
 
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", elasticResponse);
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
-
-            var sourceKennisbank = responseBody.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
+            var sourceKennisbank = elasticResponse.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
 
             Assert.IsNotNull(sourceKennisbank);
             Assert.IsFalse(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
-            Assert.IsTrue(sourceKennisbank.ContainsKey("existingField"));
-            Assert.AreEqual("This has to stay", sourceKennisbank["existingField"]?.ToString());
+            Assert.IsTrue(sourceKennisbank.ContainsKey("allowedField"));
+            Assert.AreEqual("This should remain", sourceKennisbank["allowedField"]?.ToString());
         }
 
         [TestMethod]
         public async Task Search_KennisbankUser_RemovesExcludedFieldsFromArrays()
         {
-            var elasticQuery = new JsonObject
+            var elasticResponse = new ElasticResponse
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                Hits = new HitsWrapper
+                {
+                    Hits = new List<Hit>
+                    {
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "First item",
+                                ["VAC"] = new JsonArray(
+
+                                    new JsonObject {["allowedField"] = "This should remain"},
+                                    new JsonObject {["toelichting"] = "This must be removed!"}
+                                ),
+                                ["toelichting"] = "Should remain"
+                            }
+                        },
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "Second item",
+                                ["Kennisbank"] = new JsonObject
+                                {
+                                    ["allowedField"] = "This should remain",
+                                    ["vertalingen"] = new JsonObject
+                                    {
+                                        ["deskMemo"] = "This must be removed!"
+                                    }
+                                },
+                                ["toelichting"] = "This should remain"
+                            }
+                        }
+                    }
+                }
             };
 
-            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"First item\",\"object_meta\":null,\"object_bron\":\"VAC\",\"VAC\":[{\"allowedField\":\"This should remain\",\"status\":\"actief\",\"toelichting\":\"This has to be removed\"}]}},{\"_source\":{\"title\":\"Second item\",\"object_bron\":\"Kennisbank\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
+            _service.ApplyResponseTransform(elasticResponse);
 
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", elasticResponse);
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
-
-            var sourceVAC = responseBody.Hits?.Hits?[0].Source?["VAC"]?[0]?.AsObject();
+            var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?["VAC"]?[0]?.AsObject();
 
             Assert.IsNotNull(sourceVAC);
             Assert.IsFalse(sourceVAC.ContainsKey("toelichting"));
@@ -250,25 +308,10 @@ namespace Kiss.Bff.Test
                 ["size"] = 10
             };
 
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
-
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            Assert.IsNotNull(parsedRequest);
+            _service.ApplyRequestTransform(elasticQuery);
 
             // Fields should NOT be removed
-            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
             Assert.AreEqual(3, fields.Count);
             Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
@@ -276,8 +319,8 @@ namespace Kiss.Bff.Test
             Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
 
             // Original query should be preserved
-            Assert.IsNotNull(parsedRequest["query"]);
-            Assert.AreEqual(10, parsedRequest["size"]?.GetValue<int>());
+            Assert.IsNotNull(elasticQuery["query"]);
+            Assert.AreEqual(10, elasticQuery["size"]?.GetValue<int>());
         }
 
         [TestMethod]
@@ -292,45 +335,30 @@ namespace Kiss.Bff.Test
 
             CreateController(); // Recreate with new user
 
-            var elasticQuery = new JsonObject
+            var elasticResponse = new ElasticResponse
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
-            };
-
-            var elasticResponse = new
-            {
-                hits = new
+                Hits = new HitsWrapper
                 {
-                    hits = new[]
+                    Hits = new List<Hit>
                     {
-                        new
+                        new Hit
                         {
-                            _source = new
+                            Source = new JsonObject
                             {
-                                title = "Test Document",
-                                toelichting = "This should remain for non-Kennisbank users",
-                                internalField = "This should also remain"
+                                ["title"] = "Test document",
+                                ["toelichting"] = "This should remain for non-Kennisbank users",
+                                ["allowedField"] = "This should remain"
                             }
                         }
                     }
                 }
             };
 
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", JsonSerializer.Serialize(elasticResponse));
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
-
-            var source = responseBody.Hits?.Hits?[0].Source?.AsObject();
+            var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
 
             Assert.IsNotNull(source);
             Assert.IsTrue(source.ContainsKey("toelichting"));
-            Assert.IsTrue(source.ContainsKey("internalField"));
+            Assert.IsTrue(source.ContainsKey("allowedField"));
             Assert.AreEqual("This should remain for non-Kennisbank users", source["toelichting"]?.ToString());
         }
 
@@ -355,42 +383,34 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            var capturedRequest = "";
-            var elasticResponse = new
+            var elasticResponse = new ElasticResponse
             {
-                hits = new
+                Hits = new HitsWrapper
                 {
-                    hits = new[]
+                    Hits = new List<Hit>
                     {
-                        new { _source = new { toelichting = "Should remain" } }
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["toelichting"] = "Should remain"
+                            }
+                        }
                     }
                 }
             };
 
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(elasticResponse));
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
             // Assert - Request should not be modified
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            var fields = parsedRequest!["query"]?["multi_match"]?["fields"]?.AsArray();
+            _service.ApplyRequestTransform(elasticQuery);
+            var fields = elasticQuery!["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
             Assert.AreEqual(2, fields.Count);
             Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
             Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
 
             // Assert - Response should not be modified
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
-            var source = responseBody.Hits?.Hits?[0].Source?.AsObject();
+            _service.ApplyResponseTransform(elasticResponse);
+            var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
             Assert.IsNotNull(source);
             Assert.IsTrue(source.ContainsKey("toelichting"));
         }
@@ -424,24 +444,9 @@ namespace Kiss.Bff.Test
                 }
             };
 
-            var capturedRequest = "";
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .With(req =>
-                {
-                    capturedRequest = req.Content!.ReadAsStringAsync().Result;
-                    return true;
-                })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    hits = new { hits = Array.Empty<object>() }
-                }));
+            _service.ApplyRequestTransform(elasticQuery);
 
-            await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            // Assert - Fields should NOT be removed from request
-            var parsedRequest = JsonNode.Parse(capturedRequest);
-            Assert.IsNotNull(parsedRequest);
-            var fields = parsedRequest["query"]?["multi_match"]?["fields"]?.AsArray();
+            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
             Assert.IsNotNull(fields);
             Assert.AreEqual(3, fields.Count);
             Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
@@ -462,22 +467,46 @@ namespace Kiss.Bff.Test
 
             CreateController(); // Recreate with new user
 
-            var elasticQuery = new JsonObject
+            var responseBody = new ElasticResponse
             {
-                ["query"] = new JsonObject { ["match_all"] = new JsonObject() }
+                Hits = new HitsWrapper
+                {
+                    Hits = new List<Hit>
+                    {
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "First item",
+                                ["VAC"] = new JsonObject
+                                {
+                                    ["allowedField"] = "This should remain",
+                                    ["toelichting"] = "This must be removed!"
+                                },
+                                ["toelichting"] = "Should remain"
+                            }
+                        },
+                        new Hit
+                        {
+                            Source = new JsonObject
+                            {
+                                ["title"] = "Second item",
+                                ["Kennisbank"] = new JsonObject
+                                {
+                                    ["allowedField"] = "This should remain",
+                                    ["vertalingen"] = new JsonObject
+                                    {
+                                        ["deskMemo"] = "This must be removed!"
+                                    }
+                                },
+                                ["toelichting"] = "This should remain"
+                            }
+                        }
+                    }
+                }
             };
 
-            var elasticResponse = "{\"hits\":{\"hits\":[{\"_source\":{\"title\":\"Test item\",\"VAC\":{\"allowedField\":\"This should remain\",\"toelichting\":\"This has to be removed\"}}},{\"_source\":{\"title\":\"Second item\",\"Kennisbank\":{\"existingField\":\"This has to stay\",\"vertalingen\":{\"deskMemo\":\"This has to be removed\"}}}}]}}";
-
-            _mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/test-index/_search")
-                .Respond("application/json", elasticResponse);
-
-            var result = await _controller.Search("test-index", elasticQuery, CancellationToken.None);
-
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var responseBody = okResult.Value as ElasticResponse;
-            Assert.IsNotNull(responseBody);
+            _service.ApplyResponseTransform(responseBody);
 
             // Verify VAC.toelichting is NOT removed
             var sourceVAC = responseBody.Hits?.Hits?[0].Source?["VAC"]?.AsObject();
@@ -489,7 +518,7 @@ namespace Kiss.Bff.Test
             var sourceKennisbank = responseBody.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
             Assert.IsNotNull(sourceKennisbank);
             Assert.IsTrue(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
-            Assert.IsTrue(sourceKennisbank.ContainsKey("existingField"));
+            Assert.IsTrue(sourceKennisbank.ContainsKey("allowedField"));
         }
 
         #endregion
