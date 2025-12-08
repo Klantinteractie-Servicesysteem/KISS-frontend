@@ -18,13 +18,27 @@ Be sure to set-up the environment variables first.
 
 1. Make sure you've installed Docker Desktop version 4.19.0 or newer (preferably with WSL2 if using windows) and visual studio version 17.5.5 or newer
 1. Clone this repo using Visual Studio. The KISS-frontend.sln will automatically be opened.
-1. Right-click the `Solution 'KISS-frontend'` in the Solution Explorer and click `Configure Startup Projects`
-1. Select `Multiple startup projects`, and set the _Action_ for `docker-compose` and `KISS-frontend` to _Start_.
-1. Startup the solution and wait for both the BFF and the frontend to be ready (note, initially you might get an error, due to different startup times of individual components. refresh the page after a few moments)
+1. Right-click on `Solution 'KISS-frontend'` in the Solution Explorer and click `Configure Startup Projects`
+1. Select `Multiple startup projects`, and set the _Action_ for `docker-compose` and `KISS-frontend` to _Start_. Make sure all other projects are set to _None_:
+   | Project | Action |
+   | ------------- | ----- |
+   | docker-compose | Start |
+   | KISS-frontend | Start |
+   | Kiss.Bff | None |
+
+1. Right-click on `docker-compose` in the Solution Explorer and click `Manage Docker Compose Launch Settings`.
+1. Make sure the following is set:
+
+   | Service Name | Project Name | Action                  |
+   | ------------ | ------------ | ----------------------- |
+   | kiss.bff     | Kiss.Bff     | Start without debugging |
+   | postgres-db  | None         | Start without debugging |
+
+1. Startup the solution and wait for both the BFF and the frontend to be ready (**NOTE**: initially you might get an error, due to different startup times of individual components. refresh the page after a few moments)
 
 ## Run with docker-compose
 
-Be sure to set-up environment variables first.
+Make sure to first setup the env.local file correctly.
 
 To run the front-end and BFF with docker you need a cmd-window opened at the root of this project.
 
