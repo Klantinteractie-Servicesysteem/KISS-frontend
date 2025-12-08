@@ -6,7 +6,7 @@
 
 # kiss-frontend
 
-## Set-up environment variables
+## Setup environment variables
 
 1. Make a copy of `.env.local.example`, rename it to: `.env.local` and fill in the required secrets. Note that the example file does not contain all environment variables. A complete overview of all possible variables can be found at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/installation/configuratie.html
 1. Download the `Root CA` and `Intermediate CA` certificates from [the KvK website](https://developers.kvk.nl/documentation/certificates) and place them in a `certificates` folder in the root of the repo.
@@ -14,7 +14,7 @@
 
 ## Run from Visual Studio 2022
 
-Be sure to set-up the environment variables first.
+Setup the environment variables first according to the [setup environment variables chapter](#setup-environment-variables)
 
 1. Make sure you've installed Docker Desktop version 4.19.0 or newer (preferably with WSL2 if using windows) and visual studio version 17.5.5 or newer
 1. Clone this repo using Visual Studio. The KISS-frontend.sln will automatically be opened.
@@ -38,23 +38,23 @@ Be sure to set-up the environment variables first.
 
 ## Run with docker-compose
 
-Make sure to first setup the env.local file correctly.
+Setup the environment variables in the env.local file first according to the [setup environment variables chapter](#setup-environment-variables)
 
 To run the front-end and BFF with docker you need a cmd-window opened at the root of this project.
 
-Build the KISS-frontend image:
+1. Build the KISS-frontend image using the following command:
 
-```sh
-docker-compose build
-```
+   ```sh
+   docker-compose build
+   ```
 
-After that you can run the image with its dependencies:
+1. Run the image with its dependencies:
 
-```sh
-docker-compose up
-```
+   ```sh
+   docker-compose up
+   ```
 
-Then launch a browser and navigate to: http://localhost:7231
+1. Launch a browser and navigate to: http://localhost:7231
 
 ## Type Support for `.vue` Imports in TS (Visual Studio Code)
 
