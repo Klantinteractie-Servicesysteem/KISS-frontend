@@ -1,0 +1,20 @@
+apiVersion: enterprisesearch.k8s.elastic.co/v1
+kind: EnterpriseSearch
+metadata:
+  name: {{ include "kiss-eck.name" . }}
+  labels:
+  {{- include "kiss-eck.labels" . | nindent 4 }}
+spec:
+  config:
+    app_search.engine.total_fields.limit: 1000
+    kibana.host: https://{{ .Values.kibanaDomain }}
+  count: 1
+  elasticsearchRef:
+    name: kiss
+  podTemplate:
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  version: {{ .Values.elasticVersion }}
