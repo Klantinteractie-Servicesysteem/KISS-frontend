@@ -1,0 +1,21 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: {{ include "kiss-eck.name" . }}
+  labels:
+  {{- include "kiss-eck.labels" . | nindent 4 }}
+spec:
+  config:
+    server.publicBaseUrl: https://{{ .Values.kibanaDomain }}
+  count: 1
+  elasticsearchRef:
+    name: kiss
+  enterpriseSearchRef:
+    name: kiss
+  podTemplate:
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  version: {{ .Values.elasticVersion }}

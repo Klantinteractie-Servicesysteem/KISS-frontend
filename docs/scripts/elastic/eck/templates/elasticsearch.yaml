@@ -1,0 +1,23 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ include "kiss-eck.name" . }}
+  labels:
+  {{- include "kiss-eck.labels" . | nindent 4 }}
+spec:
+  nodeSets:
+  - config:
+      node.roles:
+      - data
+      - ingest
+      - master
+      node.store.allow_mmap: false
+    count: {{ .Values.elasticsearchCount }}
+    name: default
+    podTemplate:
+      spec:
+        {{- with .Values.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+  version: {{ .Values.elasticVersion }}
