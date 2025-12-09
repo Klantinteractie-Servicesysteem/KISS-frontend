@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kiss-elastic
+description: A Helm chart for setting up everything in ECK that kiss needs
+version: 1.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: eck-operator
+    version: ~2.9.0
+    repository: "@elastic"
+    condition: eck-operator.enabled

@@ -1,0 +1,85 @@
+apiVersion: v1
+entries:
+  eck-operator:
+  - apiVersion: v2
+    appVersion: 2.9.0
+    created: "2025-01-16T10:54:49.7965172+01:00"
+    dependencies:
+    - condition: installCRDs
+      name: eck-operator-crds
+      repository: ""
+      version: 2.9.0
+    description: Elastic Cloud on Kubernetes (ECK) operator
+    digest: 005deefb0ad5ee17da204b70c2a55f5688e38224e310f81817a8809f6b463059
+    home: https://github.com/elastic/cloud-on-k8s
+    icon: https://helm.elastic.co/icons/eck.png
+    keywords:
+    - Logstash
+    - Elasticsearch
+    - Kibana
+    - APM Server
+    - Beats
+    - Enterprise Search
+    - Elastic Stack
+    - Operator
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: eck@elastic.co
+      name: Elastic
+    name: eck-operator
+    type: application
+    urls:
+    - eck-operator-2.9.0.tgz
+    version: 2.9.0
+  kiss-elastic:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-01-16T10:54:49.8151945+01:00"
+    dependencies:
+    - condition: eck-operator.enabled
+      name: eck-operator
+      repository: '@elastic'
+      version: ~2.9.0
+    description: A Helm chart for setting up everything in ECK that kiss needs
+    digest: 42c7b5489beeee50172e49ea1d7db3420734f6f31b018b331390a354c51b6644
+    name: kiss-elastic
+    urls:
+    - kiss-elastic-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-01-16T10:54:49.8228468+01:00"
+    dependencies:
+    - name: eck-operator
+      repository: '@elastic'
+      version: ~2.9.0
+    description: A Helm chart for setting up everything in ECK that kiss needs
+    digest: c7b9db3685e3d65d47a9a31c685d51f74ee49ec53fe8d7944d638ec27661d35b
+    name: kiss-elastic
+    urls:
+    - eck/kiss-elastic-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-01-16T10:54:49.8044147+01:00"
+    dependencies:
+    - name: eck-operator
+      repository: '@elastic'
+      version: ~2.9.0
+    description: A Helm chart for setting up everything in ECK that kiss needs
+    digest: 5aa55bdae2505af56eebc5407ca1b445e42cc8b2d74ac9d409f6172826fef4fc
+    name: kiss-elastic
+    urls:
+    - kiss-elastic-1.0.0-alpha.1.tgz
+    version: 1.0.0-alpha.1
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-01-16T10:54:49.7965172+01:00"
+    description: A Helm chart for setting up everything in ECK that kiss needs
+    digest: b457487d30b37f6dba37dd7c8ae2c2bac6553406b775bf3a7f6ab3415aade709
+    name: kiss-elastic
+    type: application
+    urls:
+    - kiss-elastic-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-01-16T10:54:49.7898317+01:00"

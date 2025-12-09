@@ -1,0 +1,15 @@
+kibanaDomain: www.my-website.nl
+nameOverride: kiss
+elasticVersion: 8.9.0
+elasticsearchCount: 3
+nodeSelector: {}
+
+eck-operator:
+  enabled: true
+  createClusterScopedResources: false
+  config:
+    # no RBAC access to cluster-wide storage classes, hence disable storage class validation
+    validateStorageClass: false
+  installCRDs: false
+  webhook:
+    enabled: false
