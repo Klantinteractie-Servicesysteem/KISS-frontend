@@ -8,9 +8,12 @@
 
 ## Setup environment variables
 
-Make a copy of `.env.local.example`, rename it to: `.env.local` and fill in the required secrets.
+1. Make a copy of `.env.local.example`, rename it to: `.env.local` and fill in the required secrets.
 
-NOTE: The example file does not contain all environment variables. A complete overview of all possible variables can be found at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/installation/configuratie.html
+   NOTE: The example file does not contain all environment variables. A complete overview of all possible variables can be found at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/en/latest/installation/configuratie.html
+
+1. Download the `Root CA` and `Intermediate CA` certificates from [the KvK website](https://developers.kvk.nl/documentation/certificates) and place them in a `certificates` folder in the root of the repo.
+   Now, you can either run the application from Visual Studio or with docker-compose.
 
 Now, you can either run the application from Visual Studio or with docker-compose.
 
