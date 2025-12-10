@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc
             using var client = factory.CreateClient("default");
             using var request = RequestFactory();
 
-            if(request.Content is JsonContent)
+            if (request.Content is JsonContent)
             {
                 await request.Content.LoadIntoBufferAsync();
             }
@@ -144,12 +144,12 @@ namespace Microsoft.Extensions.DependencyInjection
                         }
                     },
                     // TODO: discuss if we need to get a valid certificate for Enterprise Search
-                    HttpClient = proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE || proxyRoute.Route == ElasticsearchProxyConfig.ROUTE
-                    ? new HttpClientConfig
-                    {
-                        DangerousAcceptAnyServerCertificate = true
-                    }
-                    : null
+                    HttpClient = proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE
+                     ? new HttpClientConfig
+                     {
+                         DangerousAcceptAnyServerCertificate = true
+                     }
+                     : null
                 });
 
                 // TODO: Expose dedicated API controllers to handle Enterprise Search and Elasticsearch endpoints
@@ -161,8 +161,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         RouteId = $"{proxyRoute.Route}-search-explain",
                         ClusterId = proxyRoute.Route,
-                        Match = new RouteMatch 
-                        { 
+                        Match = new RouteMatch
+                        {
                             Path = "/api/enterprisesearch/api/as/v1/engines/{engine}/search_explain",
                             Methods = new[] { "POST" }
                         },
@@ -172,32 +172,6 @@ namespace Microsoft.Extensions.DependencyInjection
                             new Dictionary<string, string>
                             {
                                 ["PathRemovePrefix"] = "/api/enterprisesearch",
-                            },
-                            new Dictionary<string, string>
-                            {
-                                ["RequestHeaderRemove"] = "Cookie",
-                            }
-                        }
-                    });
-                }
-                else if (proxyRoute.Route == ElasticsearchProxyConfig.ROUTE)
-                {
-                    // Only allow POST to _search endpoint
-                    allRoutes.Add(new RouteConfig
-                    {
-                        RouteId = $"{proxyRoute.Route}-search",
-                        ClusterId = proxyRoute.Route,
-                        Match = new RouteMatch 
-                        { 
-                            Path = "/api/elasticsearch/{index}/_search",
-                            Methods = new[] { "POST" }
-                        },
-                        AuthorizationPolicy = Kiss.Policies.KcmOrKennisbankPolicy,
-                        Transforms = new[]
-                        {
-                            new Dictionary<string, string>
-                            {
-                                ["PathRemovePrefix"] = "/api/elasticsearch",
                             },
                             new Dictionary<string, string>
                             {
