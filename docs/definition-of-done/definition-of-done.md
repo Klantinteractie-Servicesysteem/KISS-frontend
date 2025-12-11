@@ -24,7 +24,6 @@ Alle Automatische tests zijn uitgevoerd en geslaagd (zichtbaar als badges op de 
 - Unit tests (in ontwikkeling)
 
 ### Unit tests
-
 Nieuwe unit tests worden toegevoegd:
 
 - voor code die, wanneer niet correct geïmplementeerd, kan leiden tot kritieke fouten die moeilijk te detecteren zijn
