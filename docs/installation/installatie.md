@@ -8,9 +8,10 @@ De yaml-voorbeeldbestanden staan [hier](https://github.com/Klantinteractie-Servi
 
 De installatie kan uitgevoerd worden middels het PowerShell script. Handmatig uitvoeren kan ook.
 
-[install_kiss.ps1](https://github.com/Klantinteractie-Servicesysteem/.github/blob/main/docs/scripts/install_kiss.ps1)
+[install_kiss.ps1](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/blob/main/docs/scripts/install_kiss.ps1)
 
-**LET OP** 
+**LET OP**
+
 - Voordat een ingelogde gebruiker kan werken met KISS, moet deze gebruiker de juiste rol hebben in de gekoppelde Identity provider. Zie voor meer informatie het onderdeel [Configuratie van uw Identity Provider in de configuratie-handleiding](../configuration/identity-provider.md).
 - Om een betere indruk te krijgen van hoe KISS werkt, is het mogelijk om **voorbeeldata (demodata)** te laden. Zie hiervoor [de uitleg bij de Beheerhandleiding](../manual/voorbeelddata.md).
 
