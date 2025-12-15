@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - "*.*.*"
-      - OudNaastNieuw
 
   push:
     branches:
@@ -52,22 +51,6 @@ jobs:
           if [ "$TAG" = "${{ github.ref }}" ] ; then
               echo "IS_LATEST=true" >> "$GITHUB_ENV"
           fi
-
-      - name: Get date
-        id: date
-        run: |
-          echo "DATE=$(date +'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_ENV
-
-      - name: Get branch name
-        id: branch
-        run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          if [[ -z "$BRANCH_NAME" ]]; then
-            BRANCH_NAME="${{ github.ref }}"
-            BRANCH_NAME="${BRANCH_NAME#refs/heads/}"
-          fi
-          BRANCH_NAME=$(echo $BRANCH_NAME | tr / -)
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Setting CONTAINER_PROJECT_NAME
         run: |
