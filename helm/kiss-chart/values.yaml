@@ -184,7 +184,7 @@ settings:
   logboek:
     baseUrl: ""
     objectTypeUrl: ""
-    objectTypeVersion: ""
+    objectTypeVersion: 1
     token: ""
 
   managementInformatie:
@@ -206,6 +206,8 @@ settings:
 
   organisatieIds: []
 
+  registers: []
+
   postgres:
     db: "kiss-frontend"
     host: ""
@@ -221,7 +223,7 @@ settings:
     objectenToken: ""
     objectenBaseUrl: ""
     objectTypeUrl: ""
-    objectTypeVersion: ""
+    objectTypeVersion: 1
   
 
 # -- Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
