@@ -12,3 +12,159 @@ data:
   {{- if .Values.settings.aspnetcore.httpPorts }}
   ASPNETCORE_HTTP_PORTS: {{ .Values.settings.aspnetcore.httpPorts | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.afdelingen.baseUrl }}
+  AFDELINGEN_BASE_URL: {{ .Values.settings.afdelingen.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.afdelingen.objectTypeUrl }}
+  AFDELINGEN_OBJECT_TYPE_URL: {{ .Values.settings.afdelingen.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.elastic.baseUrl }}
+  ELASTIC_BASE_URL: {{ .Values.settings.elastic.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.elastic.excludedFields.kennisbank }}
+  ELASTIC_EXCLUDED_FIELDS_KENNISBANK: {{ .Values.settings.elastic.excludedFields.kennisbank | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.elastic.username }}
+  ELASTIC_USERNAME: {{ .Values.settings.elastic.username | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.enableSsl }}
+  EMAIL_ENABLE_SSL: {{ .Values.settings.email.enableSsl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.host }}
+  EMAIL_HOST: {{ .Values.settings.email.host | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.port }}
+  EMAIL_PORT: {{ .Values.settings.email.port | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.username }}
+  EMAIL_USERNAME: {{ .Values.settings.email.username | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.enterpriseSearch.baseUrl }}
+  ENTERPRISE_SEARCH_BASE_URL: {{ .Values.settings.enterpriseSearch.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.enterpriseSearch.engine }}
+  ENTERPRISE_SEARCH_ENGINE: {{ .Values.settings.enterpriseSearch.engine | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.feedback.emailFrom }}
+  FEEDBACK_EMAIL_FROM: {{ .Values.settings.feedback.emailFrom | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.feedback.emailTo }}
+  FEEDBACK_EMAIL_TO: {{ .Values.settings.feedback.emailTo | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.groepen.baseUrl }}
+  GROEPEN_BASE_URL: {{ .Values.settings.groepen.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.groepen.objectTypeUrl }}
+  GROEPEN_OBJECT_TYPE_URL: {{ .Values.settings.groepen.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.haalCentraal.baseUrl }}
+  HAAL_CENTRAAL_BASE_URL: {{ .Values.settings.haalCentraal.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.kvk.baseUrl }}
+  KVK_BASE_URL: {{ .Values.settings.kvk.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.logboek.baseUrl }}
+  LOGBOEK_BASE_URL: {{ .Values.settings.logboek.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.logboek.objectTypeUrl }}
+  LOGBOEK_OBJECT_TYPE_URL: {{ .Values.settings.logboek.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.logboek.objectTypeVersion }}
+  LOGBOEK_OBJECT_TYPE_VERSION: {{ .Values.settings.logboek.objectTypeVersion | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.medewerker.objectTypeUrl }}
+  MEDEWERKER_OBJECT_TYPE_URL: {{ .Values.settings.medewerker.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.medewerker.objectenBaseUrl }}
+  MEDEWERKER_OBJECTEN_BASE_URL: {{ .Values.settings.medewerker.objectenBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.medewerker.objectenClientId }}
+  MEDEWERKER_OBJECTEN_CLIENT_ID: {{ .Values.settings.medewerker.objectenClientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.authority }}
+  OIDC_AUTHORITY: {{ .Values.settings.oidc.authority | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.clientId }}
+  OIDC_CLIENT_ID: {{ .Values.settings.oidc.clientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.kennisbankRole }}
+  OIDC_KENNISBANK_ROLE: {{ .Values.settings.oidc.kennisbankRole | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.medewerkerIdentificatieClaim }}
+  OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM: {{ .Values.settings.oidc.medewerkerIdentificatieClaim | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.medewerkerIdentificatieTruncate }}
+  OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE: {{ .Values.settings.oidc.medewerkerIdentificatieTruncate | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.organisatieIds }}
+  ORGANISATIE_IDS: {{ .Values.settings.organisatieIds | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.postgres.db }}
+  POSTGRES_DB: {{ .Values.settings.postgres.db | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.postgres.host }}
+  POSTGRES_HOST: {{ .Values.settings.postgres.host | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.postgres.port }}
+  POSTGRES_PORT: {{ .Values.settings.postgres.port | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.postgres.user }}
+  POSTGRES_USER: {{ .Values.settings.postgres.user | toString | quote }}
+  {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__IS_DEFAULT }}
+  # REGISTERS__0__IS_DEFAULT: {{ .Values.settings.REGISTERS__0__IS_DEFAULT | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__KLANTINTERACTIE_BASE_URL }}
+  # REGISTERS__0__KLANTINTERACTIE_BASE_URL: {{ .Values.settings.REGISTERS__0__KLANTINTERACTIE_BASE_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__REGISTRY_VERSION }}
+  # REGISTERS__0__REGISTRY_VERSION: {{ .Values.settings.REGISTERS__0__REGISTRY_VERSION | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID }}
+  # REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_BASE_URL }}
+  # REGISTERS__0__ZAAKSYSTEEM_BASE_URL: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_BASE_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY }}
+  # REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL }}
+  # REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES }}
+  # REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SDG_OBJECT_TYPE_URL }}
+  # SDG_OBJECT_TYPE_URL: {{ .Values.settings.SDG_OBJECT_TYPE_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SDG_OBJECTEN_BASE_URL }}
+  # SDG_OBJECTEN_BASE_URL: {{ .Values.settings.SDG_OBJECTEN_BASE_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SHAREPOINT_CLIENT_ID }}
+  # SHAREPOINT_CLIENT_ID: {{ .Values.settings.SHAREPOINT_CLIENT_ID | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SHAREPOINT_SITE_URL }}
+  # SHAREPOINT_SITE_URL: {{ .Values.settings.SHAREPOINT_SITE_URL | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SHAREPOINT_SOURCE_NAME }}
+  # SHAREPOINT_SOURCE_NAME: {{ .Values.settings.SHAREPOINT_SOURCE_NAME | toString | quote }}
+  # {{- end }}
+  # {{- if .Values.settings.SHAREPOINT_TENANT_ID }}
+  # SHAREPOINT_TENANT_ID: {{ .Values.settings.SHAREPOINT_TENANT_ID | toString | quote }}
+  # {{- end }}
+  {{- if .Values.settings.useMedewerkerEmail }}
+  USE_MEDEWERKEREMAIL: {{ .Values.settings.useMedewerkerEmail | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.useVacs }}
+  USE_VACS: {{ .Values.settings.useVacs | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.vac.objectTypeUrl }}
+  VAC_OBJECT_TYPE_URL: {{ .Values.settings.vac.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.vac.objectTypeVersion }}
+  VAC_OBJECT_TYPE_VERSION: {{ .Values.settings.vac.objectTypeVersion | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.vac.objectenBaseUrl }}
+  VAC_OBJECTEN_BASE_URL: {{ .Values.settings.vac.objectenBaseUrl | toString | quote }}
+  {{- end }}

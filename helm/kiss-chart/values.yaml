@@ -132,17 +132,97 @@ azureVaultSecret:
   secretName: "{{ .Values.existingSecret }}"
 
 settings:
-  database:
-    host: ""
-    port: 5432
-    username: ""
-    password: ""
-    name: "kiss-frontend"
-
   aspnetcore:
     forwardedHeadersEnabled: true
     environment: ""
     httpPorts: ""
+
+  afdelingen:
+    baseUrl: ""
+    clientSecret: ""
+    objectTypeUrl: ""
+    token: ""
+
+  elastic:
+    baseUrl: ""
+    excludedFields:
+      kennisbank: []
+    username: ""
+    password: ""
+  
+  email:
+    enableSsl: false
+    host: ""
+    password: ""
+    port: 25
+    username: ""
+
+  enterpriseSearch:
+    baseUrl: ""
+    engine: ""
+    publicApiKey: ""
+    privateApiKey: ""
+
+  feedback:
+    emailFrom: ""
+    emailTo: ""
+
+  groepen:
+    baseUrl: ""
+    clientSecret: ""
+    objectTypeUrl: ""
+    token: ""
+  
+  haalCentraal:
+    baseUrl: ""
+    apiKey: ""
+
+  kvk:
+    baseUrl: ""
+    apiKey: ""
+
+  logboek:
+    baseUrl: ""
+    objectTypeUrl: ""
+    objectTypeVersion: ""
+    token: ""
+
+  managementInformatie:
+    apiKey: ""
+
+  medewerker:
+    objectenClientId: ""
+    objectenClientSecret: ""
+    objectenToken: ""
+    objectTypeUrl: ""
+
+  oidc:
+    authority: ""
+    clientId: ""
+    clientSecret: ""
+    kennisbankRole: ""
+    medewerkerIdentificatieClaim: ""
+    medewerkerIdentificatieTruncate: false
+
+  organisatieIds: []
+
+  postgres:
+    db: "kiss-frontend"
+    host: ""
+    port: 5432
+    user: ""
+    password: ""
+
+  useMedewerkerEmail: false
+
+  useVacs: false
+
+  vac:
+    objectenToken: ""
+    objectenBaseUrl: ""
+    objectTypeUrl: ""
+    objectTypeVersion: ""
+  
 
 # -- Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
 extraVolumes: []
