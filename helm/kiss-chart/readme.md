@@ -1,14 +1,9 @@
-# kiss-frontend
+# kiss-chart
 
-![Version: 1.1.1](https://img.shields.io/badge/Version-1.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
-A Helm chart for Kubernetes
+A helm chart for Klantinteractie Service Systeem.
 
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://charts.bitnami.com/bitnami | postgresql | 12.4.2 |
 > [!NOTE]
 > For production environments, it is recommended to use [CloudNativePG](https://github.com/cloudnative-pg/cloudnative-pg) for PostgreSQL in stead of the dependent Helm charts included here. The bundled charts are primarily intended for testing and development purposes. Also, be aware of the upcoming changes to the bitnami catalog described in this [issue](https://github.com/bitnami/containers/issues/83267).
 
@@ -16,52 +11,68 @@ A Helm chart for Kubernetes
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].key | string | `"app"` |  |
-| affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].operator | string | `"In"` |  |
-| affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].values[0] | string | `"kiss-frontend"` |  |
-| affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey | string | `"kubernetes.io/hostname"` |  |
+| affinity | object | `{}` |  |
 | autoscaling.enabled | bool | `false` |  |
 | autoscaling.maxReplicas | int | `100` |  |
 | autoscaling.minReplicas | int | `1` |  |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| cronjobs | list | `[]` |  |
-| env.config.ASPNETCORE_ENVIRONMENT | string | `"Production"` |  |
+| autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| azureVaultSecret.contentType | string | `""` |  |
+| azureVaultSecret.objectName | string | `""` |  |
+| azureVaultSecret.secretName | string | `"{{ .Values.existingSecret }}"` |  |
+| azureVaultSecret.vaultName | string | `nil` |  |
+| existingSecret | string | `nil` |  |
+| extraIngress | list | `[]` | Specify extra ingresses, for example if you have multiple ingress classes |
 | extraVolumeMounts | list | `[]` | Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates. |
 | extraVolumes | list | `[]` | Optionally specify extra list of additional volumes, for example to trust extra ca certificates. |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-frontend"` |  |
+| image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-frontend-api"` |  |
 | image.tag | string | `"latest"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
-| ingress.className | string | `"nginx"` |  |
+| ingress.className | string | `""` |  |
 | ingress.enabled | bool | `false` |  |
-| ingress.hosts[0].host | string | `"chart-example.local"` |  |
-| ingress.hosts[0].paths[0].path | string | `"/"` |  |
-| ingress.hosts[0].paths[0].pathType | string | `"ImplementationSpecific"` |  |
-| ingress.hosts[0].paths[0].serviceName | string | `nil` |  |
-| ingress.hosts[0].paths[0].servicePort | string | `nil` |  |
+| ingress.hosts | list | `[]` | ingress hosts |
 | ingress.tls | list | `[]` |  |
+| livenessProbe.failureThreshold | int | `6` |  |
+| livenessProbe.initialDelaySeconds | int | `60` |  |
+| livenessProbe.periodSeconds | int | `10` |  |
+| livenessProbe.successThreshold | int | `1` |  |
+| livenessProbe.timeoutSeconds | int | `5` |  |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
+| pdb.create | bool | `false` |  |
+| pdb.maxUnavailable | string | `""` |  |
+| pdb.minAvailable | int | `1` |  |
 | podAnnotations | object | `{}` |  |
-| podSecurityContext | object | `{}` |  |
-| postgresql.enabled | bool | `true` |  |
-| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
-| postgresql.metrics.image.repository | string | `"bitnamilegacy/postgres-exporter"` |  |
-| postgresql.service.port | int | `5432` |  |
-| postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
+| podLabels | object | `{}` |  |
+| podSecurityContext.fsGroup | int | `1000` |  |
+| readinessProbe.failureThreshold | int | `6` |  |
+| readinessProbe.initialDelaySeconds | int | `30` |  |
+| readinessProbe.periodSeconds | int | `10` |  |
+| readinessProbe.successThreshold | int | `1` |  |
+| readinessProbe.timeoutSeconds | int | `5` |  |
 | replicaCount | int | `2` |  |
 | resources | object | `{}` |  |
-| securityContext | object | `{}` |  |
-| service.port | int | `8080` |  |
+| securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| securityContext.readOnlyRootFilesystem | bool | `false` |  |
+| securityContext.runAsNonRoot | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| service.port | int | `80` |  |
 | service.type | string | `"ClusterIP"` |  |
 | serviceAccount.annotations | object | `{}` |  |
-| serviceAccount.create | bool | `false` |  |
+| serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
-| strategy.rollingUpdate.maxSurge | int | `1` |  |
-| strategy.rollingUpdate.maxUnavailable | int | `0` |  |
-| strategy.type | string | `"RollingUpdate"` |  |
+| settings.aspnetcore.environment | string | `""` |  |
+| settings.aspnetcore.forwardedHeadersEnabled | bool | `true` |  |
+| settings.aspnetcore.httpPorts | string | `""` |  |
+| settings.database.host | string | `""` |  |
+| settings.database.name | string | `"kiss-frontend"` |  |
+| settings.database.password | string | `""` |  |
+| settings.database.port | int | `5432` |  |
+| settings.database.username | string | `""` |  |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------
