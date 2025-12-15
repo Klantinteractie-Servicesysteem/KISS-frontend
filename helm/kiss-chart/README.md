@@ -94,7 +94,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.kvk.baseUrl | string | `""` |  |
 | settings.logboek.baseUrl | string | `""` |  |
 | settings.logboek.objectTypeUrl | string | `""` |  |
-| settings.logboek.objectTypeVersion | string | `""` |  |
+| settings.logboek.objectTypeVersion | int | `1` |  |
 | settings.logboek.token | string | `""` |  |
 | settings.managementInformatie.apiKey | string | `""` |  |
 | settings.medewerker.objectTypeUrl | string | `""` |  |
@@ -113,10 +113,11 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.postgres.password | string | `""` |  |
 | settings.postgres.port | int | `5432` |  |
 | settings.postgres.user | string | `""` |  |
+| settings.registers | list | `[]` |  |
 | settings.useMedewerkerEmail | bool | `false` |  |
 | settings.useVacs | bool | `false` |  |
 | settings.vac.objectTypeUrl | string | `""` |  |
-| settings.vac.objectTypeVersion | string | `""` |  |
+| settings.vac.objectTypeVersion | int | `1` |  |
 | settings.vac.objectenBaseUrl | string | `""` |  |
 | settings.vac.objectenToken | string | `""` |  |
 | tolerations | list | `[]` |  |
