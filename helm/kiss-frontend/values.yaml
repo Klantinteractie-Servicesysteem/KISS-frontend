@@ -1,12 +1,8 @@
-# Default values for kiss-frontend.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 replicaCount: 2
 
 image:
-  repository: ghcr.io/klantinteractie-servicesysteem/kiss-frontend
+  repository: "ghcr.io/klantinteractie-servicesysteem/kiss-frontend-api"
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
 imagePullSecrets: []
@@ -14,68 +10,89 @@ nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
-  create: false
-  # Annotations to add to the service account
+  create: true
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
+  automountServiceAccountToken: true
 
 podAnnotations: {}
 
-podSecurityContext:
-  {}
-  # fsGroup: 2000
+podLabels: {}
 
-securityContext: {}
-#    privileged: false
-#    allowPrivilegeEscalation: false
-#    runAsNonRoot: false
-#    capabilities:
-#      drop:
-#        - all
-#      add:
-#        - chown
-#        - dac_override
-#        - setgid
-#        - setuid
-#        - net_bind_service
-#    # Warning: the Nginx image is at this moment not able to run on a read-only filesystem.
-#    readOnlyRootFilesystem: false
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
 
 ingress:
   enabled: false
-  className: "nginx"
-  annotations:
-    {}
+  className: ""
+  annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-          serviceName:
-          servicePort:
+  # -- ingress hosts
+  hosts: []
+  #  - host: kiss-frontend.gemeente.nl
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
   tls: []
-  #  - secretName: chart-example-tls
+  #  - secretName: kiss-frontend-tls
   #    hosts:
-  #      - chart-example.local
+  #      - kiss-frontend.gemeente.nl
 
-resources:
-  {}
+# -- Specify extra ingresses, for example if you have multiple ingress classes
+extraIngress: []
+# e.g:
+# extraIngress:
+#  - name: kiss-frontend-azuregateway
+#    annotations:
+#      appgw.ingress.kubernetes.io/ssl-redirect: "true"
+#    className: azure-application-gateway
+#    hosts:
+#      - host: kiss-frontend.gemeente.nl
+#        paths:
+#          - path: /
+#            pathType: ImplementationSpecific
+#            servicename: kiss-frontend
+#            portNumber: 8000
+#    tls:
+#      - secretName: kiss-frontend-tls
+#        hosts:
+#          - "kiss-frontend.gemeente.nl"
+
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
+  #   cpu: 200m
+  #   memory: 256Mi
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
@@ -85,47 +102,47 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  create: false
+  minAvailable: 1
+  maxUnavailable: ""
 
 nodeSelector: {}
 
 tolerations: []
 
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-            - key: app
-              operator: In
-              values:
-                - kiss-frontend
-        topologyKey: "kubernetes.io/hostname"
+affinity: {}
 
-env:
-  config:
-    ASPNETCORE_ENVIRONMENT: Production
+# Existing Secret must be defined for AzureVaultSecret to work
+existingSecret: null
 
-postgresql:
-  enabled: true
-  service:
+# This will create an AzureVaultSecret object in k8s, only Multi Key Value Secret are supported by this chart
+# ref: https://akv2k8s.io/tutorials/sync/4-multi-key-value-secret/ https://learn.microsoft.com/en-us/azure/key-vault/secrets/multiline-secrets
+# Using this feature requires you to define existingSecret
+azureVaultSecret:
+  # The name of the Azure Key Vault, setting this will create the AzureVaultSecret
+  vaultName: null
+  # The name of the Multi Key Value Secret
+  objectName: ""
+  # Make sure this matches the content of the secret, can be either 'application/x-json' or 'application/x-yaml'
+  contentType: ""
+  # You must set .Values.existingSecret
+  secretName: "{{ .Values.existingSecret }}"
+
+settings:
+  database:
+    host: ""
     port: 5432
-  image:
-    repository: bitnamilegacy/postgresql
-  volumePermissions:
-    image:
-      repository: bitnamilegacy/os-shell
-  metrics:
-    image:
-      repository: bitnamilegacy/postgres-exporter
+    username: ""
+    password: ""
+    name: "kiss-frontend"
 
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxUnavailable: 0
-    maxSurge: 1
-
-cronjobs: []
+  aspnetcore:
+    forwardedHeadersEnabled: true
+    environment: ""
+    httpPorts: ""
 
 # -- Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
 extraVolumes: []

@@ -1,11 +1,8 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "kiss-frontend.fullname" . -}}
-{{- $releaseName := .Release.Name }}
-{{- $svcPort := .Values.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ include "kiss-frontend.fullname" . }}
   labels:
     {{- include "kiss-frontend.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -13,8 +10,8 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.ingress.className }}
-  ingressClassName: {{ .Values.ingress.className }}
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
   {{- end }}
   {{- if .Values.ingress.tls }}
   tls:
@@ -33,20 +30,14 @@ spec:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- if .pathType }}
-            pathType: {{ .pathType }}
+            {{- with .pathType }}
+            pathType: {{ . }}
             {{- end }}
             backend:
               service:
-                {{- if and .serviceName .servicePort }}
-                name: {{ printf "%s-%s" $releaseName .serviceName }}
+                name: {{ include "kiss-frontend.fullname" $ }}
                 port:
-                  number: {{ .servicePort }}
-                {{- else }}
-                name: {{ $fullName }}
-                port:
-                  number: {{ $svcPort }}
-                {{- end }}
+                  number: {{ $.Values.service.port }}
           {{- end }}
     {{- end }}
 {{- end }}
