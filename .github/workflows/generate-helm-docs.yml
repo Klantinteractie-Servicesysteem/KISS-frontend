@@ -2,7 +2,7 @@ name: Generate Helm documentation
 on:
   pull_request:
     paths-ignore:
-      - "helm/kiss-frontend/readme.md"
+      - "helm/kiss-chart/readme.md"
 permissions:
   contents: write
   pull-requests: write

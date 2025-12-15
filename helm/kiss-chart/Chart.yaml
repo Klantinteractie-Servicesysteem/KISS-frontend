@@ -1,5 +1,5 @@
 apiVersion: v2
-name: kiss-frontend
+name: kiss-chart
 description: A helm chart for Klantinteractie Service Systeem.
 
 type: application
