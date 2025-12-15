@@ -111,30 +111,62 @@ data:
   {{- if .Values.settings.postgres.user }}
   POSTGRES_USER: {{ .Values.settings.postgres.user | toString | quote }}
   {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__IS_DEFAULT }}
-  # REGISTERS__0__IS_DEFAULT: {{ .Values.settings.REGISTERS__0__IS_DEFAULT | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__KLANTINTERACTIE_BASE_URL }}
-  # REGISTERS__0__KLANTINTERACTIE_BASE_URL: {{ .Values.settings.REGISTERS__0__KLANTINTERACTIE_BASE_URL | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__REGISTRY_VERSION }}
-  # REGISTERS__0__REGISTRY_VERSION: {{ .Values.settings.REGISTERS__0__REGISTRY_VERSION | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID }}
-  # REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_API_CLIENT_ID | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_BASE_URL }}
-  # REGISTERS__0__ZAAKSYSTEEM_BASE_URL: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_BASE_URL | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY }}
-  # REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_PROPERTY | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL }}
-  # REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_DEEPLINK_URL | toString | quote }}
-  # {{- end }}
-  # {{- if .Values.settings.REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES }}
-  # REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ .Values.settings.REGISTERS__0__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES | toString | quote }}
-  # {{- end }}
+
+  {{- range $index, $register := .Values.registers }}
+  {{- if (($register.contactmomenten).apiClientId) }}
+  REGISTERS__{{ $index }}__CONTACTMOMENTEN_API_CLIENT_ID: {{ $register.contactmomenten.apiClientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.contactmomenten).apiBaseUrl) }}
+  REGISTERS__{{ $index }}__CONTACTMOMENTEN_BASE_URL: {{ $register.contactmomenten.apiBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).apiBaseUrl) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_BASE_URL: {{ $register.interneTaak.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).clientId) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_CLIENT_ID: {{ $register.interneTaak.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).objectTypeUrl) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_OBJECT_TYPE_URL: {{ $register.interneTaak.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).objectTypeVersion) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_TYPE_VERSION: {{ $register.interneTaak.objectTypeVersion | toString | quote }}
+  {{- end }}
+  {{- if $register.isDefault }}
+  REGISTERS__{{ $index }}__IS_DEFAULT: {{ $register.isDefault | toString | quote }}
+  {{- end }}
+  {{- if (($register.klanten).baseUrl) }}
+  REGISTERS__{{ $index }}__KLANTEN_BASE_URL: {{ $register.klanten.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.klanten).clientId) }}
+  REGISTERS__{{ $index }}__KLANTEN_CLIENT_ID: {{ $register.klanten.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.klanten).baseUrl) }}
+  REGISTERS__{{ $index }}__KLANTINTERACTIE_BASE_URL: {{ $register.klantinteractie.baseUrl | toString | quote }}
+  {{- end }}
+  REGISTERS__{{ $index }}__REGISTRY_VERSION: {{ $register.registryVersion | toString | quote }}
+  {{- if (($register.zaaksysteem).baseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_API_CLIENT_ID: {{ $register.zaaksysteem.apiClientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).catalogiBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_CATALOGI_BASE_URL: {{ $register.zaaksysteem.catalogiBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if ((($register.zaaksysteem).deeplink).property) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DEEPLINK_PROPERTY: {{ $register.zaaksysteem.deeplink.property | toString | quote }}
+  {{- end }}
+  {{- if ((($register.zaaksysteem).deeplink).url) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DEEPLINK_URL: {{ $register.zaaksysteem.deeplink.url | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).documentenBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DOCUMENTEN_BASE_URL: {{ $register.zaaksysteem.documentenBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).useExperimentalQueries) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ $register.zaaksysteem.useExperimentalQueries | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).zakenBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_ZAKEN_BASE_URL: {{ $register.zaaksysteem.zakenBaseUrl | toString | quote }}
+  {{- end }}
+  {{- end }}
+  
   # {{- if .Values.settings.SDG_OBJECT_TYPE_URL }}
   # SDG_OBJECT_TYPE_URL: {{ .Values.settings.SDG_OBJECT_TYPE_URL | toString | quote }}
   # {{- end }}
