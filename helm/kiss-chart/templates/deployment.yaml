@@ -63,14 +63,14 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
-          - configMapRef:
-                name: {{ include "kiss-frontend.fullname" . }}
+            - configMapRef:
+              name: {{ include "kiss-frontend.fullname" . }}
             - secretRef:
-                name: {{ .Values.existingSecret | default (include "kiss-frontend.fullname" .) }}
+              name: {{ .Values.existingSecret | default (include "kiss-frontend.fullname" .) }}
+          {{- if .Values.extraEnvVars }}
           env:
-            {{- if .Values.extraEnvVars }}
             {{- include "kiss-frontend.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
-            {{- end }}
+          {{- end }}
           {{- if .Values.extraVolumeMounts }}
           volumeMounts:
             {{- include "kiss-frontend.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 12 }}
