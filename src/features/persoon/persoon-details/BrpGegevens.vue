@@ -1,6 +1,10 @@
 <template>
   <article class="details-block" v-if="persoon">
-    <utrecht-heading :level="2"> Gegevens BRP</utrecht-heading>
+    <utrecht-heading :level="2">BRP Gegevens</utrecht-heading>
+    <p class="warning">
+      Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
+      identiteit van de inwoner. Verstrek nooit de hier getoonde gegevens.
+    </p>
     <dl>
       <dt>Naam</dt>
       <dd>
@@ -66,3 +70,12 @@ watchEffect(() => persoon.value && emit("load", persoon.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>
+
+<style>
+.warning {
+  background-color: var(--color-attention-background);
+  border: 3px solid var(--color-attention);
+  padding: 1em;
+  color: var(--color-attention);
+}
+</style>
