@@ -1,5 +1,8 @@
 <template>
-  <article class="details-block" v-if="klant">
+  <article
+    class="details-block"
+    v-if="klant && klant.emailadressen?.length && klant.telefoonnummers?.length"
+  >
     <header class="heading-container">
       <utrecht-heading :level="level">
         <span class="heading">Contactgegevens</span>
@@ -37,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watchEffect, type PropType } from "vue";
+import { ref, watchEffect, type PropType } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import {
   useContactmomentStore,
@@ -71,15 +74,6 @@ watchEffect(() => {
     emit("load");
   } catch {
     error.value = true;
-  }
-});
-
-watchEffect(() => {
-  if (
-    !klant.value ||
-    (!klant.value.emailadressen?.length && !klant.value.telefoonnummers?.length)
-  ) {
-    emit("noData");
   }
 });
 
