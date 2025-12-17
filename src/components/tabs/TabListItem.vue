@@ -117,6 +117,6 @@ watchEffect(() => {
 section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-default);
+  gap: var(--spacing-large);
 }
 </style>

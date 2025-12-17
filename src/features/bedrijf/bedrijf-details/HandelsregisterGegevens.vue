@@ -11,22 +11,21 @@
         {{ bedrijf.vestigingsnummer }}
       </dd>
       <dt>Adres</dt>
-      <dd>
-        {{
-          [
-            bedrijf.straatnaam,
-            bedrijf.huisnummer,
-            bedrijf.huisletter,
-            bedrijf.huisnummertoevoeging,
-          ]
-            .filter(Boolean)
-            .join(" ")
-        }}
-      </dd>
-      <dt>Postcode</dt>
-      <dd>{{ bedrijf.postcode }}</dd>
-      <dt>Plaats</dt>
-      <dd>{{ bedrijf.woonplaats }}</dd>
+      <div>
+        <dd>
+          {{
+            [
+              bedrijf.straatnaam,
+              bedrijf.huisnummer,
+              bedrijf.huisletter,
+              bedrijf.huisnummertoevoeging,
+            ]
+              .filter(Boolean)
+              .join(" ")
+          }}
+        </dd>
+        <dd>{{ bedrijf.postcode }} {{ bedrijf.woonplaats }}</dd>
+      </div>
     </dl>
   </article>
 </template>

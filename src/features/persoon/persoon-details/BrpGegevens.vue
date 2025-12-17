@@ -12,6 +12,12 @@
       </dd>
       <dt>Bsn</dt>
       <dd>{{ persoon.bsn }}</dd>
+      <dt>Adres</dt>
+      <div>
+        <dd>{{ persoon.adresregel1 }}</dd>
+        <dd>{{ persoon.adresregel2 }}</dd>
+        <dd>{{ persoon.adresregel3 }}</dd>
+      </div>
       <dt>Geboortedatum</dt>
       <dd>
         <dutch-date
@@ -20,21 +26,7 @@
         />
       </dd>
       <dt>Geboorteplaats</dt>
-      <dd>{{ persoon.geboorteplaats }}</dd>
-      <dt>Geboorteland</dt>
-      <dd>{{ persoon.geboorteland }}</dd>
-      <template v-if="persoon.adresregel1">
-        <dt>Adresregel 1</dt>
-        <dd>{{ persoon.adresregel1 }}</dd>
-      </template>
-      <template v-if="persoon.adresregel2">
-        <dt>Adresregel 2</dt>
-        <dd>{{ persoon.adresregel2 }}</dd>
-      </template>
-      <template v-if="persoon.adresregel3">
-        <dt>Adresregel 3</dt>
-        <dd>{{ persoon.adresregel3 }}</dd>
-      </template>
+      <dd>{{ persoon.geboorteplaats }}, {{ persoon.geboorteland }}</dd>
     </dl>
   </article>
 </template>
