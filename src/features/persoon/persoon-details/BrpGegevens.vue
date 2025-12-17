@@ -1,7 +1,7 @@
 <template>
   <article class="details-block" v-if="persoon">
     <utrecht-heading :level="2">BRP Gegevens</utrecht-heading>
-    <p class="warning">
+    <p class="attention">
       Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
       identiteit van de inwoner. Verstrek nooit de hier getoonde gegevens.
     </p>
@@ -72,7 +72,7 @@ watchEffect(() => emit("error", error.value));
 </script>
 
 <style>
-.warning {
+.attention {
   background-color: var(--color-attention-background);
   border: 3px solid var(--color-attention);
   padding: 1em;

@@ -2,8 +2,12 @@
   <back-link />
 
   <utrecht-heading :level="1"
-    >{{ persoon?.voornaam }} {{ persoon?.achternaam }}</utrecht-heading
-  >
+    >{{
+      [persoon?.voornaam, persoon?.voorvoegselAchternaam, persoon?.achternaam]
+        .filter(Boolean)
+        .join(" ")
+    }}
+  </utrecht-heading>
   <tab-list v-model="activeTab">
     <tab-list-item label="Persoonsgegevens">
       <template #default="{ setError, setLoading }">
