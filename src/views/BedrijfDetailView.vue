@@ -1,6 +1,6 @@
 <template>
   <back-link />
-  <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
+  <utrecht-heading :level="1">{{ bedrijf?.bedrijfsnaam }}e</utrecht-heading>
   <tab-list v-model="currentTab">
     <tab-list-item label="Bedrijfsgegevens">
       <template #default="{ setError, setLoading }">
