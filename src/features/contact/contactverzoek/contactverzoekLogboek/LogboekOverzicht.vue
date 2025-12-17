@@ -275,6 +275,7 @@ async function enrichActiviteitWithDoorsturenInfo(
       );
     }
     activiteit.tekst = activiteiten.join(" en ");
+    activiteit.notitie = item.notitie;
   }
 }
 
