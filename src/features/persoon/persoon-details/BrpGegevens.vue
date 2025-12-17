@@ -1,11 +1,17 @@
 <template>
-  <article class="details-block" v-if="persoon">
+  <article class="details-block">
     <utrecht-heading :level="2">BRP Gegevens</utrecht-heading>
-    <p class="attention">
-      Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
-      identiteit van de inwoner. Verstrek nooit de hier getoonde gegevens.
-    </p>
-    <dl>
+    <application-message
+      v-if="error"
+      messageType="error"
+      :message="'Er is een fout opgetreden'"
+    />
+    <application-message
+      v-if="persoon"
+      messageType="warning"
+      :message="'Onderstaande gegevens mogen alleen worden gebruikt ter controle van de identiteit van de inwoner. Verstrek nooit de hier getoonde gegevens.'"
+    />
+    <dl v-if="persoon">
       <dt>Naam</dt>
       <dd>
         {{
@@ -42,6 +48,7 @@ import DutchDate from "@/components/DutchDate.vue";
 import { enforceOneOrZero, useLoader } from "@/services";
 import { watchEffect } from "vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
+import ApplicationMessage from "@/components/ApplicationMessage.vue";
 
 const props = defineProps({
   internalKlantId: { type: String, required: true },
@@ -70,12 +77,3 @@ watchEffect(() => persoon.value && emit("load", persoon.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>
-
-<style>
-.attention {
-  background-color: var(--color-attention-background);
-  border: 3px solid var(--color-attention);
-  padding: 1em;
-  color: var(--color-attention);
-}
-</style>
