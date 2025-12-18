@@ -1,0 +1,95 @@
+# yaml-language-server: $schema=./values.schema.json
+
+settings:
+  afdelingen:
+    baseUrl: "https://dummy.example.com"
+    objectTypeUrl: "dummy"
+    token: "dummy"
+
+  database:
+    host: "dummy"
+    name: "dummy"
+    username: "dummy"
+    password: "dummy"
+
+  elastic:
+    baseUrl: "dummy"
+    username: "dummy"
+    password: "dummy"
+    excludedFieldsKennisbank:
+      - "dummy"
+      - "dummy"
+
+  email:
+    host: "dummy"
+    port: 2525
+    enableSsl: true
+
+  enterpriseSearch:
+    baseUrl: "dummy"
+    engine: "dummy"
+    publicApiKey: "dummy"
+    privateApiKey: "dummy"
+
+  feedback:
+    emailFrom: "dummy"
+    emailTo: "dummy"
+
+  groepen:
+    baseUrl: "https://dummy.example.com"
+    objectTypeUrl: "dummy"
+    token: "dummy"
+
+  haalCentraal:
+    baseUrl: "dummy"
+    apiKey: "dummy"
+
+  kvk:
+    baseUrl: "dummy"
+    apiKey: "dummy"
+    userHeaderName: "dummy"
+    customHeaders:
+      X-Custom-Header: "dummy"
+
+  logboek:
+    baseUrl: "dummy"
+    objectTypeUrl: "dummy"
+    objectTypeVersion: 3
+    token: "dummy"
+
+  managementInformatie:
+    apiKey: "dummy"
+
+  oidc:
+    authority: "dummy"
+    clientId: "dummy"
+    clientSecret: "dummy"
+    medewerkerIdentificatie:
+      claim: "dummy"
+      truncate: 24
+
+  organisatieIds: ["dummy"]
+
+  registers:
+    - isDefault: true
+      klantinteractie:
+        baseUrl: "dummy"
+        token: "dummy"
+      zaaksysteem:
+        clientId: "dummy"
+        clientSecret: "dummy"
+        catalogiBaseUrl: "dummy"
+        documentenBaseUrl: "dummy"
+        zakenBaseUrl: "dummy"
+        deeplink:
+          url: "dummy"
+          property: "dummy"
+        useExperimentalQueries: true
+
+  syncJobs:
+    kennisbank: null
+
+    medewerkers:
+      useEmail: true
+
+    vac: null

@@ -1,0 +1,1561 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "affinity": {
+      "required": [],
+      "title": "affinity",
+      "type": "object"
+    },
+    "autoscaling": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "required": [],
+          "title": "enabled",
+          "type": "boolean"
+        },
+        "maxReplicas": {
+          "default": 100,
+          "required": [],
+          "title": "maxReplicas",
+          "type": "integer"
+        },
+        "minReplicas": {
+          "default": 1,
+          "required": [],
+          "title": "minReplicas",
+          "type": "integer"
+        },
+        "targetCPUUtilizationPercentage": {
+          "default": 80,
+          "required": [],
+          "title": "targetCPUUtilizationPercentage",
+          "type": "integer"
+        },
+        "targetMemoryUtilizationPercentage": {
+          "default": 80,
+          "required": [],
+          "title": "targetMemoryUtilizationPercentage",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "autoscaling",
+      "type": "object"
+    },
+    "extraEnvVars": {
+      "description": "Array with extra environment variables to add",
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "extraEnvVars"
+    },
+    "extraIngress": {
+      "description": "Specify extra ingresses, for example if you have multiple ingress classes",
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "extraIngress"
+    },
+    "extraVolumeMounts": {
+      "description": "Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates.",
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "extraVolumeMounts"
+    },
+    "extraVolumes": {
+      "description": "Optionally specify extra list of additional volumes, for example to trust extra ca certificates.",
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "extraVolumes"
+    },
+    "fullnameOverride": {
+      "default": "",
+      "required": [],
+      "title": "fullnameOverride",
+      "type": "string"
+    },
+    "global": {
+      "description": "Global values are values that can be accessed from any chart or subchart by exactly the same name.",
+      "required": [],
+      "title": "global",
+      "type": "object"
+    },
+    "image": {
+      "properties": {
+        "pullPolicy": {
+          "default": "IfNotPresent",
+          "required": [],
+          "title": "pullPolicy",
+          "type": "string"
+        },
+        "repository": {
+          "default": "ghcr.io/klantinteractie-servicesysteem/kiss-frontend",
+          "required": [],
+          "title": "repository",
+          "type": "string"
+        },
+        "tag": {
+          "default": "latest",
+          "required": [],
+          "title": "tag",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "image",
+      "type": "object"
+    },
+    "imagePullSecrets": {
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "imagePullSecrets",
+      "type": "array"
+    },
+    "ingress": {
+      "properties": {
+        "annotations": {
+          "required": [],
+          "title": "annotations",
+          "type": "object"
+        },
+        "className": {
+          "default": "",
+          "required": [],
+          "title": "className",
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "required": [],
+          "title": "enabled",
+          "type": "boolean"
+        },
+        "hosts": {
+          "description": "ingress hosts",
+          "items": {
+            "required": []
+          },
+          "required": [],
+          "title": "hosts"
+        },
+        "tls": {
+          "description": "    paths:      - path: /        pathType: ImplementationSpecific",
+          "items": {
+            "required": []
+          },
+          "required": [],
+          "title": "tls"
+        }
+      },
+      "required": [],
+      "title": "ingress",
+      "type": "object"
+    },
+    "livenessProbe": {
+      "properties": {
+        "failureThreshold": {
+          "default": 6,
+          "required": [],
+          "title": "failureThreshold",
+          "type": "integer"
+        },
+        "initialDelaySeconds": {
+          "default": 60,
+          "required": [],
+          "title": "initialDelaySeconds",
+          "type": "integer"
+        },
+        "periodSeconds": {
+          "default": 10,
+          "required": [],
+          "title": "periodSeconds",
+          "type": "integer"
+        },
+        "successThreshold": {
+          "default": 1,
+          "required": [],
+          "title": "successThreshold",
+          "type": "integer"
+        },
+        "timeoutSeconds": {
+          "default": 5,
+          "required": [],
+          "title": "timeoutSeconds",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "livenessProbe",
+      "type": "object"
+    },
+    "nameOverride": {
+      "default": "",
+      "required": [],
+      "title": "nameOverride",
+      "type": "string"
+    },
+    "nodeSelector": {
+      "required": [],
+      "title": "nodeSelector",
+      "type": "object"
+    },
+    "pdb": {
+      "properties": {
+        "create": {
+          "default": false,
+          "required": [],
+          "title": "create",
+          "type": "boolean"
+        },
+        "maxUnavailable": {
+          "default": "",
+          "required": [],
+          "title": "maxUnavailable",
+          "type": "string"
+        },
+        "minAvailable": {
+          "default": 1,
+          "required": [],
+          "title": "minAvailable",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "pdb",
+      "type": "object"
+    },
+    "podAnnotations": {
+      "required": [],
+      "title": "podAnnotations",
+      "type": "object"
+    },
+    "podLabels": {
+      "required": [],
+      "title": "podLabels",
+      "type": "object"
+    },
+    "podSecurityContext": {
+      "properties": {
+        "fsGroup": {
+          "default": 1000,
+          "required": [],
+          "title": "fsGroup",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "podSecurityContext",
+      "type": "object"
+    },
+    "readinessProbe": {
+      "properties": {
+        "failureThreshold": {
+          "default": 6,
+          "required": [],
+          "title": "failureThreshold",
+          "type": "integer"
+        },
+        "initialDelaySeconds": {
+          "default": 30,
+          "required": [],
+          "title": "initialDelaySeconds",
+          "type": "integer"
+        },
+        "periodSeconds": {
+          "default": 10,
+          "required": [],
+          "title": "periodSeconds",
+          "type": "integer"
+        },
+        "successThreshold": {
+          "default": 1,
+          "required": [],
+          "title": "successThreshold",
+          "type": "integer"
+        },
+        "timeoutSeconds": {
+          "default": 5,
+          "required": [],
+          "title": "timeoutSeconds",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "readinessProbe",
+      "type": "object"
+    },
+    "replicaCount": {
+      "default": 2,
+      "required": [],
+      "title": "replicaCount",
+      "type": "integer"
+    },
+    "resources": {
+      "required": [],
+      "title": "resources",
+      "type": "object"
+    },
+    "securityContext": {
+      "properties": {
+        "allowPrivilegeEscalation": {
+          "default": false,
+          "required": [],
+          "title": "allowPrivilegeEscalation",
+          "type": "boolean"
+        },
+        "capabilities": {
+          "properties": {
+            "drop": {
+              "items": {
+                "anyOf": [
+                  {
+                    "required": [],
+                    "type": "string"
+                  }
+                ],
+                "required": []
+              },
+              "required": [],
+              "title": "drop",
+              "type": "array"
+            }
+          },
+          "required": [],
+          "title": "capabilities",
+          "type": "object"
+        },
+        "readOnlyRootFilesystem": {
+          "default": true,
+          "required": [],
+          "title": "readOnlyRootFilesystem",
+          "type": "boolean"
+        },
+        "runAsNonRoot": {
+          "default": true,
+          "required": [],
+          "title": "runAsNonRoot",
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "default": 10000,
+          "required": [],
+          "title": "runAsUser",
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "securityContext",
+      "type": "object"
+    },
+    "service": {
+      "properties": {
+        "port": {
+          "default": 80,
+          "required": [],
+          "title": "port",
+          "type": "integer"
+        },
+        "type": {
+          "default": "ClusterIP",
+          "required": [],
+          "title": "type",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "service",
+      "type": "object"
+    },
+    "serviceAccount": {
+      "properties": {
+        "annotations": {
+          "required": [],
+          "title": "annotations",
+          "type": "object"
+        },
+        "automountServiceAccountToken": {
+          "default": true,
+          "required": [],
+          "title": "automountServiceAccountToken",
+          "type": "boolean"
+        },
+        "create": {
+          "default": true,
+          "required": [],
+          "title": "create",
+          "type": "boolean"
+        },
+        "name": {
+          "default": "",
+          "required": [],
+          "title": "name",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "serviceAccount",
+      "type": "object"
+    },
+    "settings": {
+      "description": " required: true @schema",
+      "properties": {
+        "afdelingen": {
+          "allOf": [
+            {
+              "properties": {
+                "baseUrl": {
+                  "format": "uri",
+                  "required": [],
+                  "type": "string"
+                },
+                "objectTypeUrl": {
+                  "required": [],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "baseUrl",
+                "objectTypeUrl"
+              ]
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "clientId": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "clientId",
+                    "clientSecret"
+                  ]
+                },
+                {
+                  "properties": {
+                    "token": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ]
+                }
+              ],
+              "required": []
+            }
+          ],
+          "description": "afdelingen configuration",
+          "properties": {
+            "baseUrl": {
+              "default": "",
+              "required": [],
+              "title": "baseUrl",
+              "type": "string"
+            },
+            "clientId": {
+              "default": "",
+              "required": [],
+              "title": "clientId",
+              "type": "string"
+            },
+            "clientSecret": {
+              "default": "",
+              "required": [],
+              "title": "clientSecret",
+              "type": "string"
+            },
+            "objectTypeUrl": {
+              "default": "",
+              "required": [],
+              "title": "objectTypeUrl",
+              "type": "string"
+            },
+            "token": {
+              "default": "",
+              "required": [],
+              "title": "token",
+              "type": "string"
+            }
+          },
+          "required": [],
+          "title": "afdelingen"
+        },
+        "aspnetcore": {
+          "properties": {
+            "environment": {
+              "default": "Production",
+              "required": [],
+              "title": "environment",
+              "type": "string"
+            },
+            "forwardedHeadersEnabled": {
+              "default": true,
+              "required": [],
+              "title": "forwardedHeadersEnabled",
+              "type": "boolean"
+            },
+            "httpPorts": {
+              "default": "",
+              "required": [],
+              "title": "httpPorts",
+              "type": "string"
+            }
+          },
+          "required": [],
+          "title": "aspnetcore",
+          "type": "object"
+        },
+        "database": {
+          "description": " required: true @schema",
+          "properties": {
+            "host": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "host"
+            },
+            "name": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "name"
+            },
+            "password": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "password"
+            },
+            "port": {
+              "default": 5432,
+              "required": [],
+              "title": "port",
+              "type": "integer"
+            },
+            "username": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "username"
+            }
+          },
+          "required": [
+            "name",
+            "host",
+            "username",
+            "password"
+          ],
+          "title": "database"
+        },
+        "elastic": {
+          "description": " required: true @schema",
+          "properties": {
+            "baseUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "baseUrl"
+            },
+            "excludedFieldsKennisbank": {
+              "items": {
+                "required": []
+              },
+              "required": [],
+              "title": "excludedFieldsKennisbank",
+              "type": "array"
+            },
+            "password": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "password"
+            },
+            "username": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "username"
+            }
+          },
+          "required": [
+            "baseUrl",
+            "username",
+            "password"
+          ],
+          "title": "elastic"
+        },
+        "email": {
+          "description": " required: true @schema",
+          "properties": {
+            "enableSsl": {
+              "default": true,
+              "required": [],
+              "title": "enableSsl",
+              "type": "boolean"
+            },
+            "host": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "host"
+            },
+            "password": {
+              "default": "",
+              "required": [],
+              "title": "password",
+              "type": "string"
+            },
+            "port": {
+              "default": 25,
+              "required": [],
+              "title": "port",
+              "type": "integer"
+            },
+            "username": {
+              "default": "",
+              "required": [],
+              "title": "username",
+              "type": "string"
+            }
+          },
+          "required": [
+            "host"
+          ],
+          "title": "email"
+        },
+        "enterpriseSearch": {
+          "description": " required: true @schema",
+          "properties": {
+            "baseUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "baseUrl"
+            },
+            "engine": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "engine"
+            },
+            "privateApiKey": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "privateApiKey"
+            },
+            "publicApiKey": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "publicApiKey"
+            }
+          },
+          "required": [
+            "baseUrl",
+            "engine",
+            "publicApiKey",
+            "privateApiKey"
+          ],
+          "title": "enterpriseSearch"
+        },
+        "feedback": {
+          "description": " required: true @schema",
+          "properties": {
+            "emailFrom": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "emailFrom"
+            },
+            "emailTo": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "emailTo"
+            }
+          },
+          "required": [
+            "emailFrom",
+            "emailTo"
+          ],
+          "title": "feedback"
+        },
+        "groepen": {
+          "allOf": [
+            {
+              "properties": {
+                "baseUrl": {
+                  "format": "uri",
+                  "required": [],
+                  "type": "string"
+                },
+                "objectTypeUrl": {
+                  "required": [],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "baseUrl",
+                "objectTypeUrl"
+              ]
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "clientId": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "clientId",
+                    "clientSecret"
+                  ]
+                },
+                {
+                  "properties": {
+                    "token": {
+                      "minLength": 1,
+                      "required": [],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ]
+                }
+              ],
+              "required": []
+            }
+          ],
+          "description": "groepen configuration",
+          "required": [],
+          "title": "groepen"
+        },
+        "haalCentraal": {
+          "description": " required: true @schema",
+          "properties": {
+            "apiKey": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "apiKey"
+            },
+            "baseUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "baseUrl"
+            },
+            "customHeaders": {
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "RaadpleegMetBurgerservicenummer": {
+                        "type": "string"
+                      },
+                      "ZoekMetGeslachtsnaamEnGeboortedatum": {
+                        "type": "string"
+                      },
+                      "ZoekMetPostcodeEnHuisnummer": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "RaadpleegMetBurgerservicenummer",
+                      "ZoekMetGeslachtsnaamEnGeboortedatum",
+                      "ZoekMetPostcodeEnHuisnummer"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "description": " additionalProperties:   oneOf:     - type: string     - type: object       properties:         RaadpleegMetBurgerservicenummer:           type: string         ZoekMetGeslachtsnaamEnGeboortedatum:           type: string         ZoekMetPostcodeEnHuisnummer:           type: string       required: [RaadpleegMetBurgerservicenummer, ZoekMetGeslachtsnaamEnGeboortedatum, ZoekMetPostcodeEnHuisnummer] @schema",
+              "required": [],
+              "title": "customHeaders"
+            },
+            "userHeaderName": {
+              "default": "",
+              "required": [],
+              "title": "userHeaderName",
+              "type": "string"
+            }
+          },
+          "required": [
+            "baseUrl",
+            "apiKey"
+          ],
+          "title": "haalCentraal"
+        },
+        "kvk": {
+          "description": " required: true @schema",
+          "properties": {
+            "apiKey": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "apiKey"
+            },
+            "baseUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "baseUrl"
+            },
+            "customHeaders": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": " additionalProperties:   type: string @schema",
+              "required": [],
+              "title": "customHeaders"
+            },
+            "userHeaderName": {
+              "default": "",
+              "required": [],
+              "title": "userHeaderName",
+              "type": "string"
+            }
+          },
+          "required": [
+            "baseUrl",
+            "apiKey"
+          ],
+          "title": "kvk"
+        },
+        "logboek": {
+          "description": " required: true @schema",
+          "properties": {
+            "baseUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "baseUrl"
+            },
+            "objectTypeUrl": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "objectTypeUrl"
+            },
+            "objectTypeVersion": {
+              "default": "1",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "objectTypeVersion"
+            },
+            "token": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "token"
+            }
+          },
+          "required": [
+            "baseUrl",
+            "objectTypeUrl",
+            "objectTypeVersion",
+            "token"
+          ],
+          "title": "logboek"
+        },
+        "managementInformatie": {
+          "description": " required: [apiKey] @schema",
+          "properties": {
+            "apiKey": {
+              "default": "",
+              "required": [],
+              "title": "apiKey",
+              "type": "string"
+            }
+          },
+          "required": [
+            "apiKey"
+          ],
+          "title": "managementInformatie"
+        },
+        "oidc": {
+          "description": " required: true @schema",
+          "properties": {
+            "authority": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "authority"
+            },
+            "clientId": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "clientId"
+            },
+            "clientSecret": {
+              "default": "",
+              "description": " required: true minLength: 1 @schema",
+              "minLength": 1,
+              "required": [],
+              "title": "clientSecret"
+            },
+            "kennisbankRole": {
+              "default": "",
+              "required": [],
+              "title": "kennisbankRole",
+              "type": "string"
+            },
+            "klantcontactmedewerkerRole": {
+              "default": "",
+              "required": [],
+              "title": "klantcontactmedewerkerRole",
+              "type": "string"
+            },
+            "medewerkerIdentificatie": {
+              "description": " required: true @schema",
+              "properties": {
+                "claim": {
+                  "default": "",
+                  "description": "the claim to use for identifying the medewerker",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "claim"
+                },
+                "truncate": {
+                  "default": "",
+                  "description": "max number of characters before truncation",
+                  "required": [],
+                  "title": "truncate",
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "claim"
+              ],
+              "title": "medewerkerIdentificatie"
+            },
+            "redacteurRole": {
+              "default": "",
+              "required": [],
+              "title": "redacteurRole",
+              "type": "string"
+            }
+          },
+          "required": [
+            "authority",
+            "clientId",
+            "clientSecret",
+            "medewerkerIdentificatie"
+          ],
+          "title": "oidc"
+        },
+        "organisatieIds": {
+          "description": " required: true items:   type: string minItems: 1 @schema",
+          "items": {
+            "required": [],
+            "type": "string"
+          },
+          "minItems": 1,
+          "required": [],
+          "title": "organisatieIds"
+        },
+        "registers": {
+          "description": "Configuration for the different registers for e.g. zaken and klantcontacten. Check the json schema for the different possible configurations.",
+          "items": {
+            "allOf": [
+              {
+                "description": "Common register configuration",
+                "properties": {
+                  "isDefault": {
+                    "required": [],
+                    "type": "boolean"
+                  },
+                  "zaaksysteem": {
+                    "properties": {
+                      "catalogiBaseUrl": {
+                        "required": [],
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "required": [],
+                        "type": "string"
+                      },
+                      "clientSecret": {
+                        "required": [],
+                        "type": "string"
+                      },
+                      "deeplink": {
+                        "properties": {
+                          "property": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "url": {
+                            "required": [],
+                            "type": "string"
+                          }
+                        },
+                        "required": []
+                      },
+                      "documentenBaseUrl": {
+                        "required": [],
+                        "type": "string"
+                      },
+                      "useExperimentalQueries": {
+                        "required": [],
+                        "type": "boolean"
+                      },
+                      "zakenBaseUrl": {
+                        "required": [],
+                        "type": "string"
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "zaaksysteem"
+                ]
+              },
+              {
+                "oneOf": [
+                  {
+                    "description": "Oud (esuite) register configuration",
+                    "properties": {
+                      "contactmomenten": {
+                        "properties": {
+                          "baseUrl": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientId": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientSecret": {
+                            "required": [],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "baseUrl",
+                          "clientId",
+                          "clientSecret"
+                        ]
+                      },
+                      "interneTaak": {
+                        "properties": {
+                          "baseUrl": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientId": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientSecret": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "objectTypeUrl": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "objectTypeVersion": {
+                            "required": [],
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "baseUrl",
+                          "clientId",
+                          "clientSecret",
+                          "objectTypeUrl",
+                          "objectTypeVersion"
+                        ]
+                      },
+                      "klanten": {
+                        "properties": {
+                          "baseUrl": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientId": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "clientSecret": {
+                            "required": [],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "baseUrl",
+                          "clientId",
+                          "clientSecret"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "contactmomenten",
+                      "interneTaak",
+                      "klanten"
+                    ]
+                  },
+                  {
+                    "description": "Nieuw (klantinteracties) register configuration",
+                    "properties": {
+                      "klantinteractie": {
+                        "properties": {
+                          "baseUrl": {
+                            "required": [],
+                            "type": "string"
+                          },
+                          "token": {
+                            "required": [],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "baseUrl",
+                          "token"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "klantinteractie"
+                    ]
+                  }
+                ],
+                "required": []
+              }
+            ],
+            "required": []
+          },
+          "minItems": 1,
+          "required": [],
+          "title": "registers"
+        },
+        "syncJobs": {
+          "properties": {
+            "image": {
+              "properties": {
+                "pullPolicy": {
+                  "default": "IfNotPresent",
+                  "required": [],
+                  "title": "pullPolicy",
+                  "type": "string"
+                },
+                "repository": {
+                  "default": "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync",
+                  "required": [],
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "0.3.0",
+                  "required": [],
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "image",
+              "type": "object"
+            },
+            "kennisbank": {
+              "description": " type: [object, null] @schema",
+              "properties": {
+                "baseUrl": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "baseUrl"
+                },
+                "historyLimit": {
+                  "default": 1,
+                  "required": [],
+                  "title": "historyLimit",
+                  "type": "integer"
+                },
+                "objectTypeUrl": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "objectTypeUrl"
+                },
+                "resources": {
+                  "required": [],
+                  "title": "resources",
+                  "type": "object"
+                },
+                "schedule": {
+                  "default": "*/59 * * * *",
+                  "required": [],
+                  "title": "schedule",
+                  "type": "string"
+                },
+                "token": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "token"
+                }
+              },
+              "required": [
+                "baseUrl",
+                "objectTypeUrl",
+                "token"
+              ],
+              "title": "kennisbank",
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "medewerkers": {
+              "description": "medewerkers sync job configuration",
+              "oneOf": [
+                {
+                  "description": "Use email to assign medewerkers to contactverzoeken",
+                  "properties": {
+                    "useEmail": {
+                      "const": true,
+                      "required": [],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "useEmail"
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "description": "Common medewerkers configuration",
+                      "properties": {
+                        "baseUrl": {
+                          "minLength": 1,
+                          "required": [],
+                          "type": "string"
+                        },
+                        "historyLimit": {
+                          "required": [],
+                          "type": "integer"
+                        },
+                        "objectTypeUrl": {
+                          "minLength": 1,
+                          "required": [],
+                          "type": "string"
+                        },
+                        "resources": {
+                          "required": [],
+                          "type": "object"
+                        },
+                        "schedule": {
+                          "required": [],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "baseUrl",
+                        "objectTypeUrl"
+                      ]
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "description": "Token based medewerkers configuration",
+                          "properties": {
+                            "token": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "token"
+                          ]
+                        },
+                        {
+                          "description": "Client credentials based medewerkers configuration",
+                          "properties": {
+                            "clientId": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "clientId",
+                            "clientSecret"
+                          ]
+                        }
+                      ],
+                      "required": []
+                    }
+                  ],
+                  "required": []
+                }
+              ],
+              "required": [],
+              "title": "medewerkers"
+            },
+            "sharepoint": {
+              "description": "sharepoint sync jobs configuration",
+              "items": {
+                "properties": {
+                  "clientId": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "historyLimit": {
+                    "required": [],
+                    "type": "integer"
+                  },
+                  "resources": {
+                    "required": [],
+                    "type": "object"
+                  },
+                  "restartPolicy": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "schedule": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "siteUrl": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "sourceName": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "tenantId": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "ttlSecondsAfterFinished": {
+                    "required": [],
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "sourceName",
+                  "siteUrl",
+                  "clientId",
+                  "clientSecret",
+                  "tenantId"
+                ],
+                "type": "object"
+              },
+              "required": [],
+              "title": "sharepoint"
+            },
+            "vac": {
+              "description": "vac sync job configuration",
+              "properties": {
+                "baseUrl": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "baseUrl"
+                },
+                "historyLimit": {
+                  "default": 1,
+                  "required": [],
+                  "title": "historyLimit",
+                  "type": "integer"
+                },
+                "manageFromKiss": {
+                  "default": false,
+                  "required": [],
+                  "title": "manageFromKiss",
+                  "type": "boolean"
+                },
+                "objectTypeUrl": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "objectTypeUrl"
+                },
+                "objectTypeVersion": {
+                  "default": 1,
+                  "required": [],
+                  "title": "objectTypeVersion",
+                  "type": "integer"
+                },
+                "resources": {
+                  "required": [],
+                  "title": "resources",
+                  "type": "object"
+                },
+                "schedule": {
+                  "default": "*/59 * * * *",
+                  "required": [],
+                  "title": "schedule",
+                  "type": "string"
+                },
+                "token": {
+                  "default": "",
+                  "description": " required: true minLength: 1 @schema",
+                  "minLength": 1,
+                  "required": [],
+                  "title": "token"
+                }
+              },
+              "required": [
+                "token",
+                "baseUrl",
+                "objectTypeUrl"
+              ],
+              "title": "vac",
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "website": {
+              "description": "website sync jobs configuration",
+              "items": {
+                "properties": {
+                  "backoffLimit": {
+                    "required": [],
+                    "type": "integer"
+                  },
+                  "domain": {
+                    "format": "uri",
+                    "required": [],
+                    "type": "string"
+                  },
+                  "resources": {
+                    "required": [],
+                    "type": "object"
+                  },
+                  "restartPolicy": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "sourceName": {
+                    "required": [],
+                    "type": "string"
+                  },
+                  "ttlSecondsAfterFinished": {
+                    "required": [],
+                    "type": "integer"
+                  }
+                },
+                "required": [],
+                "type": "object"
+              },
+              "required": [],
+              "title": "website"
+            }
+          },
+          "required": [],
+          "title": "syncJobs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "afdelingen",
+        "database",
+        "elastic",
+        "email",
+        "enterpriseSearch",
+        "feedback",
+        "groepen",
+        "haalCentraal",
+        "kvk",
+        "logboek",
+        "oidc",
+        "organisatieIds",
+        "registers"
+      ],
+      "title": "settings"
+    },
+    "tolerations": {
+      "items": {
+        "required": []
+      },
+      "required": [],
+      "title": "tolerations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "settings"
+  ],
+  "type": "object"
+}

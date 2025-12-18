@@ -5,22 +5,23 @@ on:
     branches:
       - main
       - "*.*.*"
-      - OudNaastNieuw
 
   push:
     branches:
       - main
-    tags: ["v*.*.*"] 
+    tags: ["v*.*.*"]
 
   workflow_dispatch:
 
 env:
-  # add environment variables 
+  # add environment variables
   SHOULD_PUSH: ${{ github.event_name != 'pull_request' }}
   SHOULD_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
   IS_LATEST: false
   VERSION: ""
   REVISION: ""
+  CHART_NAME: kiss-chart
+  CHART_URL: ghcr.io/klantinteractie-servicesysteem
 
 jobs:
   build-node:
@@ -32,7 +33,7 @@ jobs:
       pull-requests: write
       actions: write
       packages: write
-          
+
     steps:
       - uses: actions/checkout@v3
 
@@ -52,22 +53,6 @@ jobs:
           if [ "$TAG" = "${{ github.ref }}" ] ; then
               echo "IS_LATEST=true" >> "$GITHUB_ENV"
           fi
-
-      - name: Get date
-        id: date
-        run: |
-          echo "DATE=$(date +'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_ENV
-
-      - name: Get branch name
-        id: branch
-        run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          if [[ -z "$BRANCH_NAME" ]]; then
-            BRANCH_NAME="${{ github.ref }}"
-            BRANCH_NAME="${BRANCH_NAME#refs/heads/}"
-          fi
-          BRANCH_NAME=$(echo $BRANCH_NAME | tr / -)
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Setting CONTAINER_PROJECT_NAME
         run: |
@@ -167,3 +152,24 @@ jobs:
             REVISION=${{ env.REVISION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: test helm chart
+        working-directory: helm/${{env.CHART_NAME}}
+        run: helm template . --debug --values dummy-values.yaml
+
+      - name: Update chart values with new image tag
+        if: ${{ fromJson(env.SHOULD_RELEASE) }}
+        uses: mikefarah/yq@v4.34.1
+        with:
+          cmd: |
+            yq eval '.appVersion = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/Chart.yaml
+            yq eval '.version = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/Chart.yaml
+            yq eval '.image.tag = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/values.yaml
+
+      - name: push helm chart to oci
+        if: ${{ fromJson(env.SHOULD_RELEASE) }}
+        working-directory: helm
+        run: |
+          helm package ./${{env.CHART_NAME}}
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.CHART_URL }} --username ${{ github.actor }} --password-stdin
+          helm push ${{env.CHART_NAME}}-${{ env.VERSION }}.tgz oci://${{ env.CHART_URL }}

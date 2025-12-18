@@ -1,0 +1,243 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kiss-frontend.fullname" . }}
+  labels:
+    {{- include "kiss-frontend.labels" . | nindent 4 }}
+data:
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: {{ .Values.settings.aspnetcore.forwardedHeadersEnabled | toString | quote }}
+  {{- if .Values.settings.aspnetcore.environment }}
+  ASPNETCORE_ENVIRONMENT: {{ .Values.settings.aspnetcore.environment | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.aspnetcore.httpPorts }}
+  ASPNETCORE_HTTP_PORTS: {{ .Values.settings.aspnetcore.httpPorts | toString | quote }}
+  {{- end }}
+  
+  {{- if .Values.settings.afdelingen.baseUrl }}
+  AFDELINGEN_BASE_URL: {{ .Values.settings.afdelingen.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.afdelingen.clientId }}
+  AFDELINGEN_CLIENT_ID: {{ .Values.settings.afdelingen.clientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.afdelingen.objectTypeUrl }}
+  AFDELINGEN_OBJECT_TYPE_URL: {{ .Values.settings.afdelingen.objectTypeUrl | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.elastic.baseUrl }}
+  ELASTIC_BASE_URL: {{ .Values.settings.elastic.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.elastic.excludedFieldsKennisbank }}
+  ELASTIC_EXCLUDED_FIELDS_KENNISBANK: {{ (join "," .Values.settings.elastic.excludedFieldsKennisbank) | quote }}
+  {{- end }}
+  {{- if .Values.settings.elastic.username }}
+  ELASTIC_USERNAME: {{ .Values.settings.elastic.username | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.email.enableSsl }}
+  EMAIL_ENABLE_SSL: {{ .Values.settings.email.enableSsl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.host }}
+  EMAIL_HOST: {{ .Values.settings.email.host | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.port }}
+  EMAIL_PORT: {{ .Values.settings.email.port | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.email.username }}
+  EMAIL_USERNAME: {{ .Values.settings.email.username | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.enterpriseSearch.baseUrl }}
+  ENTERPRISE_SEARCH_BASE_URL: {{ .Values.settings.enterpriseSearch.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.enterpriseSearch.engine }}
+  ENTERPRISE_SEARCH_ENGINE: {{ .Values.settings.enterpriseSearch.engine | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.feedback.emailFrom }}
+  FEEDBACK_EMAIL_FROM: {{ .Values.settings.feedback.emailFrom | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.feedback.emailTo }}
+  FEEDBACK_EMAIL_TO: {{ .Values.settings.feedback.emailTo | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.groepen.baseUrl }}
+  GROEPEN_BASE_URL: {{ .Values.settings.groepen.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.groepen.clientId }}
+  GROEPEN_CLIENT_ID: {{ .Values.settings.groepen.clientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.groepen.objectTypeUrl }}
+  GROEPEN_OBJECT_TYPE_URL: {{ .Values.settings.groepen.objectTypeUrl | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.haalCentraal.baseUrl }}
+  HAAL_CENTRAAL_BASE_URL: {{ .Values.settings.haalCentraal.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.haalCentraal.userHeaderName }}
+  HAAL_CENTRAAL_USER_HEADER_NAME: {{ .Values.settings.haalCentraal.userHeaderName | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.haalCentraal.customHeaders }}
+    {{- range $key,$value := .Values.settings.haalCentraal.customHeaders }}
+      {{- if kindIs "map" $value  }}
+        {{- range $subKey,$subValue := $value }}
+  HAAL_CENTRAAL_CUSTOM_HEADERS__{{ $key }}__{{ $subKey }}: {{ $subValue | quote }}
+        {{- end }}
+      {{- else }}
+  HAAL_CENTRAAL_CUSTOM_HEADERS__{{ $key }}: {{ $value | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+  {{- if .Values.settings.kvk.baseUrl }}
+  KVK_BASE_URL: {{ .Values.settings.kvk.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.kvk.userHeaderName }}
+  KVK_USER_HEADER_NAME: {{ .Values.settings.kvk.userHeaderName | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.kvk.customHeaders }}
+    {{- range $key,$value := .Values.settings.kvk.customHeaders }}
+  KVK_CUSTOM_HEADERS__{{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+
+  {{- if .Values.settings.logboek.baseUrl }}
+  LOGBOEK_BASE_URL: {{ .Values.settings.logboek.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.logboek.objectTypeUrl }}
+  LOGBOEK_OBJECT_TYPE_URL: {{ .Values.settings.logboek.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.logboek.objectTypeVersion }}
+  LOGBOEK_OBJECT_TYPE_VERSION: {{ .Values.settings.logboek.objectTypeVersion | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.syncJobs.medewerkers.baseUrl }}
+  MEDEWERKER_OBJECTEN_BASE_URL: {{ .Values.settings.syncJobs.medewerkers.baseUrl | toString | quote }}
+  {{- end }}
+   {{- if .Values.settings.syncJobs.medewerkers.clientId }}
+  MEDEWERKER_OBJECTEN_CLIENT_ID: {{ .Values.settings.syncJobs.medewerkers.clientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.syncJobs.medewerkers.objectTypeUrl }}
+  MEDEWERKER_OBJECT_TYPE_URL: {{ .Values.settings.syncJobs.medewerkers.objectTypeUrl | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.oidc.authority }}
+  OIDC_AUTHORITY: {{ .Values.settings.oidc.authority | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.clientId }}
+  OIDC_CLIENT_ID: {{ .Values.settings.oidc.clientId | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.kennisbankRole }}
+  OIDC_KENNISBANK_ROLE: {{ .Values.settings.oidc.kennisbankRole | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.klantcontactmedewerkerRole }}
+  OIDC_KLANTCONTACTMEDEWERKER_ROLE: {{ .Values.settings.oidc.klantcontactmedewerkerRole | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.medewerkerIdentificatie.claim }}
+  OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM: {{ .Values.settings.oidc.medewerkerIdentificatie.claim | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.medewerkerIdentificatie.truncate }}
+  OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE: {{ .Values.settings.oidc.medewerkerIdentificatie.truncate | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.oidc.redacteurRole }}
+  OIDC_REDACTEUR_ROLE: {{ .Values.settings.oidc.redacteurRole | toString | quote }}
+  {{- end }}
+  
+  {{- if .Values.settings.organisatieIds }}
+  ORGANISATIE_IDS: {{ (join "/" .Values.settings.organisatieIds) | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.database.name }}
+  POSTGRES_DB: {{ .Values.settings.database.name | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.database.host }}
+  POSTGRES_HOST: {{ .Values.settings.database.host | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.database.port }}
+  POSTGRES_PORT: {{ .Values.settings.database.port | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.database.username }}
+  POSTGRES_USER: {{ .Values.settings.database.username | toString | quote }}
+  {{- end }}
+
+  {{- range $index, $register := .Values.settings.registers }}
+  {{- if (($register.contactmomenten).clientId) }}
+  REGISTERS__{{ $index }}__CONTACTMOMENTEN_API_CLIENT_ID: {{ $register.contactmomenten.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.contactmomenten).baseUrl) }}
+  REGISTERS__{{ $index }}__CONTACTMOMENTEN_BASE_URL: {{ $register.contactmomenten.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).baseUrl) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_BASE_URL: {{ $register.interneTaak.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).clientId) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_CLIENT_ID: {{ $register.interneTaak.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).objectTypeUrl) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_OBJECT_TYPE_URL: {{ $register.interneTaak.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.interneTaak).objectTypeVersion) }}
+  REGISTERS__{{ $index }}__INTERNE_TAAK_TYPE_VERSION: {{ $register.interneTaak.objectTypeVersion | toString | quote }}
+  {{- end }}
+  {{- if $register.isDefault }}
+  REGISTERS__{{ $index }}__IS_DEFAULT: {{ $register.isDefault | toString | quote }}
+  {{- end }}
+  {{- if (($register.klanten).baseUrl) }}
+  REGISTERS__{{ $index }}__KLANTEN_BASE_URL: {{ $register.klanten.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.klanten).clientId) }}
+  REGISTERS__{{ $index }}__KLANTEN_CLIENT_ID: {{ $register.klanten.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.klantinteractie).baseUrl) }}
+  REGISTERS__{{ $index }}__KLANTINTERACTIE_BASE_URL: {{ $register.klantinteractie.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if hasKey $register "klantinteractie" }}
+  REGISTERS__{{ $index }}__REGISTRY_VERSION: "OpenKlant2"
+  {{- else }}
+  REGISTERS__{{ $index }}__REGISTRY_VERSION: "OpenKlant1"
+  {{- end }}
+  {{- if (($register.zaaksysteem).clientId) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_API_CLIENT_ID: {{ $register.zaaksysteem.clientId | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).catalogiBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_CATALOGI_BASE_URL: {{ $register.zaaksysteem.catalogiBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if ((($register.zaaksysteem).deeplink).property) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DEEPLINK_PROPERTY: {{ $register.zaaksysteem.deeplink.property | toString | quote }}
+  {{- end }}
+  {{- if ((($register.zaaksysteem).deeplink).url) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DEEPLINK_URL: {{ $register.zaaksysteem.deeplink.url | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).documentenBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_DOCUMENTEN_BASE_URL: {{ $register.zaaksysteem.documentenBaseUrl | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).useExperimentalQueries) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ $register.zaaksysteem.useExperimentalQueries | toString | quote }}
+  {{- end }}
+  {{- if (($register.zaaksysteem).zakenBaseUrl) }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_ZAKEN_BASE_URL: {{ $register.zaaksysteem.zakenBaseUrl | toString | quote }}
+  {{- end }}
+  {{- end }}
+
+  {{- if ((.Values.settings.syncJobs.kennisbank).baseUrl) }}
+  SDG_OBJECTEN_BASE_URL: {{ .Values.settings.syncJobs.kennisbank.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if ((.Values.settings.syncJobs.kennisbank).objectTypeUrl) }}
+  SDG_OBJECT_TYPE_URL: {{ .Values.settings.syncJobs.kennisbank.objectTypeUrl | toString | quote }}
+  {{- end }}
+
+  {{- if .Values.settings.syncJobs.medewerkers.useEmail }}
+  USE_MEDEWERKEREMAIL: {{ .Values.settings.syncJobs.medewerkers.useEmail | toString | quote }}
+  {{- end }}
+  {{- if ((.Values.settings.syncJobs.vac).manageFromKiss) }}
+  USE_VACS: {{ .Values.settings.syncJobs.vac.manageFromKiss | toString | quote }}
+  {{- end }}
+
+  {{- if ((.Values.settings.syncJobs.vac).baseUrl) }}
+  VAC_OBJECTEN_BASE_URL: {{ .Values.settings.syncJobs.vac.baseUrl | toString | quote }}
+  {{- end }}
+  {{- if ((.Values.settings.syncJobs.vac).objectTypeUrl) }}
+  VAC_OBJECT_TYPE_URL: {{ .Values.settings.syncJobs.vac.objectTypeUrl | toString | quote }}
+  {{- end }}
+  {{- if ((.Values.settings.syncJobs.vac).objectTypeVersion) }}
+  VAC_OBJECT_TYPE_VERSION: {{ .Values.settings.syncJobs.vac.objectTypeVersion | toString | quote }}
+  {{- end }}

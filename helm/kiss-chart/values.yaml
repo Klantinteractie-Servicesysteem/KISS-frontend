@@ -1,0 +1,702 @@
+# yaml-language-server: $schema=./values.schema.json
+
+#
+replicaCount: 2
+
+image:
+  repository: "ghcr.io/klantinteractie-servicesysteem/kiss-frontend"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: true
+
+podAnnotations: {}
+
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10000
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- ingress hosts
+  hosts: []
+  #  - host: kiss-frontend.gemeente.nl
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: kiss-frontend-tls
+  #    hosts:
+  #      - kiss-frontend.gemeente.nl
+
+# -- Specify extra ingresses, for example if you have multiple ingress classes
+extraIngress: []
+# e.g:
+# extraIngress:
+#  - name: kiss-frontend-azuregateway
+#    annotations:
+#      appgw.ingress.kubernetes.io/ssl-redirect: "true"
+#    className: azure-application-gateway
+#    hosts:
+#      - host: kiss-frontend.gemeente.nl
+#        paths:
+#          - path: /
+#            pathType: ImplementationSpecific
+#            servicename: kiss-frontend
+#            portNumber: 8000
+#    tls:
+#      - secretName: kiss-frontend-tls
+#        hosts:
+#          - "kiss-frontend.gemeente.nl"
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 200m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  create: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# @schema
+# required: true
+# @schema
+settings:
+  aspnetcore:
+    forwardedHeadersEnabled: true
+    environment: "Production"
+    httpPorts: ""
+
+  # @schema
+  # required: true
+  # allOf:
+  #   - properties:
+  #       baseUrl:
+  #         type: string
+  #         format: uri
+  #       objectTypeUrl:
+  #         type: string
+  #     required:
+  #       - baseUrl
+  #       - objectTypeUrl
+  #   - oneOf:
+  #       - properties:
+  #           clientId:
+  #             type: string
+  #             minLength: 1
+  #           clientSecret:
+  #             type: string
+  #             minLength: 1
+  #         required:
+  #           - clientId
+  #           - clientSecret
+  #       - properties:
+  #           token:
+  #             type: string
+  #             minLength: 1
+  #         required:
+  #           - token
+  # @schema
+  # -- afdelingen configuration
+  afdelingen:
+    baseUrl: ""
+    objectTypeUrl: ""
+    clientId: ""
+    clientSecret: ""
+    token: ""
+
+  # @schema
+  # required: true
+  # @schema
+  database:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    name: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    host: ""
+    port: 5432
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    username: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    password: ""
+
+  # @schema
+  # required: true
+  # @schema
+  elastic:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    baseUrl: ""
+    excludedFieldsKennisbank: []
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    username: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    password: ""
+
+  # @schema
+  # required: true
+  # @schema
+  email:
+    enableSsl: true
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    host: ""
+    password: ""
+    port: 25
+    username: ""
+
+  # @schema
+  # required: true
+  # @schema
+  enterpriseSearch:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    engine: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    publicApiKey: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    privateApiKey: ""
+
+  # @schema
+  # required: true
+  # @schema
+  feedback:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    emailFrom: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    emailTo: ""
+
+  # @schema
+  # required: true
+  # properties: {}
+  # allOf:
+  #   - properties:
+  #       baseUrl:
+  #         type: string
+  #         format: uri
+  #       objectTypeUrl:
+  #         type: string
+  #     required:
+  #       - baseUrl
+  #       - objectTypeUrl
+  #   - oneOf:
+  #       - properties:
+  #           clientId:
+  #             type: string
+  #             minLength: 1
+  #           clientSecret:
+  #             type: string
+  #             minLength: 1
+  #         required:
+  #           - clientId
+  #           - clientSecret
+  #       - properties:
+  #           token:
+  #             type: string
+  #             minLength: 1
+  #         required:
+  #           - token
+  # @schema
+  # -- groepen configuration
+  groepen:
+    baseUrl: ""
+    objectTypeUrl: ""
+    clientId: ""
+    clientSecret: ""
+    token: ""
+
+  # @schema
+  # required: true
+  # @schema
+  haalCentraal:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    apiKey: ""
+    userHeaderName: ""
+    # @schema
+    # additionalProperties:
+    #   oneOf:
+    #     - type: string
+    #     - type: object
+    #       properties:
+    #         RaadpleegMetBurgerservicenummer:
+    #           type: string
+    #         ZoekMetGeslachtsnaamEnGeboortedatum:
+    #           type: string
+    #         ZoekMetPostcodeEnHuisnummer:
+    #           type: string
+    #       required: [RaadpleegMetBurgerservicenummer, ZoekMetGeslachtsnaamEnGeboortedatum, ZoekMetPostcodeEnHuisnummer]
+    # @schema
+    customHeaders: {}
+
+  # @schema
+  # required: true
+  # @schema
+  kvk:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    apiKey: ""
+    userHeaderName: ""
+    # @schema
+    # additionalProperties:
+    #   type: string
+    # @schema
+    customHeaders: {}
+
+  # @schema
+  # required: true
+  # @schema
+  logboek:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    objectTypeUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    objectTypeVersion: 1
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    token: ""
+
+  # @schema
+  # required: [apiKey]
+  # @schema
+  managementInformatie:
+    apiKey: ""
+
+  # @schema
+  # required: true
+  # @schema
+  oidc:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    authority: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    clientId: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    clientSecret: ""
+    kennisbankRole: ""
+    klantcontactmedewerkerRole: ""
+    # @schema
+    # required: true
+    # @schema
+    medewerkerIdentificatie:
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      # -- the claim to use for identifying the medewerker
+      claim: ""
+      # @schema
+      # type: [integer, null]
+      # @schema
+      # -- max number of characters before truncation
+      truncate:
+    redacteurRole: ""
+
+  # @schema
+  # required: true
+  # items:
+  #   type: string
+  # minItems: 1
+  # @schema
+  organisatieIds: []
+
+  # @schema
+  # required: true
+  # minItems: 1
+  # items:
+  #   allOf:
+  #     - description: Common register configuration
+  #       properties:
+  #         isDefault:
+  #           type: boolean
+  #         zaaksysteem:
+  #           properties:
+  #             clientId:
+  #               type: string
+  #             clientSecret:
+  #               type: string
+  #             catalogiBaseUrl:
+  #               type: string
+  #             documentenBaseUrl:
+  #               type: string
+  #             zakenBaseUrl:
+  #               type: string
+  #             deeplink:
+  #               properties:
+  #                 property:
+  #                   type: string
+  #                 url:
+  #                   type: string
+  #             useExperimentalQueries:
+  #               type: boolean
+  #       required: ["zaaksysteem"]
+  #     - oneOf:
+  #       - description: Oud (esuite) register configuration
+  #         properties:
+  #           contactmomenten:
+  #             properties:
+  #               baseUrl:
+  #                 type: string
+  #               clientId:
+  #                 type: string
+  #               clientSecret:
+  #                 type: string
+  #             required: ["baseUrl", "clientId", "clientSecret"]
+  #           interneTaak:
+  #             properties:
+  #               baseUrl:
+  #                 type: string
+  #               clientId:
+  #                 type: string
+  #               clientSecret:
+  #                 type: string
+  #               objectTypeUrl:
+  #                 type: string
+  #               objectTypeVersion:
+  #                 type: integer
+  #             required: ["baseUrl", "clientId", "clientSecret", "objectTypeUrl", "objectTypeVersion"]
+  #           klanten:
+  #             properties:
+  #               baseUrl:
+  #                 type: string
+  #               clientId:
+  #                 type: string
+  #               clientSecret:
+  #                 type: string
+  #             required: ["baseUrl", "clientId", "clientSecret"]
+  #         required: ["contactmomenten", "interneTaak", "klanten"]
+  #       - description: Nieuw (klantinteracties) register configuration
+  #         properties:
+  #           klantinteractie:
+  #             properties:
+  #               baseUrl:
+  #                 type: string
+  #               token:
+  #                 type: string
+  #             required: ["baseUrl", "token"]
+  #         required: ["klantinteractie"]
+  # @schema
+  # -- Configuration for the different registers for e.g. zaken and klantcontacten. Check the json schema for the different possible configurations.
+  registers: []
+
+  syncJobs:
+    image:
+      repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"
+      pullPolicy: IfNotPresent
+      tag: "0.3.0"
+    # @schema
+    # type: [object, null]
+    # @schema
+    kennisbank:
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      baseUrl: ""
+      historyLimit: 1
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      objectTypeUrl: ""
+      resources: {}
+      schedule: "*/59 * * * *"
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      token: ""
+
+    # @schema
+    # properties: {}
+    # oneOf:
+    #   - description: Use email to assign medewerkers to contactverzoeken
+    #     properties:
+    #       useEmail:
+    #         type: boolean
+    #         const: true
+    #     required: [useEmail]
+    #   - allOf:
+    #       - description: Common medewerkers configuration
+    #         properties:
+    #           baseUrl:
+    #             type: string
+    #             minLength: 1
+    #           historyLimit:
+    #             type: integer
+    #           objectTypeUrl:
+    #             type: string
+    #             minLength: 1
+    #           resources:
+    #             type: object
+    #           schedule:
+    #             type: string
+    #         required: [baseUrl, objectTypeUrl]
+    #       - oneOf:
+    #         - description: Token based medewerkers configuration
+    #           properties:
+    #             token:
+    #               type: string
+    #               minLength: 1
+    #           required: [token]
+    #         - description: Client credentials based medewerkers configuration
+    #           properties:
+    #             clientId:
+    #               type: string
+    #               minLength: 1
+    #             clientSecret:
+    #               type: string
+    #               minLength: 1
+    #           required: [clientId, clientSecret]
+    # @schema
+    # -- medewerkers sync job configuration
+    medewerkers:
+      useEmail: false
+      # -- token to access the objects API. if provided, leave out clientId and clientSecret.
+      token: ""
+      # -- alternatively, client id and client secret can be provided, for instance if you are using the podiumd-adapter to get medewerkers.
+      clientId: ""
+      # -- client secret to access the objects API.
+      clientSecret: ""
+      baseUrl: ""
+      historyLimit: 1
+      objectTypeUrl: ""
+      resources: {}
+      schedule: "*/59 * * * *"
+
+    # @schema
+    # items:
+    #   type: object
+    #   properties:
+    #     sourceName:
+    #       type: string
+    #     schedule:
+    #       type: string
+    #     historyLimit:
+    #       type: integer
+    #     resources:
+    #       type: object
+    #     restartPolicy:
+    #       type: string
+    #     siteUrl:
+    #       type: string
+    #     ttlSecondsAfterFinished:
+    #       type: integer
+    #     clientId:
+    #       type: string
+    #     clientSecret:
+    #       type: string
+    #     tenantId:
+    #       type: string
+    #   required: [sourceName, siteUrl, clientId, clientSecret, tenantId]
+    # @schema
+    # -- sharepoint sync jobs configuration
+    sharepoint: []
+
+    # @schema
+    # type: [object, null]
+    # @schema
+    # -- vac sync job configuration
+    vac:
+      manageFromKiss: false
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      token: ""
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      baseUrl: ""
+      historyLimit: 1
+      # @schema
+      # required: true
+      # minLength: 1
+      # @schema
+      objectTypeUrl: ""
+      objectTypeVersion: 1
+      resources: {}
+      schedule: "*/59 * * * *"
+
+    # @schema
+    # items:
+    #   type: object
+    #   properties:
+    #     backoffLimit:
+    #       type: integer
+    #     ttlSecondsAfterFinished:
+    #       type: integer
+    #     restartPolicy:
+    #       type: string
+    #     domain:
+    #       type: string
+    #       format: uri
+    #     sourceName:
+    #       type: string
+    #     resources:
+    #       type: object
+    # @schema
+    # -- website sync jobs configuration
+    website: []
+
+# -- Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
+extraVolumes: []
+# e.g:
+# extraVolumes:
+#   - name: my-secret-mount
+#     secret:
+#       secretName: my-secret-containing-my-custom-ca
+
+# -- Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates.
+extraVolumeMounts: []
+# e.g:
+# extraVolumeMounts:
+#  - name: my-secret-mount
+#    readOnly: true
+#    subPath: ca.crt
+#    mountPath: /etc/ssl/certs/my-custom-ca.crt
+
+# -- Array with extra environment variables to add
+extraEnvVars: []
+# e.g:
+# extraEnvVars:
+#   - name: FOO
+#     value: "bar"
