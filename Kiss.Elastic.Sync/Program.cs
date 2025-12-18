@@ -14,17 +14,24 @@ AppDomain.CurrentDomain.ProcessExit += (_, _) => cancelSource.CancelSafely();
 using var elasticClient = ElasticBulkClient.Create();
 using var enterpriseClient = ElasticEnterpriseSearchClient.Create();
 
-if (args.Length == 2 && args[0] == "domain")
+if (args.Length >= 2 && args[0] == "domain")
 {
     var url = args[1];
+    var thirdArg = args.ElementAtOrDefault(2);
+    if (string.IsNullOrWhiteSpace(thirdArg))
+    {
+        thirdArg = "engine-crawler";
+    }
+    var sourceName = Helpers.GenerateValidIndexName(thirdArg);
+    var engineName = $"engine-{sourceName}";
     if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
     {
         throw new Exception();
     }
     Console.WriteLine("start adding domain");
-    await enterpriseClient.AddDomain(uri, cancelSource.Token);
-    await elasticClient.UpdateMappingForCrawlEngine(cancelSource.Token);
-    await enterpriseClient.CrawlDomain(uri, cancelSource.Token);
+    await enterpriseClient.AddDomain(uri, engineName, cancelSource.Token);
+    await elasticClient.UpdateMappingForCrawlEngine(engineName, cancelSource.Token);
+    await enterpriseClient.CrawlDomain(uri, engineName, cancelSource.Token);
     Console.WriteLine("Finished adding domain");
     return;
 }
