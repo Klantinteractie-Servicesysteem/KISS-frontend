@@ -1,3 +1,5 @@
+---
+# Application kiss-frontend
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,12 +15,17 @@ spec:
       {{- include "kiss-frontend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "kiss-frontend.selectorLabels" . | nindent 8 }}
+        {{- include "kiss-frontend.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -27,10 +34,6 @@ spec:
       serviceAccountName: {{ include "kiss-frontend.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      volumes:
-      - name: kvk-certs-volume
-        secret:
-          secretName: kvk-certs
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -45,20 +48,29 @@ spec:
             httpGet:
               path: /healthz
               port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ include "kiss-frontend.fullname" . | quote }}
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /healthz
               port: http
+              httpHeaders:
+                - name: Host
+                  value: {{ include "kiss-frontend.fullname" . | quote }}
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
             - configMapRef:
-                name: kiss-config
+                name: {{ include "kiss-frontend.fullname" . }}
             - secretRef:
-                name: kiss-secrets
+                name: {{ include "kiss-frontend.fullname" . }}
+          {{- if .Values.extraEnvVars }}
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              value: {{ .Values.env.ASPNETCORE_ENVIRONMENT | quote }}
+            {{- include "kiss-frontend.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
           {{- if .Values.extraVolumeMounts }}
           volumeMounts:
             {{- include "kiss-frontend.tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 12 }}

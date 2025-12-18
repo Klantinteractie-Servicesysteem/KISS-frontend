@@ -1,0 +1,108 @@
+{{ if $.Values.settings.syncJobs.sharepoint -}}
+{{ range $index, $sharepointJob := $.Values.settings.syncJobs.sharepoint }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "kiss-frontend.fullname" $ }}-sharepoint-sync-{{ $index }}
+  labels:
+    {{- include "kiss-frontend.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ (default "*/59 * * * *" $sharepointJob.schedule) | quote }}
+  concurrencyPolicy: Forbid
+  {{- if or ($sharepointJob.historyLimit) (eq (toString $sharepointJob.historyLimit) "0") }}
+  successfulJobsHistoryLimit: {{ $sharepointJob.historyLimit }}
+  failedJobsHistoryLimit: {{ $sharepointJob.historyLimit }}
+  {{- else }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  {{- end }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+          {{- with $.Values.podAnnotations }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            {{- include "kiss-frontend.labels" $ | nindent 12 }}
+            {{- with $.Values.podAnnotations }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "kiss-frontend.serviceAccountName" $ }}
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          restartPolicy: OnFailure
+          containers:
+            - name: {{ $.Chart.Name }}
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag }}"
+              imagePullPolicy: {{ $.Values.settings.syncJobs.image.pullPolicy }}
+              envFrom:
+                - secretRef:
+                    name: {{ include "kiss-frontend.fullname" $ }}
+                - configMapRef:
+                    name: {{ include "kiss-frontend.fullname" $ }}
+                - secretRef:
+                    name: {{ include "kiss-frontend.fullname" $ }}-sharepoint-sync-{{ $index }}
+              env:
+                {{- if $.Values.extraEnvVars }}
+                {{- include "kiss-frontend.tplvalues.render" (dict "value" $.Values.extraEnvVars "context" $) | nindent 16 }}
+                {{- end }}
+              resources:
+              {{- toYaml $sharepointJob.resources | nindent 16 }}
+              args:
+                - sharepoint
+              volumeMounts:
+                {{- if $.Values.extraVolumeMounts }}
+                {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumeMounts "context" $ ) | nindent 16 }}
+                {{- end }}
+          volumes:
+            {{- if $.Values.extraVolumes }}
+            {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumes "context" $ ) | nindent 12 }}
+            {{- end }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "kiss-frontend.fullname" $ }}-sharepoint-sync-{{ $index }}
+  labels:
+    {{- include "kiss-frontend.labels" $ | nindent 4 }}
+type: Opaque
+data:
+  {{- if $sharepointJob.clientId }}
+  SHAREPOINT_CLIENT_ID: {{ $sharepointJob.clientId | b64enc }}
+  {{- end}}
+  {{- if $sharepointJob.clientSecret }}
+  SHAREPOINT_CLIENT_SECRET: {{ $sharepointJob.clientSecret | b64enc }}
+  {{- end}}
+  {{- if $sharepointJob.tenantId }}
+  SHAREPOINT_TENANT_ID: {{ $sharepointJob.tenantId | b64enc }}
+  {{- end}}
+  {{- if $sharepointJob.siteUrl }}
+  SHAREPOINT_SITE_URL: {{ $sharepointJob.siteUrl | b64enc }}
+  {{- end}}
+  {{- if $sharepointJob.sourceName }}
+  SHAREPOINT_SOURCE_NAME: {{ $sharepointJob.sourceName | b64enc }}
+  {{- end}}
+{{- end }}
+{{- end }}
