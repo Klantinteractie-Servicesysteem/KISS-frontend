@@ -8,8 +8,8 @@ namespace Kiss.Elastic.Sync
     {
         const string EnginesV0Url = "/api/as/v0/engines/";
         const string EnginesV1Url = "/api/as/v1/engines/";
-        const string CrawlEngineUrl = $"{EnginesV1Url}{Helpers.CrawlEngineName}/crawler/";
-        const string CrawlEngineDomainUrl = $"{CrawlEngineUrl}domains";
+        private static string CrawlEngineUrl(string engineName) => $"{EnginesV1Url}{engineName}/crawler/";
+        private static string CrawlEngineDomainUrl(string engineName) => $"{CrawlEngineUrl(engineName)}domains";
 
         private readonly HttpClient _httpClient;
         private readonly string _metaEngine;
@@ -45,23 +45,23 @@ namespace Kiss.Elastic.Sync
             return new ElasticEnterpriseSearchClient(elasticBaseUri, elasticApiKey, elasticEngine);
         }
 
-        public async Task<bool> AddDomain(Uri domainUri, CancellationToken token)
+        public async Task<bool> AddDomain(Uri domainUri, string engineName, CancellationToken token)
         {
-            if (!await AddCrawlEngine(token)) return false;
-            if(await DomainExists(domainUri, token)) return true;
+            if (!await AddCrawlEngine(engineName, token)) return false;
+            if(await DomainExists(domainUri, engineName, token)) return true;
             var body = new JsonObject
             {
                 ["name"] = domainUri.ToString().TrimEnd('/'),
             };
-            using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineDomainUrl, body, token);
+            using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineDomainUrl(engineName), body, token);
             await Helpers.LogResponse(response, token);
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> CrawlDomain(Uri domainUri, CancellationToken token)
+        public async Task<bool> CrawlDomain(Uri domainUri, string engineName, CancellationToken token)
         {
-            if (!await AddCrawlEngine(token)) return false;
-            if (!await DomainExists(domainUri, token)) return false;
+            if (!await AddCrawlEngine(engineName, token)) return false;
+            if (!await DomainExists(domainUri, engineName, token)) return false;
             var body = new JsonObject
             {
                 ["overrides"] = new JsonObject
@@ -69,7 +69,7 @@ namespace Kiss.Elastic.Sync
                     ["domain_allowlist"] = new JsonArray(domainUri.ToString().TrimEnd('/'))
                 },
             };
-            using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineUrl + "crawl_requests", body, token);
+            using var response = await _httpClient.SendJsonAsync(HttpMethod.Post, CrawlEngineUrl(engineName) + "crawl_requests", body, token);
             await Helpers.LogResponse(response, token);
             return response.IsSuccessStatusCode;
         }
@@ -91,9 +91,9 @@ namespace Kiss.Elastic.Sync
             return postResponse.IsSuccessStatusCode;
         }
 
-        private async Task<bool> DomainExists(Uri domainUri, CancellationToken token)
+        private async Task<bool> DomainExists(Uri domainUri, string engineName, CancellationToken token)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, CrawlEngineDomainUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Get, CrawlEngineDomainUrl(engineName));
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             if (!response.IsSuccessStatusCode)
             {
@@ -122,13 +122,13 @@ namespace Kiss.Elastic.Sync
             return false;
         }
 
-        private async Task<bool> AddCrawlEngine(CancellationToken token)
+        private async Task<bool> AddCrawlEngine(string engineName, CancellationToken token)
         {
-            if (!await EnsureCrawlEngineAsync(token)) return false;
-            if (!await EnsureMetaEngineAsync(Helpers.CrawlEngineName, token)) return false;
+            if (!await EnsureCrawlEngineAsync(engineName, token)) return false;
+            if (!await EnsureMetaEngineAsync(engineName, token)) return false;
 
             var url = $"{EnginesV1Url}{_metaEngine}/source_engines";
-            var body = new JsonArray(Helpers.CrawlEngineName);
+            var body = new JsonArray(engineName);
 
             using var postResponse = await _httpClient.SendJsonAsync(HttpMethod.Post, url, body, token);
 
@@ -157,13 +157,13 @@ namespace Kiss.Elastic.Sync
             return postResponse.IsSuccessStatusCode;
         }
 
-        private async Task<bool> EnsureCrawlEngineAsync(CancellationToken token)
+        private async Task<bool> EnsureCrawlEngineAsync(string engineName, CancellationToken token)
         {
-            if (await EngineExistsAsync(Helpers.CrawlEngineName, token)) return true;
+            if (await EngineExistsAsync(engineName, token)) return true;
 
             var body = new JsonObject
             {
-                ["name"] = Helpers.CrawlEngineName,
+                ["name"] = engineName,
                 ["language"] = "nl"
             };
 

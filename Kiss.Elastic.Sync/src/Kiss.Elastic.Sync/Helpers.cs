@@ -10,7 +10,6 @@ namespace Kiss.Elastic.Sync
     public static partial class Helpers
     {
         public const string CompletionField = "_completion_all";
-        public const string CrawlEngineName = "engine-crawler";
 
         public static void CancelSafely(this CancellationTokenSource source)
         {
