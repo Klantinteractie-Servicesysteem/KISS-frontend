@@ -112,9 +112,9 @@ namespace Kiss.Elastic.Sync
             }
         }
 
-        public async Task<bool> UpdateMappingForCrawlEngine(CancellationToken token)
+        public async Task<bool> UpdateMappingForCrawlEngine(string engineName, CancellationToken token)
         {
-            var indexName = ".ent-search-engine-documents-" + Helpers.CrawlEngineName;
+            var indexName = ".ent-search-engine-documents-" + engineName;
             using var existsResponse = await _httpClient.HeadAsync(indexName, token);
 
             if (!existsResponse.IsSuccessStatusCode) return false;
