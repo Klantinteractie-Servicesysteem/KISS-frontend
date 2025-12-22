@@ -21,7 +21,7 @@ A helm chart for Klantinteractie Service Systeem.
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-frontend"` |  |
-| image.tag | string | `"latest"` |  |
+| image.tag | string | The semantic version of the chart | Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart. |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
@@ -119,7 +119,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
-| settings.syncJobs.image.tag | string | `"0.3.0"` |  |
+| settings.syncJobs.image.tag | string | `"0.3.0"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
 | settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |

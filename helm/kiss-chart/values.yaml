@@ -6,7 +6,9 @@ replicaCount: 2
 image:
   repository: "ghcr.io/klantinteractie-servicesysteem/kiss-frontend"
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # -- Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart.
+  # @default -- The semantic version of the chart
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -566,6 +568,7 @@ settings:
     image:
       repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"
       pullPolicy: IfNotPresent
+      # -- The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.
       tag: "0.3.0"
     # @schema
     # type: [object, null]

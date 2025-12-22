@@ -102,10 +102,10 @@
           "type": "string"
         },
         "tag": {
-          "default": "latest",
+          "default": "The semantic version of the chart",
+          "description": "Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart.",
           "required": [],
-          "title": "tag",
-          "type": "string"
+          "title": "tag"
         }
       },
       "required": [],
@@ -1179,9 +1179,9 @@
                 },
                 "tag": {
                   "default": "0.3.0",
+                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
                   "required": [],
-                  "title": "tag",
-                  "type": "string"
+                  "title": "tag"
                 }
               },
               "required": [],
