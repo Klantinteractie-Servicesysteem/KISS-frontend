@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
       - .env.local
-    image: postgres
+    image: postgres:15.2
     volumes:
       - db:/var/lib/postgresql/data
     restart: always

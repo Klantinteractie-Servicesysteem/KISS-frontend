@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  kiss.bff:
-    entrypoint: "sh -c 'update-ca-certificates && tail -f /dev/null'"
-    volumes:
-      - ./certificates:/usr/local/share/ca-certificates:ro
