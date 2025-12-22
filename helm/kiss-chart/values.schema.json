@@ -998,14 +998,17 @@
                   "zaaksysteem": {
                     "properties": {
                       "catalogiBaseUrl": {
+                        "minLength": 1,
                         "required": [],
                         "type": "string"
                       },
                       "clientId": {
+                        "minLength": 1,
                         "required": [],
                         "type": "string"
                       },
                       "clientSecret": {
+                        "minLength": 1,
                         "required": [],
                         "type": "string"
                       },
@@ -1023,6 +1026,7 @@
                         "required": []
                       },
                       "documentenBaseUrl": {
+                        "minLength": 1,
                         "required": [],
                         "type": "string"
                       },
@@ -1031,11 +1035,18 @@
                         "type": "boolean"
                       },
                       "zakenBaseUrl": {
+                        "minLength": 1,
                         "required": [],
                         "type": "string"
                       }
                     },
-                    "required": []
+                    "required": [
+                      "clientId",
+                      "clientSecret",
+                      "catalogiBaseUrl",
+                      "documentenBaseUrl",
+                      "zakenBaseUrl"
+                    ]
                   }
                 },
                 "required": [
