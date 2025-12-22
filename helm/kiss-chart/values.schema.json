@@ -464,38 +464,6 @@
             }
           ],
           "description": "afdelingen configuration",
-          "properties": {
-            "baseUrl": {
-              "default": "",
-              "required": [],
-              "title": "baseUrl",
-              "type": "string"
-            },
-            "clientId": {
-              "default": "",
-              "required": [],
-              "title": "clientId",
-              "type": "string"
-            },
-            "clientSecret": {
-              "default": "",
-              "required": [],
-              "title": "clientSecret",
-              "type": "string"
-            },
-            "objectTypeUrl": {
-              "default": "",
-              "required": [],
-              "title": "objectTypeUrl",
-              "type": "string"
-            },
-            "token": {
-              "default": "",
-              "required": [],
-              "title": "token",
-              "type": "string"
-            }
-          },
           "required": [],
           "title": "afdelingen"
         },
@@ -536,14 +504,14 @@
             },
             "name": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Name of the database used by KISS",
               "minLength": 1,
               "required": [],
               "title": "name"
             },
             "password": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Password of the postgres user",
               "minLength": 1,
               "required": [],
               "title": "password"
@@ -556,7 +524,7 @@
             },
             "username": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Username for KISS to access the database",
               "minLength": 1,
               "required": [],
               "title": "username"
@@ -575,29 +543,29 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "The URL for Elasticsearch",
               "minLength": 1,
               "required": [],
               "title": "baseUrl"
             },
             "excludedFieldsKennisbank": {
+              "description": "Fields that a Kennisbank user is not allowed to search and view.",
               "items": {
                 "required": []
               },
               "required": [],
-              "title": "excludedFieldsKennisbank",
-              "type": "array"
+              "title": "excludedFieldsKennisbank"
             },
             "password": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Password to log in to Elasticsearch",
               "minLength": 1,
               "required": [],
               "title": "password"
             },
             "username": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Username to log in to Elasticsearch",
               "minLength": 1,
               "required": [],
               "title": "username"
@@ -614,35 +582,35 @@
           "description": " required: true @schema",
           "properties": {
             "enableSsl": {
-              "default": true,
+              "default": "true",
+              "description": "Use SSL (true/false)",
               "required": [],
-              "title": "enableSsl",
-              "type": "boolean"
+              "title": "enableSsl"
             },
             "host": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Address of the mail server",
               "minLength": 1,
               "required": [],
               "title": "host"
             },
             "password": {
               "default": "",
+              "description": "Password for the mail server",
               "required": [],
-              "title": "password",
-              "type": "string"
+              "title": "password"
             },
             "port": {
-              "default": 25,
+              "default": "25",
+              "description": "Port number of the mail connection",
               "required": [],
-              "title": "port",
-              "type": "integer"
+              "title": "port"
             },
             "username": {
               "default": "",
+              "description": "Username for the mail server",
               "required": [],
-              "title": "username",
-              "type": "string"
+              "title": "username"
             }
           },
           "required": [
@@ -655,21 +623,21 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the API through which KISS can query enterprise search",
               "minLength": 1,
               "required": [],
               "title": "baseUrl"
             },
             "engine": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "The name of the `meta-engine` engine used by KISS.",
               "minLength": 1,
               "required": [],
               "title": "engine"
             },
             "privateApiKey": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Private API key for Elastic API",
               "minLength": 1,
               "required": [],
               "title": "privateApiKey"
@@ -695,14 +663,14 @@
           "properties": {
             "emailFrom": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "From address of the feedback email",
               "minLength": 1,
               "required": [],
               "title": "emailFrom"
             },
             "emailTo": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Address where the feedback email should be sent",
               "minLength": 1,
               "required": [],
               "title": "emailTo"
@@ -778,14 +746,14 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Key for the Haal Centraal API",
               "minLength": 1,
               "required": [],
               "title": "apiKey"
             },
             "baseUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the Haal Centraal API",
               "minLength": 1,
               "required": [],
               "title": "baseUrl"
@@ -839,14 +807,14 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Key for the KvK API",
               "minLength": 1,
               "required": [],
               "title": "apiKey"
             },
             "baseUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the KvK API",
               "minLength": 1,
               "required": [],
               "title": "baseUrl"
@@ -877,28 +845,28 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the Objects API where the logbook is stored",
               "minLength": 1,
               "required": [],
               "title": "baseUrl"
             },
             "objectTypeUrl": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the Logbook Object Type.",
               "minLength": 1,
               "required": [],
               "title": "objectTypeUrl"
             },
             "objectTypeVersion": {
               "default": "1",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Version number of the Logbook Object Type.",
               "minLength": 1,
               "required": [],
               "title": "objectTypeVersion"
             },
             "token": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Token for the Objects API for Logbooks",
               "minLength": 1,
               "required": [],
               "title": "token"
@@ -917,9 +885,9 @@
           "properties": {
             "apiKey": {
               "default": "",
+              "description": "Secret that KISS uses to validate the JWT Token when requesting contact moment details",
               "required": [],
-              "title": "apiKey",
-              "type": "string"
+              "title": "apiKey"
             }
           },
           "required": [
@@ -932,36 +900,36 @@
           "properties": {
             "authority": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "URL of the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
               "title": "authority"
             },
             "clientId": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "For access to the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
               "title": "clientId"
             },
             "clientSecret": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Secret for the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
               "title": "clientSecret"
             },
             "kennisbankRole": {
               "default": "",
+              "description": "Name of the role for a Kennisbank employee.",
               "required": [],
-              "title": "kennisbankRole",
-              "type": "string"
+              "title": "kennisbankRole"
             },
             "klantcontactmedewerkerRole": {
               "default": "",
+              "description": "Name of the role for a Klant Contact Employee.",
               "required": [],
-              "title": "klantcontactmedewerkerRole",
-              "type": "string"
+              "title": "klantcontactmedewerkerRole"
             },
             "medewerkerIdentificatie": {
               "description": " required: true @schema",
@@ -991,9 +959,9 @@
             },
             "redacteurRole": {
               "default": "",
+              "description": "Name of the role for a Redacteur.",
               "required": [],
-              "title": "redacteurRole",
-              "type": "string"
+              "title": "redacteurRole"
             }
           },
           "required": [
@@ -1005,7 +973,7 @@
           "title": "oidc"
         },
         "organisatieIds": {
-          "description": " required: true items:   type: string minItems: 1 @schema",
+          "description": "RSIN of the organization that registers the Contactmomenten",
           "items": {
             "required": [],
             "type": "string"
@@ -1015,7 +983,7 @@
           "title": "organisatieIds"
         },
         "registers": {
-          "description": "Configuration for the different registers for e.g. zaken and klantcontacten. Check the json schema for the different possible configurations.",
+          "description": "Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.",
           "items": {
             "allOf": [
               {
@@ -1223,7 +1191,7 @@
               "properties": {
                 "baseUrl": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "URL of the API for Kennisartikelen",
                   "minLength": 1,
                   "required": [],
                   "title": "baseUrl"
@@ -1236,7 +1204,7 @@
                 },
                 "objectTypeUrl": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "URL of the Kennisartikel Object Type",
                   "minLength": 1,
                   "required": [],
                   "title": "objectTypeUrl"
@@ -1254,7 +1222,7 @@
                 },
                 "token": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "Key for the API for Kennisartikelen",
                   "minLength": 1,
                   "required": [],
                   "title": "token"
@@ -1426,7 +1394,7 @@
               "properties": {
                 "baseUrl": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "URL of the Objects API for VACs",
                   "minLength": 1,
                   "required": [],
                   "title": "baseUrl"
@@ -1438,23 +1406,23 @@
                   "type": "integer"
                 },
                 "manageFromKiss": {
-                  "default": false,
+                  "default": "false",
+                  "description": "This variable determines whether the navigation item for managing VACs is present in the management navigation.",
                   "required": [],
-                  "title": "manageFromKiss",
-                  "type": "boolean"
+                  "title": "manageFromKiss"
                 },
                 "objectTypeUrl": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "URL of the VAC Object Type",
                   "minLength": 1,
                   "required": [],
                   "title": "objectTypeUrl"
                 },
                 "objectTypeVersion": {
-                  "default": 1,
+                  "default": "1",
+                  "description": "Version number of the VAC Object Type",
                   "required": [],
-                  "title": "objectTypeVersion",
-                  "type": "integer"
+                  "title": "objectTypeVersion"
                 },
                 "resources": {
                   "required": [],
@@ -1469,7 +1437,7 @@
                 },
                 "token": {
                   "default": "",
-                  "description": " required: true minLength: 1 @schema",
+                  "description": "Token for the Objects API for VACs",
                   "minLength": 1,
                   "required": [],
                   "title": "token"

@@ -60,68 +60,86 @@ A helm chart for Klantinteractie Service Systeem.
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
 | settings.afdelingen | object | `{"baseUrl":"","clientId":"","clientSecret":"","objectTypeUrl":"","token":""}` | afdelingen configuration |
+| settings.afdelingen.baseUrl | string | `""` | URL of the Objects API for departments. |
+| settings.afdelingen.clientId | string | `""` | Client ID for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.afdelingen.clientSecret | string | `""` | Client Secret for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.afdelingen.objectTypeUrl | string | `""` | URL of the Department Object Type |
+| settings.afdelingen.token | string | `""` | Token of the Objects API for departments. Leave `clientId` and `clientSecret` empty if you use a token. |
 | settings.aspnetcore.environment | string | `"Production"` |  |
 | settings.aspnetcore.forwardedHeadersEnabled | bool | `true` |  |
 | settings.aspnetcore.httpPorts | string | `""` |  |
 | settings.database.host | string | `""` |  |
-| settings.database.name | string | `""` |  |
-| settings.database.password | string | `""` |  |
+| settings.database.name | string | `""` | Name of the database used by KISS |
+| settings.database.password | string | `""` | Password of the postgres user |
 | settings.database.port | int | `5432` |  |
-| settings.database.username | string | `""` |  |
-| settings.elastic.baseUrl | string | `""` |  |
-| settings.elastic.excludedFieldsKennisbank | list | `[]` |  |
-| settings.elastic.password | string | `""` |  |
-| settings.elastic.username | string | `""` |  |
-| settings.email.enableSsl | bool | `true` |  |
-| settings.email.host | string | `""` |  |
-| settings.email.password | string | `""` |  |
-| settings.email.port | int | `25` |  |
-| settings.email.username | string | `""` |  |
-| settings.enterpriseSearch.baseUrl | string | `""` |  |
-| settings.enterpriseSearch.engine | string | `""` |  |
-| settings.enterpriseSearch.privateApiKey | string | `""` |  |
+| settings.database.username | string | `""` | Username for KISS to access the database |
+| settings.elastic.baseUrl | string | `""` | The URL for Elasticsearch |
+| settings.elastic.excludedFieldsKennisbank | list | `[]` | Fields that a Kennisbank user is not allowed to search and view. |
+| settings.elastic.password | string | `""` | Password to log in to Elasticsearch |
+| settings.elastic.username | string | `""` | Username to log in to Elasticsearch |
+| settings.email.enableSsl | bool | `true` | Use SSL (true/false) |
+| settings.email.host | string | `""` | Address of the mail server |
+| settings.email.password | string | `""` | Password for the mail server |
+| settings.email.port | int | `25` | Port number of the mail connection |
+| settings.email.username | string | `""` | Username for the mail server |
+| settings.enterpriseSearch.baseUrl | string | `""` | URL of the API through which KISS can query enterprise search |
+| settings.enterpriseSearch.engine | string | `""` | The name of the `meta-engine` engine used by KISS. |
+| settings.enterpriseSearch.privateApiKey | string | `""` | Private API key for Elastic API |
 | settings.enterpriseSearch.publicApiKey | string | `""` |  |
-| settings.feedback.emailFrom | string | `""` |  |
-| settings.feedback.emailTo | string | `""` |  |
+| settings.feedback.emailFrom | string | `""` | From address of the feedback email |
+| settings.feedback.emailTo | string | `""` | Address where the feedback email should be sent |
 | settings.groepen | object | `{"baseUrl":"","clientId":"","clientSecret":"","objectTypeUrl":"","token":""}` | groepen configuration |
-| settings.haalCentraal.apiKey | string | `""` |  |
-| settings.haalCentraal.baseUrl | string | `""` |  |
+| settings.groepen.baseUrl | string | `""` | URL of the Objects API for groups. |
+| settings.groepen.clientId | string | `""` | Client ID for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.groepen.clientSecret | string | `""` | Client Secret for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.groepen.objectTypeUrl | string | `""` | URL of the Group Object Type |
+| settings.groepen.token | string | `""` | Token of the Objects API for groups. Leave `clientId` and `clientSecret` empty if you use a token. |
+| settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API |
+| settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal API |
 | settings.haalCentraal.customHeaders | object | `{}` |  |
 | settings.haalCentraal.userHeaderName | string | `""` |  |
-| settings.kvk.apiKey | string | `""` |  |
-| settings.kvk.baseUrl | string | `""` |  |
+| settings.kvk.apiKey | string | `""` | Key for the KvK API |
+| settings.kvk.baseUrl | string | `""` | URL of the KvK API |
 | settings.kvk.customHeaders | object | `{}` |  |
 | settings.kvk.userHeaderName | string | `""` |  |
-| settings.logboek.baseUrl | string | `""` |  |
-| settings.logboek.objectTypeUrl | string | `""` |  |
-| settings.logboek.objectTypeVersion | int | `1` |  |
-| settings.logboek.token | string | `""` |  |
-| settings.managementInformatie.apiKey | string | `""` |  |
-| settings.oidc.authority | string | `""` |  |
-| settings.oidc.clientId | string | `""` |  |
-| settings.oidc.clientSecret | string | `""` |  |
-| settings.oidc.kennisbankRole | string | `""` |  |
-| settings.oidc.klantcontactmedewerkerRole | string | `""` |  |
+| settings.logboek.baseUrl | string | `""` | URL of the Objects API where the logbook is stored |
+| settings.logboek.objectTypeUrl | string | `""` | URL of the Logbook Object Type. |
+| settings.logboek.objectTypeVersion | int | `1` | Version number of the Logbook Object Type. |
+| settings.logboek.token | string | `""` | Token for the Objects API for Logbooks |
+| settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contact moment details |
+| settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider |
+| settings.oidc.clientId | string | `""` | For access to the OpenID Connect Identity Provider |
+| settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider |
+| settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. |
+| settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klant Contact Employee. |
 | settings.oidc.medewerkerIdentificatie.claim | string | `""` | the claim to use for identifying the medewerker |
 | settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | max number of characters before truncation |
-| settings.oidc.redacteurRole | string | `""` |  |
-| settings.organisatieIds | list | `[]` |  |
-| settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check the json schema for the different possible configurations. |
+| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. |
+| settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
+| settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
 | settings.syncJobs.image.tag | string | `"0.3.0"` |  |
-| settings.syncJobs.kennisbank.baseUrl | string | `""` |  |
+| settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
-| settings.syncJobs.kennisbank.objectTypeUrl | string | `""` |  |
+| settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |
 | settings.syncJobs.kennisbank.resources | object | `{}` |  |
 | settings.syncJobs.kennisbank.schedule | string | `"*/59 * * * *"` |  |
-| settings.syncJobs.kennisbank.token | string | `""` |  |
+| settings.syncJobs.kennisbank.token | string | `""` | Key for the API for Kennisartikelen |
 | settings.syncJobs.medewerkers | object | `{"baseUrl":"","clientId":"","clientSecret":"","historyLimit":1,"objectTypeUrl":"","resources":{},"schedule":"*/59 * * * *","token":"","useEmail":false}` | medewerkers sync job configuration |
-| settings.syncJobs.medewerkers.clientId | string | `""` | alternatively, client id and client secret can be provided, for instance if you are using the podiumd-adapter to get medewerkers. |
-| settings.syncJobs.medewerkers.clientSecret | string | `""` | client secret to access the objects API. |
-| settings.syncJobs.medewerkers.token | string | `""` | token to access the objects API. if provided, leave out clientId and clientSecret. |
+| settings.syncJobs.medewerkers.baseUrl | string | `""` | URL of the Objects API for employees |
+| settings.syncJobs.medewerkers.clientId | string | `""` | Client ID for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.syncJobs.medewerkers.clientSecret | string | `""` | Client Secret for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.syncJobs.medewerkers.objectTypeUrl | string | `""` | URL of the Employee Object Type |
+| settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token. |
+| settings.syncJobs.medewerkers.useEmail | bool | `false` | This variable determines whether a contact request for an employee can only be made by email address. |
 | settings.syncJobs.sharepoint | list | `[]` | sharepoint sync jobs configuration |
 | settings.syncJobs.vac | object | `{"baseUrl":"","historyLimit":1,"manageFromKiss":false,"objectTypeUrl":"","objectTypeVersion":1,"resources":{},"schedule":"*/59 * * * *","token":""}` | vac sync job configuration |
+| settings.syncJobs.vac.baseUrl | string | `""` | URL of the Objects API for VACs |
+| settings.syncJobs.vac.manageFromKiss | bool | `false` | This variable determines whether the navigation item for managing VACs is present in the management navigation. |
+| settings.syncJobs.vac.objectTypeUrl | string | `""` | URL of the VAC Object Type |
+| settings.syncJobs.vac.objectTypeVersion | int | `1` | Version number of the VAC Object Type |
+| settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs |
 | settings.syncJobs.website | list | `[]` | website sync jobs configuration |
 | tolerations | list | `[]` |  |
 
