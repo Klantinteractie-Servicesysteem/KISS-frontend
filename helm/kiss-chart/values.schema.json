@@ -498,24 +498,27 @@
           "properties": {
             "host": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Host of the database used by KISS",
               "minLength": 1,
               "required": [],
-              "title": "host"
+              "title": "host",
+              "type": "string"
             },
             "name": {
               "default": "",
               "description": "Name of the database used by KISS",
               "minLength": 1,
               "required": [],
-              "title": "name"
+              "title": "name",
+              "type": "string"
             },
             "password": {
               "default": "",
               "description": "Password of the postgres user",
               "minLength": 1,
               "required": [],
-              "title": "password"
+              "title": "password",
+              "type": "string"
             },
             "port": {
               "default": 5432,
@@ -528,7 +531,8 @@
               "description": "Username for KISS to access the database",
               "minLength": 1,
               "required": [],
-              "title": "username"
+              "title": "username",
+              "type": "string"
             }
           },
           "required": [
@@ -547,7 +551,8 @@
               "description": "The URL for Elasticsearch",
               "minLength": 1,
               "required": [],
-              "title": "baseUrl"
+              "title": "baseUrl",
+              "type": "string"
             },
             "excludedFieldsKennisbank": {
               "description": "Fields that a Kennisbank user is not allowed to search and view.",
@@ -562,14 +567,16 @@
               "description": "Password to log in to Elasticsearch",
               "minLength": 1,
               "required": [],
-              "title": "password"
+              "title": "password",
+              "type": "string"
             },
             "username": {
               "default": "",
               "description": "Username to log in to Elasticsearch",
               "minLength": 1,
               "required": [],
-              "title": "username"
+              "title": "username",
+              "type": "string"
             }
           },
           "required": [
@@ -593,7 +600,8 @@
               "description": "Address of the mail server",
               "minLength": 1,
               "required": [],
-              "title": "host"
+              "title": "host",
+              "type": "string"
             },
             "password": {
               "default": "",
@@ -627,28 +635,32 @@
               "description": "URL of the API through which KISS can query enterprise search",
               "minLength": 1,
               "required": [],
-              "title": "baseUrl"
+              "title": "baseUrl",
+              "type": "string"
             },
             "engine": {
               "default": "",
               "description": "The name of the `meta-engine` engine used by KISS.",
               "minLength": 1,
               "required": [],
-              "title": "engine"
+              "title": "engine",
+              "type": "string"
             },
             "privateApiKey": {
               "default": "",
               "description": "Private API key for Elastic API",
               "minLength": 1,
               "required": [],
-              "title": "privateApiKey"
+              "title": "privateApiKey",
+              "type": "string"
             },
             "publicApiKey": {
               "default": "",
-              "description": " required: true minLength: 1 @schema",
+              "description": "Public API key for Elastic API",
               "minLength": 1,
               "required": [],
-              "title": "publicApiKey"
+              "title": "publicApiKey",
+              "type": "string"
             }
           },
           "required": [
@@ -667,14 +679,16 @@
               "description": "From address of the feedback email",
               "minLength": 1,
               "required": [],
-              "title": "emailFrom"
+              "title": "emailFrom",
+              "type": "string"
             },
             "emailTo": {
               "default": "",
               "description": "Address where the feedback email should be sent",
               "minLength": 1,
               "required": [],
-              "title": "emailTo"
+              "title": "emailTo",
+              "type": "string"
             }
           },
           "required": [
@@ -751,14 +765,16 @@
               "description": "Key for the Haal Centraal API",
               "minLength": 1,
               "required": [],
-              "title": "apiKey"
+              "title": "apiKey",
+              "type": "string"
             },
             "baseUrl": {
               "default": "",
               "description": "URL of the Haal Centraal API",
               "minLength": 1,
               "required": [],
-              "title": "baseUrl"
+              "title": "baseUrl",
+              "type": "string"
             },
             "customHeaders": {
               "additionalProperties": {
@@ -787,15 +803,15 @@
                   }
                 ]
               },
-              "description": " additionalProperties:   oneOf:     - type: string     - type: object       properties:         RaadpleegMetBurgerservicenummer:           type: string         ZoekMetGeslachtsnaamEnGeboortedatum:           type: string         ZoekMetPostcodeEnHuisnummer:           type: string       required: [RaadpleegMetBurgerservicenummer, ZoekMetGeslachtsnaamEnGeboortedatum, ZoekMetPostcodeEnHuisnummer] @schema",
+              "description": "Custom headers to send to the Haal Centraal API, for instance when using a proxy",
               "required": [],
               "title": "customHeaders"
             },
             "userHeaderName": {
               "default": "",
+              "description": "Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy",
               "required": [],
-              "title": "userHeaderName",
-              "type": "string"
+              "title": "userHeaderName"
             }
           },
           "required": [
@@ -812,28 +828,30 @@
               "description": "Key for the KvK API",
               "minLength": 1,
               "required": [],
-              "title": "apiKey"
+              "title": "apiKey",
+              "type": "string"
             },
             "baseUrl": {
               "default": "",
               "description": "URL of the KvK API",
               "minLength": 1,
               "required": [],
-              "title": "baseUrl"
+              "title": "baseUrl",
+              "type": "string"
             },
             "customHeaders": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": " additionalProperties:   type: string @schema",
+              "description": "Custom headers to send to the KvK API, for instance when using a proxy",
               "required": [],
               "title": "customHeaders"
             },
             "userHeaderName": {
               "default": "",
+              "description": "Header name to include the user id to send to the KvK API, for instance when using a proxy",
               "required": [],
-              "title": "userHeaderName",
-              "type": "string"
+              "title": "userHeaderName"
             }
           },
           "required": [
@@ -850,28 +868,32 @@
               "description": "URL of the Objects API where the logbook is stored",
               "minLength": 1,
               "required": [],
-              "title": "baseUrl"
+              "title": "baseUrl",
+              "type": "string"
             },
             "objectTypeUrl": {
               "default": "",
               "description": "URL of the Logbook Object Type.",
               "minLength": 1,
               "required": [],
-              "title": "objectTypeUrl"
+              "title": "objectTypeUrl",
+              "type": "string"
             },
             "objectTypeVersion": {
               "default": "1",
               "description": "Version number of the Logbook Object Type.",
               "minLength": 1,
               "required": [],
-              "title": "objectTypeVersion"
+              "title": "objectTypeVersion",
+              "type": "string"
             },
             "token": {
               "default": "",
               "description": "Token for the Objects API for Logbooks",
               "minLength": 1,
               "required": [],
-              "title": "token"
+              "title": "token",
+              "type": "string"
             }
           },
           "required": [
@@ -905,21 +927,24 @@
               "description": "URL of the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
-              "title": "authority"
+              "title": "authority",
+              "type": "string"
             },
             "clientId": {
               "default": "",
               "description": "For access to the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
-              "title": "clientId"
+              "title": "clientId",
+              "type": "string"
             },
             "clientSecret": {
               "default": "",
               "description": "Secret for the OpenID Connect Identity Provider",
               "minLength": 1,
               "required": [],
-              "title": "clientSecret"
+              "title": "clientSecret",
+              "type": "string"
             },
             "kennisbankRole": {
               "default": "",
@@ -941,7 +966,8 @@
                   "description": "the claim to use for identifying the medewerker",
                   "minLength": 1,
                   "required": [],
-                  "title": "claim"
+                  "title": "claim",
+                  "type": "string"
                 },
                 "truncate": {
                   "default": "",
@@ -1196,7 +1222,8 @@
                   "description": "URL of the API for Kennisartikelen",
                   "minLength": 1,
                   "required": [],
-                  "title": "baseUrl"
+                  "title": "baseUrl",
+                  "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
@@ -1209,7 +1236,8 @@
                   "description": "URL of the Kennisartikel Object Type",
                   "minLength": 1,
                   "required": [],
-                  "title": "objectTypeUrl"
+                  "title": "objectTypeUrl",
+                  "type": "string"
                 },
                 "resources": {
                   "required": [],
@@ -1227,7 +1255,8 @@
                   "description": "Key for the API for Kennisartikelen",
                   "minLength": 1,
                   "required": [],
-                  "title": "token"
+                  "title": "token",
+                  "type": "string"
                 }
               },
               "required": [
@@ -1401,7 +1430,8 @@
                   "description": "URL of the Objects API for VACs",
                   "minLength": 1,
                   "required": [],
-                  "title": "baseUrl"
+                  "title": "baseUrl",
+                  "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
@@ -1420,7 +1450,8 @@
                   "description": "URL of the VAC Object Type",
                   "minLength": 1,
                   "required": [],
-                  "title": "objectTypeUrl"
+                  "title": "objectTypeUrl",
+                  "type": "string"
                 },
                 "objectTypeVersion": {
                   "default": "1",
@@ -1444,7 +1475,8 @@
                   "description": "Token for the Objects API for VACs",
                   "minLength": 1,
                   "required": [],
-                  "title": "token"
+                  "title": "token",
+                  "type": "string"
                 }
               },
               "required": [

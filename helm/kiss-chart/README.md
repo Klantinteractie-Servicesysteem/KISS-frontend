@@ -68,7 +68,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.aspnetcore.environment | string | `"Production"` |  |
 | settings.aspnetcore.forwardedHeadersEnabled | bool | `true` |  |
 | settings.aspnetcore.httpPorts | string | `""` |  |
-| settings.database.host | string | `""` |  |
+| settings.database.host | string | `""` | Host of the database used by KISS |
 | settings.database.name | string | `""` | Name of the database used by KISS |
 | settings.database.password | string | `""` | Password of the postgres user |
 | settings.database.port | int | `5432` |  |
@@ -85,7 +85,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.enterpriseSearch.baseUrl | string | `""` | URL of the API through which KISS can query enterprise search |
 | settings.enterpriseSearch.engine | string | `""` | The name of the `meta-engine` engine used by KISS. |
 | settings.enterpriseSearch.privateApiKey | string | `""` | Private API key for Elastic API |
-| settings.enterpriseSearch.publicApiKey | string | `""` |  |
+| settings.enterpriseSearch.publicApiKey | string | `""` | Public API key for Elastic API |
 | settings.feedback.emailFrom | string | `""` | From address of the feedback email |
 | settings.feedback.emailTo | string | `""` | Address where the feedback email should be sent |
 | settings.groepen | object | `{}` | Groepen configuration. Either authenticate with a token or with a clientId and a clientSecret. |
@@ -96,12 +96,12 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.groepen.token | string | `""` | Token of the Objects API for groups. Leave `clientId` and `clientSecret` empty if you use a token. |
 | settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API |
 | settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal API |
-| settings.haalCentraal.customHeaders | object | `{}` |  |
-| settings.haalCentraal.userHeaderName | string | `""` |  |
+| settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy |
+| settings.haalCentraal.userHeaderName | string | `""` | Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy |
 | settings.kvk.apiKey | string | `""` | Key for the KvK API |
 | settings.kvk.baseUrl | string | `""` | URL of the KvK API |
-| settings.kvk.customHeaders | object | `{}` |  |
-| settings.kvk.userHeaderName | string | `""` |  |
+| settings.kvk.customHeaders | object | `{}` | Custom headers to send to the KvK API, for instance when using a proxy |
+| settings.kvk.userHeaderName | string | `""` | Header name to include the user id to send to the KvK API, for instance when using a proxy |
 | settings.logboek.baseUrl | string | `""` | URL of the Objects API where the logbook is stored |
 | settings.logboek.objectTypeUrl | string | `""` | URL of the Logbook Object Type. |
 | settings.logboek.objectTypeVersion | int | `1` | Version number of the Logbook Object Type. |

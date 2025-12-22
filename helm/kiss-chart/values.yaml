@@ -183,24 +183,29 @@ settings:
   database:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Name of the database used by KISS
     name: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
+    # -- Host of the database used by KISS
     host: ""
     port: 5432
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Username for KISS to access the database
     username: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Password of the postgres user
@@ -212,6 +217,7 @@ settings:
   elastic:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- The URL for Elasticsearch
@@ -220,12 +226,14 @@ settings:
     excludedFieldsKennisbank: []
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Username to log in to Elasticsearch
     username: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Password to log in to Elasticsearch
@@ -239,6 +247,7 @@ settings:
     enableSsl: true
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Address of the mail server
@@ -256,23 +265,28 @@ settings:
   enterpriseSearch:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the API through which KISS can query enterprise search
     baseUrl: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- The name of the `meta-engine` engine used by KISS.
     engine: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
+    # -- Public API key for Elastic API
     publicApiKey: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Private API key for Elastic API
@@ -284,12 +298,14 @@ settings:
   feedback:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- From address of the feedback email
     emailFrom: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Address where the feedback email should be sent
@@ -346,16 +362,19 @@ settings:
   haalCentraal:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the Haal Centraal API
     baseUrl: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Key for the Haal Centraal API
     apiKey: ""
+    # -- Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy
     userHeaderName: ""
     # @schema
     # additionalProperties:
@@ -371,6 +390,7 @@ settings:
     #           type: string
     #       required: [RaadpleegMetBurgerservicenummer, ZoekMetGeslachtsnaamEnGeboortedatum, ZoekMetPostcodeEnHuisnummer]
     # @schema
+    # -- Custom headers to send to the Haal Centraal API, for instance when using a proxy
     customHeaders: {}
 
   # @schema
@@ -379,21 +399,25 @@ settings:
   kvk:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the KvK API
     baseUrl: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Key for the KvK API
     apiKey: ""
+    # -- Header name to include the user id to send to the KvK API, for instance when using a proxy
     userHeaderName: ""
     # @schema
     # additionalProperties:
     #   type: string
     # @schema
+    # -- Custom headers to send to the KvK API, for instance when using a proxy
     customHeaders: {}
 
   # @schema
@@ -402,24 +426,28 @@ settings:
   logboek:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the Objects API where the logbook is stored
     baseUrl: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the Logbook Object Type.
     objectTypeUrl: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Version number of the Logbook Object Type.
     objectTypeVersion: 1
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Token for the Objects API for Logbooks
@@ -438,18 +466,21 @@ settings:
   oidc:
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- URL of the OpenID Connect Identity Provider
     authority: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- For access to the OpenID Connect Identity Provider
     clientId: ""
     # @schema
     # required: true
+    # type: string
     # minLength: 1
     # @schema
     # -- Secret for the OpenID Connect Identity Provider
@@ -464,6 +495,7 @@ settings:
     medewerkerIdentificatie:
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- the claim to use for identifying the medewerker
@@ -576,6 +608,7 @@ settings:
     kennisbank:
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- URL of the API for Kennisartikelen
@@ -583,6 +616,7 @@ settings:
       historyLimit: 1
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- URL of the Kennisartikel Object Type
@@ -591,6 +625,7 @@ settings:
       schedule: "*/59 * * * *"
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- Key for the API for Kennisartikelen
@@ -696,12 +731,14 @@ settings:
       manageFromKiss: false
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- Token for the Objects API for VACs
       token: ""
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- URL of the Objects API for VACs
@@ -709,6 +746,7 @@ settings:
       historyLimit: 1
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
       # -- URL of the VAC Object Type
