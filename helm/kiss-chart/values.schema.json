@@ -463,7 +463,8 @@
               "required": []
             }
           ],
-          "description": "afdelingen configuration",
+          "default": "`{}`",
+          "description": "Afdelingen configuration. Either authenticate with a token or with a clientId and a clientSecret.",
           "required": [],
           "title": "afdelingen"
         },
@@ -737,7 +738,8 @@
               "required": []
             }
           ],
-          "description": "groepen configuration",
+          "default": "`{}`",
+          "description": "Groepen configuration. Either authenticate with a token or with a clientId and a clientSecret.",
           "required": [],
           "title": "groepen"
         },
@@ -1240,7 +1242,8 @@
               ]
             },
             "medewerkers": {
-              "description": "medewerkers sync job configuration",
+              "default": "`{}`",
+              "description": "Medewerkers sync job configuration. Either authenticate with a token or with a clientId and a clientSecret.",
               "oneOf": [
                 {
                   "description": "Use email to assign medewerkers to contactverzoeken",
@@ -1390,7 +1393,8 @@
               "title": "sharepoint"
             },
             "vac": {
-              "description": "vac sync job configuration",
+              "default": "`{}`",
+              "description": "Vac sync job configuration",
               "properties": {
                 "baseUrl": {
                   "default": "",
