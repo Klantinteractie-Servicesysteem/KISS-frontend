@@ -59,12 +59,9 @@ A helm chart for Klantinteractie Service Systeem.
 | serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
-| settings.afdelingen | object | `{}` | Afdelingen configuration. Either authenticate with a token or with a clientId and a clientSecret. |
-| settings.afdelingen.baseUrl | string | `""` | URL of the Objects API for departments. |
-| settings.afdelingen.clientId | string | `""` | Client ID for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret. |
-| settings.afdelingen.clientSecret | string | `""` | Client Secret for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret. |
-| settings.afdelingen.objectTypeUrl | string | `""` | URL of the Department Object Type |
-| settings.afdelingen.token | string | `""` | Token of the Objects API for departments. Leave `clientId` and `clientSecret` empty if you use a token. |
+| settings.afdelingen.baseUrl | string | `""` | URL of the Objects API for afdelingen. |
+| settings.afdelingen.objectTypeUrl | string | `""` | URL of the afdelingen Object Type |
+| settings.afdelingen.token | string | `""` | Token of the Objects API for afdelingen. |
 | settings.aspnetcore.environment | string | `"Production"` |  |
 | settings.aspnetcore.forwardedHeadersEnabled | bool | `true` |  |
 | settings.aspnetcore.httpPorts | string | `""` |  |
@@ -88,12 +85,9 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.enterpriseSearch.publicApiKey | string | `""` | Public API key for Elastic API |
 | settings.feedback.emailFrom | string | `""` | From address of the feedback email |
 | settings.feedback.emailTo | string | `""` | Address where the feedback email should be sent |
-| settings.groepen | object | `{}` | Groepen configuration. Either authenticate with a token or with a clientId and a clientSecret. |
-| settings.groepen.baseUrl | string | `""` | URL of the Objects API for groups. |
-| settings.groepen.clientId | string | `""` | Client ID for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret. |
-| settings.groepen.clientSecret | string | `""` | Client Secret for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret. |
-| settings.groepen.objectTypeUrl | string | `""` | URL of the Group Object Type |
-| settings.groepen.token | string | `""` | Token of the Objects API for groups. Leave `clientId` and `clientSecret` empty if you use a token. |
+| settings.groepen.baseUrl | string | `""` | URL of the Objects API for groepen. |
+| settings.groepen.objectTypeUrl | string | `""` | URL of the groepen Object Type |
+| settings.groepen.token | string | `""` | Token of the Objects API for groepen. |
 | settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API |
 | settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal API |
 | settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy |
@@ -126,19 +120,21 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.kennisbank.resources | object | `{}` |  |
 | settings.syncJobs.kennisbank.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.kennisbank.token | string | `""` | Key for the API for Kennisartikelen |
-| settings.syncJobs.medewerkers | object | `{}` | Medewerkers sync job configuration. Either authenticate with a token or with a clientId and a clientSecret. |
 | settings.syncJobs.medewerkers.baseUrl | string | `""` | URL of the Objects API for employees |
-| settings.syncJobs.medewerkers.clientId | string | `""` | Client ID for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret. |
-| settings.syncJobs.medewerkers.clientSecret | string | `""` | Client Secret for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret. |
+| settings.syncJobs.medewerkers.historyLimit | int | `1` |  |
 | settings.syncJobs.medewerkers.objectTypeUrl | string | `""` | URL of the Employee Object Type |
+| settings.syncJobs.medewerkers.resources | object | `{}` |  |
+| settings.syncJobs.medewerkers.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token. |
 | settings.syncJobs.medewerkers.useEmail | bool | `false` | This variable determines whether a contact request for an employee can only be made by email address. |
 | settings.syncJobs.sharepoint | list | `[]` | sharepoint sync jobs configuration |
-| settings.syncJobs.vac | object | `{}` | Vac sync job configuration |
 | settings.syncJobs.vac.baseUrl | string | `""` | URL of the Objects API for VACs |
+| settings.syncJobs.vac.historyLimit | int | `1` |  |
 | settings.syncJobs.vac.manageFromKiss | bool | `false` | This variable determines whether the navigation item for managing VACs is present in the management navigation. |
 | settings.syncJobs.vac.objectTypeUrl | string | `""` | URL of the VAC Object Type |
 | settings.syncJobs.vac.objectTypeVersion | int | `1` | Version number of the VAC Object Type |
+| settings.syncJobs.vac.resources | object | `{}` |  |
+| settings.syncJobs.vac.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs |
 | settings.syncJobs.website | list | `[]` | website sync jobs configuration |
 | tolerations | list | `[]` |  |

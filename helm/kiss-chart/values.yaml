@@ -134,47 +134,28 @@ settings:
 
   # @schema
   # required: true
-  # properties: {}
-  # allOf:
-  #   - properties:
-  #       baseUrl:
-  #         type: string
-  #         format: uri
-  #       objectTypeUrl:
-  #         type: string
-  #     required:
-  #       - baseUrl
-  #       - objectTypeUrl
-  #   - oneOf:
-  #       - properties:
-  #           clientId:
-  #             type: string
-  #             minLength: 1
-  #           clientSecret:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - clientId
-  #           - clientSecret
-  #       - properties:
-  #           token:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - token
   # @schema
-  # -- Afdelingen configuration. Either authenticate with a token or with a clientId and a clientSecret.
-  # @default -- `{}`
   afdelingen:
-    # -- URL of the Objects API for departments.
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- URL of the Objects API for afdelingen.
     baseUrl: ""
-    # -- URL of the Department Object Type
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- URL of the afdelingen Object Type
     objectTypeUrl: ""
-    # -- Client ID for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret.
-    clientId: ""
-    # -- Client Secret for the Objects API for departments. Leave `token` empty if you use a Client ID and Client Secret.
-    clientSecret: ""
-    # -- Token of the Objects API for departments. Leave `clientId` and `clientSecret` empty if you use a token.
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- Token of the Objects API for afdelingen.
     token: ""
 
   # @schema
@@ -313,47 +294,28 @@ settings:
 
   # @schema
   # required: true
-  # properties: {}
-  # allOf:
-  #   - properties:
-  #       baseUrl:
-  #         type: string
-  #         format: uri
-  #       objectTypeUrl:
-  #         type: string
-  #     required:
-  #       - baseUrl
-  #       - objectTypeUrl
-  #   - oneOf:
-  #       - properties:
-  #           clientId:
-  #             type: string
-  #             minLength: 1
-  #           clientSecret:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - clientId
-  #           - clientSecret
-  #       - properties:
-  #           token:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - token
   # @schema
-  # -- Groepen configuration. Either authenticate with a token or with a clientId and a clientSecret.
-  # @default -- `{}`
   groepen:
-    # -- URL of the Objects API for groups.
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- URL of the Objects API for groepen.
     baseUrl: ""
-    # -- URL of the Group Object Type
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- URL of the groepen Object Type
     objectTypeUrl: ""
-    # -- Client ID for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret.
-    clientId: ""
-    # -- Client Secret for the Objects API for groups. Leave `token` empty if you use a Client ID and Client Secret.
-    clientSecret: ""
-    # -- Token of the Objects API for groups. Leave `clientId` and `clientSecret` empty if you use a token.
+    # @schema
+    # required: true
+    # type: string
+    # minLength: 1
+    # @schema
+    # -- Token of the Objects API for groepen.
     token: ""
 
   # @schema
@@ -636,56 +598,40 @@ settings:
     # @schema
     # properties: {}
     # oneOf:
-    #   - description: Use email to assign medewerkers to contactverzoeken
+    #   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required
     #     properties:
     #       useEmail:
+    #         required: true
     #         type: boolean
     #         const: true
-    #     required: [useEmail]
-    #   - allOf:
-    #       - description: Common medewerkers configuration
-    #         properties:
-    #           baseUrl:
-    #             type: string
-    #             minLength: 1
-    #           historyLimit:
-    #             type: integer
-    #           objectTypeUrl:
-    #             type: string
-    #             minLength: 1
-    #           resources:
-    #             type: object
-    #           schedule:
-    #             type: string
-    #         required: [baseUrl, objectTypeUrl]
-    #       - oneOf:
-    #         - description: Token based medewerkers configuration
-    #           properties:
-    #             token:
-    #               type: string
-    #               minLength: 1
-    #           required: [token]
-    #         - description: Client credentials based medewerkers configuration
-    #           properties:
-    #             clientId:
-    #               type: string
-    #               minLength: 1
-    #             clientSecret:
-    #               type: string
-    #               minLength: 1
-    #           required: [clientId, clientSecret]
+    #   - description: Sync medewerkers from Object registration
+    #     properties:
+    #       baseUrl:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       historyLimit:
+    #         type: integer
+    #       objectTypeUrl:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       resources:
+    #         type: object
+    #       schedule:
+    #         type: string
+    #       token:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       useEmail:
+    #         const: false
     # @schema
-    # -- Medewerkers sync job configuration. Either authenticate with a token or with a clientId and a clientSecret.
-    # @default -- `{}`
     medewerkers:
       # -- This variable determines whether a contact request for an employee can only be made by email address.
       useEmail: false
       # -- Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token.
       token: ""
-      # -- Client ID for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret.
-      clientId: ""
-      # -- Client Secret for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret.
-      clientSecret: ""
       # -- URL of the Objects API for employees
       baseUrl: ""
       historyLimit: 1
@@ -722,8 +668,6 @@ settings:
     # @schema
     # type: [object, null]
     # @schema
-    # -- Vac sync job configuration
-    # @default -- `{}`
     vac:
       # -- This variable determines whether the navigation item for managing VACs is present in the management navigation.
       manageFromKiss: false
