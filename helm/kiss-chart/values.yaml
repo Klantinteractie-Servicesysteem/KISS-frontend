@@ -509,6 +509,7 @@ settings:
     redacteurRole: ""
 
   # @schema
+  # type: array
   # required: true
   # items:
   #   type: string
@@ -519,6 +520,7 @@ settings:
 
   # @schema
   # required: true
+  # type: array
   # minItems: 1
   # items:
   #   allOf:
@@ -704,12 +706,8 @@ settings:
     #       type: integer
     #     resources:
     #       type: object
-    #     restartPolicy:
-    #       type: string
     #     siteUrl:
     #       type: string
-    #     ttlSecondsAfterFinished:
-    #       type: integer
     #     clientId:
     #       type: string
     #     clientSecret:

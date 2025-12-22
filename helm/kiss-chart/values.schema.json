@@ -1008,7 +1008,8 @@
           },
           "minItems": 1,
           "required": [],
-          "title": "organisatieIds"
+          "title": "organisatieIds",
+          "type": "array"
         },
         "registers": {
           "description": "Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.",
@@ -1185,7 +1186,8 @@
           },
           "minItems": 1,
           "required": [],
-          "title": "registers"
+          "title": "registers",
+          "type": "array"
         },
         "syncJobs": {
           "properties": {
@@ -1384,10 +1386,6 @@
                     "required": [],
                     "type": "object"
                   },
-                  "restartPolicy": {
-                    "required": [],
-                    "type": "string"
-                  },
                   "schedule": {
                     "required": [],
                     "type": "string"
@@ -1403,10 +1401,6 @@
                   "tenantId": {
                     "required": [],
                     "type": "string"
-                  },
-                  "ttlSecondsAfterFinished": {
-                    "required": [],
-                    "type": "integer"
                   }
                 },
                 "required": [
