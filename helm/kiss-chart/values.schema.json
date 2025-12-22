@@ -49,7 +49,8 @@
         "required": []
       },
       "required": [],
-      "title": "extraEnvVars"
+      "title": "extraEnvVars",
+      "type": "array"
     },
     "extraIngress": {
       "description": "Specify extra ingresses, for example if you have multiple ingress classes",
@@ -57,7 +58,8 @@
         "required": []
       },
       "required": [],
-      "title": "extraIngress"
+      "title": "extraIngress",
+      "type": "array"
     },
     "extraVolumeMounts": {
       "description": "Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates.",
@@ -65,7 +67,8 @@
         "required": []
       },
       "required": [],
-      "title": "extraVolumeMounts"
+      "title": "extraVolumeMounts",
+      "type": "array"
     },
     "extraVolumes": {
       "description": "Optionally specify extra list of additional volumes, for example to trust extra ca certificates.",
@@ -73,7 +76,8 @@
         "required": []
       },
       "required": [],
-      "title": "extraVolumes"
+      "title": "extraVolumes",
+      "type": "array"
     },
     "fullnameOverride": {
       "default": "",
@@ -105,7 +109,8 @@
           "default": "The semantic version of the chart",
           "description": "Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart.",
           "required": [],
-          "title": "tag"
+          "title": "tag",
+          "type": "string"
         }
       },
       "required": [],
@@ -145,7 +150,8 @@
             "required": []
           },
           "required": [],
-          "title": "hosts"
+          "title": "hosts",
+          "type": "array"
         },
         "tls": {
           "description": "    paths:      - path: /        pathType: ImplementationSpecific",
@@ -497,6 +503,7 @@
             },
             "port": {
               "default": 5432,
+              "description": "Port of the database used by KISS",
               "required": [],
               "title": "port",
               "type": "integer"
@@ -568,10 +575,11 @@
           "description": " required: true @schema",
           "properties": {
             "enableSsl": {
-              "default": "true",
+              "default": true,
               "description": "Use SSL (true/false)",
               "required": [],
-              "title": "enableSsl"
+              "title": "enableSsl",
+              "type": "boolean"
             },
             "host": {
               "default": "",
@@ -585,19 +593,22 @@
               "default": "",
               "description": "Password for the mail server",
               "required": [],
-              "title": "password"
+              "title": "password",
+              "type": "string"
             },
             "port": {
-              "default": "25",
+              "default": 25,
               "description": "Port number of the mail connection",
               "required": [],
-              "title": "port"
+              "title": "port",
+              "type": "integer"
             },
             "username": {
               "default": "",
               "description": "Username for the mail server",
               "required": [],
-              "title": "username"
+              "title": "username",
+              "type": "string"
             }
           },
           "required": [
@@ -758,13 +769,15 @@
               },
               "description": "Custom headers to send to the Haal Centraal API, for instance when using a proxy",
               "required": [],
-              "title": "customHeaders"
+              "title": "customHeaders",
+              "type": "object"
             },
             "userHeaderName": {
               "default": "",
               "description": "Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy",
               "required": [],
-              "title": "userHeaderName"
+              "title": "userHeaderName",
+              "type": "string"
             }
           },
           "required": [
@@ -798,13 +811,15 @@
               },
               "description": "Custom headers to send to the KvK API, for instance when using a proxy",
               "required": [],
-              "title": "customHeaders"
+              "title": "customHeaders",
+              "type": "object"
             },
             "userHeaderName": {
               "default": "",
               "description": "Header name to include the user id to send to the KvK API, for instance when using a proxy",
               "required": [],
-              "title": "userHeaderName"
+              "title": "userHeaderName",
+              "type": "string"
             }
           },
           "required": [
@@ -833,12 +848,12 @@
               "type": "string"
             },
             "objectTypeVersion": {
-              "default": "1",
+              "default": 1,
               "description": "Version number of the Logbook Object Type.",
               "minLength": 1,
               "required": [],
               "title": "objectTypeVersion",
-              "type": "string"
+              "type": "integer"
             },
             "token": {
               "default": "",
@@ -858,19 +873,21 @@
           "title": "logboek"
         },
         "managementInformatie": {
-          "description": " required: [apiKey] @schema",
           "properties": {
             "apiKey": {
               "default": "",
               "description": "Secret that KISS uses to validate the JWT Token when requesting contact moment details",
+              "minLength": 1,
               "required": [],
-              "title": "apiKey"
+              "title": "apiKey",
+              "type": "string"
             }
           },
           "required": [
             "apiKey"
           ],
-          "title": "managementInformatie"
+          "title": "managementInformatie",
+          "type": "object"
         },
         "oidc": {
           "description": " required: true @schema",
@@ -903,13 +920,15 @@
               "default": "",
               "description": "Name of the role for a Kennisbank employee.",
               "required": [],
-              "title": "kennisbankRole"
+              "title": "kennisbankRole",
+              "type": "string"
             },
             "klantcontactmedewerkerRole": {
               "default": "",
               "description": "Name of the role for a Klant Contact Employee.",
               "required": [],
-              "title": "klantcontactmedewerkerRole"
+              "title": "klantcontactmedewerkerRole",
+              "type": "string"
             },
             "medewerkerIdentificatie": {
               "description": " required: true @schema",
@@ -942,7 +961,8 @@
               "default": "",
               "description": "Name of the role for a Redacteur.",
               "required": [],
-              "title": "redacteurRole"
+              "title": "redacteurRole",
+              "type": "string"
             }
           },
           "required": [
@@ -1162,7 +1182,8 @@
                   "default": "0.3.0",
                   "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
                   "required": [],
-                  "title": "tag"
+                  "title": "tag",
+                  "type": "string"
                 }
               },
               "required": [],
@@ -1207,7 +1228,7 @@
                 },
                 "token": {
                   "default": "",
-                  "description": "Key for the API for Kennisartikelen",
+                  "description": "Token for the API for Kennisartikelen",
                   "minLength": 1,
                   "required": [],
                   "title": "token",
@@ -1226,7 +1247,7 @@
               ]
             },
             "medewerkers": {
-              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         required: true         type: boolean         const: true   - description: Sync medewerkers from Object registration     properties:       baseUrl:         required: true         type: string         minLength: 1       historyLimit:         type: integer       objectTypeUrl:         required: true         type: string         minLength: 1       resources:         type: object       schedule:         type: string       token:         required: true         type: string         minLength: 1       useEmail:         const: false @schema",
+              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         required: true         type: boolean         const: true   - description: Sync medewerkers from Object registration     properties:       baseUrl:         required: true         type: string         minLength: 1       historyLimit:         type: integer       objectTypeUrl:         required: true         type: string         minLength: 1       resources:         type: object       schedule:         type: string       token:         required: true         type: string         minLength: 1       useEmail:         type: boolean         const: false @schema",
               "oneOf": [
                 {
                   "description": "Use email to assign medewerkers to contactverzoeken. No other configuration required",
@@ -1271,7 +1292,8 @@
                     },
                     "useEmail": {
                       "const": false,
-                      "required": []
+                      "required": [],
+                      "type": "boolean"
                     }
                   },
                   "required": []
@@ -1327,7 +1349,8 @@
                 "type": "object"
               },
               "required": [],
-              "title": "sharepoint"
+              "title": "sharepoint",
+              "type": "array"
             },
             "vac": {
               "description": " type: [object, null] @schema",
@@ -1347,10 +1370,11 @@
                   "type": "integer"
                 },
                 "manageFromKiss": {
-                  "default": "false",
+                  "default": false,
                   "description": "This variable determines whether the navigation item for managing VACs is present in the management navigation.",
                   "required": [],
-                  "title": "manageFromKiss"
+                  "title": "manageFromKiss",
+                  "type": "boolean"
                 },
                 "objectTypeUrl": {
                   "default": "",
@@ -1361,10 +1385,11 @@
                   "type": "string"
                 },
                 "objectTypeVersion": {
-                  "default": "1",
+                  "default": 1,
                   "description": "Version number of the VAC Object Type",
                   "required": [],
-                  "title": "objectTypeVersion"
+                  "title": "objectTypeVersion",
+                  "type": "integer"
                 },
                 "resources": {
                   "required": [],
@@ -1431,7 +1456,8 @@
                 "type": "object"
               },
               "required": [],
-              "title": "website"
+              "title": "website",
+              "type": "array"
             }
           },
           "required": [],

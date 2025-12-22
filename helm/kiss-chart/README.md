@@ -68,7 +68,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.database.host | string | `""` | Host of the database used by KISS |
 | settings.database.name | string | `""` | Name of the database used by KISS |
 | settings.database.password | string | `""` | Password of the postgres user |
-| settings.database.port | int | `5432` |  |
+| settings.database.port | int | `5432` | Port of the database used by KISS |
 | settings.database.username | string | `""` | Username for KISS to access the database |
 | settings.elastic.baseUrl | string | `""` | The URL for Elasticsearch |
 | settings.elastic.excludedFieldsKennisbank | list | `[]` | Fields that a Kennisbank user is not allowed to search and view. |
@@ -119,7 +119,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |
 | settings.syncJobs.kennisbank.resources | object | `{}` |  |
 | settings.syncJobs.kennisbank.schedule | string | `"*/59 * * * *"` |  |
-| settings.syncJobs.kennisbank.token | string | `""` | Key for the API for Kennisartikelen |
+| settings.syncJobs.kennisbank.token | string | `""` | Token for the API for Kennisartikelen |
 | settings.syncJobs.medewerkers.baseUrl | string | `""` | URL of the Objects API for employees |
 | settings.syncJobs.medewerkers.historyLimit | int | `1` |  |
 | settings.syncJobs.medewerkers.objectTypeUrl | string | `""` | URL of the Employee Object Type |
