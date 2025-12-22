@@ -6,7 +6,9 @@ replicaCount: 2
 image:
   repository: "ghcr.io/klantinteractie-servicesysteem/kiss-frontend"
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # -- (string) Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart.
+  # @default -- The semantic version of the chart
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -59,7 +61,7 @@ ingress:
     {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  # -- ingress hosts
+  # -- (list) ingress hosts
   hosts: []
   #  - host: kiss-frontend.gemeente.nl
   #    paths:
@@ -70,7 +72,7 @@ ingress:
   #    hosts:
   #      - kiss-frontend.gemeente.nl
 
-# -- Specify extra ingresses, for example if you have multiple ingress classes
+# -- (list) Specify extra ingresses, for example if you have multiple ingress classes
 extraIngress: []
 # e.g:
 # extraIngress:
@@ -132,40 +134,25 @@ settings:
 
   # @schema
   # required: true
-  # allOf:
-  #   - properties:
-  #       baseUrl:
-  #         type: string
-  #         format: uri
-  #       objectTypeUrl:
-  #         type: string
-  #     required:
-  #       - baseUrl
-  #       - objectTypeUrl
-  #   - oneOf:
-  #       - properties:
-  #           clientId:
-  #             type: string
-  #             minLength: 1
-  #           clientSecret:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - clientId
-  #           - clientSecret
-  #       - properties:
-  #           token:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - token
   # @schema
-  # -- afdelingen configuration
   afdelingen:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) URL of the Objects API for afdelingen.
     baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) URL of the afdelingen Object Type
     objectTypeUrl: ""
-    clientId: ""
-    clientSecret: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) Token of the Objects API for afdelingen.
     token: ""
 
   # @schema
@@ -176,22 +163,27 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Name of the database used by KISS
     name: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Host of the database used by KISS
     host: ""
+    # -- (int) Port of the database used by KISS
     port: 5432
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Username for KISS to access the database
     username: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Password of the postgres user
     password: ""
 
   # @schema
@@ -202,31 +194,46 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) The URL for Elasticsearch
     baseUrl: ""
+    # @schema
+    # type: array
+    # items:
+    #   type: string
+    #   minLength: 1
+    # @schema
+    # -- (list) Fields that a Kennisbank user is not allowed to search and view.
     excludedFieldsKennisbank: []
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Username to log in to Elasticsearch
     username: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Password to log in to Elasticsearch
     password: ""
 
   # @schema
   # required: true
   # @schema
   email:
+    # -- (bool) Use SSL (true/false)
     enableSsl: true
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Address of the mail server
     host: ""
+    # -- (string) Password for the mail server
     password: ""
+    # -- (int) Port number of the mail connection
     port: 25
+    # -- (string) Username for the mail server
     username: ""
 
   # @schema
@@ -237,21 +244,25 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the API through which KISS can query enterprise search
     baseUrl: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) The name of the `meta-engine` engine used by KISS.
     engine: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Public API key for Elastic API
     publicApiKey: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Private API key for Elastic API
     privateApiKey: ""
 
   # @schema
@@ -262,50 +273,36 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) From address of the feedback email
     emailFrom: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Address where the feedback email should be sent
     emailTo: ""
 
   # @schema
   # required: true
-  # properties: {}
-  # allOf:
-  #   - properties:
-  #       baseUrl:
-  #         type: string
-  #         format: uri
-  #       objectTypeUrl:
-  #         type: string
-  #     required:
-  #       - baseUrl
-  #       - objectTypeUrl
-  #   - oneOf:
-  #       - properties:
-  #           clientId:
-  #             type: string
-  #             minLength: 1
-  #           clientSecret:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - clientId
-  #           - clientSecret
-  #       - properties:
-  #           token:
-  #             type: string
-  #             minLength: 1
-  #         required:
-  #           - token
   # @schema
-  # -- groepen configuration
   groepen:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) URL of the Objects API for groepen.
     baseUrl: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) URL of the groepen Object Type
     objectTypeUrl: ""
-    clientId: ""
-    clientSecret: ""
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) Token of the Objects API for groepen.
     token: ""
 
   # @schema
@@ -316,12 +313,15 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the Haal Centraal API
     baseUrl: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Key for the Haal Centraal API
     apiKey: ""
+    # -- (string) Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy
     userHeaderName: ""
     # @schema
     # additionalProperties:
@@ -337,6 +337,7 @@ settings:
     #           type: string
     #       required: [RaadpleegMetBurgerservicenummer, ZoekMetGeslachtsnaamEnGeboortedatum, ZoekMetPostcodeEnHuisnummer]
     # @schema
+    # -- (object) Custom headers to send to the Haal Centraal API, for instance when using a proxy
     customHeaders: {}
 
   # @schema
@@ -347,17 +348,21 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the KvK API
     baseUrl: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Key for the KvK API
     apiKey: ""
+    # -- (string) Header name to include the user id to send to the KvK API, for instance when using a proxy
     userHeaderName: ""
     # @schema
     # additionalProperties:
     #   type: string
     # @schema
+    # -- (object) Custom headers to send to the KvK API, for instance when using a proxy
     customHeaders: {}
 
   # @schema
@@ -368,27 +373,33 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the Objects API where the logbook is stored
     baseUrl: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the Logbook Object Type.
     objectTypeUrl: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (int) Version number of the Logbook Object Type.
     objectTypeVersion: 1
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Token for the Objects API for Logbooks
     token: ""
 
-  # @schema
-  # required: [apiKey]
-  # @schema
   managementInformatie:
+    # @schema
+    # required: true
+    # minLength: 1
+    # @schema
+    # -- (string) Secret that KISS uses to validate the JWT Token when requesting contact moment details
     apiKey: ""
 
   # @schema
@@ -399,18 +410,23 @@ settings:
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) URL of the OpenID Connect Identity Provider
     authority: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) For access to the OpenID Connect Identity Provider
     clientId: ""
     # @schema
     # required: true
     # minLength: 1
     # @schema
+    # -- (string) Secret for the OpenID Connect Identity Provider
     clientSecret: ""
+    # -- (string) Name of the role for a Kennisbank employee.
     kennisbankRole: ""
+    # -- (string) Name of the role for a Klant Contact Employee.
     klantcontactmedewerkerRole: ""
     # @schema
     # required: true
@@ -418,27 +434,32 @@ settings:
     medewerkerIdentificatie:
       # @schema
       # required: true
+      # type: string
       # minLength: 1
       # @schema
-      # -- the claim to use for identifying the medewerker
+      # -- (string) the claim to use for identifying the medewerker
       claim: ""
       # @schema
       # type: [integer, null]
       # @schema
       # -- max number of characters before truncation
       truncate:
+    # -- (string) Name of the role for a Redacteur.
     redacteurRole: ""
 
   # @schema
+  # type: array
   # required: true
   # items:
   #   type: string
   # minItems: 1
   # @schema
+  # -- (list) RSIN of the organization that registers the Contactmomenten
   organisatieIds: []
 
   # @schema
   # required: true
+  # type: array
   # minItems: 1
   # items:
   #   allOf:
@@ -513,13 +534,14 @@ settings:
   #             required: ["baseUrl", "token"]
   #         required: ["klantinteractie"]
   # @schema
-  # -- Configuration for the different registers for e.g. zaken and klantcontacten. Check the json schema for the different possible configurations.
+  # -- (list) Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.
   registers: []
 
   syncJobs:
     image:
       repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"
       pullPolicy: IfNotPresent
+      # -- (string) The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.
       tag: "0.3.0"
     # @schema
     # type: [object, null]
@@ -529,12 +551,14 @@ settings:
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) URL of the API for Kennisartikelen
       baseUrl: ""
       historyLimit: 1
       # @schema
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) URL of the Kennisartikel Object Type
       objectTypeUrl: ""
       resources: {}
       schedule: "*/59 * * * *"
@@ -542,61 +566,51 @@ settings:
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) Token for the API for Kennisartikelen
       token: ""
 
     # @schema
     # properties: {}
     # oneOf:
-    #   - description: Use email to assign medewerkers to contactverzoeken
+    #   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required
     #     properties:
     #       useEmail:
+    #         required: true
     #         type: boolean
     #         const: true
-    #     required: [useEmail]
-    #   - allOf:
-    #       - description: Common medewerkers configuration
-    #         properties:
-    #           baseUrl:
-    #             type: string
-    #             minLength: 1
-    #           historyLimit:
-    #             type: integer
-    #           objectTypeUrl:
-    #             type: string
-    #             minLength: 1
-    #           resources:
-    #             type: object
-    #           schedule:
-    #             type: string
-    #         required: [baseUrl, objectTypeUrl]
-    #       - oneOf:
-    #         - description: Token based medewerkers configuration
-    #           properties:
-    #             token:
-    #               type: string
-    #               minLength: 1
-    #           required: [token]
-    #         - description: Client credentials based medewerkers configuration
-    #           properties:
-    #             clientId:
-    #               type: string
-    #               minLength: 1
-    #             clientSecret:
-    #               type: string
-    #               minLength: 1
-    #           required: [clientId, clientSecret]
+    #   - description: Sync medewerkers from Object registration
+    #     properties:
+    #       baseUrl:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       historyLimit:
+    #         type: integer
+    #       objectTypeUrl:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       resources:
+    #         type: object
+    #       schedule:
+    #         type: string
+    #       token:
+    #         required: true
+    #         type: string
+    #         minLength: 1
+    #       useEmail:
+    #         type: boolean
+    #         const: false
     # @schema
-    # -- medewerkers sync job configuration
     medewerkers:
+      # -- (bool) This variable determines whether a contact request for an employee can only be made by email address.
       useEmail: false
-      # -- token to access the objects API. if provided, leave out clientId and clientSecret.
+      # -- (string) Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token.
       token: ""
-      # -- alternatively, client id and client secret can be provided, for instance if you are using the podiumd-adapter to get medewerkers.
-      clientId: ""
-      # -- client secret to access the objects API.
-      clientSecret: ""
+      # -- (string) URL of the Objects API for employees
       baseUrl: ""
       historyLimit: 1
+      # -- (string) URL of the Employee Object Type
       objectTypeUrl: ""
       resources: {}
       schedule: "*/59 * * * *"
@@ -613,12 +627,8 @@ settings:
     #       type: integer
     #     resources:
     #       type: object
-    #     restartPolicy:
-    #       type: string
     #     siteUrl:
     #       type: string
-    #     ttlSecondsAfterFinished:
-    #       type: integer
     #     clientId:
     #       type: string
     #     clientSecret:
@@ -627,31 +637,35 @@ settings:
     #       type: string
     #   required: [sourceName, siteUrl, clientId, clientSecret, tenantId]
     # @schema
-    # -- sharepoint sync jobs configuration
+    # -- (list) sharepoint sync jobs configuration
     sharepoint: []
 
     # @schema
     # type: [object, null]
     # @schema
-    # -- vac sync job configuration
     vac:
+      # -- (bool) This variable determines whether the navigation item for managing VACs is present in the management navigation.
       manageFromKiss: false
       # @schema
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) Token for the Objects API for VACs
       token: ""
       # @schema
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) URL of the Objects API for VACs
       baseUrl: ""
       historyLimit: 1
       # @schema
       # required: true
       # minLength: 1
       # @schema
+      # -- (string) URL of the VAC Object Type
       objectTypeUrl: ""
+      # -- (int) Version number of the VAC Object Type
       objectTypeVersion: 1
       resources: {}
       schedule: "*/59 * * * *"
@@ -674,10 +688,10 @@ settings:
     #     resources:
     #       type: object
     # @schema
-    # -- website sync jobs configuration
+    # -- (list) website sync jobs configuration
     website: []
 
-# -- Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
+# -- (list) Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
 extraVolumes: []
 # e.g:
 # extraVolumes:
@@ -685,7 +699,7 @@ extraVolumes: []
 #     secret:
 #       secretName: my-secret-containing-my-custom-ca
 
-# -- Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates.
+# -- (list) Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates.
 extraVolumeMounts: []
 # e.g:
 # extraVolumeMounts:
@@ -694,7 +708,7 @@ extraVolumeMounts: []
 #    subPath: ca.crt
 #    mountPath: /etc/ssl/certs/my-custom-ca.crt
 
-# -- Array with extra environment variables to add
+# -- (list) Array with extra environment variables to add
 extraEnvVars: []
 # e.g:
 # extraEnvVars:
