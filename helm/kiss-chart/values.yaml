@@ -203,6 +203,12 @@ settings:
     # @schema
     # -- The URL for Elasticsearch
     baseUrl: ""
+    # @schema
+    # type: array
+    # items:
+    #   type: string
+    #   minLength: 1
+    # @schema
     # -- Fields that a Kennisbank user is not allowed to search and view.
     excludedFieldsKennisbank: []
     # @schema

@@ -409,7 +409,7 @@
       "description": " required: true @schema",
       "properties": {
         "afdelingen": {
-          "description": " description: \"Afdelingen configuration\" required: true @schema",
+          "description": " required: true @schema",
           "properties": {
             "baseUrl": {
               "default": "",
@@ -532,10 +532,13 @@
             "excludedFieldsKennisbank": {
               "description": "Fields that a Kennisbank user is not allowed to search and view.",
               "items": {
-                "required": []
+                "minLength": 1,
+                "required": [],
+                "type": "string"
               },
               "required": [],
-              "title": "excludedFieldsKennisbank"
+              "title": "excludedFieldsKennisbank",
+              "type": "array"
             },
             "password": {
               "default": "",
