@@ -1258,7 +1258,7 @@
               ]
             },
             "medewerkers": {
-              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         required: true         type: boolean         const: true   - description: Sync medewerkers from Object registration     properties:       baseUrl:         required: true         type: string         minLength: 1       historyLimit:         type: integer       objectTypeUrl:         required: true         type: string         minLength: 1       resources:         type: object       schedule:         type: string       token:         required: true         type: string         minLength: 1       useEmail:         type: boolean         const: false @schema",
+              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         type: boolean         const: true     required: [useEmail]   - allOf:       - description: Common medewerkers configuration         properties:           baseUrl:             type: string             minLength: 1           historyLimit:             type: integer           objectTypeUrl:             type: string             minLength: 1           resources:             type: object           schedule:             type: string         required: [baseUrl, objectTypeUrl]       - oneOf:         - description: Token based medewerkers configuration           properties:             token:               type: string               minLength: 1           required: [token]         - description: Client credentials based medewerkers configuration           properties:             clientId:               type: string               minLength: 1             clientSecret:               type: string               minLength: 1           required: [clientId, clientSecret] @schema",
               "oneOf": [
                 {
                   "description": "Use email to assign medewerkers to contactverzoeken. No other configuration required",
@@ -1269,44 +1269,81 @@
                       "type": "boolean"
                     }
                   },
-                  "required": []
+                  "required": [
+                    "useEmail"
+                  ]
                 },
                 {
-                  "description": "Sync medewerkers from Object registration",
-                  "properties": {
-                    "baseUrl": {
-                      "minLength": 1,
-                      "required": [],
-                      "type": "string"
+                  "allOf": [
+                    {
+                      "description": "Common medewerkers configuration",
+                      "properties": {
+                        "baseUrl": {
+                          "minLength": 1,
+                          "required": [],
+                          "type": "string"
+                        },
+                        "historyLimit": {
+                          "required": [],
+                          "type": "integer"
+                        },
+                        "objectTypeUrl": {
+                          "minLength": 1,
+                          "required": [],
+                          "type": "string"
+                        },
+                        "resources": {
+                          "required": [],
+                          "type": "object"
+                        },
+                        "schedule": {
+                          "required": [],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "baseUrl",
+                        "objectTypeUrl"
+                      ]
                     },
-                    "historyLimit": {
-                      "required": [],
-                      "type": "integer"
-                    },
-                    "objectTypeUrl": {
-                      "minLength": 1,
-                      "required": [],
-                      "type": "string"
-                    },
-                    "resources": {
-                      "required": [],
-                      "type": "object"
-                    },
-                    "schedule": {
-                      "required": [],
-                      "type": "string"
-                    },
-                    "token": {
-                      "minLength": 1,
-                      "required": [],
-                      "type": "string"
-                    },
-                    "useEmail": {
-                      "const": false,
-                      "required": [],
-                      "type": "boolean"
+                    {
+                      "oneOf": [
+                        {
+                          "description": "Token based medewerkers configuration",
+                          "properties": {
+                            "token": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "token"
+                          ]
+                        },
+                        {
+                          "description": "Client credentials based medewerkers configuration",
+                          "properties": {
+                            "clientId": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "minLength": 1,
+                              "required": [],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "clientId",
+                            "clientSecret"
+                          ]
+                        }
+                      ],
+                      "required": []
                     }
-                  },
+                  ],
                   "required": []
                 }
               ],
