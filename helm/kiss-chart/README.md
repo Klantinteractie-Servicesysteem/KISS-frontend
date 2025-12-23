@@ -121,11 +121,13 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.kennisbank.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.kennisbank.token | string | `""` | Token for the API for Kennisartikelen |
 | settings.syncJobs.medewerkers.baseUrl | string | `""` | URL of the Objects API for employees |
+| settings.syncJobs.medewerkers.clientId | string | `""` | Client ID for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret. Use this if you're connecting with the podiumd-adapter |
+| settings.syncJobs.medewerkers.clientSecret | string | `""` | Client Secret for the Objects API for employees. Leave `token` empty if you use a Client ID and Client Secret.. Use this if you're connecting with the podiumd-adapter |
 | settings.syncJobs.medewerkers.historyLimit | int | `1` |  |
 | settings.syncJobs.medewerkers.objectTypeUrl | string | `""` | URL of the Employee Object Type |
 | settings.syncJobs.medewerkers.resources | object | `{}` |  |
 | settings.syncJobs.medewerkers.schedule | string | `"*/59 * * * *"` |  |
-| settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token. |
+| settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for employees. Leave `clientId` and `clientSecret` empty if you use a token. Don't use this if you're connecting with the podiumd-adapter |
 | settings.syncJobs.medewerkers.useEmail | bool | `false` | This variable determines whether a contact request for an employee can only be made by email address. |
 | settings.syncJobs.sharepoint | list | `[]` | sharepoint sync jobs configuration |
 | settings.syncJobs.vac.baseUrl | string | `""` | URL of the Objects API for VACs |
