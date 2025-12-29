@@ -107,6 +107,7 @@ dialog {
 
 .warning-color {
   color: var(--color-error);
+  white-space: pre-line; // To enable use of newline character in strings.
 }
 
 ::backdrop {

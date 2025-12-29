@@ -38,7 +38,7 @@ const warningMessage = computed(() => {
     ? contactmomentStore.huidigContactmoment?.vragen
     : undefined;
   return vragen && vragen.length > 1
-    ? "Let op: Dit contactmoment bevat meerdere vragen. Als je het contactmoment annuleert worden alle vragen automatisch afgebroken. Het is mogelijk individuele vragen te verwijderen in het afrondscherm."
+    ? "Let op: Dit contactmoment bevat meerdere vragen. Als je het contactmoment annuleert worden alle vragen automatisch afgebroken.\n Het is mogelijk individuele vragen te verwijderen in het afrondscherm."
     : "";
 });
 
