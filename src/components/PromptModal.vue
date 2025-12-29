@@ -5,6 +5,9 @@
         <paragraph v-if="message">
           {{ message }}
         </paragraph>
+        <paragraph class="warning-color" v-if="warning">
+          {{ warning }}
+        </paragraph>
       </slot>
       <menu>
         <li>
@@ -45,6 +48,10 @@ const props = defineProps({
     required: true,
   },
   message: {
+    type: String,
+    default: "",
+  },
+  warning: {
     type: String,
     default: "",
   },
@@ -95,6 +102,11 @@ dialog {
   padding: var(--spacing-large);
   border: 1px solid var(--color-primary);
   min-width: 50%;
+  max-width: 70%;
+}
+
+.warning-color {
+  color: var(--color-error);
 }
 
 ::backdrop {
