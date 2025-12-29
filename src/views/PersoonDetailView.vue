@@ -1,20 +1,15 @@
 <template>
   <back-link />
 
-  <utrecht-heading :level="1">Persoonsinformatie</utrecht-heading>
+  <utrecht-heading :level="1"
+    >{{
+      [persoon?.voornaam, persoon?.voorvoegselAchternaam, persoon?.achternaam]
+        .filter(Boolean)
+        .join(" ")
+    }}
+  </utrecht-heading>
   <tab-list v-model="activeTab">
-    <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setDisabled }">
-        <klant-details
-          :internalKlantId="internalKlantId"
-          @no-data="setDisabled(true)"
-          @load="setDisabled(false)"
-          @error="setError"
-        />
-      </template>
-    </tab-list-item>
-
-    <tab-list-item label="BRP gegevens">
+    <tab-list-item label="Persoonsgegevens">
       <template #default="{ setError, setLoading }">
         <brp-gegevens
           :internalKlantId="internalKlantId"
@@ -22,6 +17,7 @@
           @loading="setLoading"
           @error="setError"
         />
+        <klant-details :internalKlantId="internalKlantId" @error="setError" />
       </template>
     </tab-list-item>
 

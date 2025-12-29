@@ -1,19 +1,8 @@
 <template>
   <back-link />
-  <utrecht-heading :level="1">Bedrijfsinformatie</utrecht-heading>
+  <utrecht-heading :level="1">{{ bedrijf?.bedrijfsnaam }}</utrecht-heading>
   <tab-list v-model="currentTab">
-    <tab-list-item label="Contactgegevens">
-      <template #default="{ setError, setLoading, setDisabled }">
-        <klant-details
-          :internalKlantId="internalKlantId"
-          @no-data="setDisabled(true)"
-          @load="setDisabled(false)"
-          @loading="setLoading"
-          @error="setError"
-        />
-      </template>
-    </tab-list-item>
-    <tab-list-item label="KvK-gegevens">
+    <tab-list-item label="Bedrijfsgegevens">
       <template #default="{ setError, setLoading }">
         <handelsregister-gegevens
           :internalKlantId="internalKlantId"
@@ -21,6 +10,7 @@
           @loading="setLoading"
           @error="setError"
         />
+        <klant-details :internalKlantId="internalKlantId" @error="setError" />
       </template>
     </tab-list-item>
 

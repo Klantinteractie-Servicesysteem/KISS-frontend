@@ -5,6 +5,8 @@
 ### New features
 
 - For Kennisbank users: restricted search fields can be filtered.
+- UI updates make Persoon/Bedrijf more clearly identifiable. #1201
+- Added warning box: BRP data may only be used for verification. #1125
 
 ## v1.4.0
 
