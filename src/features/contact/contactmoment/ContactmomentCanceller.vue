@@ -3,8 +3,8 @@
     :dialog="cancelDialog"
     message="Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens worden verwijderd."
     :warning="warningMessage"
-    cancel-message="Nee"
-    confirm-message="Ja"
+    cancel-message="Contactmoment Behouden"
+    confirm-message="Contactmoment Annuleren"
   />
 
   <utrecht-button

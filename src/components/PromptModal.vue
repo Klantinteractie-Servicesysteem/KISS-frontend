@@ -12,21 +12,21 @@
       <menu>
         <li>
           <utrecht-button
-            value="cancel"
-            type="submit"
-            appearance="secondary-action-button"
-          >
-            {{ cancelMessage }}
-          </utrecht-button>
-        </li>
-        <li>
-          <utrecht-button
             type="submit"
             value="confirm"
             appearance="primary-action-button"
             v-focus
           >
             {{ confirmMessage }}
+          </utrecht-button>
+        </li>
+        <li>
+          <utrecht-button
+            value="cancel"
+            type="submit"
+            appearance="secondary-action-button"
+          >
+            {{ cancelMessage }}
           </utrecht-button>
         </li>
       </menu>
@@ -88,7 +88,7 @@ whenever(
 menu {
   display: flex;
   gap: var(--spacing-default);
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 form {
@@ -106,7 +106,7 @@ dialog {
 }
 
 .warning-color {
-  color: var(--color-error);
+  color: red;
   white-space: pre-line; // To enable use of newline character in strings.
 }
 
