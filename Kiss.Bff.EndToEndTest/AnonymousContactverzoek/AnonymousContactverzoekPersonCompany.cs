@@ -36,7 +36,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
@@ -88,7 +88,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
@@ -143,7 +143,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactverzoeken tab to view the created contact request");
 
@@ -272,8 +272,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.Company_KvknummerSearchButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("user is navigated to Bedrijfinformatie page of Prijsknaller B.V.");
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
+            await Step("user is navigated to Bedrijfsgegevens page of Prijsknaller B.V.");
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactverzoeken tab to view the created contact request");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoeken" }).ClickAsync();
@@ -312,7 +312,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("Then user is navigated to Persoonsinformatie page");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
             await Step("And clicks on Contactverzoek-pane");
             await Page.CreateNewcontactVerzoekAsync();
