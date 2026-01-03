@@ -241,8 +241,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.Company_KvknummerSearchButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("user is navigated to Bedrijfsinformatie page of Prijsknaller B.V.");
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
+            await Step("user is navigated to Bedrijfsgegevens page of Prijsknaller B.V.");
+
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactmoment tab to view the created contact moment");
             await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactmomenten" }).ClickAsync();
