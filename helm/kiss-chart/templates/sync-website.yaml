@@ -1,5 +1,6 @@
 {{ if $.Values.settings.syncJobs.website -}}
 {{ range $index, $websiteJob := $.Values.settings.syncJobs.website }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -17,7 +18,7 @@ spec:
       {{- end }}
       labels:
         {{- include "kiss-frontend.labels" $ | nindent 8 }}
-        {{- with $.Values.podAnnotations }}
+        {{- with $.Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
