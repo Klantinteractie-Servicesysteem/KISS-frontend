@@ -1496,6 +1496,8 @@
                     "type": "string"
                   },
                   "ttlSecondsAfterFinished": {
+                    "default": 600,
+                    "description": "time in seconds to keep the website job in the kubernetes history. defaults to 10 minutes.",
                     "required": [],
                     "type": "integer"
                   }
