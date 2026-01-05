@@ -7,6 +7,7 @@
 - For Kennisbank users: restricted search fields can be filtered.
 - UI updates make Persoon/Bedrijf more clearly identifiable. #1201
 - Added warning box: BRP data may only be used for verification. #1125
+- Added workaround for open-klant bug to allow contactmomenten with more than 7 questions. #1340
 
 ## v1.4.0
 
