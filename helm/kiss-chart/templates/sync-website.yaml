@@ -9,7 +9,11 @@ metadata:
     {{- include "kiss-frontend.labels" $ | nindent 4 }}
 spec:
   backoffLimit: {{ default 1 $websiteJob.backoffLimit }}
-  ttlSecondsAfterFinished: {{ default 0 $websiteJob.ttlSecondsAfterFinished }}
+  {{- if hasKey $websiteJob "ttlSecondsAfterFinished" }}
+  ttlSecondsAfterFinished: {{ $websiteJob.ttlSecondsAfterFinished }}
+  {{- else }}
+  ttlSecondsAfterFinished: 600
+  {{- end }}
   template:
     metadata:
       annotations:
