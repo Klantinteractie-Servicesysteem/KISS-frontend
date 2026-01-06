@@ -1,7 +1,6 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-RUN apk --no-cache add ca-certificates
 WORKDIR /app
 EXPOSE 8080
 
@@ -48,8 +47,6 @@ RUN dotnet publish "Kiss.Bff.csproj" -c Release -o /app/publish /p:UseAppHost=fa
 
 FROM base AS final
 WORKDIR /app
-COPY certificates /usr/local/share/ca-certificates
-RUN update-ca-certificates
 COPY --from=dotnetpublish /app/publish .
 COPY --from=frontendbuild /app/dist ./wwwroot
 ENTRYPOINT ["dotnet", "Kiss.Bff.dll"]
