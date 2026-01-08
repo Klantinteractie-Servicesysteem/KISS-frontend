@@ -4,8 +4,8 @@
       <slot>
         <paragraph v-if="message">
           {{ message }}
-        </paragraph></slot
-      >
+        </paragraph>
+      </slot>
       <menu>
         <li>
           <utrecht-button
