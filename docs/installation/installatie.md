@@ -9,4 +9,4 @@ Als je KISS installeert gaan we er vanuit dat je [de bijbehorende helm chart](ht
 
 ## KISS-Elastic-Sync
 
-KISS-Elastic-Sync is het component dat zorgt voor het creëren van de benodigde engines in een Elasticsearch-installatie, zodat gekoppelde bronnen eenvoudig door KISS doorzoekbaar zijn. Het ondersteunt zowel websites als gestructureerde bronnen door respectievelijk een crawler en een index te gebruiken. Deze component wordt meegeïnstalleerd met de helm chart van KISS, en aangeroepen door middel van cron jobs.
+KISS-Elastic-Sync is het component dat zorgt voor het creëren van de benodigde engines in een Elasticsearch-installatie, zodat gekoppelde bronnen eenvoudig door KISS doorzoekbaar zijn. Het ondersteunt zowel websites als gestructureerde bronnen door respectievelijk een crawler en een index te gebruiken. Dit component wordt meegeïnstalleerd met de helm chart van KISS, en aangeroepen door middel van cron jobs.
