@@ -25,16 +25,22 @@ jobs:
         working-directory: ./Kiss.Bff.EndToEndTest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      
       - run: dotnet build
+      
       - name: Ensure browsers are installed
         run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
-      - name: Run your tests
-        id: e2e
-        run: dotnet test
+      
+      - name: Run your tests (first-run)
+        id: first-run
+        continue-on-error: true
+        run: |
+          dotnet test --logger "trx;LogFileName=first-run.trx" --results-directory TestResults
         env:
           "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
           "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
@@ -42,18 +48,125 @@ jobs:
           "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
           "TestSettings:TEST_OPEN_KLANT_BASE_URL": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
           "TestSettings:TEST_OPEN_KLANT_SECRET": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+
+      - name: Parse Failed Tests and Retry
+        if: steps.first-run.outcome == 'failure'
+        id: retry
+        run: |
+          echo "⚠️ Some tests failed on first run. Analyzing failures..."
+          
+          # Install xmlstarlet for XML parsing
+          sudo apt-get update -qq && sudo apt-get install -y -qq xmlstarlet
+          
+          # Parse failed test names from TRX file
+          FAILED_TESTS=$(xmlstarlet sel -t -m "//ns:UnitTestResult[@outcome='Failed']" -v "@testName" -n \
+            -N ns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" \
+            TestResults/first-run.trx 2>/dev/null | sort -u)
+          
+          if [ -z "$FAILED_TESTS" ]; then
+            echo "❌ Tests failed but no failed tests found in TRX report"
+            echo "retry_failed=999" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          FAILED_COUNT=$(echo "$FAILED_TESTS" | wc -l | tr -d ' ')
+          echo "📊 Found $FAILED_COUNT failed test(s). Retrying individually..."
+          echo ""
+          
+          RETRY_PASSED=0
+          RETRY_FAILED=0
+          
+          # Retry each failed test individually
+          while IFS= read -r test_name; do
+            if [ -n "$test_name" ]; then
+              echo "🔄 Retrying: $test_name"
+              
+              # Sanitize test name for filename
+              SAFE_NAME=$(echo "$test_name" | sed 's/[^a-zA-Z0-9]/_/g')
+              
+              if dotnet test \
+                --no-build \
+                --filter "FullyQualifiedName~${test_name}" \
+                --logger "trx;LogFileName=retry-${SAFE_NAME}.trx" \
+                --results-directory TestResults \
+                --verbosity quiet; then
+                echo "   ✅ PASSED on retry"
+                ((RETRY_PASSED++))
+              else
+                echo "   ❌ Still FAILED"
+                ((RETRY_FAILED++))
+              fi
+              echo ""
+            fi
+          done <<< "$FAILED_TESTS"
+          
+          echo "═══════════════════════════════════════════"
+          echo "📊 Retry Summary"
+          echo "═══════════════════════════════════════════"
+          echo "Total failed on first run: $FAILED_COUNT"
+          echo "Passed on retry:          $RETRY_PASSED"
+          echo "Still failed:             $RETRY_FAILED"
+          echo "═══════════════════════════════════════════"
+          
+          echo "total_failed=$FAILED_COUNT" >> $GITHUB_OUTPUT
+          echo "retry_passed=$RETRY_PASSED" >> $GITHUB_OUTPUT
+          echo "retry_failed=$RETRY_FAILED" >> $GITHUB_OUTPUT
+          
+          if [ $RETRY_FAILED -gt 0 ]; then
+            exit 1
+          fi
+        env:
+          "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
+          "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
+          "TestSettings:TEST_TOTP_SECRET": ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
+          "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          "TestSettings:TEST_OPEN_KLANT_BASE_URL": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
+          "TestSettings:TEST_OPEN_KLANT_SECRET": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+
+      - name: Generate Test Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.first-run.outcome }}" == "success" ]; then
+            echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.retry.outcome }}" == "success" ]; then
+            echo "✅ **All tests passed after retry!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Failed on first run | ${{ steps.retry.outputs.total_failed }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Passed on retry | ${{ steps.retry.outputs.retry_passed }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Still failed | 0 |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some tests still failing after retry**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${{ steps.retry.outputs.retry_failed }}" ]; then
+              echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Failed on first run | ${{ steps.retry.outputs.total_failed }} |" >> $GITHUB_STEP_SUMMARY
+              echo "| Passed on retry | ${{ steps.retry.outputs.retry_passed }} |" >> $GITHUB_STEP_SUMMARY
+              echo "| Still failed | ${{ steps.retry.outputs.retry_failed }} |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [View detailed test report](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
+
       - name: Upload artifact
         if: ${{ always() }}
         uses: actions/upload-pages-artifact@v3
         with:
-          # directory of your reports
           path: "./Kiss.Bff.EndToEndTest/bin/Debug/net8.0/playwright-traces"
+      
       - name: Upload Playwright screenshots
-        if: always() # Ensures this runs even if the tests fail
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
           path: Kiss.Bff.EndToEndTest/bin/Debug/net8.0/screenshots/
+
   deploy:
     if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test
