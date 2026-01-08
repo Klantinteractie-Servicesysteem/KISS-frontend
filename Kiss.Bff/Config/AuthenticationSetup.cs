@@ -14,6 +14,7 @@ namespace Kiss
     public static class Policies
     {
         public const string RedactiePolicy = "RedactiePolicy";
+        public const string BeheerderPolicy = "BeheerderPolicy";
         public const string ExternSysteemPolicy = "ExternSysteemPolicy";
         public const string KcmOrRedactiePolicy = "KcmOrRedactiePolicy";
         public const string KennisbankPolicy = "KennisbankPolicy";
@@ -89,6 +90,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate bool IsRedacteur(ClaimsPrincipal? user);
 
+    public delegate bool IsBeheerder(ClaimsPrincipal? user);
+
     public delegate bool IsKcm(ClaimsPrincipal? user);
 
     public delegate bool IsKennisbank(ClaimsPrincipal? user);
@@ -102,6 +105,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public string ClientSecret { get; set; } = "";
         public string? KlantcontactmedewerkerRole { get; set; }
         public string? RedacteurRole { get; set; }
+        public string? BeheerderRole { get; set; }
         public string? KennisbankRole { get; set; }
         public string? MedewerkerIdentificatieClaimType { get; set; }
         public int? TruncateMedewerkerIdentificatie { get; set; }
@@ -149,6 +153,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
                 ? "Redacteur"
                 : authOptions.RedacteurRole;
+            var beheerderRole = string.IsNullOrWhiteSpace(authOptions.BeheerderRole)
+                ? "Beheerder"
+                : authOptions.BeheerderRole;
             var kennisBankRole = string.IsNullOrWhiteSpace(authOptions.KennisbankRole)
                 ? "Kennisbank"
                 : authOptions.KennisbankRole;
@@ -158,6 +165,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
+            services.AddSingleton<IsBeheerder>(user => user?.IsInRole(beheerderRole) ?? false);
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
@@ -272,6 +280,11 @@ namespace Microsoft.Extensions.DependencyInjection
                         .RequireRole(redacteurRole)
                         .Build());
 
+                options.AddPolicy(Policies.BeheerderPolicy,
+                    new AuthorizationPolicyBuilder()
+                        .RequireRole(beheerderRole)
+                        .Build());
+
                 options.AddPolicy(Policies.KcmOrKennisbankPolicy,
                     new AuthorizationPolicyBuilder()
                         .RequireRole(klantcontactmedewerkerRole, kennisBankRole)
@@ -355,6 +368,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var email = httpContext.User.GetEmail();
             var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
+            var isBeheerder = httpContext.RequestServices.GetService<IsBeheerder>()?.Invoke(httpContext.User) ?? false;
             var isKennisbank = httpContext.RequestServices.GetService<IsKennisbank>()?.Invoke(httpContext.User) ?? false;
 
             var organisatieIds = httpContext.RequestServices
@@ -363,7 +377,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                      ?.Split('/')
                                  ?? Array.Empty<string>();
 
-            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isKennisbank, organisatieIds);
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isBeheerder, isKennisbank, organisatieIds);
         }
 
 
@@ -426,6 +440,7 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsLoggedIn,
             bool IsKcm,
             bool IsRedacteur,
+            bool IsBeheerder,
             bool IsKennisbank,
             IReadOnlyList<string> OrganisatieIds);
     }

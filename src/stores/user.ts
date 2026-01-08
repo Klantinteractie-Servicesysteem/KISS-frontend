@@ -6,6 +6,7 @@ import { computed } from "vue";
 export type User = {
   isLoggedIn: boolean;
   isRedacteur: boolean;
+  isBeheerder: boolean;
   isKcm: boolean;
   isKennisbank: boolean;
   email: string;

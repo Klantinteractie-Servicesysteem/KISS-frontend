@@ -6,6 +6,7 @@
         userStore.user.isLoggedIn &&
         !userStore.user.isKcm &&
         !userStore.user.isRedacteur &&
+        !userStore.user.isBeheerder &&
         !userStore.user.isKennisbank
       "
     >
