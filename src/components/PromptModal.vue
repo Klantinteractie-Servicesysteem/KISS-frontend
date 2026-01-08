@@ -1,8 +1,8 @@
 <template>
   <dialog ref="dialogRef" @close="onClose">
     <form method="dialog">
-      <slot
-        ><paragraph v-if="message">
+      <slot>
+        <paragraph v-if="message">
           {{ message }}
         </paragraph></slot
       >
@@ -48,10 +48,6 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  warning: {
-    type: String,
-    default: "",
-  },
   cancelMessage: {
     type: String,
     default: "Hier blijven",
@@ -77,7 +73,7 @@ whenever(
   () => {
     dialogRef.value?.showModal();
   },
-  { immediate: true },
+  { immediate: true }
 );
 </script>
 
