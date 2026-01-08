@@ -9,21 +9,21 @@
       <menu>
         <li>
           <utrecht-button
+            value="cancel"
+            type="submit"
+            appearance="secondary-action-button"
+          >
+            {{ cancelMessage }}
+          </utrecht-button>
+        </li>
+        <li>
+          <utrecht-button
             type="submit"
             value="confirm"
             appearance="primary-action-button"
             v-focus
           >
             {{ confirmMessage }}
-          </utrecht-button>
-        </li>
-        <li>
-          <utrecht-button
-            value="cancel"
-            type="submit"
-            appearance="secondary-action-button"
-          >
-            {{ cancelMessage }}
           </utrecht-button>
         </li>
       </menu>
