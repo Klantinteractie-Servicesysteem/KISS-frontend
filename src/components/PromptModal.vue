@@ -1,14 +1,11 @@
 <template>
   <dialog ref="dialogRef" @close="onClose">
     <form method="dialog">
-      <slot>
-        <paragraph v-if="message">
+      <slot
+        ><paragraph v-if="message">
           {{ message }}
-        </paragraph>
-        <paragraph class="warning-color" v-if="warning">
-          {{ warning }}
-        </paragraph>
-      </slot>
+        </paragraph></slot
+      >
       <menu>
         <li>
           <utrecht-button
@@ -80,7 +77,7 @@ whenever(
   () => {
     dialogRef.value?.showModal();
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
@@ -103,11 +100,6 @@ dialog {
   border: 1px solid var(--color-primary);
   min-width: 50%;
   max-width: 70%;
-}
-
-.warning-color {
-  color: red;
-  white-space: pre-line; // To enable use of newline character in strings.
 }
 
 ::backdrop {
