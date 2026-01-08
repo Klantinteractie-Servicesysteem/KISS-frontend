@@ -10,7 +10,7 @@
 - Added workaround for open-klant bug to allow contactmomenten with more than 7 questions. #1340
 - New version of [the helm chart](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/tree/main/helm/kiss-chart).
 
-### Maintenance
+### Warnings and deployment notes
 
 N.B: the new version of the helm chart uses the values file to set up environment values. This is a breaking change from the previous version, where you needed to set up configmaps / secrets yourself.
 
