@@ -8,6 +8,11 @@
 - UI updates make Persoon/Bedrijf more clearly identifiable. #1201
 - Added warning box: BRP data may only be used for verification. #1125
 - Added workaround for open-klant bug to allow contactmomenten with more than 7 questions. #1340
+- New version of [the helm chart](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/tree/main/helm/kiss-chart).
+
+### Maintenance
+
+N.B: the new version of the helm chart uses the values file to set up environment values. This is a breaking change from the previous version, where you needed to set up configmaps / secrets yourself.
 
 ## v1.4.0
 
@@ -23,7 +28,7 @@
 
 ### Maintenance
 
-Let op, REGISTERS__N__ZAAKSYSTEEM_BASE_URL is deprecated. Zie het installatiehandleiding voor de gewijzigde ZAAKSYSTEEM Environment Variabelen.
+Let op, `REGISTERS__N__ZAAKSYSTEEM_BASE_URL` is deprecated. Zie het installatiehandleiding voor de gewijzigde ZAAKSYSTEEM Environment Variabelen.
 
 ## v1.3.1
 
