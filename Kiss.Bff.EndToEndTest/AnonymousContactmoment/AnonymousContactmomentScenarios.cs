@@ -69,9 +69,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Page.GetGlobalSearch().PressAsync("Enter");
 
-            await Step("Then 8 items should appear");
+            await Step("Then 9 items should appear");
 
-            await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(8);
+            await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(9);
 
             await Step("And each item has a label Smoelenboek in the first column");
 
