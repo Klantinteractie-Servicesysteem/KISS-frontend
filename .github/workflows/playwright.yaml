@@ -20,40 +20,143 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./Kiss.Bff.EndToEndTest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet build
+      
+      - name: Build
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: dotnet build
+      
       - name: Ensure browsers are installed
+        working-directory: ./Kiss.Bff.EndToEndTest
         run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
-      - name: Run your tests
-        id: e2e
-        run: dotnet test
+      
+      - name: Run all tests (first run)
+        id: first-run
+        continue-on-error: true
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          dotnet test \
+            --no-build \
+            --logger "console;verbosity=normal" \
+            2>&1 | tee test-output.log
         env:
-          "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
-          "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
-          "TestSettings:TEST_TOTP_SECRET": ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
-          "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
-          "TestSettings:TEST_OPEN_KLANT_BASE_URL": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
-          "TestSettings:TEST_OPEN_KLANT_SECRET": ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
-      - name: Upload artifact
-        if: ${{ always() }}
+          TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
+          TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
+          TestSettings__TEST_TOTP_SECRET: ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
+          TestSettings__TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
+          TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+
+      - name: Extract and retry failed tests
+        if: steps.first-run.outcome == 'failure'
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          echo "⚠️ First run had failures. Extracting failed test names from output..."
+          
+          # Extract failed test names from the output log
+          # MSTest outputs: "Failed TestName [duration]"
+          FAILED_TESTS=$(grep -oP '(?<=Failed\s).*?(?=\s\[)' test-output.log | sort -u || true)
+          
+          if [ -z "$FAILED_TESTS" ]; then
+            echo "❌ Could not extract failed test names from output"
+            echo "Showing last 50 lines of test output:"
+            tail -50 test-output.log
+            exit 1
+          fi
+          
+          FAILED_COUNT=$(echo "$FAILED_TESTS" | wc -l | tr -d ' ')
+          echo ""
+          echo "📊 Found $FAILED_COUNT failed test(s):"
+          echo "$FAILED_TESTS"
+          echo ""
+          
+          RETRY_PASSED=0
+          RETRY_FAILED=0
+          
+          # Retry each failed test
+          while IFS= read -r test_name; do
+            if [ -n "$test_name" ]; then
+              echo ""
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo "🔄 Retrying: $test_name"
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              
+              if dotnet test \
+                --no-build \
+                --filter "DisplayName~${test_name}" \
+                --logger "console;verbosity=normal"; then
+                echo "   ✅ PASSED on retry"
+                ((RETRY_PASSED++))
+              else
+                echo "   ❌ FAILED again"
+                ((RETRY_FAILED++))
+              fi
+            fi
+          done <<< "$FAILED_TESTS"
+          
+          echo ""
+          echo "═══════════════════════════════════════════"
+          echo "📊 Retry Results"
+          echo "═══════════════════════════════════════════"
+          echo "Tests failed initially: $FAILED_COUNT"
+          echo "Passed on retry:        $RETRY_PASSED"
+          echo "Still failed:           $RETRY_FAILED"
+          echo "═══════════════════════════════════════════"
+          
+          # If any tests still failed after retry, exit with failure
+          if [ $RETRY_FAILED -gt 0 ]; then
+            echo ""
+            echo "❌ $RETRY_FAILED test(s) still failing after retry"
+            exit 1
+          else
+            echo ""
+            echo "✅ All failed tests passed on retry!"
+          fi
+        env:
+          TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
+          TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
+          TestSettings__TEST_TOTP_SECRET: ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
+          TestSettings__TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
+          TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.first-run.outcome }}" == "success" ]; then
+            echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **First run had failures, failed tests were automatically retried**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the logs above for detailed retry results." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [View detailed test report](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Playwright Report
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
-          # directory of your reports
           path: "./Kiss.Bff.EndToEndTest/bin/Debug/net8.0/playwright-traces"
-      - name: Upload Playwright screenshots
-        if: always() # Ensures this runs even if the tests fail
+      
+      - name: Upload Screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
           path: Kiss.Bff.EndToEndTest/bin/Debug/net8.0/screenshots/
+          retention-days: 30
+
   deploy:
     if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test

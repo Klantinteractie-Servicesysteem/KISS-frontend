@@ -71,8 +71,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("Then user is navigated to bedrijfsinformatie page");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Test Stichting Bolderbast" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
+            await Expect(Page.Locator("h1").Filter(new() { HasText = "Test Stichting Bolderbast" })).ToBeVisibleAsync();
 
         }
 
@@ -131,8 +131,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("Then user is navigated to bedrijfinformatie page of Test Stichting Bolderbast");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Test Stichting Bolderbast" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
+            await Expect(Page.Locator("h1").Filter(new() { HasText = "Test Stichting Bolderbast" })).ToBeVisibleAsync();
 
         }
 
@@ -194,8 +194,8 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("Then user is navigated to bedrijfinformatie page of Test BV Donald Nevenvestiging");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Test BV Donald Nevenvestiging" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
+            await Expect(Page.Locator("h1").Filter(new() { HasText = "Test BV Donald Nevenvestiging" })).ToBeVisibleAsync();
 
         }
 
@@ -227,6 +227,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Expect(Page.GetByRole(AriaRole.Caption)).ToHaveTextAsync("Geen resultaten gevonden voor '12345678'.");
         }
+
         [TestMethod("8. Searching a company by postcode and huisnummer")]
         public async Task SearchByPostcodeAndHuisnummerAsync()
         {
@@ -251,10 +252,10 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Page.Company_PostcodeHuisnummerSearchButton().ClickAsync();
 
-            await Step("Then user is navigated to Bedrijfinformatie page of Test BV Donald Nevenvestiging");
+            await Step("Then user is navigated to Bedrijfsgegevens page of Test BV Donald Nevenvestiging");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Bedrijfsinformatie" })).ToBeVisibleAsync();
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Test BV Donald Nevenvestiging" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
+            await Expect(Page.Locator("h1").Filter(new() { HasText = "Test BV Donald Nevenvestiging" })).ToBeVisibleAsync();
 
         }
 

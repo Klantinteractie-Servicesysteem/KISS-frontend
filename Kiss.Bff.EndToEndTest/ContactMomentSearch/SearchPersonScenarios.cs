@@ -34,7 +34,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
 
             await Step("Then user is navigated to Persoonsinformatie page ");
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
         }
 
@@ -86,8 +86,7 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.PersonenThird_SearchButton().ClickAsync();
 
             await Step("Then user is navigated to Persoonsinformatie page");
-
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Persoonsinformatie" })).ToHaveTextAsync("Persoonsinformatie");
+            await Expect(Page.GetByText("Persoonsgegevens")).ToBeVisibleAsync();
 
         }
 
