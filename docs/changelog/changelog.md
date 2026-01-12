@@ -4,6 +4,12 @@
 
 ### New features
 
+- Additional warning text is displayed when cancelling multiple questions. #1352
+
+## v2.0.0
+
+### New features
+
 - For Kennisbank users: restricted search fields can be filtered.
 - UI updates make Persoon/Bedrijf more clearly identifiable. #1201
 - Added warning box: BRP data may only be used for verification. #1125
