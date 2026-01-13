@@ -36,15 +36,16 @@ jobs:
         working-directory: ./Kiss.Bff.EndToEndTest
         run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
       
-      - name: Run all tests (first run)
+      - name: Run all tests (first attempt)
         id: first-run
-        continue-on-error: true
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
-          dotnet test \
-            --no-build \
-            --logger "console;verbosity=normal" \
-            2>&1 | tee test-output.log
+          set +e
+          dotnet test --no-build --logger "console;verbosity=detailed" 2>&1 | tee test-output.log
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          echo "First run exit code: $EXIT_CODE"
+          exit 0
         env:
           TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
           TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
@@ -53,25 +54,32 @@ jobs:
           TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
 
-      - name: Extract and retry failed tests
-        if: steps.first-run.outcome == 'failure'
+      - name: Extract and retry only failed tests
+        if: steps.first-run.outputs.exit_code != '0'
+        id: retry-run
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
-          echo "⚠️ First run had failures. Extracting failed test names from output..."
+          echo "════════════════════════════════════════════════════"
+          echo "⚠️  FIRST RUN FAILED - Extracting failed tests..."
+          echo "════════════════════════════════════════════════════"
+          echo ""
           
-          # Extract failed test names from the output log
-          # MSTest outputs: "Failed TestName [duration]"
-          FAILED_TESTS=$(grep -oP '(?<=Failed\s).*?(?=\s\[)' test-output.log | sort -u || true)
+          # Extract failed test names from MSTest output
+          # MSTest format: "  Failed TestMethodName [duration]"
+          FAILED_TESTS=$(grep "^\s*Failed " test-output.log | sed 's/^\s*Failed //' | sed 's/ \[.*//' | sort -u)
           
           if [ -z "$FAILED_TESTS" ]; then
-            echo "❌ Could not extract failed test names from output"
-            echo "Showing last 50 lines of test output:"
-            tail -50 test-output.log
-            exit 1
+            echo "❌ Could not extract failed test names"
+            echo ""
+            echo "=== Searching for test failures in output ==="
+            grep -E "(Failed|Error|Exception)" test-output.log | head -30
+            echo ""
+            echo "⚠️  Falling back to re-running ALL tests..."
+            dotnet test --no-build --logger "console;verbosity=normal"
+            exit $?
           fi
           
           FAILED_COUNT=$(echo "$FAILED_TESTS" | wc -l | tr -d ' ')
-          echo ""
           echo "📊 Found $FAILED_COUNT failed test(s):"
           echo "$FAILED_TESTS"
           echo ""
@@ -79,7 +87,7 @@ jobs:
           RETRY_PASSED=0
           RETRY_FAILED=0
           
-          # Retry each failed test
+          # Retry each failed test individually
           while IFS= read -r test_name; do
             if [ -n "$test_name" ]; then
               echo ""
@@ -87,10 +95,16 @@ jobs:
               echo "🔄 Retrying: $test_name"
               echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               
-              if dotnet test \
+              # Try to run the specific test
+              set +e
+              dotnet test \
                 --no-build \
-                --filter "DisplayName~${test_name}" \
-                --logger "console;verbosity=normal"; then
+                --filter "FullyQualifiedName~${test_name}" \
+                --logger "console;verbosity=normal"
+              TEST_RESULT=$?
+              set -e
+              
+              if [ $TEST_RESULT -eq 0 ]; then
                 echo "   ✅ PASSED on retry"
                 ((RETRY_PASSED++))
               else
@@ -102,14 +116,19 @@ jobs:
           
           echo ""
           echo "═══════════════════════════════════════════"
-          echo "📊 Retry Results"
+          echo "📊 Retry Summary"
           echo "═══════════════════════════════════════════"
           echo "Tests failed initially: $FAILED_COUNT"
           echo "Passed on retry:        $RETRY_PASSED"
           echo "Still failed:           $RETRY_FAILED"
           echo "═══════════════════════════════════════════"
           
-          # If any tests still failed after retry, exit with failure
+          # Save outputs for summary
+          echo "total_failed=$FAILED_COUNT" >> $GITHUB_OUTPUT
+          echo "retry_passed=$RETRY_PASSED" >> $GITHUB_OUTPUT
+          echo "retry_failed=$RETRY_FAILED" >> $GITHUB_OUTPUT
+          
+          # Exit with failure if any tests still failed
           if [ $RETRY_FAILED -gt 0 ]; then
             echo ""
             echo "❌ $RETRY_FAILED test(s) still failing after retry"
@@ -117,6 +136,7 @@ jobs:
           else
             echo ""
             echo "✅ All failed tests passed on retry!"
+            exit 0
           fi
         env:
           TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
@@ -129,19 +149,39 @@ jobs:
       - name: Generate Summary
         if: always()
         run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.first-run.outcome }}" == "success" ]; then
+          FIRST_EXIT="${{ steps.first-run.outputs.exit_code }}"
+          
+          if [ "$FIRST_EXIT" == "0" ]; then
             echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ **First run had failures, failed tests were automatically retried**" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **First run had failures**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Check the logs above for detailed retry results." >> $GITHUB_STEP_SUMMARY
+            
+            TOTAL="${{ steps.retry-run.outputs.total_failed }}"
+            PASSED="${{ steps.retry-run.outputs.retry_passed }}"
+            FAILED="${{ steps.retry-run.outputs.retry_failed }}"
+            
+            if [ -n "$TOTAL" ] && [ "$TOTAL" != "0" ]; then
+              echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Failed on first run | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+              echo "| Passed on retry | $PASSED |" >> $GITHUB_STEP_SUMMARY
+              echo "| Still failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              if [ "$FAILED" == "0" ]; then
+                echo "✅ **All failed tests passed on retry!**" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ **Some tests still failing after retry**" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📊 [View detailed test report](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [View Playwright Traces](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Playwright Report
         if: always()
