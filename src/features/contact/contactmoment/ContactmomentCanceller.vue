@@ -8,9 +8,7 @@
       >Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens
       worden verwijderd.</utrecht-paragraph
     >
-    <application-message
-      v-if="vragen && vragen.length > 1"
-      message-type="warning"
+    <application-message v-if="vragen && vragen.length > 1" message-type="error"
       ><p>
         Let op: Dit contactmoment bevat meerdere vragen. Als je het
         contactmoment annuleert worden alle vragen automatisch afgebroken.<br />
@@ -58,9 +56,3 @@ cancelDialog.onConfirm(() => {
   navigateToPersonen();
 });
 </script>
-
-<style lang="scss" scoped>
-.warning-color {
-  color: var(--color-warning-message);
-}
-</style>
