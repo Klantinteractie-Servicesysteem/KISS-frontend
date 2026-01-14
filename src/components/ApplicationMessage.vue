@@ -40,12 +40,14 @@ article {
 .error {
   background-color: var(--color-error);
   border-color: var(--color-black);
+
   --utrecht-paragraph-color: currentcolor;
 }
 
 .confirm {
   background-color: var(--color-accent);
   border-color: var(--color-black);
+
   --utrecht-paragraph-color: currentcolor;
 }
 
