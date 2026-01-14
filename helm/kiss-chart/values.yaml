@@ -694,17 +694,13 @@ settings:
     # items:
     #   type: object
     #   properties:
-    #     backoffLimit:
+    #     historyLimit:
     #       type: integer
-    #     ttlSecondsAfterFinished:
-    #       description: time in seconds to keep the website job in the kubernetes history. defaults to 10 minutes.
-    #       default: 600
-    #       type: integer
-    #     restartPolicy:
-    #       type: string
     #     domain:
     #       type: string
     #       format: uri
+    #     schedule:
+    #       type: string
     #     sourceName:
     #       type: string
     #     resources:

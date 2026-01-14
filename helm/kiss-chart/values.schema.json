@@ -1474,32 +1474,26 @@
               "description": "website sync jobs configuration",
               "items": {
                 "properties": {
-                  "backoffLimit": {
-                    "required": [],
-                    "type": "integer"
-                  },
                   "domain": {
                     "format": "uri",
                     "required": [],
                     "type": "string"
                   },
+                  "historyLimit": {
+                    "required": [],
+                    "type": "integer"
+                  },
                   "resources": {
                     "required": [],
                     "type": "object"
                   },
-                  "restartPolicy": {
+                  "schedule": {
                     "required": [],
                     "type": "string"
                   },
                   "sourceName": {
                     "required": [],
                     "type": "string"
-                  },
-                  "ttlSecondsAfterFinished": {
-                    "default": 600,
-                    "description": "time in seconds to keep the website job in the kubernetes history. defaults to 10 minutes.",
-                    "required": [],
-                    "type": "integer"
                   }
                 },
                 "required": [],
