@@ -67,7 +67,6 @@ article {
 }
 
 p {
-  color: var(--color-white);
   margin-block-end: var(--spacing-default);
   flex: 1;
 }
