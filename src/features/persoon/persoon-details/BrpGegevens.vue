@@ -6,11 +6,13 @@
       messageType="error"
       :message="'Er is een fout opgetreden'"
     />
-    <utrecht-paragraph class="attention" v-if="persoon">
-      Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
-      identiteit van de inwoner.<br />
-      Verstrek nooit de hier getoonde gegevens.
-    </utrecht-paragraph>
+    <application-message message-type="warning"
+      ><p>
+        Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
+        identiteit van de inwoner.<br />
+        Verstrek nooit de hier getoonde gegevens.
+      </p></application-message
+    >
     <dl v-if="persoon">
       <dt>Naam</dt>
       <dd>
@@ -80,13 +82,3 @@ watchEffect(() => persoon.value && emit("load", persoon.value));
 watchEffect(() => emit("loading", loading.value));
 watchEffect(() => emit("error", error.value));
 </script>
-
-<style lang="scss" scoped>
-.attention {
-  padding: var(--spacing-default);
-  border: 1px solid var(--color-attention);
-  outline-style: solid;
-  color: var(--color-attention);
-  background-color: var(--color-attention-background);
-}
-</style>
