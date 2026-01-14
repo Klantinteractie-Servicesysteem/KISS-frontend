@@ -53,6 +53,7 @@ article {
   background-color: var(--color-warning-background);
   color: var(--color-warning);
   border-color: var(--color-warning);
+
   --utrecht-paragraph-color: currentcolor;
 }
 
