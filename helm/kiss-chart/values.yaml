@@ -383,7 +383,6 @@ settings:
     objectTypeUrl: ""
     # @schema
     # required: true
-    # minLength: 1
     # @schema
     # -- (int) Version number of the Logbook Object Type.
     objectTypeVersion: 1
@@ -582,7 +581,6 @@ settings:
     #   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required
     #     properties:
     #       useEmail:
-    #         type: boolean
     #         const: true
     #     required: [useEmail]
     #   - allOf:
