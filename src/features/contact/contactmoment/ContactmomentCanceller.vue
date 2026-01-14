@@ -6,13 +6,18 @@
   >
     <utrecht-paragraph
       >Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens
-      worden verwijderd.</utrecht-paragraph
-    >
-    <utrecht-paragraph v-if="vragen && vragen.length > 1" class="warning-color"
-      >Let op: Dit contactmoment bevat meerdere vragen. Als je het contactmoment
-      annuleert worden alle vragen automatisch afgebroken.<br />
-      Het is mogelijk individuele vragen te verwijderen in het afrondscherm."
+      worden verwijderd.
     </utrecht-paragraph>
+    <application-message
+      v-if="vragen && vragen.length > 1"
+      message-type="error"
+    >
+      <utrecht-paragraph>
+        Let op: Dit contactmoment bevat meerdere vragen. Als je het
+        contactmoment annuleert worden alle vragen automatisch afgebroken.<br />
+        Het is mogelijk individuele vragen te verwijderen in het afrondscherm.
+      </utrecht-paragraph>
+    </application-message>
   </prompt-modal>
 
   <utrecht-button
@@ -34,6 +39,7 @@ import {
 import { useConfirmDialog } from "@vueuse/core";
 import PromptModal from "@/components/PromptModal.vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
+import ApplicationMessage from "@/components/ApplicationMessage.vue";
 
 const router = useRouter();
 const cancelDialog = useConfirmDialog();
@@ -53,9 +59,3 @@ cancelDialog.onConfirm(() => {
   navigateToPersonen();
 });
 </script>
-
-<style lang="scss" scoped>
-.warning-color {
-  color: var(--color-warning-message);
-}
-</style>
