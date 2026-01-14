@@ -33,7 +33,6 @@ onMounted(() => {
 article {
   color: var(--color-black);
   padding: var(--spacing-default);
-  border-radius: var(--radius-default);
   border-style: solid;
   border-width: 1px;
 }
@@ -60,6 +59,8 @@ article {
 .fade {
   visibility: hidden;
   opacity: 0;
-  transition: visibility 0s linear 2000ms, opacity 2000ms;
+  transition:
+    visibility 0s linear 2000ms,
+    opacity 2000ms;
 }
 </style>
