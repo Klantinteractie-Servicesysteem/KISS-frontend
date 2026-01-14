@@ -31,21 +31,30 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 article {
-  color: #fff;
+  color: var(--color-black);
   padding: var(--spacing-default);
   border-radius: var(--radius-default);
+  border-style: solid;
+  border-width: 1px;
 }
 
 .error {
   background-color: var(--color-error);
+  border-color: var(--color-black);
+  --utrecht-paragraph-color: currentcolor;
 }
 
 .confirm {
   background-color: var(--color-accent);
+  border-color: var(--color-black);
+  --utrecht-paragraph-color: currentcolor;
 }
 
 .warning {
-  background-color: var(--color-warning);
+  background-color: var(--color-warning-background);
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+  --utrecht-paragraph-color: currentcolor;
 }
 
 .fade {
