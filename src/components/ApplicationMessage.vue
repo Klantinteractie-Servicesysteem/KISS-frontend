@@ -35,28 +35,22 @@ article {
   padding: var(--spacing-default);
   border-style: solid;
   border-width: 1px;
+  border-color: currentcolor;
+
+  --utrecht-paragraph-color: currentcolor;
 }
 
 .error {
   background-color: var(--color-error);
-  border-color: var(--color-black);
-
-  --utrecht-paragraph-color: currentcolor;
 }
 
 .confirm {
   background-color: var(--color-accent);
-  border-color: var(--color-black);
-
-  --utrecht-paragraph-color: currentcolor;
 }
 
 .warning {
   background-color: var(--color-warning-background);
   color: var(--color-warning);
-  border-color: var(--color-warning);
-
-  --utrecht-paragraph-color: currentcolor;
 }
 
 .fade {

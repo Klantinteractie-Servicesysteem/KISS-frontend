@@ -6,13 +6,13 @@
       messageType="error"
       :message="'Er is een fout opgetreden'"
     />
-    <application-message message-type="warning"
-      ><p>
+    <application-message message-type="warning">
+      <utrecht-paragraph>
         Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
         identiteit van de inwoner.<br />
         Verstrek nooit de hier getoonde gegevens.
-      </p></application-message
-    >
+      </utrecht-paragraph>
+    </application-message>
     <dl v-if="persoon">
       <dt>Naam</dt>
       <dd>

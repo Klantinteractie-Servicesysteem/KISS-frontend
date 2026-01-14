@@ -6,15 +6,18 @@
   >
     <utrecht-paragraph
       >Weet je zeker dat je het contactmoment wilt annuleren? Alle gegevens
-      worden verwijderd.</utrecht-paragraph
+      worden verwijderd.
+    </utrecht-paragraph>
+    <application-message
+      v-if="vragen && vragen.length > 1"
+      message-type="error"
     >
-    <application-message v-if="vragen && vragen.length > 1" message-type="error"
-      ><p>
+      <utrecht-paragraph>
         Let op: Dit contactmoment bevat meerdere vragen. Als je het
         contactmoment annuleert worden alle vragen automatisch afgebroken.<br />
         Het is mogelijk individuele vragen te verwijderen in het afrondscherm.
-      </p></application-message
-    >
+      </utrecht-paragraph>
+    </application-message>
   </prompt-modal>
 
   <utrecht-button
