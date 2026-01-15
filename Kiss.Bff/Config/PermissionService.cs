@@ -26,8 +26,8 @@ namespace Kiss.Bff.Config.Permissions
 
     public enum HasPermissionTo
     {
-        Search,
-        Skills
+        Skills,
+        Beheer
     }
 
     /// <summary>

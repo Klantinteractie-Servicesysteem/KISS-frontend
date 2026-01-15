@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Duende.IdentityModel;
 using Kiss;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -168,6 +169,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IsBeheerder>(user => user?.IsInRole(beheerderRole) ?? false);
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
+            services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -264,7 +267,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();
-
+            services.AddPermissions(transformer =>
+            {
+                transformer.RegisterPermissionsByRole([HasPermissionTo.Beheer], string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
+                ? "Redacteur"
+                : authOptions.RedacteurRole);
+                transformer.RegisterPermissionsByRole([HasPermissionTo.Beheer, HasPermissionTo.Skills], string.IsNullOrWhiteSpace(authOptions.BeheerderRole)
+                ? "Beheerder"
+                : authOptions.BeheerderRole);
+            });
             services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -377,7 +388,19 @@ namespace Microsoft.Extensions.DependencyInjection
                                      ?.Split('/')
                                  ?? Array.Empty<string>();
 
-            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isBeheerder, isKennisbank, organisatieIds);
+            // Calculate permissions from user roles
+            var userRoles = httpContext.User.Claims
+                .Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType)
+                .Select(c => c.Value);
+
+            var transformer = httpContext.RequestServices.GetRequiredService<PermissionTransformer>();
+            var permissions = userRoles
+                .SelectMany(transformer.GetPermissionsByRole)
+                .Select(p => p.ToString())
+                .Distinct()
+                .ToList();
+
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isBeheerder, isKennisbank, organisatieIds, permissions);
         }
 
 
@@ -442,6 +465,7 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsRedacteur,
             bool IsBeheerder,
             bool IsKennisbank,
-            IReadOnlyList<string> OrganisatieIds);
+            IReadOnlyList<string> OrganisatieIds,
+            IReadOnlyList<string> Permissions);
     }
 }
