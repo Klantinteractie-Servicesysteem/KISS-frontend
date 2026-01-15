@@ -78,6 +78,18 @@ const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
   }
 };
 
+const guardHasPermission =
+  (permission: string): NavigationGuard =>
+  async (to, from, next) => {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (userStore.user.permissions.includes(permission)) {
+      next();
+    } else {
+      next("/");
+    }
+  };
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -185,7 +197,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardIsRedacteur,
+      beforeEnter: guardHasPermission("Beheer"),
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
@@ -199,6 +211,7 @@ const router = createRouter({
           path: "Skills",
           name: "SkillsBeheer",
           component: SkillsBeheer,
+          beforeEnter: guardHasPermission("Skills"),
           meta: {},
         },
         {

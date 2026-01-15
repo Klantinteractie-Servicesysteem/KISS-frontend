@@ -52,7 +52,7 @@
                 >
               </li>
             </template>
-            <template v-if="isKcm || isRedacteur">
+            <template v-if="isKcm || isRedacteur || canBeheer">
               <li v-if="route.meta.showNav">
                 <router-link :to="{ name: 'home' }">
                   <span>Nieuws en werkinstructies</span>
@@ -75,7 +75,7 @@
             </template>
             <li
               v-if="
-                isRedacteur &&
+                canBeheer &&
                 !contactmomentStore.contactmomentLoopt &&
                 route.meta.showNav
               "
@@ -123,6 +123,10 @@ const { data: featuredWerkberichtenCount } = useLoader(() => {
     return fetchFeaturedWerkberichten();
   }
 });
+
+const canBeheer = computed(
+  () => user.value.isLoggedIn && user.value.permissions.includes("Beheer"),
+);
 
 const isRedacteur = computed(
   () => user.value.isLoggedIn && user.value.isRedacteur,

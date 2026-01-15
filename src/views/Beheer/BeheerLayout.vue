@@ -4,7 +4,11 @@
     <router-link to="/Beheer/NieuwsEnWerkinstructies">
       Nieuws en werkinstructies
     </router-link>
-    <router-link to="/Beheer/Skills">Skills</router-link>
+    <router-link
+      v-if="userStore.user.permissions.includes('Skills')"
+      to="/Beheer/Skills"
+      >Skills</router-link
+    >
     <router-link to="/Beheer/Links">Links</router-link>
     <router-link to="/Beheer/gespreksresultaten"
       >Gespreksresultaten</router-link
@@ -39,7 +43,7 @@ const { user } = storeToRefs(userStore);
 const router = useRouter();
 
 watchEffect(() => {
-  if (user.value.isLoggedIn && !user.value.isRedacteur) {
+  if (user.value.isLoggedIn && !user.value.permissions.includes("Beheer")) {
     router.push("/");
   }
 });

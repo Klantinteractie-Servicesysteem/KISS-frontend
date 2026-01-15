@@ -153,7 +153,11 @@ const state = ensureState({
 const userStore = useUserStore();
 
 const { data: skills } = useLoader(() => {
-  if (userStore.user.isKcm || userStore.user.isRedacteur) {
+  if (
+    userStore.user.isKcm ||
+    userStore.user.isRedacteur ||
+    userStore.user.permissions.includes("Skills")
+  ) {
     return fetchSkills();
   }
 });
