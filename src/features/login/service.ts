@@ -1,5 +1,12 @@
-import type { User } from "@/stores/user";
+import type { User, UserPermissions } from "@/stores/user";
 import { meUrl } from "./config";
+
+function transformPermissions(permissionsArray: string[]): UserPermissions {
+  return {
+    beheer: permissionsArray.includes("Beheer"),
+    skills: permissionsArray.includes("Skills"),
+  };
+}
 
 export async function fetchUser(): Promise<User> {
   const response = await fetch(meUrl, {
@@ -16,7 +23,7 @@ export async function fetchUser(): Promise<User> {
       isKennisbank: false,
       isSessionExpired: false,
       organisatieIds: [],
-      permissions: [],
+      permissions: transformPermissions([]),
     };
 
   if (!response.ok) {
@@ -40,9 +47,9 @@ export async function fetchUser(): Promise<User> {
     ? json.organisatieIds
     : [];
 
-  const permissions = Array.isArray(json?.permissions)
-    ? json.permissions
-    : [];
+  const permissions = transformPermissions(
+    Array.isArray(json?.permissions) ? json.permissions : [],
+  );
 
   return {
     isLoggedIn,

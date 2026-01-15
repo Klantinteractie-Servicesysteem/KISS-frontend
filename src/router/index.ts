@@ -15,7 +15,7 @@ import {
   createWebHistory,
   type NavigationGuard,
 } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import { useUserStore, type UserPermissions } from "@/stores/user";
 //import ContactverzoekenDetailView from "@/views/ContactverzoekenDetailView.vue";
 
 const NieuwsEnWerkinstructiesBeheer = () =>
@@ -79,11 +79,11 @@ const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
 };
 
 const guardHasPermission =
-  (permission: string): NavigationGuard =>
+  <K extends keyof UserPermissions>(permission: K): NavigationGuard =>
   async (to, from, next) => {
     const userStore = useUserStore();
     await userStore.promise;
-    if (userStore.user.permissions.includes(permission)) {
+    if (userStore.user.permissions[permission]) {
       next();
     } else {
       next("/");
@@ -197,7 +197,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardHasPermission("Beheer"),
+      beforeEnter: guardHasPermission("beheer"),
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
@@ -211,7 +211,7 @@ const router = createRouter({
           path: "Skills",
           name: "SkillsBeheer",
           component: SkillsBeheer,
-          beforeEnter: guardHasPermission("Skills"),
+          beforeEnter: guardHasPermission("skills"),
           meta: {},
         },
         {

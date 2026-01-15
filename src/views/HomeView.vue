@@ -156,7 +156,7 @@ const { data: skills } = useLoader(() => {
   if (
     userStore.user.isKcm ||
     userStore.user.isRedacteur ||
-    userStore.user.permissions.includes("Skills")
+    userStore.user.permissions.skills
   ) {
     return fetchSkills();
   }

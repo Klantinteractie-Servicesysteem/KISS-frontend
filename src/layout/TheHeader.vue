@@ -125,7 +125,7 @@ const { data: featuredWerkberichtenCount } = useLoader(() => {
 });
 
 const canBeheer = computed(
-  () => user.value.isLoggedIn && user.value.permissions.includes("Beheer"),
+  () => user.value.isLoggedIn && user.value.permissions.beheer,
 );
 
 const isRedacteur = computed(

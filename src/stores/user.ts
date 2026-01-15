@@ -3,6 +3,11 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
+export type UserPermissions = {
+  beheer: boolean;
+  skills: boolean;
+};
+
 export type User = {
   isLoggedIn: boolean;
   isRedacteur: boolean;
@@ -12,7 +17,7 @@ export type User = {
   email: string;
   organisatieIds: string[];
   isSessionExpired: boolean;
-  permissions: string[];
+  permissions: UserPermissions;
 };
 
 export const useUserStore = defineStore("user", {

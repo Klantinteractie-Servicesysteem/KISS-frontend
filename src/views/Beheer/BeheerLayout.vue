@@ -4,9 +4,7 @@
     <router-link to="/Beheer/NieuwsEnWerkinstructies">
       Nieuws en werkinstructies
     </router-link>
-    <router-link
-      v-if="userStore.user.permissions.includes('Skills')"
-      to="/Beheer/Skills"
+    <router-link v-if="userStore.user.permissions.skills" to="/Beheer/Skills"
       >Skills</router-link
     >
     <router-link to="/Beheer/Links">Links</router-link>
@@ -43,7 +41,7 @@ const { user } = storeToRefs(userStore);
 const router = useRouter();
 
 watchEffect(() => {
-  if (user.value.isLoggedIn && !user.value.permissions.includes("Beheer")) {
+  if (user.value.isLoggedIn && !user.value.permissions.beheer) {
     router.push("/");
   }
 });
