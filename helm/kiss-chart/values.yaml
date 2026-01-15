@@ -383,7 +383,6 @@ settings:
     objectTypeUrl: ""
     # @schema
     # required: true
-    # minLength: 1
     # @schema
     # -- (int) Version number of the Logbook Object Type.
     objectTypeVersion: 1
@@ -582,7 +581,6 @@ settings:
     #   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required
     #     properties:
     #       useEmail:
-    #         type: boolean
     #         const: true
     #     required: [useEmail]
     #   - allOf:
@@ -694,17 +692,13 @@ settings:
     # items:
     #   type: object
     #   properties:
-    #     backoffLimit:
+    #     historyLimit:
     #       type: integer
-    #     ttlSecondsAfterFinished:
-    #       description: time in seconds to keep the website job in the kubernetes history. defaults to 10 minutes.
-    #       default: 600
-    #       type: integer
-    #     restartPolicy:
-    #       type: string
     #     domain:
     #       type: string
     #       format: uri
+    #     schedule:
+    #       type: string
     #     sourceName:
     #       type: string
     #     resources:

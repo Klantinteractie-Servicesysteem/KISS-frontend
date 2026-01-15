@@ -2,78 +2,83 @@
 {{ range $index, $websiteJob := $.Values.settings.syncJobs.website }}
 ---
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
-  name: {{ include "kiss-frontend.fullname" $ }}-website-sync-{{ $index }}-{{ $.Release.Revision }}
+  name: {{ include "kiss-frontend.fullname" $ }}-website-sync-{{ $index }}
   labels:
     {{- include "kiss-frontend.labels" $ | nindent 4 }}
 spec:
-  backoffLimit: {{ default 1 $websiteJob.backoffLimit }}
-  {{- if hasKey $websiteJob "ttlSecondsAfterFinished" }}
-  ttlSecondsAfterFinished: {{ $websiteJob.ttlSecondsAfterFinished }}
+  schedule: {{ (default "*/59 * * * *" $websiteJob.schedule) | quote }}
+  concurrencyPolicy: Forbid
+  {{- if or ($websiteJob.historyLimit) (eq (toString $websiteJob.historyLimit) "0") }}
+  successfulJobsHistoryLimit: {{ $websiteJob.historyLimit }}
+  failedJobsHistoryLimit: {{ $websiteJob.historyLimit }}
   {{- else }}
-  ttlSecondsAfterFinished: 600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   {{- end }}
-  template:
-    metadata:
-      annotations:
-      {{- with $.Values.podAnnotations }}
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "kiss-frontend.labels" $ | nindent 8 }}
-        {{- with $.Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+  jobTemplate:
     spec:
-      {{- with $.Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "kiss-frontend.serviceAccountName" $ }}
-      securityContext:
-        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
-      restartPolicy: {{ default "OnFailure" $websiteJob.restartPolicy }}
-      containers:
-        - name: {{ $.Chart.Name }}
+      template:
+        metadata:
+          annotations:
+          {{- with $.Values.podAnnotations }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            {{- include "kiss-frontend.labels" $ | nindent 12 }}
+            {{- with $.Values.podLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "kiss-frontend.serviceAccountName" $ }}
           securityContext:
-            {{- toYaml $.Values.securityContext | nindent 12 }}
-          image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag }}"
-          imagePullPolicy: {{ $.Values.settings.syncJobs.image.pullPolicy }}
-          envFrom:
-            - secretRef:
-                name: {{ include "kiss-frontend.fullname" $ }}
-            - configMapRef:
-                name: {{ include "kiss-frontend.fullname" $ }}
-          env:
-            {{- if $.Values.extraEnvVars }}
-            {{- include "kiss-frontend.tplvalues.render" (dict "value" $.Values.extraEnvVars "context" $) | nindent 16 }}
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          restartPolicy: OnFailure
+          containers:
+            - name: {{ $.Chart.Name }}
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag }}"
+              imagePullPolicy: {{ $.Values.settings.syncJobs.image.pullPolicy }}
+              envFrom:
+                - secretRef:
+                    name: {{ include "kiss-frontend.fullname" $ }}
+                - configMapRef:
+                    name: {{ include "kiss-frontend.fullname" $ }}
+              env:
+                {{- if $.Values.extraEnvVars }}
+                {{- include "kiss-frontend.tplvalues.render" (dict "value" $.Values.extraEnvVars "context" $) | nindent 16 }}
+                {{- end }}
+              resources:
+              {{- toYaml $websiteJob.resources | nindent 16 }}
+              args:
+                - domain
+                - {{ $websiteJob.domain }}
+                - {{ $websiteJob.sourceName }}
+              volumeMounts:
+                {{- if $.Values.extraVolumeMounts }}
+                {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumeMounts "context" $ ) | nindent 16 }}
+                {{- end }}
+          volumes:
+            {{- if $.Values.extraVolumes }}
+            {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumes "context" $ ) | nindent 12 }}
             {{- end }}
-          resources:
-          {{- toYaml $websiteJob.resources | nindent 12 }}
-          args:
-            - domain
-            - {{ $websiteJob.domain }}
-            - {{ $websiteJob.sourceName }}
-          volumeMounts:
-            {{- if $.Values.extraVolumeMounts }}
-            {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumeMounts "context" $ ) | nindent 16 }}
-            {{- end }}
-      volumes:
-        {{- if $.Values.extraVolumes }}
-        {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumes "context" $ ) | nindent 12 }}
-        {{- end }}
-      {{- with $.Values.nodeSelector }}
-      nodeSelector:
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with $.Values.affinity }}
-      affinity:
-      {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with $.Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 {{- end }}
 {{- end }}
