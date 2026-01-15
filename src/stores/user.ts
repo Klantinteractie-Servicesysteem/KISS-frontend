@@ -12,6 +12,7 @@ export type User = {
   email: string;
   organisatieIds: string[];
   isSessionExpired: boolean;
+  permissions: string[];
 };
 
 export const useUserStore = defineStore("user", {

@@ -16,6 +16,7 @@ export async function fetchUser(): Promise<User> {
       isKennisbank: false,
       isSessionExpired: false,
       organisatieIds: [],
+      permissions: [],
     };
 
   if (!response.ok) {
@@ -39,6 +40,10 @@ export async function fetchUser(): Promise<User> {
     ? json.organisatieIds
     : [];
 
+  const permissions = Array.isArray(json?.permissions)
+    ? json.permissions
+    : [];
+
   return {
     isLoggedIn,
     email,
@@ -48,5 +53,6 @@ export async function fetchUser(): Promise<User> {
     isKcm,
     isKennisbank,
     isSessionExpired,
+    permissions,
   };
 }
