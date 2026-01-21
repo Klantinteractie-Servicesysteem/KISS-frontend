@@ -11,10 +11,7 @@ namespace Kiss.Bff.Config.Permissions
                                           .Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType)
                                           .Select(c => c.Value);
 
-            // Transform roles to permissions
-            var userPermissions = configuration.GetPermissionsForRoles(userRoles);
-
-            if (requirement.Permissions.Any(userPermissions.Contains))
+            if (requirement.Permissions.Any(configuration.GetPermissionsForRoles(userRoles).Contains))
             {
                 context.Succeed(requirement);
             }
