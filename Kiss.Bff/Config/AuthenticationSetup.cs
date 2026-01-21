@@ -170,7 +170,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
             services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
-            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -267,15 +266,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();
-            services.AddPermissions(transformer =>
-            {
-                transformer.RegisterPermissionsByRole([HasPermissionTo.Beheer], string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
-                ? "Redacteur"
-                : authOptions.RedacteurRole);
-                transformer.RegisterPermissionsByRole([HasPermissionTo.Beheer, HasPermissionTo.Skills], string.IsNullOrWhiteSpace(authOptions.BeheerderRole)
-                ? "Beheerder"
-                : authOptions.BeheerderRole);
-            });
+
+            var permissionConfig = new PermissionConfiguration();
+            permissionConfig.CreateDefault(redacteurRole, beheerderRole);
+            services.AddSingleton(permissionConfig);
+
             services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -393,12 +388,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType)
                 .Select(c => c.Value);
 
-            var transformer = httpContext.RequestServices.GetRequiredService<PermissionTransformer>();
-            var permissions = userRoles
-                .SelectMany(transformer.GetPermissionsByRole)
-                .Select(p => p.ToString())
-                .Distinct()
-                .ToList();
+            var permissionConfiguration = httpContext.RequestServices.GetRequiredService<PermissionConfiguration>();
+            var permissions = permissionConfiguration.GetPermissionsForRoles(userRoles);
 
             return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isBeheerder, isKennisbank, organisatieIds, permissions);
         }
@@ -466,6 +457,6 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsBeheerder,
             bool IsKennisbank,
             IReadOnlyList<string> OrganisatieIds,
-            IReadOnlyList<string> Permissions);
+            IEnumerable<RequirePermissionTo> Permissions);
     }
 }
