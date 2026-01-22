@@ -32,19 +32,17 @@ namespace Kiss.Bff.Config.Permissions
         public void CreateDefault(string redacteurRole, string beheerderRole)
         {
             var redacteurPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.Beheer,
-                RequirePermissionTo.NieuwsEnWerkInstucties,
-                RequirePermissionTo.Links,
-                RequirePermissionTo.Vacs]);
+                RequirePermissionTo.nieuwsenwerkinstructies,
+                RequirePermissionTo.linksbeheer,
+                RequirePermissionTo.vacs]);
             _permissionsByRole[redacteurRole] = redacteurPermissions;
 
             var beheerderPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.Beheer,
-                RequirePermissionTo.Skills,
-                RequirePermissionTo.Gespreksresultaten,
-                RequirePermissionTo.Kanalen,
-                RequirePermissionTo.ContactformulierenGroepen,
-                RequirePermissionTo.ContactformulierenAfdelingen]);
+                RequirePermissionTo.skills,
+                RequirePermissionTo.gespreksresultaten,
+                RequirePermissionTo.kanalenbeheer,
+                RequirePermissionTo.contactformulierengroepen,
+                RequirePermissionTo.contactformulierenafdelingen]);
             _permissionsByRole[beheerderRole] = beheerderPermissions;
         }
 
