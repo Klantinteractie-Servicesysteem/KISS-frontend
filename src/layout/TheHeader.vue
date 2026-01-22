@@ -52,7 +52,7 @@
                 >
               </li>
             </template>
-            <template v-if="isKcm || isRedacteur || canBeheer">
+            <template v-if="isKcm || isRedacteur">
               <li v-if="route.meta.showNav">
                 <router-link :to="{ name: 'home' }">
                   <span>Nieuws en werkinstructies</span>
@@ -73,13 +73,7 @@
                 >
               </li>
             </template>
-            <li
-              v-if="
-                canBeheer &&
-                !contactmomentStore.contactmomentLoopt &&
-                route.meta.showNav
-              "
-            >
+            <li v-if="canSeeBeheer">
               <router-link :to="{ name: 'Beheer' }">
                 <span>Beheer</span>
               </router-link>
@@ -107,7 +101,7 @@ import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
-import { useUserStore } from "@/stores/user";
+import { BEHEER_PERMISSIONS, useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import { useLoader } from "@/services";
 
@@ -124,9 +118,14 @@ const { data: featuredWerkberichtenCount } = useLoader(() => {
   }
 });
 
-const canBeheer = computed(
-  () => user.value.isLoggedIn && user.value.permissions.beheer,
-);
+const canSeeBeheer = computed(() => {
+  return (
+    user.value.isLoggedIn &&
+    !contactmomentStore.contactmomentLoopt &&
+    route.meta.showNav &&
+    userStore.hasPermission(BEHEER_PERMISSIONS)
+  );
+});
 
 const isRedacteur = computed(
   () => user.value.isLoggedIn && user.value.isRedacteur,
