@@ -24,5 +24,10 @@ namespace Kiss.Bff.Config.Permissions
     {
         public RequirePermissionTo[] Permissions => permissions;
         public IEnumerable<IAuthorizationRequirement> GetRequirements() => [this];
+        public static string? GetPermissionsStringValue(RequirePermissionTo[]? permissions)
+        {
+            var prefix = "Permission:";
+            return permissions?.Length > 0 ? prefix + string.Join(",", permissions) : null;
+        }
     }
 }
