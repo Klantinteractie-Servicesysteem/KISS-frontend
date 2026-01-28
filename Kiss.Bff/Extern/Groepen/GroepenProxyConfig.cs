@@ -1,5 +1,5 @@
 ﻿using System.Net.Http.Headers;
-using Kiss.Bff.Afdelingen;
+using Kiss.Bff.Config.Permissions;
 using Yarp.ReverseProxy.Transforms;
 
 namespace Kiss.Bff.Groepen
@@ -12,7 +12,7 @@ namespace Kiss.Bff.Groepen
 
     public class GroepenProxyConfig : IKissProxyRoute
     {
-  
+
         public GroepenProxyConfig(string destination, string token, string objectTypeUrl, string clientId, string clientSecret)
         {
             Destination = destination;
@@ -24,6 +24,7 @@ namespace Kiss.Bff.Groepen
 
         public string Destination { get; }
         public string ObjectTypeUrl { get; }
+        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.contactformulierengroepen];
 
         private readonly AuthenticationHeaderProvider _authHeaderProvider;
 
