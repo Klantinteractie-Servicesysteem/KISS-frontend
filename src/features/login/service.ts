@@ -11,7 +11,6 @@ export async function fetchUser(): Promise<User> {
       isLoggedIn: false,
       email: "",
       isRedacteur: false,
-      isBeheerder: false,
       isKcm: false,
       isKennisbank: false,
       isSessionExpired: false,
@@ -28,7 +27,6 @@ export async function fetchUser(): Promise<User> {
   const isLoggedIn = !!json?.isLoggedIn;
   const email = json?.email;
   const isRedacteur = !!json?.isRedacteur;
-  const isBeheerder = !!json?.isBeheerder;
   const isKcm = !!json?.isKcm;
   const isKennisbank = !!json?.isKennisbank;
   const isSessionExpired = false;
@@ -46,7 +44,6 @@ export async function fetchUser(): Promise<User> {
     isLoggedIn,
     email,
     isRedacteur,
-    isBeheerder,
     organisatieIds,
     isKcm,
     isKennisbank,

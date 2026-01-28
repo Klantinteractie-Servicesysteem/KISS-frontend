@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Security.Claims;
 
 namespace Kiss.Bff.Config.Permissions
 {
@@ -46,14 +46,21 @@ namespace Kiss.Bff.Config.Permissions
             _permissionsByRole[beheerderRole] = beheerderPermissions;
         }
 
+
+
         /// <summary>
-        /// Retrieves all permissions associated with specific roles.
+        /// Retrieves all permissions associated with a specific user.
         /// </summary>
-        /// <param name="roles">The role names to get permissions for.</param>
-        /// <returns>An set of permissions for the roles, or an empty set if the roles have no registered permissions.</returns>
-        public IEnumerable<RequirePermissionTo> GetPermissionsForRoles(IEnumerable<string> roles)
+        /// <param name="user">The representation of the user that requests the permissions.</param>
+        /// <returns>A set of permissions for the user, or an empty set if the user has no registered permissions.</returns>
+        public IEnumerable<RequirePermissionTo> GetPermissions(ClaimsPrincipal user)
         {
-            HashSet<RequirePermissionTo> allPermissions = new();
+            HashSet<RequirePermissionTo> allPermissions = [];
+
+            var roles = user.Identities.SelectMany(id => id.Claims.Where(claim => claim.Type == id.RoleClaimType))
+                .Select(role => role.Value)
+                .ToList();
+
             foreach (var roleName in roles)
             {
                 var permissions = _permissionsByRole.TryGetValue(roleName, out var _permissions) ? _permissions : [];

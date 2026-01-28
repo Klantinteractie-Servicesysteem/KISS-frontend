@@ -7,11 +7,7 @@ namespace Kiss.Bff.Config.Permissions
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RequirePermissionAttribute requirement)
         {
-            var userRoles = context.User.Claims
-                                          .Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType)
-                                          .Select(c => c.Value);
-
-            if (requirement.Permissions.Any(configuration.GetPermissionsForRoles(userRoles).Contains))
+            if (requirement.Permissions.Any(configuration.GetPermissions(context.User).Contains))
             {
                 context.Succeed(requirement);
             }

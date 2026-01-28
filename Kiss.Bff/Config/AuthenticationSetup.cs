@@ -15,7 +15,6 @@ namespace Kiss
     public static class Policies
     {
         public const string RedactiePolicy = "RedactiePolicy";
-        public const string BeheerderPolicy = "BeheerderPolicy";
         public const string ExternSysteemPolicy = "ExternSysteemPolicy";
         public const string KcmOrRedactiePolicy = "KcmOrRedactiePolicy";
         public const string KennisbankPolicy = "KennisbankPolicy";
@@ -91,8 +90,6 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate bool IsRedacteur(ClaimsPrincipal? user);
 
-    public delegate bool IsBeheerder(ClaimsPrincipal? user);
-
     public delegate bool IsKcm(ClaimsPrincipal? user);
 
     public delegate bool IsKennisbank(ClaimsPrincipal? user);
@@ -166,10 +163,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
 
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
-            services.AddSingleton<IsBeheerder>(user => user?.IsInRole(beheerderRole) ?? false);
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
             services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -286,11 +283,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         .RequireRole(redacteurRole)
                         .Build());
 
-                options.AddPolicy(Policies.BeheerderPolicy,
-                    new AuthorizationPolicyBuilder()
-                        .RequireRole(beheerderRole)
-                        .Build());
-
                 options.AddPolicy(Policies.KcmOrKennisbankPolicy,
                     new AuthorizationPolicyBuilder()
                         .RequireRole(klantcontactmedewerkerRole, kennisBankRole)
@@ -374,7 +366,6 @@ namespace Microsoft.Extensions.DependencyInjection
             var email = httpContext.User.GetEmail();
             var isKcm = httpContext.RequestServices.GetService<IsKcm>()?.Invoke(httpContext.User) ?? false;
             var isRedacteur = httpContext.RequestServices.GetService<IsRedacteur>()?.Invoke(httpContext.User) ?? false;
-            var isBeheerder = httpContext.RequestServices.GetService<IsBeheerder>()?.Invoke(httpContext.User) ?? false;
             var isKennisbank = httpContext.RequestServices.GetService<IsKennisbank>()?.Invoke(httpContext.User) ?? false;
 
             var organisatieIds = httpContext.RequestServices
@@ -383,15 +374,10 @@ namespace Microsoft.Extensions.DependencyInjection
                                      ?.Split('/')
                                  ?? Array.Empty<string>();
 
-            // Calculate permissions from user roles
-            var userRoles = httpContext.User.Claims
-                .Where(c => c.Type == ClaimsIdentity.DefaultRoleClaimType)
-                .Select(c => c.Value);
-
             var permissionConfiguration = httpContext.RequestServices.GetRequiredService<PermissionConfiguration>();
-            var permissions = permissionConfiguration.GetPermissionsForRoles(userRoles);
+            var permissions = permissionConfiguration.GetPermissions(httpContext.User);
 
-            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isBeheerder, isKennisbank, organisatieIds, permissions);
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isKennisbank, organisatieIds, permissions);
         }
 
 
@@ -454,7 +440,6 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsLoggedIn,
             bool IsKcm,
             bool IsRedacteur,
-            bool IsBeheerder,
             bool IsKennisbank,
             IReadOnlyList<string> OrganisatieIds,
             IEnumerable<RequirePermissionTo> Permissions);

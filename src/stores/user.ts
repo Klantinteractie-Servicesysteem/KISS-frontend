@@ -12,7 +12,6 @@ export const BEHEER_PERMISSIONS: Permission[] = [
 export type User = {
   isLoggedIn: boolean;
   isRedacteur: boolean;
-  isBeheerder: boolean;
   isKcm: boolean;
   isKennisbank: boolean;
   email: string;
@@ -59,7 +58,7 @@ export const useUserStore = defineStore("user", {
     setPromise(promise: Promise<User>) {
       this.promise = promise.then();
     },
-    hasPermission(requiredPermissions: Permission | Permission[]) {
+    hasPermission([...requiredPermissions]) {
       const permissions = Array.isArray(requiredPermissions)
         ? requiredPermissions
         : [requiredPermissions];
