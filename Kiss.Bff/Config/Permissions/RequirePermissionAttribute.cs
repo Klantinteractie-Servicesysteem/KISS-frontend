@@ -17,6 +17,7 @@ namespace Kiss.Bff.Config.Permissions
         contactformulierengroepenbeheer,
         berichtenread,
         berichtenbeheer,
+        linksread,
         linksbeheer,
         vacsbeheer,
     }

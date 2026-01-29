@@ -192,7 +192,7 @@ const router = createRouter({
     {
       path: "/links",
       name: "links",
-      beforeEnter: guardIsKcmOrRedacteur,
+      beforeEnter: guardHasPermission(["linksbeheer", "linksread"]),
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },

@@ -4,6 +4,7 @@ import type { Ref } from "vue";
 import { computed } from "vue";
 
 export type Permission =
+  | "linksread"
   | "linksbeheer"
   | "kanalenbeheer"
   | "kanalenread"

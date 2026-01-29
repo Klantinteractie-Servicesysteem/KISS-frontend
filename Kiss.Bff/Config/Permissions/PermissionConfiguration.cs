@@ -53,7 +53,8 @@ namespace Kiss.Bff.Config.Permissions
                 RequirePermissionTo.berichtenread,
                 RequirePermissionTo.gespreksresultatenread,
                 RequirePermissionTo.kanalenread,
-                RequirePermissionTo.contactformulierenread
+                RequirePermissionTo.contactformulierenread,
+                RequirePermissionTo.linksread
                 ]);
             _permissionsByRole[kcmRole] = kcmPermissions;
         }
