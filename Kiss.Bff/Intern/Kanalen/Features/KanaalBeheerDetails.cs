@@ -1,6 +1,5 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +7,7 @@ namespace Kiss.Bff.Intern.Kanalen
 {
     [Route("api/[controller]")]
     [ApiController]
+    [RequirePermission(RequirePermissionTo.kanalenread, RequirePermissionTo.kanalenbeheer)]
     public class KanaalBeheerDetails : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -23,7 +23,7 @@ namespace Kiss.Bff.Intern.Kanalen
             var result = await _context
                .Kanalen
                .AsNoTracking()
-               .FirstOrDefaultAsync( x=>x.Id == id );
+               .FirstOrDefaultAsync(x => x.Id == id);
 
             return result == null
               ? NotFound()
