@@ -3,10 +3,30 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
-export type Permission = "linksbeheer" | "kanalenbeheer";
+export type Permission =
+  | "linksbeheer"
+  | "kanalenbeheer"
+  | "kanalenread"
+  | "skillsbeheer"
+  | "skillsread"
+  | "gespreksresultatenbeheer"
+  | "contactformulierenafdelingenbeheer"
+  | "contactformulierengroepenbeheer"
+  | "contactformulierenread"
+  | "berichtenread"
+  | "berichtenbeheer"
+  | "vacsbeheer";
+
 export const BEHEER_PERMISSIONS: Permission[] = [
   "linksbeheer",
   "kanalenbeheer",
+  "kanalenread",
+  "skillsbeheer",
+  "gespreksresultatenbeheer",
+  "contactformulierenafdelingenbeheer",
+  "contactformulierengroepenbeheer",
+  "berichtenbeheer",
+  "vacsbeheer",
 ];
 
 export type User = {
@@ -58,12 +78,15 @@ export const useUserStore = defineStore("user", {
     setPromise(promise: Promise<User>) {
       this.promise = promise.then();
     },
-    hasPermission([...requiredPermissions]) {
-      const permissions = Array.isArray(requiredPermissions)
-        ? requiredPermissions
-        : [requiredPermissions];
-      return permissions.some((p) => this.user.permissions.includes(p));
-    },
+  },
+  getters: {
+    hasPermission:
+      (state) => (requiredPermissions: Permission | Permission[]) => {
+        const permissions = Array.isArray(requiredPermissions)
+          ? requiredPermissions
+          : [requiredPermissions];
+        return permissions.some((p) => state.user.permissions.includes(p));
+      },
   },
 });
 

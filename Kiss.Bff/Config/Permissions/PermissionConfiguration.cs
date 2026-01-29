@@ -29,24 +29,34 @@ namespace Kiss.Bff.Config.Permissions
     {
         readonly Dictionary<string, HashSet<RequirePermissionTo>> _permissionsByRole = new();
 
-        public void CreateDefault(string redacteurRole, string beheerderRole)
+        public void CreateDefault(string redacteurRole, string beheerderRole, string kcmRole)
         {
+            // Redacteur needs skillsread for NieuwsEnWerkBerichten
             var redacteurPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.nieuwsenwerkinstructies,
+                RequirePermissionTo.skillsread,
+                RequirePermissionTo.berichtenbeheer,
                 RequirePermissionTo.linksbeheer,
-                RequirePermissionTo.vacs]);
+                RequirePermissionTo.vacsbeheer]);
             _permissionsByRole[redacteurRole] = redacteurPermissions;
 
             var beheerderPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.skills,
-                RequirePermissionTo.gespreksresultaten,
+                RequirePermissionTo.skillsbeheer,
+                RequirePermissionTo.gespreksresultatenbeheer,
                 RequirePermissionTo.kanalenbeheer,
-                RequirePermissionTo.contactformulierengroepen,
-                RequirePermissionTo.contactformulierenafdelingen]);
+                RequirePermissionTo.contactformulierenread,
+                RequirePermissionTo.contactformulierengroepenbeheer,
+                RequirePermissionTo.contactformulierenafdelingenbeheer]);
             _permissionsByRole[beheerderRole] = beheerderPermissions;
+
+            var kcmPermissions = new HashSet<RequirePermissionTo>([
+                RequirePermissionTo.skillsread,
+                RequirePermissionTo.berichtenread,
+                RequirePermissionTo.gespreksresultatenread,
+                RequirePermissionTo.kanalenread,
+                RequirePermissionTo.contactformulierenread
+                ]);
+            _permissionsByRole[kcmRole] = kcmPermissions;
         }
-
-
 
         /// <summary>
         /// Retrieves all permissions associated with a specific user.

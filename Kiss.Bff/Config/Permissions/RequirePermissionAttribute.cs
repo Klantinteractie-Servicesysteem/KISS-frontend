@@ -6,14 +6,19 @@ namespace Kiss.Bff.Config.Permissions
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum RequirePermissionTo
     {
-        skills,
+        skillsread,
+        skillsbeheer,
+        kanalenread,
         kanalenbeheer,
-        gespreksresultaten,
-        contactformulierenafdelingen,
-        contactformulierengroepen,
-        nieuwsenwerkinstructies,
+        gespreksresultatenread,
+        gespreksresultatenbeheer,
+        contactformulierenread,
+        contactformulierenafdelingenbeheer,
+        contactformulierengroepenbeheer,
+        berichtenread,
+        berichtenbeheer,
         linksbeheer,
-        vacs,
+        vacsbeheer,
     }
 
     /// <summary>

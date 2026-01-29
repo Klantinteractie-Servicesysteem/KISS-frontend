@@ -154,7 +154,7 @@ namespace Microsoft.Extensions.DependencyInjection
                      : null
                 });
 
-                // TODO: Expose dedicated API controllers to handle Enterprise Search and Elasticsearch endpoints
+                // TODO: Expose dedicated API controller to handle the Enterprise Search endpoint
                 // Create specific routes based on the proxy route type
                 if (proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE)
                 {
