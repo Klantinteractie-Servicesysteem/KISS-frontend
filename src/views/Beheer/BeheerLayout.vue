@@ -38,7 +38,11 @@
       >Contactverzoekformulieren groepen</router-link
     >
 
-    <router-link v-if="useVacs" to="/Beheer/vacs">VACs</router-link>
+    <router-link
+      v-if="useVacs && userStore.hasPermission('vacsbeheer')"
+      to="/Beheer/vacs"
+      >VACs</router-link
+    >
   </nav>
 
   <main>
