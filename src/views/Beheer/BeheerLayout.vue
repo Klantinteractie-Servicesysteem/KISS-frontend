@@ -5,11 +5,19 @@
       Nieuws en werkinstructies
     </router-link>
     <router-link to="/Beheer/Skills">Skills</router-link>
-    <router-link to="/Beheer/Links">Links</router-link>
+    <router-link
+      v-if="userStore.hasPermission('linksbeheer')"
+      to="/Beheer/Links"
+      >Links</router-link
+    >
     <router-link to="/Beheer/gespreksresultaten"
       >Gespreksresultaten</router-link
     >
-    <router-link to="/Beheer/Kanalen">Kanalen</router-link>
+    <router-link
+      v-if="userStore.hasPermission('kanalenbeheer')"
+      to="/Beheer/Kanalen"
+      >Kanalen</router-link
+    >
     <router-link to="/Beheer/formulieren-contactverzoek-afdeling">
       Contactverzoekformulieren afdelingen
     </router-link>
@@ -26,23 +34,11 @@
 </template>
 
 <script setup lang="ts">
-import { watchEffect } from "vue";
-import { useRouter } from "vue-router";
 import { useLoader } from "@/services/use-loader";
 import { fetchLoggedIn } from "@/services";
 import { useUserStore } from "@/stores/user";
-import { storeToRefs } from "pinia";
 
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
-
-const router = useRouter();
-
-watchEffect(() => {
-  if (user.value.isLoggedIn && !user.value.isRedacteur) {
-    router.push("/");
-  }
-});
 
 const { data: useVacs } = useLoader(() =>
   fetchLoggedIn("/api/environment/use-vacs")

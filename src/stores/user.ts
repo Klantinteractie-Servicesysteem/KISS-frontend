@@ -3,6 +3,12 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
+export type Permission = "linksbeheer" | "kanalenbeheer";
+export const BEHEER_PERMISSIONS: Permission[] = [
+  "linksbeheer",
+  "kanalenbeheer",
+];
+
 export type User = {
   isLoggedIn: boolean;
   isRedacteur: boolean;
@@ -11,6 +17,7 @@ export type User = {
   email: string;
   organisatieIds: string[];
   isSessionExpired: boolean;
+  permissions: Permission[];
 };
 
 export const useUserStore = defineStore("user", {
@@ -50,6 +57,12 @@ export const useUserStore = defineStore("user", {
     },
     setPromise(promise: Promise<User>) {
       this.promise = promise.then();
+    },
+    hasPermission([...requiredPermissions]) {
+      const permissions = Array.isArray(requiredPermissions)
+        ? requiredPermissions
+        : [requiredPermissions];
+      return permissions.some((p) => this.user.permissions.includes(p));
     },
   },
 });
