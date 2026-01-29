@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Kiss.Bff.Beheer.Data;
+using Kiss.Bff.Config.Permissions;
 using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +9,6 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class SkillsController : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -21,11 +20,12 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Skills
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.skillsread, RequirePermissionTo.skillsbeheer)]
         public ActionResult<IAsyncEnumerable<Skill>> GetSkills()
         {
             var result = _context.Skills.Where(x => !x.IsDeleted)
                 .Select(x => new SkillViewModel { Id = x.Id, Naam = x.Naam })
-                .OrderBy(x=> x.Naam)
+                .OrderBy(x => x.Naam)
                 .AsAsyncEnumerable();
 
             return Ok(result);
@@ -33,6 +33,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Skills/5
         [HttpGet("{id}")]
+        [RequirePermission(RequirePermissionTo.skillsbeheer)]
         public async Task<ActionResult<SkillViewModel>> GetSkill(int id, CancellationToken token)
         {
             if (_context.Skills == null)
@@ -49,9 +50,9 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
             return new SkillViewModel { Id = skill.Id, Naam = skill.Naam };
         }
 
-        // PUT: api/Skills/5        
+        // PUT: api/Skills/5
         [HttpPut("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.skillsbeheer)]
         public async Task<IActionResult> PutSkill(int id, SkillPutModel skill, CancellationToken token)
         {
             var current = await _context.Skills.FirstOrDefaultAsync(x => x.Id == id, token);
@@ -68,9 +69,9 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
             return NoContent();
         }
 
-        // POST: api/Skills        
+        // POST: api/Skills
         [HttpPost]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.skillsbeheer)]
         public async Task<ActionResult<Skill>> PostSkill(SkillPostModel skill, CancellationToken token)
         {
             var newSkill = new Skill { Naam = skill.Naam };
@@ -84,7 +85,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // DELETE: api/Skills/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.skillsbeheer)]
         public async Task<IActionResult> DeleteSkill(int id, CancellationToken token)
         {
 
