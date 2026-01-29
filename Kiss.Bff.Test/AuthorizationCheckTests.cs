@@ -17,6 +17,7 @@ using Kiss.Bff.Intern.Links.Features;
 using Kiss.Bff.Intern.Gespreksresultaten.Features;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Intern.ContactmomentDetails.Features;
+using Kiss.Bff.Config.Permissions;
 
 namespace Kiss.Bff.Test
 {
@@ -45,18 +46,7 @@ namespace Kiss.Bff.Test
             // Define the controllers and methods to test here
             var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes)>
                 {
-                    (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }),
-                    (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}),
-                    (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}),
-                    (typeof(LinksController), "PutLink", new[] { typeof(int), typeof(LinkPutModel),typeof(CancellationToken)}),
-                    (typeof(LinksController), "PostLink", new[] { typeof(LinkPostModel) }),
-                    (typeof(LinksController), "DeleteLink", new[] { typeof(int) }),
-                    (typeof(SkillsController), "PutSkill", new[] { typeof(int), typeof(SkillPutModel), typeof(CancellationToken) }),
-                    (typeof(SkillsController), "PostSkill", new[] { typeof(SkillPostModel), typeof(CancellationToken) }),
                     (typeof(GetVerwerkingsLogs), "Get", new Type[0]),
-                    (typeof(SeedController), "SeedStart", new Type[0]),
-                    (typeof(SeedController), "SeedCheck", new Type[0]),
-                    (typeof(ConnectionsControllerTests), "GetConnections", new Type[0]),
 
                     // Add more controller, method, and parameter combinations as needed
                 };
@@ -64,6 +54,34 @@ namespace Kiss.Bff.Test
             foreach (var (controllerType, methodName, parameterTypes) in controllersWithMethodsToTest)
             {
                 yield return new object[] { controllerType, methodName, parameterTypes };
+            }
+        }
+
+        public static IEnumerable<object[]> GetControllersMethodsWithRequirePermissionAttribute()
+        {
+            // Define the controllers and methods to test here
+            var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo[] requiredPermissions)>
+                {
+                    (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }, [RequirePermissionTo.gespreksresultatenbeheer]),
+                    (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}, [RequirePermissionTo.gespreksresultatenbeheer]),
+                    (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}, [RequirePermissionTo.gespreksresultatenbeheer]),
+                    (typeof(LinksController), "GetLinks", new Type[0], [RequirePermissionTo.linksread, RequirePermissionTo.linksbeheer]),
+                    (typeof(LinksController), "PutLink", new[] { typeof(int), typeof(LinkPutModel),typeof(CancellationToken)}, [RequirePermissionTo.linksbeheer]),
+                    (typeof(LinksController), "PostLink", new[] { typeof(LinkPostModel) }, [RequirePermissionTo.linksbeheer]),
+                    (typeof(LinksController), "DeleteLink", new[] { typeof(int) }, [RequirePermissionTo.linksbeheer]),
+                    (typeof(SkillsController), "PutSkill", new[] { typeof(int), typeof(SkillPutModel), typeof(CancellationToken) }, [RequirePermissionTo.skillsbeheer]),
+                    (typeof(SkillsController), "PostSkill", new[] { typeof(SkillPostModel), typeof(CancellationToken) }, [RequirePermissionTo.skillsbeheer]),
+                    (typeof(BerichtenController), "GetBerichten", new Type[0], [RequirePermissionTo.berichtenread, RequirePermissionTo.berichtenbeheer]),
+                    (typeof(BerichtenController), "PostBericht", new[] { typeof(BerichtPostModel), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
+                    (typeof(BerichtenController), "PutBericht", new[] { typeof(int),typeof(BerichtPutModel), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
+                    (typeof(BerichtenController), "DeleteBericht", new[] { typeof(int), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
+
+                    // Add more controller, method, and parameter combinations as needed
+                };
+
+            foreach (var (controllerType, methodName, parameterTypes, requiredPermissions) in controllersWithMethodsToTest)
+            {
+                yield return new object[] { controllerType, methodName, parameterTypes, requiredPermissions };
             }
         }
 
@@ -107,6 +125,33 @@ namespace Kiss.Bff.Test
 
             // Assert that the method has the right auth attribute
             Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute?.Policy);
+        }
+
+        [DataTestMethod]
+        [DynamicData(nameof(GetControllersMethodsWithRequirePermissionAttribute), DynamicDataSourceType.Method)]
+        public void TestPermissionAttribute(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo[] requiredPermissions)
+        {
+            var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .Options;
+            var dbContext = new BeheerDbContext(dbContextOptions);
+            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+
+            // Assert that the controller instance is not null
+            Assert.IsNotNull(controller);
+
+            // Retrieve the method to test
+            var method = controllerType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly, null, parameterTypes, null);
+
+            // Assert that the method exists
+            Assert.IsNotNull(method);
+
+            // Retrieve the permission attribute
+            var permissionAttribute = method.GetCustomAttributes(typeof(RequirePermissionAttribute), true)
+                .FirstOrDefault() as RequirePermissionAttribute;
+
+            // Assert that the method has the right permission
+            CollectionAssert.AreEquivalent(new List<RequirePermissionTo>(requiredPermissions), permissionAttribute?.Permissions);
         }
 
 
