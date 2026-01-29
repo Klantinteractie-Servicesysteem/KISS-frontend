@@ -1,6 +1,6 @@
 ﻿using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +8,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
 {
     [Route("api/[controller]")]
     [ApiController]
+    [RequirePermission(RequirePermissionTo.gespreksresultatenbeheer, RequirePermissionTo.gespreksresultatenread)]
     public class GespreksresultatenController : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -34,8 +35,8 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         public async Task<ActionResult<GespreksresultaatModel>> GetGespreksresultaat(Guid id, CancellationToken token)
         {
             var gesprekresultaat = await _context.Gespreksresultaten
-                .Where(x=> x.Id == id)
-                .Select(x=> new GespreksresultaatModel(x.Id, x.Definitie))
+                .Where(x => x.Id == id)
+                .Select(x => new GespreksresultaatModel(x.Id, x.Definitie))
                 .FirstOrDefaultAsync(token);
 
             return gesprekresultaat == null
@@ -44,7 +45,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         }
 
         [HttpPut("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.gespreksresultatenbeheer)]
         public async Task<IActionResult> PutGespreksresultaat(Guid id, GespreksresultaatModel gespreksresultaat, CancellationToken token)
         {
             var entity = await _context.Gespreksresultaten.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: token);
@@ -58,7 +59,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         }
 
         [HttpPost]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.gespreksresultatenbeheer)]
         public async Task<ActionResult<Gespreksresultaat>> PostGespreksresultaat(GespreksresultaatModel gespreksresultaat, CancellationToken token)
         {
             var entity = new Gespreksresultaat
@@ -74,7 +75,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.gespreksresultatenbeheer)]
         public async Task<IActionResult> DeleteGespreksresultaat(Guid id, CancellationToken token)
         {
             var gespreksresultaat = await _context.Gespreksresultaten.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: token);
