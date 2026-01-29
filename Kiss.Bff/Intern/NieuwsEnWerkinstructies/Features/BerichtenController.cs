@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Kiss.Bff.Beheer.Data;
+using Kiss.Bff.Config.Permissions;
 using Kiss.Bff.NieuwsEnWerkinstructies.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 {
     [Route("api/[controller]")]
-    [Authorize(Policy = Policies.RedactiePolicy)]
     [ApiController]
     public class BerichtenController : ControllerBase
     {
@@ -21,6 +20,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Berichten
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.berichtenread, RequirePermissionTo.berichtenbeheer)]
         public ActionResult<IAsyncEnumerable<BerichtOverviewModel>> GetBerichten()
         {
             if (_context.Berichten == null)
@@ -47,6 +47,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Berichten/5
         [HttpGet("{id:int}")]
+        [RequirePermission(RequirePermissionTo.berichtenbeheer)]
         public async Task<ActionResult<BerichtViewModel>> GetBericht(int id, CancellationToken token)
         {
             if (_context.Berichten == null)
@@ -70,6 +71,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // PUT: api/Berichten/5      
         [HttpPut("{id}")]
+        [RequirePermission(RequirePermissionTo.berichtenbeheer)]
         public async Task<IActionResult> PutBericht(int id, BerichtPutModel bericht, CancellationToken token)
         {
             var current = await _context.Berichten.Include(x => x.Skills).FirstOrDefaultAsync(x => x.Id == id, token);
@@ -99,6 +101,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // POST: api/Berichten
         [HttpPost]
+        [RequirePermission(RequirePermissionTo.berichtenbeheer)]
         public async Task<ActionResult<BerichtViewModel>> PostBericht(BerichtPostModel bericht, CancellationToken token)
         {
             var newBericht = new Bericht
@@ -123,6 +126,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // DELETE: api/Berichten/5
         [HttpDelete("{id}")]
+        [RequirePermission(RequirePermissionTo.berichtenbeheer)]
         public async Task<IActionResult> DeleteBericht(int id, CancellationToken token)
         {
             var bericht = await _context.Berichten.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: token);
