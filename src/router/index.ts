@@ -208,12 +208,14 @@ const router = createRouter({
         {
           path: "NieuwsEnWerkinstructies",
           name: "NieuwsEnWerkinstructiesBeheer",
+          beforeEnter: guardHasPermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructiesBeheer,
           meta: {},
         },
         {
           path: "Skills",
           name: "SkillsBeheer",
+          beforeEnter: guardHasPermission("skillsbeheer"),
           component: SkillsBeheer,
           meta: {},
         },
@@ -227,12 +229,14 @@ const router = createRouter({
         {
           path: "gespreksresultaten",
           name: "GespreksresultatenBeheer",
+          beforeEnter: guardHasPermission("gespreksresultatenbeheer"),
           component: GespreksresultatenBeheer,
           meta: {},
         },
         {
           path: "NieuwsEnWerkinstructie/:id?",
           name: "NieuwsEnWerkinstructieBeheer",
+          beforeEnter: guardHasPermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructieBeheer,
           props: true,
           meta: {},
@@ -240,6 +244,7 @@ const router = createRouter({
         {
           path: "Skill/:id?",
           name: "SkillBeheer",
+          beforeEnter: guardHasPermission("skillsbeheer"),
           component: SkillBeheer,
           props: true,
           meta: {},
@@ -247,14 +252,15 @@ const router = createRouter({
         {
           path: "Link/:id?",
           name: "LinkBeheer",
-          component: LinkBeheer,
           beforeEnter: guardHasPermission("linksbeheer"),
+          component: LinkBeheer,
           props: true,
           meta: {},
         },
         {
           path: "gespreksresultaat/:id?",
           name: "GespreksresultaatBeheer",
+          beforeEnter: guardHasPermission("gespreksresultatenbeheer"),
           component: GespreksresultaatBeheer,
           props: true,
           meta: {},
@@ -262,6 +268,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-afdeling",
           name: "FormulierenContactverzoekAfdelingenBeheer",
+          beforeEnter: guardHasPermission("contactformulierenafdelingenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "afdeling" },
           meta: {},
@@ -269,6 +276,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-afdeling/:id?",
           name: "FormulierContactverzoekAfdelingenBeheer",
+          beforeEnter: guardHasPermission("contactformulierenafdelingenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
@@ -279,6 +287,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-groep",
           name: "FormulierenContactverzoekGroepenBeheer",
+          beforeEnter: guardHasPermission("contactformulierengroepenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "groep" },
           meta: {},
@@ -286,6 +295,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-groep/:id?",
           name: "FormulierContactverzoekGroepenBeheer",
+          beforeEnter: guardHasPermission("contactformulierengroepenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
@@ -296,27 +306,29 @@ const router = createRouter({
         {
           path: "kanalen",
           name: "KanalenBeheer",
-          component: KanalenBeheer,
           beforeEnter: guardHasPermission("kanalenbeheer"),
+          component: KanalenBeheer,
           meta: {},
         },
         {
           path: "kanaal/:id?",
           name: "KanaalBeheer",
-          component: KanaalBeheer,
           beforeEnter: guardHasPermission("kanalenbeheer"),
+          component: KanaalBeheer,
           props: true,
           meta: {},
         },
         {
           path: "vacs",
           name: "VacsBeheer",
+          beforeEnter: guardHasPermission("vacsbeheer"),
           component: VacsBeheer,
           meta: {},
         },
         {
           path: "vac/:uuid?",
           name: "VacBeheer",
+          beforeEnter: guardHasPermission("vacsbeheer"),
           component: VacBeheer,
           props: true,
           meta: {},

@@ -1,16 +1,25 @@
 <template>
   <nav>
     <router-link to="/">Home</router-link>
-    <router-link to="/Beheer/NieuwsEnWerkinstructies">
+    <router-link
+      v-if="userStore.hasPermission('berichtenbeheer')"
+      to="/Beheer/NieuwsEnWerkinstructies"
+    >
       Nieuws en werkinstructies
     </router-link>
-    <router-link to="/Beheer/Skills">Skills</router-link>
+    <router-link
+      v-if="userStore.hasPermission('skillsbeheer')"
+      to="/Beheer/Skills"
+      >Skills</router-link
+    >
     <router-link
       v-if="userStore.hasPermission('linksbeheer')"
       to="/Beheer/Links"
       >Links</router-link
     >
-    <router-link to="/Beheer/gespreksresultaten"
+    <router-link
+      to="/Beheer/gespreksresultaten"
+      v-if="userStore.hasPermission('gespreksresultatenbeheer')"
       >Gespreksresultaten</router-link
     >
     <router-link
@@ -18,12 +27,16 @@
       to="/Beheer/Kanalen"
       >Kanalen</router-link
     >
-    <router-link to="/Beheer/formulieren-contactverzoek-afdeling">
-      Contactverzoekformulieren afdelingen
-    </router-link>
-    <router-link to="/Beheer/formulieren-contactverzoek-groep">
-      Contactverzoekformulieren groepen
-    </router-link>
+    <router-link
+      v-if="userStore.hasPermission('contactformulierenafdelingenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-afdeling"
+      >Contactverzoekformulieren afdelingen</router-link
+    >
+    <router-link
+      v-if="userStore.hasPermission('contactformulierengroepenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-groep"
+      >Contactverzoekformulieren groepen</router-link
+    >
 
     <router-link v-if="useVacs" to="/Beheer/vacs">VACs</router-link>
   </nav>
