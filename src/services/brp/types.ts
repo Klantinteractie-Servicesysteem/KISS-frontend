@@ -7,6 +7,7 @@ export interface Persoon {
   _typeOfKlant: "persoon";
   bsn: string;
   geboortedatum?: Date;
+  geslacht: string;
   voornaam: string;
   voorvoegselAchternaam?: string;
   achternaam: string;
@@ -15,6 +16,7 @@ export interface Persoon {
   adresregel1?: string;
   adresregel2?: string;
   adresregel3?: string;
+  geheimhoudingPersoonsgegevens?: boolean;
 }
 
 export type PersoonQuery =
