@@ -8,7 +8,6 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
 {
     [Route("api/[controller]")]
     [ApiController]
-    [RequirePermission(RequirePermissionTo.gespreksresultatenbeheer, RequirePermissionTo.gespreksresultatenread)]
     public class GespreksresultatenController : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -19,6 +18,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         }
 
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.gespreksresultatenread)]
         public ActionResult<IAsyncEnumerable<GespreksresultaatModel>> GetGespreksresultaten()
         {
             var result = _context
@@ -32,6 +32,7 @@ namespace Kiss.Bff.Intern.Gespreksresultaten.Features
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RequirePermissionTo.gespreksresultatenread)]
         public async Task<ActionResult<GespreksresultaatModel>> GetGespreksresultaat(Guid id, CancellationToken token)
         {
             var gesprekresultaat = await _context.Gespreksresultaten
