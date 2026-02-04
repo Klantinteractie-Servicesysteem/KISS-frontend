@@ -20,7 +20,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Skills
         [HttpGet]
-        [RequirePermission(RequirePermissionTo.skillsread, RequirePermissionTo.skillsbeheer)]
+        [RequirePermission(RequirePermissionTo.skillsread)]
         public ActionResult<IAsyncEnumerable<Skill>> GetSkills()
         {
             var result = _context.Skills.Where(x => !x.IsDeleted)
