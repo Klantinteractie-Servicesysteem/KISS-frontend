@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Kiss.Bff.Config.Permissions
@@ -7,7 +6,7 @@ namespace Kiss.Bff.Config.Permissions
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RequirePermissionAttribute requirement)
         {
-            if (requirement.Permissions.Any(configuration.GetPermissions(context.User).Contains))
+            if (requirement.Permissions.All(configuration.GetPermissions(context.User).Contains))
             {
                 context.Succeed(requirement);
             }
