@@ -7,7 +7,6 @@ namespace Kiss.Bff.Intern.Kanalen
 {
     [Route("api/[controller]")]
     [ApiController]
-    [RequirePermission(RequirePermissionTo.kanalenread, RequirePermissionTo.kanalenbeheer)]
     public class KanalenContactmomentKeuzelijst : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -18,6 +17,7 @@ namespace Kiss.Bff.Intern.Kanalen
         }
 
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.kanalenread)]
         public ActionResult<IAsyncEnumerable<KanalenKeuzelijstModel>> Get()
         {
             var result = _context

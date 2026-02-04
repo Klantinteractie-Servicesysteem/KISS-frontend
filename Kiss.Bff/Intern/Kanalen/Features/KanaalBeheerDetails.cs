@@ -7,7 +7,6 @@ namespace Kiss.Bff.Intern.Kanalen
 {
     [Route("api/[controller]")]
     [ApiController]
-    [RequirePermission(RequirePermissionTo.kanalenread, RequirePermissionTo.kanalenbeheer)]
     public class KanaalBeheerDetails : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -18,6 +17,7 @@ namespace Kiss.Bff.Intern.Kanalen
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RequirePermissionTo.kanalenread)]
         public async Task<ActionResult<KanaalOverzichtModel>> Get(Guid id)
         {
             var result = await _context

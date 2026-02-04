@@ -20,7 +20,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // GET: api/Links
         [HttpGet]
-        [RequirePermission(RequirePermissionTo.linksbeheer, RequirePermissionTo.linksread)]
+        [RequirePermission(RequirePermissionTo.linksread)]
         public IActionResult GetLinks()
         {
             if (_context.Links == null)

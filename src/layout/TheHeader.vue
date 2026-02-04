@@ -101,7 +101,7 @@ import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
 import { computed } from "vue";
-import { BEHEER_PERMISSIONS, useUserStore } from "@/stores/user";
+import { BEHEER_TAB_PERMISSIONS, useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import { useLoader } from "@/services";
 
@@ -123,7 +123,7 @@ const canSeeBeheer = computed(() => {
     user.value.isLoggedIn &&
     !contactmomentStore.contactmomentLoopt &&
     route.meta.showNav &&
-    userStore.hasPermission(BEHEER_PERMISSIONS)
+    userStore.user.permissions.some((p) => BEHEER_TAB_PERMISSIONS.includes(p))
   );
 });
 

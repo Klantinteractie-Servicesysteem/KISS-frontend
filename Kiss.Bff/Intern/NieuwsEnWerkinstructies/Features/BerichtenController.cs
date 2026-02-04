@@ -20,7 +20,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Berichten
         [HttpGet]
-        [RequirePermission(RequirePermissionTo.berichtenread, RequirePermissionTo.berichtenbeheer)]
+        [RequirePermission(RequirePermissionTo.berichtenread)]
         public ActionResult<IAsyncEnumerable<BerichtOverviewModel>> GetBerichten()
         {
             if (_context.Berichten == null)
@@ -47,7 +47,7 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
 
         // GET: api/Berichten/5
         [HttpGet("{id:int}")]
-        [RequirePermission(RequirePermissionTo.berichtenbeheer)]
+        [RequirePermission(RequirePermissionTo.berichtenread)]
         public async Task<ActionResult<BerichtViewModel>> GetBericht(int id, CancellationToken token)
         {
             if (_context.Berichten == null)
