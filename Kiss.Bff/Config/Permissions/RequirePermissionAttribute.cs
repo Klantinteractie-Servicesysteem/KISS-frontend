@@ -6,7 +6,8 @@ namespace Kiss.Bff.Config.Permissions
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum RequirePermissionTo
     {
-        authenticated,
+        afdelingen,
+        groepen,
         skillsread,
         skillsbeheer,
         kanalenread,

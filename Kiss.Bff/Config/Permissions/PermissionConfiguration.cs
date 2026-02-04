@@ -33,7 +33,6 @@ namespace Kiss.Bff.Config.Permissions
         {
             // Redacteur needs skillsread for NieuwsEnWerkBerichten
             var redacteurPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.authenticated,
                 RequirePermissionTo.skillsread,
                 RequirePermissionTo.berichtenread,
                 RequirePermissionTo.berichtenbeheer,
@@ -43,7 +42,8 @@ namespace Kiss.Bff.Config.Permissions
             _permissionsByRole[redacteurRole] = redacteurPermissions;
 
             var beheerderPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.authenticated,
+                RequirePermissionTo.afdelingen,
+                RequirePermissionTo.groepen,
                 RequirePermissionTo.skillsread,
                 RequirePermissionTo.skillsbeheer,
                 RequirePermissionTo.gespreksresultatenread,
@@ -56,7 +56,8 @@ namespace Kiss.Bff.Config.Permissions
             _permissionsByRole[beheerderRole] = beheerderPermissions;
 
             var kcmPermissions = new HashSet<RequirePermissionTo>([
-                RequirePermissionTo.authenticated,
+                RequirePermissionTo.afdelingen,
+                RequirePermissionTo.groepen,
                 RequirePermissionTo.skillsread,
                 RequirePermissionTo.berichtenread,
                 RequirePermissionTo.gespreksresultatenread,
