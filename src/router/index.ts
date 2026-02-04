@@ -16,7 +16,7 @@ import {
   type NavigationGuard,
 } from "vue-router";
 import {
-  BEHEER_PERMISSIONS,
+  BEHEER_TAB_PERMISSIONS,
   useUserStore,
   type Permission,
 } from "@/stores/user";
@@ -62,32 +62,27 @@ const guardContactMoment: NavigationGuard = (to, from, next) => {
   }
 };
 
-const guardIsKcmOrRedacteur: NavigationGuard = async (to, from, next) => {
-  const userStore = useUserStore();
-  await userStore.promise;
-  if (userStore.user.isKcm || userStore.user.isRedacteur) {
-    next();
-  } else {
-    next("/");
-  }
-};
-
-const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
-  const userStore = useUserStore();
-  await userStore.promise;
-  if (userStore.user.isRedacteur) {
-    next();
-  } else {
-    next("/");
-  }
-};
-
 const guardHasPermission =
   (permissions: Permission | Permission[]): NavigationGuard =>
   async (to, from, next) => {
     const userStore = useUserStore();
     await userStore.promise;
-    if (userStore.user.isLoggedIn && userStore.hasPermission(permissions)) {
+    if (userStore.user.isLoggedIn && userStore.requirePermission(permissions)) {
+      next();
+    } else {
+      next("/");
+    }
+  };
+
+const guardBeheertab =
+  (permissions: Permission | Permission[]): NavigationGuard =>
+  async (to, from, next) => {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (
+      userStore.user.isLoggedIn &&
+      userStore.user.permissions.some((p) => permissions.includes(p))
+    ) {
       next();
     } else {
       next("/");
@@ -192,7 +187,7 @@ const router = createRouter({
     {
       path: "/links",
       name: "links",
-      beforeEnter: guardHasPermission(["linksbeheer", "linksread"]),
+      beforeEnter: guardHasPermission(["linksread"]),
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
@@ -201,7 +196,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardHasPermission(BEHEER_PERMISSIONS),
+      beforeEnter: guardBeheertab(BEHEER_TAB_PERMISSIONS),
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
