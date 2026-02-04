@@ -26,7 +26,7 @@ namespace Kiss.Bff.Afdelingen
 
         public string Destination { get; }
         public string ObjectTypeUrl { get; }
-        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.contactformulierenread];
+        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.authenticated];
 
 
         public ValueTask ApplyRequestTransform(RequestTransformContext context)
