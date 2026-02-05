@@ -49,7 +49,7 @@
           }}</utrecht-heading>
           <ul>
             <li v-for="record in vraag.klanten" :key="record.klant.id">
-              <label>
+              <label :for="'klant-' + record.klant.id">
                 <span
                   v-if="
                     record.klant.voornaam ||
@@ -76,8 +76,15 @@
                 }}</span>
                 <input
                   title="Deze klant opslaan bij het contactmoment"
-                  type="checkbox"
-                  v-model="record.shouldStore"
+                  type="radio"
+                  :id="'klant-' + record.klant.id"
+                  :name="idx + 'klant'"
+                  :checked="record.shouldStore"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectKlant(record.klant, vraag)
+                  "
                 />
               </label>
             </li>

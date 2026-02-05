@@ -404,6 +404,15 @@ export const useContactmomentStore = defineStore("contactmoment", {
           zaak.zaaksysteemId === contactmomentZaak.zaaksysteemId,
       }));
     },
+    selectKlant(
+      contactmomentKlant: ContactmomentKlant | undefined,
+      vraag: Vraag,
+    ) {
+      vraag.klanten = vraag.klanten.map((klant) => ({
+        ...klant,
+        shouldStore: klant.klant.id === contactmomentKlant?.id,
+      }));
+    },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {
       return vraag.zaken.some(
         ({ zaak, shouldStore }) => shouldStore && zaak.url === id,
