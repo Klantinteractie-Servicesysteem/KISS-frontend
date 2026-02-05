@@ -7,6 +7,7 @@
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface.
 - Applied feedback from integration team on helm chart
+- Geslacht and geheimhoudingswaarschuwing are now displayed on Persoonsgegevens tab.
 
 ## v2.0.0
 

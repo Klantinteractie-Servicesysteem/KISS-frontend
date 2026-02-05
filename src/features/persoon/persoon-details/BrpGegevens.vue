@@ -13,6 +13,15 @@
         Verstrek nooit de hier getoonde gegevens.
       </utrecht-paragraph>
     </application-message>
+    <application-message
+      v-if="persoon?.geheimhoudingPersoonsgegevens"
+      message-type="warning"
+    >
+      <utrecht-paragraph>
+        Deze persoon heeft aangegeven om gegevens uit de BRP geheim te houden en
+        niet te delen met bepaalde organisaties.
+      </utrecht-paragraph>
+    </application-message>
     <dl v-if="persoon">
       <dt>Naam</dt>
       <dd>
@@ -39,6 +48,8 @@
       </dd>
       <dt>Geboorteplaats</dt>
       <dd>{{ persoon.geboorteplaats }}, {{ persoon.geboorteland }}</dd>
+      <dt>Geslacht</dt>
+      <dd>{{ persoon.geslacht }}</dd>
     </dl>
   </article>
 </template>
