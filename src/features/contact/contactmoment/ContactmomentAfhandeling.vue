@@ -77,6 +77,17 @@
                 />
               </label>
             </li>
+            <li>
+              <label>
+                <span>Geen klant opslaan</span>
+                <input
+                  title="Geen zaak opslaan bij het contactmoment"
+                  type="radio"
+                  :value="undefined"
+                  v-model="vraag.klantToStore"
+                />
+              </label>
+            </li>
           </ul>
         </section>
 
