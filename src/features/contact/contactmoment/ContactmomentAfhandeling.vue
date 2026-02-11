@@ -48,43 +48,32 @@
             vraag.klanten.length > 1 ? "Klanten" : "Klant"
           }}</utrecht-heading>
           <ul>
-            <li v-for="record in vraag.klanten" :key="record.klant.id">
-              <label :for="'klant-' + record.klant.id">
+            <li v-for="klant in vraag.klanten" :key="klant.id">
+              <label :for="'klant-' + klant.id">
                 <span
                   v-if="
-                    record.klant.voornaam ||
-                    record.klant.achternaam ||
-                    record.klant.bedrijfsnaam
+                    klant.voornaam || klant.achternaam || klant.bedrijfsnaam
                   "
                   >{{
                     [
-                      record.klant.voornaam,
-                      record.klant.voorvoegselAchternaam,
-                      record.klant.achternaam,
+                      klant.voornaam,
+                      klant.voorvoegselAchternaam,
+                      klant.achternaam,
                     ]
                       .filter((x) => x)
-                      .join(" ") || record.klant.bedrijfsnaam
+                      .join(" ") || klant.bedrijfsnaam
                   }}</span
                 >
                 <span v-else>{{
-                  [
-                    ...record.klant.emailadressen,
-                    ...record.klant.telefoonnummers,
-                  ]
+                  [...klant.emailadressen, ...klant.telefoonnummers]
                     .filter((x) => x)
                     .join(", ")
                 }}</span>
                 <input
                   title="Deze klant opslaan bij het contactmoment"
                   type="radio"
-                  :id="'klant-' + record.klant.id"
-                  :name="idx + 'klant'"
-                  :checked="record.shouldStore"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectKlant(record.klant, vraag)
-                  "
+                  :value="klant"
+                  v-model="vraag.klantToStore"
                 />
               </label>
             </li>
@@ -1115,8 +1104,8 @@ onMounted(() => {
 
 const ensureKlanten = async (systeem: Systeem, vraag: Vraag) => {
   const result = [];
-  for (const { klant, shouldStore } of vraag.klanten) {
-    if (!shouldStore) continue;
+  const klant = vraag.klantToStore;
+  if (klant) {
     let klantInSysteem;
     if (systeem.registryVersion === registryVersions.ok1) {
       const bronorganisatie = organisatieIds.value[0] || "";
