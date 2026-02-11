@@ -79,7 +79,7 @@
             </li>
             <li>
               <label>
-                <span>Geen klant opslaan</span>
+                <span>Geen</span>
                 <input
                   title="Geen zaak opslaan bij het contactmoment"
                   type="radio"
