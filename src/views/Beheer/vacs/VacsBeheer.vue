@@ -41,7 +41,7 @@ import {
 } from "@utrecht/component-library-vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { fetchLoggedIn, parseJson, parsePagination } from "@/services";
-import type { Vac } from "@/features/search/types";
+import type { Vac } from "@/features/informatie/search/types";
 import { toast } from "@/stores/toast";
 
 type StoredVac = Vac & Required<{ uuid: string }>;

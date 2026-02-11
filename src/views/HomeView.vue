@@ -126,11 +126,14 @@
 <script setup lang="ts">
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { computed } from "vue";
-import { fetchSkills, WerkBerichten } from "@/features/werkbericht";
+import { fetchSkills, WerkBerichten } from "@/features/informatie/werkbericht";
 import MultiSelect from "@/components/MultiSelect.vue";
 import { useUserStore } from "@/stores/user";
 import { ensureState } from "@/stores/create-store";
-import { type Berichttype, berichtTypes } from "@/features/werkbericht/types";
+import {
+  type Berichttype,
+  berichtTypes,
+} from "@/features/informatie/werkbericht/types";
 import SeedBeheer from "@/features/beheer/SeedBeheer.vue";
 import { useLoader } from "@/services";
 

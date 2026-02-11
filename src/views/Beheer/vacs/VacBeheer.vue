@@ -96,7 +96,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import CkEditor from "@/components/ckeditor";
 import BeheerForm from "@/components/beheer/BeheerForm.vue";
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "@/services";
-import type { Vac } from "@/features/search/types";
+import type { Vac } from "@/features/informatie/search/types";
 import { toast } from "@/stores/toast";
 
 type VacObject = {

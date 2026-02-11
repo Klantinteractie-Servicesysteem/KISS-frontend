@@ -68,21 +68,20 @@
 </template>
 
 <script lang="ts" setup>
-import ContactverzoekFormulier from "@/features/contact/contactverzoek/formulier/ContactverzoekFormulier.vue";
-import ContactmomentVragenMenu from "@/features/contact/contactmoment/ContactmomentVragenMenu.vue";
-import { useContactmomentStore } from "@/stores/contactmoment";
+import ContactverzoekFormulier from "@/features/contact/contactBehandelen/vraagBehandelen/contactverzoek/ContactverzoekFormulier.vue";
+import ContactmomentVragenMenu from "@/features/contact/contactBehandelen/vragenManagen/ContactmomentVragenMenu.vue";
+import { useContactmomentStore } from "@/stores/contactmoment/index";
 import { ensureState } from "@/stores/create-store";
 import { watch } from "vue";
 import { useRoute } from "vue-router";
-import {
-  ContactmomentStarter,
-  ContactmomentFinisher,
-  CurrentContactmomentInfo,
-  ContactmomentSwitcher,
-} from "@/features/contact/contactmoment";
+import ContactmomentStarter from "@/features/contact/contactenManagen/ContactmomentStarter.vue";
+import ContactmomentFinisher from "@/features/contact/contactenManagen/ContactmomentFinisher.vue";
+import CurrentContactmomentInfo from "@/features/contact/contactenManagen/CurrentContactmomentInfo.vue";
+import ContactmomentSwitcher from "@/features/contact/contactenManagen/ContactmomentSwitcher.vue";
+
 import { TabList, TabListItem } from "@/components/tabs";
 import { useUserStore } from "@/stores/user";
-import ContactmomentCanceller from "@/features/contact/contactmoment/ContactmomentCanceller.vue";
+import ContactmomentCanceller from "@/features/contact/contactenManagen/ContactmomentCanceller.vue";
 
 enum NotitieTabs {
   Regulier = "Reguliere notitie",

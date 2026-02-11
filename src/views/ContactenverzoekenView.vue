@@ -6,6 +6,6 @@
 </template>
 
 <script setup lang="ts">
-import ContactverzoekenZoeker from "@/features/contact/contactverzoek/overzicht/ContactverzoekenZoeker.vue";
+import ContactverzoekenZoeker from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/contactverzoeken/ContactverzoekenZoeker.vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 </script>

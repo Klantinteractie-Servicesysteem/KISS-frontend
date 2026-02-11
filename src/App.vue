@@ -6,7 +6,7 @@
         'app-layout',
         {
           'contactmoment-loopt': contactmomentStore.contactmomentLoopt,
-          'hide-sidebar': !userStore.user.isKcm || route.meta.hideSidebar,
+          'hide-sidebar': route.meta.hideSidebar,
         },
       ]"
     >
@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { RouterView, useRoute } from "vue-router";
-import { useContactmomentStore } from "@/stores/contactmoment";
+import { useContactmomentStore } from "@/stores/contactmoment/index";
 import TheToastSection from "@/components/TheToastSection.vue";
 import TheSidebar from "./layout/TheSidebar.vue";
 import TheHeader from "./layout/TheHeader.vue";
@@ -38,10 +38,8 @@ import { SwitchableStoreProvider } from "./stores/switchable-store";
 import BackLinkProvider from "./components/BackLinkProvider.vue";
 import { fetchLoggedIn, parseJson, throwIfNotOk } from "./services";
 import { useLoader } from "./services/use-loader";
-import { useUserStore } from "./stores/user";
 
 const contactmomentStore = useContactmomentStore();
-const userStore = useUserStore();
 const route = useRoute();
 
 const { data: buildInfo } = useLoader(() =>

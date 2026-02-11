@@ -52,18 +52,17 @@
 </template>
 
 <script setup lang="ts">
-import { fetchZaakDetailsById } from "@/features/zaaksysteem/service";
+import { fetchZaakDetailsById } from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/service";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { computed, ref, watch } from "vue";
-import { useContactmomentStore } from "@/stores/contactmoment";
-import ZaakDocumenten from "@/features/zaaksysteem/components/ZaakDocumenten.vue";
-import ZaakAlgemeen from "@/features/zaaksysteem/components/ZaakAlgemeen.vue";
+import { useContactmomentStore } from "@/stores/contactmoment/index";
+import ZaakDocumenten from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/components/ZaakDocumenten.vue";
+import ZaakAlgemeen from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/components/ZaakAlgemeen.vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import ZaakDeeplink from "@/features/zaaksysteem/components/ZaakDeeplink.vue";
+import ZaakDeeplink from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/components/ZaakDeeplink.vue";
 import { TabList, TabListItem } from "@/components/tabs";
 import BackLink from "@/components/BackLink.vue";
-import ContactmomentenForObjectUrl from "@/features/contact/contactmoment/ContactmomentenForObjectUrl.vue";
 import { useSystemen } from "@/services/environment/fetch-systemen";
 import { useLoader } from "@/services";
 

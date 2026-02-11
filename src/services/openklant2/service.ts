@@ -28,9 +28,9 @@ import {
   type KlantBedrijfIdentifier,
 } from "./types";
 
-import type { ContactverzoekData } from "../../features/contact/components/types";
+import type { ContactverzoekData } from "../../features/contact/types";
 import type { Klant, KlantIdentificator } from "../openklant/types";
-import type { Vraag } from "@/stores/contactmoment";
+import type { Vraag } from "@/stores/contactmoment/index";
 import { fetchWithSysteemId } from "../fetch-with-systeem-id";
 import { codeObjecttype } from "../knownConsts";
 

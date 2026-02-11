@@ -4,7 +4,7 @@ import ZakenView from "../views/ZakenView.vue";
 import PersonenView from "../views/PersonenView.vue";
 import PersoonDetailView from "../views/PersoonDetailView.vue";
 import ZaakDetailView from "../views/ZaakDetailView.vue";
-import { useContactmomentStore } from "@/stores/contactmoment";
+import { useContactmomentStore } from "@/stores/contactmoment/index";
 import { redirectRoute } from "@/features/login";
 import BedrijvenView from "@/views/BedrijvenView.vue";
 import BedrijfDetailView from "@/views/BedrijfDetailView.vue";
@@ -37,11 +37,11 @@ const GespreksresultatenBeheer = () =>
 const BeheerLayout = () => import("@/views/Beheer/BeheerLayout.vue");
 const ContactverzoekFormulierBeheer = () =>
   import(
-    "@/views/Beheer/contactverzoek-formulieren/ContactverzoekFormulierBeheer.vue"
+    "@/views/Beheer/contactverzoekFormulieren/ContactverzoekFormulierBeheer.vue"
   );
 const ContactverzoekFormulierenBeheer = () =>
   import(
-    "@/views/Beheer/contactverzoek-formulieren/ContactverzoekFormulierenBeheer.vue"
+    "@/views/Beheer/contactverzoekFormulieren/ContactverzoekFormulierenBeheer.vue"
   );
 
 const KanaalBeheer = () => import("@/views/Beheer/Kanalen/KanaalBeheer.vue");

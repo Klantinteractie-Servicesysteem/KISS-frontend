@@ -101,11 +101,11 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
-import { useContactmomentStore } from "@/stores/contactmoment";
+import { fetchFeaturedWerkberichten } from "@/features/informatie/werkbericht";
+import { useContactmomentStore } from "@/stores/contactmoment/index";
 import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
-import GlobalSearch from "../features/search/GlobalSearch.vue";
+import GlobalSearch from "@/features/informatie/search/GlobalSearch.vue";
 import { computed } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";

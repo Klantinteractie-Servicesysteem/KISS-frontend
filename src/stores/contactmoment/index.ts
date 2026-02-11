@@ -2,22 +2,20 @@ import { toRaw } from "vue";
 import type {
   Medewerker,
   Website,
-  Kennisartikel,
   Nieuwsbericht,
   Werkinstructie,
   Vac,
-} from "@/features/search/types";
-import type { ZaakDetails } from "@/features/zaaksysteem/types";
+} from "@/features/informatie/search/types";
+import type { ZaakDetails } from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/types";
 import { defineStore } from "pinia";
 import { createSession, type Session } from "../switchable-store";
 export * from "./types";
-import type {
-  ContactVerzoekVragenSet,
-  TypeOrganisatorischeEenheid,
-} from "@/features/contact/components/types";
-import { fetchVragenSets } from "@/features/contact/contactverzoek/formulier/service";
+
+import { fetchVragenSets } from "@/features/contact/contactBehandelen/vraagBehandelen/contactverzoek/service";
 import { nanoid } from "nanoid";
 import type { BedrijfIdentifier } from "@/services/openklant1";
+import type { ContactVerzoekVragenSet, Kennisartikel } from "@/features/types";
+import type { TypeOrganisatorischeEenheid } from "@/features/types";
 
 export type ContactmomentZaak = {
   zaak: ZaakDetails;

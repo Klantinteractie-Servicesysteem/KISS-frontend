@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BedrijvenQuery } from "@/features/bedrijf/bedrijf-zoeken/use-search-bedrijven";
+import type { BedrijvenQuery } from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/bedrijvenEnPersonen/bedrijven/bedrijf-zoeken/use-search-bedrijven";
 import { formatDateOnly } from "@/helpers/date";
 import type { Paginated, PaginatedResult } from "@/services";
 import type { PersoonQuery } from "@/services/brp";

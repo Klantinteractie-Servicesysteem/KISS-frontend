@@ -114,10 +114,4 @@ watchEffect(() => {
   inset: 0;
   translate: 0 50%;
 }
-
-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-large);
-}
 </style>

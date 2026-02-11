@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
-import { ZaakZoeker } from "@/features/zaaksysteem";
+import ZaakZoeker from "@/features/contact/contactBehandelen/vraagBehandelen/klantgerelateerdeGegevensInzien/zaken/ZaakZoeker.vue";
 </script>
 
 <style scoped lang="scss">

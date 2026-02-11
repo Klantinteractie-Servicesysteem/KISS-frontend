@@ -116,7 +116,10 @@ import {
   Heading as UtrechtHeading,
   Button as UtrechtButton,
 } from "@utrecht/component-library-vue";
-import { berichtTypes, type Berichttype } from "@/features/werkbericht/types";
+import {
+  berichtTypes,
+  type Berichttype,
+} from "@/features/informatie/werkbericht/types";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { toast } from "@/stores/toast";
 import { fetchLoggedIn } from "@/services";
