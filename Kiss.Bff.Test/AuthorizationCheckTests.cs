@@ -18,6 +18,9 @@ using Kiss.Bff.Intern.Gespreksresultaten.Features;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Intern.ContactmomentDetails.Features;
 using Kiss.Bff.Config.Permissions;
+using Kiss.Bff.Intern.Environment;
+using Microsoft.Extensions.Configuration;
+using Kiss.Bff.Extern;
 
 namespace Kiss.Bff.Test
 {
@@ -41,13 +44,15 @@ namespace Kiss.Bff.Test
             s_factory?.Dispose();
         }
 
+        /// <summary>
+        /// Data source for controllers whose individual methods are expected to carry the RedactiePolicy <see cref="AuthorizeAttribute"/>.
+        /// </summary>
         public static IEnumerable<object[]> GetControllersMethodsWithRedactiePolicyAuthorizeAttribute()
         {
             // Define the controllers and methods to test here
             var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes)>
                 {
                     (typeof(GetVerwerkingsLogs), "Get", new Type[0]),
-
                     // Add more controller, method, and parameter combinations as needed
                 };
 
@@ -57,6 +62,37 @@ namespace Kiss.Bff.Test
             }
         }
 
+        /// <summary>
+        /// Data source for controllers whose class-level <see cref="AuthorizeAttribute"/> is expected to carry the specified policy.
+        /// Provides the constructor arguments required to instantiate each controller.
+        /// Provides the specific policy that needs to be verified.
+        /// </summary>
+        public static IEnumerable<object[]> GetControllersWithSpecificPolicyAuthorizeAttribute()
+        {
+            var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .Options;
+            var dbContext = new BeheerDbContext(dbContextOptions);
+            var configuration = new ConfigurationBuilder().Build();
+            var registryConfig = new RegistryConfig { Systemen = [] };
+
+            // Define the controllers and methods to test here
+            var controllersWithMethodsToTest = new List<(Type controllerType, object[] controllerParameters, string policyToVerify)>
+                {
+                    (typeof(SeedController), new object[] { dbContext, new BerichtenService(), new SkillsService(), new LinksService(), new GespreksresultatenService() }, Policies.RedactiePolicy),
+                    (typeof(KissConnectionsController), new object[] { configuration, registryConfig }, Policies.KcmOrRedactiePolicy),
+                };
+
+            foreach (var (controllerType, controllerParameters, policyToVerify) in controllersWithMethodsToTest)
+            {
+                yield return new object[] { controllerType, controllerParameters, policyToVerify };
+            }
+        }
+
+        /// <summary>
+        /// Data source for controller methods expected to carry a <see cref="RequirePermissionAttribute"/> with specific permissions.
+        /// Provides the specific permissions that need to be verified.
+        /// </summary>
         public static IEnumerable<object[]> GetControllersMethodsWithRequirePermissionAttribute()
         {
             // Define the controllers and methods to test here
@@ -94,6 +130,9 @@ namespace Kiss.Bff.Test
         [DataRow("/api/contactmomentendetails?id=1")]
         [DataRow("/api/environment/registers")]
         [DataRow("/api/KanaalToevoegen", "post")]
+        /// <summary>
+        /// Verifies that the listed endpoints return 401 Unauthorized when called without credentials.
+        /// </summary>
         public async Task CallingEnpointsWithoutCredetialsShouldResultInAUnauthorizedResponse(string url, string method = "get")
         {
             using var request = new HttpRequestMessage(new(method), url);
@@ -102,7 +141,30 @@ namespace Kiss.Bff.Test
         }
 
         [DataTestMethod]
+        [DynamicData(nameof(GetControllersWithSpecificPolicyAuthorizeAttribute), DynamicDataSourceType.Method)]
+        /// <summary>
+        /// Verifies that the controller class itself carries an <see cref="AuthorizeAttribute"/>.
+        /// </summary>
+        public void TestControllerAuthorizeAttribute(Type controllerType, object[] controllerParameters, string policyToVerify)
+        {
+            var controller = Activator.CreateInstance(controllerType, controllerParameters) as ControllerBase;
+
+            Assert.IsNotNull(controller);
+
+            var authorizeAttribute = controllerType.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+                .FirstOrDefault() as AuthorizeAttribute;
+
+            Assert.IsNotNull(authorizeAttribute, $"Controller {controllerType.Name} is missing a class-level Authorize attribute.");
+
+            // Assert that the method has the right auth attribute
+            Assert.AreEqual(policyToVerify, authorizeAttribute?.Policy);
+        }
+
+        [DataTestMethod]
         [DynamicData(nameof(GetControllersMethodsWithRedactiePolicyAuthorizeAttribute), DynamicDataSourceType.Method)]
+        /// <summary>
+        /// Verifies that the specified controller method (or its controller class) carries an <see cref="AuthorizeAttribute"/> with the RedactiePolicy.
+        /// </summary>
         public void TestAuthorizeAttribute(Type controllerType, string methodName, Type[] parameterTypes)
         {
             // Manually create an instance of the controller
@@ -110,7 +172,15 @@ namespace Kiss.Bff.Test
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
             var dbContext = new BeheerDbContext(dbContextOptions);
-            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            object? controller = null;
+            try
+            {
+                controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            }
+            catch (Exception)
+            {
+                Assert.Fail($"Controller {controllerType.Name} not found or failed to initialize.");
+            }
 
             // Assert that the controller instance is not null
             Assert.IsNotNull(controller);
@@ -125,12 +195,22 @@ namespace Kiss.Bff.Test
             var authorizeAttribute = method.GetCustomAttributes(typeof(AuthorizeAttribute), true)
                 .FirstOrDefault() as AuthorizeAttribute;
 
+            // If the method does not have a role specified, check if the controller has a general Authorize attribute.
+            if (authorizeAttribute == null)
+            {
+                authorizeAttribute = controllerType.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+                .FirstOrDefault() as AuthorizeAttribute;
+            }
+
             // Assert that the method has the right auth attribute
             Assert.AreEqual(Policies.RedactiePolicy, authorizeAttribute?.Policy);
         }
 
         [DataTestMethod]
         [DynamicData(nameof(GetControllersMethodsWithRequirePermissionAttribute), DynamicDataSourceType.Method)]
+        /// <summary>
+        /// Verifies that the specified controller method carries a <see cref="RequirePermissionAttribute"/> with the expected permissions.
+        /// </summary>
         public void TestPermissionAttribute(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo[] requiredPermissions)
         {
             var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
