@@ -123,6 +123,7 @@ import { fetchLoggedIn } from "@/services";
 import { useRouter } from "vue-router";
 import CkEditor from "@/components/ckeditor";
 import { formatDateAndTime } from "@/helpers/date";
+import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
 
 const props = defineProps(["id"]);
 type BerichtDetail = {
@@ -171,6 +172,7 @@ const showError = () => {
 };
 
 const handleSuccess = () => {
+  fetchFeaturedWerkberichten();
   toast({
     text: "Het bericht is opgeslagen",
   });
