@@ -1,4 +1,5 @@
 ﻿using Kiss.Bff;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.Extensions.Primitives;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
@@ -12,6 +13,7 @@ namespace Kiss.Bff
     {
         string Route { get; }
         string Destination { get; }
+        RequirePermissionTo[]? RequirePermissions => null;
 
         ValueTask ApplyRequestTransform(RequestTransformContext context);
     }
@@ -152,7 +154,7 @@ namespace Microsoft.Extensions.DependencyInjection
                      : null
                 });
 
-                // TODO: Expose dedicated API controllers to handle Enterprise Search and Elasticsearch endpoints
+                // TODO: Expose dedicated API controller to handle the Enterprise Search endpoint
                 // Create specific routes based on the proxy route type
                 if (proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE)
                 {
@@ -188,6 +190,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         RouteId = proxyRoute.Route,
                         ClusterId = proxyRoute.Route,
                         Match = new RouteMatch { Path = $"/api/{proxyRoute.Route.Trim('/')}/{{*any}}" },
+                        AuthorizationPolicy = RequirePermissionAttribute.GetPermissionsStringValue(proxyRoute.RequirePermissions),
                         Transforms = new[]
                         {
                             new Dictionary<string, string>

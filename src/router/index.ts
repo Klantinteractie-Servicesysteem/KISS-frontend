@@ -15,7 +15,11 @@ import {
   createWebHistory,
   type NavigationGuard,
 } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import {
+  BEHEER_PERMISSIONS,
+  useUserStore,
+  type Permission,
+} from "@/stores/user";
 //import ContactverzoekenDetailView from "@/views/ContactverzoekenDetailView.vue";
 
 const NieuwsEnWerkinstructiesBeheer = () =>
@@ -77,6 +81,18 @@ const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
     next("/");
   }
 };
+
+const guardHasPermission =
+  (permissions: Permission | Permission[]): NavigationGuard =>
+  async (to, from, next) => {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (userStore.user.isLoggedIn && userStore.hasPermission(permissions)) {
+      next();
+    } else {
+      next("/");
+    }
+  };
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -185,7 +201,7 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardIsRedacteur,
+      beforeEnter: guardHasPermission(BEHEER_PERMISSIONS),
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
@@ -204,6 +220,7 @@ const router = createRouter({
         {
           path: "Links",
           name: "LinksBeheer",
+          beforeEnter: guardHasPermission("linksbeheer"),
           component: LinksBeheer,
           meta: {},
         },
@@ -231,6 +248,7 @@ const router = createRouter({
           path: "Link/:id?",
           name: "LinkBeheer",
           component: LinkBeheer,
+          beforeEnter: guardHasPermission("linksbeheer"),
           props: true,
           meta: {},
         },
@@ -279,12 +297,14 @@ const router = createRouter({
           path: "kanalen",
           name: "KanalenBeheer",
           component: KanalenBeheer,
+          beforeEnter: guardHasPermission("kanalenbeheer"),
           meta: {},
         },
         {
           path: "kanaal/:id?",
           name: "KanaalBeheer",
           component: KanaalBeheer,
+          beforeEnter: guardHasPermission("kanalenbeheer"),
           props: true,
           meta: {},
         },

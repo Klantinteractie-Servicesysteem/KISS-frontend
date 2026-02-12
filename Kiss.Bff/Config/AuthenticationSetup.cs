@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Duende.IdentityModel;
 using Kiss;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -102,6 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public string ClientSecret { get; set; } = "";
         public string? KlantcontactmedewerkerRole { get; set; }
         public string? RedacteurRole { get; set; }
+        public string? BeheerderRole { get; set; }
         public string? KennisbankRole { get; set; }
         public string? MedewerkerIdentificatieClaimType { get; set; }
         public int? TruncateMedewerkerIdentificatie { get; set; }
@@ -149,6 +151,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
                 ? "Redacteur"
                 : authOptions.RedacteurRole;
+            var beheerderRole = string.IsNullOrWhiteSpace(authOptions.BeheerderRole)
+                ? "Beheerder"
+                : authOptions.BeheerderRole;
             var kennisBankRole = string.IsNullOrWhiteSpace(authOptions.KennisbankRole)
                 ? "Kennisbank"
                 : authOptions.KennisbankRole;
@@ -160,6 +165,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IsRedacteur>(user => user?.IsInRole(redacteurRole) ?? false);
             services.AddSingleton<IsKcm>(user => user?.IsInRole(klantcontactmedewerkerRole) ?? false);
             services.AddSingleton<IsKennisbank>(user => user?.IsInRole(kennisBankRole) ?? false);
+            services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddSingleton<GetMedewerkerIdentificatie>(s =>
             {
                 var accessor = s.GetRequiredService<IHttpContextAccessor>();
@@ -256,6 +263,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();
+
+            var permissionConfig = new PermissionConfiguration();
+            permissionConfig.CreateDefault(redacteurRole, beheerderRole);
+            services.AddSingleton(permissionConfig);
 
             services.AddAuthorization(options =>
             {
@@ -363,7 +374,10 @@ namespace Microsoft.Extensions.DependencyInjection
                                      ?.Split('/')
                                  ?? Array.Empty<string>();
 
-            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isKennisbank, organisatieIds);
+            var permissionConfiguration = httpContext.RequestServices.GetRequiredService<PermissionConfiguration>();
+            var permissions = permissionConfiguration.GetPermissions(httpContext.User);
+
+            return new KissUser(email, isLoggedIn, isKcm, isRedacteur, isKennisbank, organisatieIds, permissions);
         }
 
 
@@ -427,6 +441,7 @@ namespace Microsoft.Extensions.DependencyInjection
             bool IsKcm,
             bool IsRedacteur,
             bool IsKennisbank,
-            IReadOnlyList<string> OrganisatieIds);
+            IReadOnlyList<string> OrganisatieIds,
+            IEnumerable<RequirePermissionTo> Permissions);
     }
 }
