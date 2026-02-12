@@ -8,6 +8,7 @@
 - Improved contrast for a variety of warning / error messages in the user interface.
 - Applied feedback from integration team on helm chart
 - Geslacht and geheimhoudingswaarschuwing are now displayed on Persoonsgegevens tab.
+- Supporting `Beheerder` role. #1335
 
 ## v2.0.0
 
