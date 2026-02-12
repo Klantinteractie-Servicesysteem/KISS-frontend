@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Kiss.Bff.Config.Permissions;
 using Kiss.Bff.Extern;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ namespace Kiss.Bff.Intern.Environment
             _configuration = configuration;
         }
 
+        [RequirePermission(RequirePermissionTo.vacsbeheer)]
         [HttpGet("use-vacs")]
         public IActionResult GetUseVacs()
         {

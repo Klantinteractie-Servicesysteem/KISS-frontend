@@ -3,10 +3,35 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
-export type Permission = "linksbeheer" | "kanalenbeheer";
-export const BEHEER_PERMISSIONS: Permission[] = [
+export type Permission =
+  | "afdelingen"
+  | "groepen"
+  | "linksread"
+  | "linksbeheer"
+  | "kanalenbeheer"
+  | "kanalenread"
+  | "skillsbeheer"
+  | "skillsread"
+  | "gespreksresultatenread"
+  | "gespreksresultatenbeheer"
+  | "contactformulierenafdelingenbeheer"
+  | "contactformulierengroepenbeheer"
+  | "contactformulierenread"
+  | "berichtenread"
+  | "berichtenbeheer"
+  | "vacsread"
+  | "vacsbeheer";
+
+// Any of these permissions is required to see the beheer tab.
+export const BEHEER_TAB_PERMISSIONS: Permission[] = [
   "linksbeheer",
   "kanalenbeheer",
+  "skillsbeheer",
+  "gespreksresultatenbeheer",
+  "contactformulierenafdelingenbeheer",
+  "contactformulierengroepenbeheer",
+  "berichtenbeheer",
+  "vacsbeheer",
 ];
 
 export type User = {
@@ -58,12 +83,16 @@ export const useUserStore = defineStore("user", {
     setPromise(promise: Promise<User>) {
       this.promise = promise.then();
     },
-    hasPermission([...requiredPermissions]) {
-      const permissions = Array.isArray(requiredPermissions)
-        ? requiredPermissions
-        : [requiredPermissions];
-      return permissions.some((p) => this.user.permissions.includes(p));
-    },
+  },
+  getters: {
+    // Checks if the user has EVERY requiredPermission.
+    requirePermission:
+      (state) => (requiredPermissions: Permission | Permission[]) => {
+        const permissions = Array.isArray(requiredPermissions)
+          ? requiredPermissions
+          : [requiredPermissions];
+        return permissions.every((p) => state.user.permissions.includes(p));
+      },
   },
 });
 

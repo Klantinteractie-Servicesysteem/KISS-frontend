@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kiss-frontend.fullname" . }}
+  name: {{ include "kiss-frontend.fullname" . }}-web
   labels:
     {{- include "kiss-frontend.labels" . | nindent 4 }}
 spec:
@@ -13,6 +13,7 @@ spec:
   selector:
     matchLabels:
       {{- include "kiss-frontend.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
   template:
     metadata:
       annotations:
@@ -22,6 +23,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
+        app.kubernetes.io/component: web
         {{- include "kiss-frontend.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}

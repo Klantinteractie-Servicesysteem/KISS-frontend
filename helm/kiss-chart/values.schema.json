@@ -10,31 +10,26 @@
       "properties": {
         "enabled": {
           "default": false,
-          "required": [],
           "title": "enabled",
           "type": "boolean"
         },
         "maxReplicas": {
           "default": 100,
-          "required": [],
           "title": "maxReplicas",
           "type": "integer"
         },
         "minReplicas": {
           "default": 1,
-          "required": [],
           "title": "minReplicas",
           "type": "integer"
         },
         "targetCPUUtilizationPercentage": {
           "default": 80,
-          "required": [],
           "title": "targetCPUUtilizationPercentage",
           "type": "integer"
         },
         "targetMemoryUtilizationPercentage": {
           "default": 80,
-          "required": [],
           "title": "targetMemoryUtilizationPercentage",
           "type": "integer"
         }
@@ -48,7 +43,6 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "extraEnvVars",
       "type": "array"
     },
@@ -57,7 +51,6 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "extraIngress",
       "type": "array"
     },
@@ -66,7 +59,6 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "extraVolumeMounts",
       "type": "array"
     },
@@ -75,13 +67,11 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "extraVolumes",
       "type": "array"
     },
     "fullnameOverride": {
       "default": "",
-      "required": [],
       "title": "fullnameOverride",
       "type": "string"
     },
@@ -95,20 +85,17 @@
       "properties": {
         "pullPolicy": {
           "default": "IfNotPresent",
-          "required": [],
           "title": "pullPolicy",
           "type": "string"
         },
         "repository": {
           "default": "ghcr.io/klantinteractie-servicesysteem/kiss-frontend",
-          "required": [],
           "title": "repository",
           "type": "string"
         },
         "tag": {
           "default": "The semantic version of the chart",
           "description": "Image tag. Consider leaving this empty because it defaults to the recommended version of the image to use with this chart.",
-          "required": [],
           "title": "tag",
           "type": "string"
         }
@@ -121,7 +108,6 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "imagePullSecrets",
       "type": "array"
     },
@@ -134,13 +120,11 @@
         },
         "className": {
           "default": "",
-          "required": [],
           "title": "className",
           "type": "string"
         },
         "enabled": {
           "default": false,
-          "required": [],
           "title": "enabled",
           "type": "boolean"
         },
@@ -149,7 +133,6 @@
           "items": {
             "required": []
           },
-          "required": [],
           "title": "hosts",
           "type": "array"
         },
@@ -170,31 +153,26 @@
       "properties": {
         "failureThreshold": {
           "default": 6,
-          "required": [],
           "title": "failureThreshold",
           "type": "integer"
         },
         "initialDelaySeconds": {
           "default": 60,
-          "required": [],
           "title": "initialDelaySeconds",
           "type": "integer"
         },
         "periodSeconds": {
           "default": 10,
-          "required": [],
           "title": "periodSeconds",
           "type": "integer"
         },
         "successThreshold": {
           "default": 1,
-          "required": [],
           "title": "successThreshold",
           "type": "integer"
         },
         "timeoutSeconds": {
           "default": 5,
-          "required": [],
           "title": "timeoutSeconds",
           "type": "integer"
         }
@@ -205,7 +183,6 @@
     },
     "nameOverride": {
       "default": "",
-      "required": [],
       "title": "nameOverride",
       "type": "string"
     },
@@ -218,19 +195,16 @@
       "properties": {
         "create": {
           "default": false,
-          "required": [],
           "title": "create",
           "type": "boolean"
         },
         "maxUnavailable": {
           "default": "",
-          "required": [],
           "title": "maxUnavailable",
           "type": "string"
         },
         "minAvailable": {
           "default": 1,
-          "required": [],
           "title": "minAvailable",
           "type": "integer"
         }
@@ -253,7 +227,6 @@
       "properties": {
         "fsGroup": {
           "default": 1000,
-          "required": [],
           "title": "fsGroup",
           "type": "integer"
         }
@@ -266,31 +239,26 @@
       "properties": {
         "failureThreshold": {
           "default": 6,
-          "required": [],
           "title": "failureThreshold",
           "type": "integer"
         },
         "initialDelaySeconds": {
           "default": 30,
-          "required": [],
           "title": "initialDelaySeconds",
           "type": "integer"
         },
         "periodSeconds": {
           "default": 10,
-          "required": [],
           "title": "periodSeconds",
           "type": "integer"
         },
         "successThreshold": {
           "default": 1,
-          "required": [],
           "title": "successThreshold",
           "type": "integer"
         },
         "timeoutSeconds": {
           "default": 5,
-          "required": [],
           "title": "timeoutSeconds",
           "type": "integer"
         }
@@ -301,7 +269,6 @@
     },
     "replicaCount": {
       "default": 2,
-      "required": [],
       "title": "replicaCount",
       "type": "integer"
     },
@@ -314,7 +281,6 @@
       "properties": {
         "allowPrivilegeEscalation": {
           "default": false,
-          "required": [],
           "title": "allowPrivilegeEscalation",
           "type": "boolean"
         },
@@ -324,13 +290,11 @@
               "items": {
                 "anyOf": [
                   {
-                    "required": [],
                     "type": "string"
                   }
                 ],
                 "required": []
               },
-              "required": [],
               "title": "drop",
               "type": "array"
             }
@@ -341,19 +305,16 @@
         },
         "readOnlyRootFilesystem": {
           "default": true,
-          "required": [],
           "title": "readOnlyRootFilesystem",
           "type": "boolean"
         },
         "runAsNonRoot": {
           "default": true,
-          "required": [],
           "title": "runAsNonRoot",
           "type": "boolean"
         },
         "runAsUser": {
           "default": 10000,
-          "required": [],
           "title": "runAsUser",
           "type": "integer"
         }
@@ -366,13 +327,11 @@
       "properties": {
         "port": {
           "default": 80,
-          "required": [],
           "title": "port",
           "type": "integer"
         },
         "type": {
           "default": "ClusterIP",
-          "required": [],
           "title": "type",
           "type": "string"
         }
@@ -390,19 +349,16 @@
         },
         "automountServiceAccountToken": {
           "default": true,
-          "required": [],
           "title": "automountServiceAccountToken",
           "type": "boolean"
         },
         "create": {
           "default": true,
-          "required": [],
           "title": "create",
           "type": "boolean"
         },
         "name": {
           "default": "",
-          "required": [],
           "title": "name",
           "type": "string"
         }
@@ -421,7 +377,6 @@
               "default": "",
               "description": "URL of the Objects API for afdelingen.",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -429,7 +384,6 @@
               "default": "",
               "description": "URL of the afdelingen Object Type",
               "minLength": 1,
-              "required": [],
               "title": "objectTypeUrl",
               "type": "string"
             },
@@ -437,7 +391,6 @@
               "default": "",
               "description": "Token of the Objects API for afdelingen.",
               "minLength": 1,
-              "required": [],
               "title": "token",
               "type": "string"
             }
@@ -453,19 +406,16 @@
           "properties": {
             "environment": {
               "default": "Production",
-              "required": [],
               "title": "environment",
               "type": "string"
             },
             "forwardedHeadersEnabled": {
               "default": true,
-              "required": [],
               "title": "forwardedHeadersEnabled",
               "type": "boolean"
             },
             "httpPorts": {
               "default": "",
-              "required": [],
               "title": "httpPorts",
               "type": "string"
             }
@@ -481,7 +431,6 @@
               "default": "",
               "description": "Host of the database used by KISS",
               "minLength": 1,
-              "required": [],
               "title": "host",
               "type": "string"
             },
@@ -489,7 +438,6 @@
               "default": "",
               "description": "Name of the database used by KISS",
               "minLength": 1,
-              "required": [],
               "title": "name",
               "type": "string"
             },
@@ -497,14 +445,12 @@
               "default": "",
               "description": "Password of the postgres user",
               "minLength": 1,
-              "required": [],
               "title": "password",
               "type": "string"
             },
             "port": {
               "default": 5432,
               "description": "Port of the database used by KISS",
-              "required": [],
               "title": "port",
               "type": "integer"
             },
@@ -512,7 +458,6 @@
               "default": "",
               "description": "Username for KISS to access the database",
               "minLength": 1,
-              "required": [],
               "title": "username",
               "type": "string"
             }
@@ -532,7 +477,6 @@
               "default": "",
               "description": "The URL for Elasticsearch",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -540,10 +484,8 @@
               "description": "Fields that a Kennisbank user is not allowed to search and view.",
               "items": {
                 "minLength": 1,
-                "required": [],
                 "type": "string"
               },
-              "required": [],
               "title": "excludedFieldsKennisbank",
               "type": "array"
             },
@@ -551,7 +493,6 @@
               "default": "",
               "description": "Password to log in to Elasticsearch",
               "minLength": 1,
-              "required": [],
               "title": "password",
               "type": "string"
             },
@@ -559,7 +500,6 @@
               "default": "",
               "description": "Username to log in to Elasticsearch",
               "minLength": 1,
-              "required": [],
               "title": "username",
               "type": "string"
             }
@@ -577,7 +517,6 @@
             "enableSsl": {
               "default": true,
               "description": "Use SSL (true/false)",
-              "required": [],
               "title": "enableSsl",
               "type": "boolean"
             },
@@ -585,28 +524,24 @@
               "default": "",
               "description": "Address of the mail server",
               "minLength": 1,
-              "required": [],
               "title": "host",
               "type": "string"
             },
             "password": {
               "default": "",
               "description": "Password for the mail server",
-              "required": [],
               "title": "password",
               "type": "string"
             },
             "port": {
               "default": 25,
               "description": "Port number of the mail connection",
-              "required": [],
               "title": "port",
               "type": "integer"
             },
             "username": {
               "default": "",
               "description": "Username for the mail server",
-              "required": [],
               "title": "username",
               "type": "string"
             }
@@ -623,7 +558,6 @@
               "default": "",
               "description": "URL of the API through which KISS can query enterprise search",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -631,7 +565,6 @@
               "default": "",
               "description": "The name of the `meta-engine` engine used by KISS.",
               "minLength": 1,
-              "required": [],
               "title": "engine",
               "type": "string"
             },
@@ -639,7 +572,6 @@
               "default": "",
               "description": "Private API key for Elastic API",
               "minLength": 1,
-              "required": [],
               "title": "privateApiKey",
               "type": "string"
             },
@@ -647,7 +579,6 @@
               "default": "",
               "description": "Public API key for Elastic API",
               "minLength": 1,
-              "required": [],
               "title": "publicApiKey",
               "type": "string"
             }
@@ -667,7 +598,6 @@
               "default": "",
               "description": "From address of the feedback email",
               "minLength": 1,
-              "required": [],
               "title": "emailFrom",
               "type": "string"
             },
@@ -675,7 +605,6 @@
               "default": "",
               "description": "Address where the feedback email should be sent",
               "minLength": 1,
-              "required": [],
               "title": "emailTo",
               "type": "string"
             }
@@ -693,7 +622,6 @@
               "default": "",
               "description": "URL of the Objects API for groepen.",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -701,7 +629,6 @@
               "default": "",
               "description": "URL of the groepen Object Type",
               "minLength": 1,
-              "required": [],
               "title": "objectTypeUrl",
               "type": "string"
             },
@@ -709,7 +636,6 @@
               "default": "",
               "description": "Token of the Objects API for groepen.",
               "minLength": 1,
-              "required": [],
               "title": "token",
               "type": "string"
             }
@@ -728,7 +654,6 @@
               "default": "",
               "description": "Key for the Haal Centraal API",
               "minLength": 1,
-              "required": [],
               "title": "apiKey",
               "type": "string"
             },
@@ -736,7 +661,6 @@
               "default": "",
               "description": "URL of the Haal Centraal API",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -775,7 +699,6 @@
             "userHeaderName": {
               "default": "",
               "description": "Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy",
-              "required": [],
               "title": "userHeaderName",
               "type": "string"
             }
@@ -793,7 +716,6 @@
               "default": "",
               "description": "Key for the KvK API",
               "minLength": 1,
-              "required": [],
               "title": "apiKey",
               "type": "string"
             },
@@ -801,7 +723,6 @@
               "default": "",
               "description": "URL of the KvK API",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -817,7 +738,6 @@
             "userHeaderName": {
               "default": "",
               "description": "Header name to include the user id to send to the KvK API, for instance when using a proxy",
-              "required": [],
               "title": "userHeaderName",
               "type": "string"
             }
@@ -835,7 +755,6 @@
               "default": "",
               "description": "URL of the Objects API where the logbook is stored",
               "minLength": 1,
-              "required": [],
               "title": "baseUrl",
               "type": "string"
             },
@@ -843,15 +762,12 @@
               "default": "",
               "description": "URL of the Logbook Object Type.",
               "minLength": 1,
-              "required": [],
               "title": "objectTypeUrl",
               "type": "string"
             },
             "objectTypeVersion": {
               "default": 1,
               "description": "Version number of the Logbook Object Type.",
-              "minLength": 1,
-              "required": [],
               "title": "objectTypeVersion",
               "type": "integer"
             },
@@ -859,7 +775,6 @@
               "default": "",
               "description": "Token for the Objects API for Logbooks",
               "minLength": 1,
-              "required": [],
               "title": "token",
               "type": "string"
             }
@@ -878,7 +793,6 @@
               "default": "",
               "description": "Secret that KISS uses to validate the JWT Token when requesting contact moment details",
               "minLength": 1,
-              "required": [],
               "title": "apiKey",
               "type": "string"
             }
@@ -896,7 +810,6 @@
               "default": "",
               "description": "URL of the OpenID Connect Identity Provider",
               "minLength": 1,
-              "required": [],
               "title": "authority",
               "type": "string"
             },
@@ -904,7 +817,6 @@
               "default": "",
               "description": "For access to the OpenID Connect Identity Provider",
               "minLength": 1,
-              "required": [],
               "title": "clientId",
               "type": "string"
             },
@@ -912,21 +824,18 @@
               "default": "",
               "description": "Secret for the OpenID Connect Identity Provider",
               "minLength": 1,
-              "required": [],
               "title": "clientSecret",
               "type": "string"
             },
             "kennisbankRole": {
               "default": "",
               "description": "Name of the role for a Kennisbank employee.",
-              "required": [],
               "title": "kennisbankRole",
               "type": "string"
             },
             "klantcontactmedewerkerRole": {
               "default": "",
               "description": "Name of the role for a Klant Contact Employee.",
-              "required": [],
               "title": "klantcontactmedewerkerRole",
               "type": "string"
             },
@@ -937,7 +846,6 @@
                   "default": "",
                   "description": "the claim to use for identifying the medewerker",
                   "minLength": 1,
-                  "required": [],
                   "title": "claim",
                   "type": "string"
                 },
@@ -960,7 +868,6 @@
             "redacteurRole": {
               "default": "",
               "description": "Name of the role for a Redacteur.",
-              "required": [],
               "title": "redacteurRole",
               "type": "string"
             }
@@ -976,11 +883,9 @@
         "organisatieIds": {
           "description": "RSIN of the organization that registers the Contactmomenten",
           "items": {
-            "required": [],
             "type": "string"
           },
           "minItems": 1,
-          "required": [],
           "title": "organisatieIds",
           "type": "array"
         },
@@ -992,34 +897,28 @@
                 "description": "Common register configuration",
                 "properties": {
                   "isDefault": {
-                    "required": [],
                     "type": "boolean"
                   },
                   "zaaksysteem": {
                     "properties": {
                       "catalogiBaseUrl": {
                         "minLength": 1,
-                        "required": [],
                         "type": "string"
                       },
                       "clientId": {
                         "minLength": 1,
-                        "required": [],
                         "type": "string"
                       },
                       "clientSecret": {
                         "minLength": 1,
-                        "required": [],
                         "type": "string"
                       },
                       "deeplink": {
                         "properties": {
                           "property": {
-                            "required": [],
                             "type": "string"
                           },
                           "url": {
-                            "required": [],
                             "type": "string"
                           }
                         },
@@ -1027,16 +926,13 @@
                       },
                       "documentenBaseUrl": {
                         "minLength": 1,
-                        "required": [],
                         "type": "string"
                       },
                       "useExperimentalQueries": {
-                        "required": [],
                         "type": "boolean"
                       },
                       "zakenBaseUrl": {
                         "minLength": 1,
-                        "required": [],
                         "type": "string"
                       }
                     },
@@ -1061,15 +957,12 @@
                       "contactmomenten": {
                         "properties": {
                           "baseUrl": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientId": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientSecret": {
-                            "required": [],
                             "type": "string"
                           }
                         },
@@ -1082,23 +975,18 @@
                       "interneTaak": {
                         "properties": {
                           "baseUrl": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientId": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientSecret": {
-                            "required": [],
                             "type": "string"
                           },
                           "objectTypeUrl": {
-                            "required": [],
                             "type": "string"
                           },
                           "objectTypeVersion": {
-                            "required": [],
                             "type": "integer"
                           }
                         },
@@ -1113,15 +1001,12 @@
                       "klanten": {
                         "properties": {
                           "baseUrl": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientId": {
-                            "required": [],
                             "type": "string"
                           },
                           "clientSecret": {
-                            "required": [],
                             "type": "string"
                           }
                         },
@@ -1144,11 +1029,9 @@
                       "klantinteractie": {
                         "properties": {
                           "baseUrl": {
-                            "required": [],
                             "type": "string"
                           },
                           "token": {
-                            "required": [],
                             "type": "string"
                           }
                         },
@@ -1169,7 +1052,6 @@
             "required": []
           },
           "minItems": 1,
-          "required": [],
           "title": "registers",
           "type": "array"
         },
@@ -1179,20 +1061,17 @@
               "properties": {
                 "pullPolicy": {
                   "default": "IfNotPresent",
-                  "required": [],
                   "title": "pullPolicy",
                   "type": "string"
                 },
                 "repository": {
                   "default": "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync",
-                  "required": [],
                   "title": "repository",
                   "type": "string"
                 },
                 "tag": {
                   "default": "0.3.0",
                   "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
-                  "required": [],
                   "title": "tag",
                   "type": "string"
                 }
@@ -1208,13 +1087,11 @@
                   "default": "",
                   "description": "URL of the API for Kennisartikelen",
                   "minLength": 1,
-                  "required": [],
                   "title": "baseUrl",
                   "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
-                  "required": [],
                   "title": "historyLimit",
                   "type": "integer"
                 },
@@ -1222,7 +1099,6 @@
                   "default": "",
                   "description": "URL of the Kennisartikel Object Type",
                   "minLength": 1,
-                  "required": [],
                   "title": "objectTypeUrl",
                   "type": "string"
                 },
@@ -1233,7 +1109,6 @@
                 },
                 "schedule": {
                   "default": "*/59 * * * *",
-                  "required": [],
                   "title": "schedule",
                   "type": "string"
                 },
@@ -1241,7 +1116,6 @@
                   "default": "",
                   "description": "Token for the API for Kennisartikelen",
                   "minLength": 1,
-                  "required": [],
                   "title": "token",
                   "type": "string"
                 }
@@ -1258,15 +1132,14 @@
               ]
             },
             "medewerkers": {
-              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         type: boolean         const: true     required: [useEmail]   - allOf:       - description: Common medewerkers configuration         properties:           baseUrl:             type: string             minLength: 1           historyLimit:             type: integer           objectTypeUrl:             type: string             minLength: 1           resources:             type: object           schedule:             type: string         required: [baseUrl, objectTypeUrl]       - oneOf:         - description: Token based medewerkers configuration           properties:             token:               type: string               minLength: 1           required: [token]         - description: Client credentials based medewerkers configuration           properties:             clientId:               type: string               minLength: 1             clientSecret:               type: string               minLength: 1           required: [clientId, clientSecret] @schema",
+              "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         const: true     required: [useEmail]   - allOf:       - description: Common medewerkers configuration         properties:           baseUrl:             type: string             minLength: 1           historyLimit:             type: integer           objectTypeUrl:             type: string             minLength: 1           resources:             type: object           schedule:             type: string         required: [baseUrl, objectTypeUrl]       - oneOf:         - description: Token based medewerkers configuration           properties:             token:               type: string               minLength: 1           required: [token]         - description: Client credentials based medewerkers configuration           properties:             clientId:               type: string               minLength: 1             clientSecret:               type: string               minLength: 1           required: [clientId, clientSecret] @schema",
               "oneOf": [
                 {
                   "description": "Use email to assign medewerkers to contactverzoeken. No other configuration required",
                   "properties": {
                     "useEmail": {
                       "const": true,
-                      "required": [],
-                      "type": "boolean"
+                      "required": []
                     }
                   },
                   "required": [
@@ -1280,16 +1153,13 @@
                       "properties": {
                         "baseUrl": {
                           "minLength": 1,
-                          "required": [],
                           "type": "string"
                         },
                         "historyLimit": {
-                          "required": [],
                           "type": "integer"
                         },
                         "objectTypeUrl": {
                           "minLength": 1,
-                          "required": [],
                           "type": "string"
                         },
                         "resources": {
@@ -1297,7 +1167,6 @@
                           "type": "object"
                         },
                         "schedule": {
-                          "required": [],
                           "type": "string"
                         }
                       },
@@ -1313,7 +1182,6 @@
                           "properties": {
                             "token": {
                               "minLength": 1,
-                              "required": [],
                               "type": "string"
                             }
                           },
@@ -1326,12 +1194,10 @@
                           "properties": {
                             "clientId": {
                               "minLength": 1,
-                              "required": [],
                               "type": "string"
                             },
                             "clientSecret": {
                               "minLength": 1,
-                              "required": [],
                               "type": "string"
                             }
                           },
@@ -1355,15 +1221,12 @@
               "items": {
                 "properties": {
                   "clientId": {
-                    "required": [],
                     "type": "string"
                   },
                   "clientSecret": {
-                    "required": [],
                     "type": "string"
                   },
                   "historyLimit": {
-                    "required": [],
                     "type": "integer"
                   },
                   "resources": {
@@ -1371,19 +1234,15 @@
                     "type": "object"
                   },
                   "schedule": {
-                    "required": [],
                     "type": "string"
                   },
                   "siteUrl": {
-                    "required": [],
                     "type": "string"
                   },
                   "sourceName": {
-                    "required": [],
                     "type": "string"
                   },
                   "tenantId": {
-                    "required": [],
                     "type": "string"
                   }
                 },
@@ -1396,7 +1255,6 @@
                 ],
                 "type": "object"
               },
-              "required": [],
               "title": "sharepoint",
               "type": "array"
             },
@@ -1407,20 +1265,17 @@
                   "default": "",
                   "description": "URL of the Objects API for VACs",
                   "minLength": 1,
-                  "required": [],
                   "title": "baseUrl",
                   "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
-                  "required": [],
                   "title": "historyLimit",
                   "type": "integer"
                 },
                 "manageFromKiss": {
                   "default": false,
                   "description": "This variable determines whether the navigation item for managing VACs is present in the management navigation.",
-                  "required": [],
                   "title": "manageFromKiss",
                   "type": "boolean"
                 },
@@ -1428,14 +1283,12 @@
                   "default": "",
                   "description": "URL of the VAC Object Type",
                   "minLength": 1,
-                  "required": [],
                   "title": "objectTypeUrl",
                   "type": "string"
                 },
                 "objectTypeVersion": {
                   "default": 1,
                   "description": "Version number of the VAC Object Type",
-                  "required": [],
                   "title": "objectTypeVersion",
                   "type": "integer"
                 },
@@ -1446,7 +1299,6 @@
                 },
                 "schedule": {
                   "default": "*/59 * * * *",
-                  "required": [],
                   "title": "schedule",
                   "type": "string"
                 },
@@ -1454,7 +1306,6 @@
                   "default": "",
                   "description": "Token for the Objects API for VACs",
                   "minLength": 1,
-                  "required": [],
                   "title": "token",
                   "type": "string"
                 }
@@ -1474,36 +1325,27 @@
               "description": "website sync jobs configuration",
               "items": {
                 "properties": {
-                  "backoffLimit": {
-                    "required": [],
-                    "type": "integer"
-                  },
                   "domain": {
                     "format": "uri",
-                    "required": [],
                     "type": "string"
+                  },
+                  "historyLimit": {
+                    "type": "integer"
                   },
                   "resources": {
                     "required": [],
                     "type": "object"
                   },
-                  "restartPolicy": {
-                    "required": [],
+                  "schedule": {
                     "type": "string"
                   },
                   "sourceName": {
-                    "required": [],
                     "type": "string"
-                  },
-                  "ttlSecondsAfterFinished": {
-                    "required": [],
-                    "type": "integer"
                   }
                 },
                 "required": [],
                 "type": "object"
               },
-              "required": [],
               "title": "website",
               "type": "array"
             }
@@ -1534,7 +1376,6 @@
       "items": {
         "required": []
       },
-      "required": [],
       "title": "tolerations",
       "type": "array"
     }

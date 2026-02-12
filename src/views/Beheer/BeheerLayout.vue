@@ -1,31 +1,48 @@
 <template>
   <nav>
     <router-link to="/">Home</router-link>
-    <router-link to="/Beheer/NieuwsEnWerkinstructies">
+    <router-link
+      v-if="userStore.requirePermission('berichtenbeheer')"
+      to="/Beheer/NieuwsEnWerkinstructies"
+    >
       Nieuws en werkinstructies
     </router-link>
-    <router-link to="/Beheer/Skills">Skills</router-link>
     <router-link
-      v-if="userStore.hasPermission('linksbeheer')"
+      v-if="userStore.requirePermission('skillsbeheer')"
+      to="/Beheer/Skills"
+      >Skills</router-link
+    >
+    <router-link
+      v-if="userStore.requirePermission('linksbeheer')"
       to="/Beheer/Links"
       >Links</router-link
     >
-    <router-link to="/Beheer/gespreksresultaten"
+    <router-link
+      to="/Beheer/gespreksresultaten"
+      v-if="userStore.requirePermission('gespreksresultatenbeheer')"
       >Gespreksresultaten</router-link
     >
     <router-link
-      v-if="userStore.hasPermission('kanalenbeheer')"
+      v-if="userStore.requirePermission('kanalenbeheer')"
       to="/Beheer/Kanalen"
       >Kanalen</router-link
     >
-    <router-link to="/Beheer/formulieren-contactverzoek-afdeling">
-      Contactverzoekformulieren afdelingen
-    </router-link>
-    <router-link to="/Beheer/formulieren-contactverzoek-groep">
-      Contactverzoekformulieren groepen
-    </router-link>
+    <router-link
+      v-if="userStore.requirePermission('contactformulierenafdelingenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-afdeling"
+      >Contactverzoekformulieren afdelingen</router-link
+    >
+    <router-link
+      v-if="userStore.requirePermission('contactformulierengroepenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-groep"
+      >Contactverzoekformulieren groepen</router-link
+    >
 
-    <router-link v-if="useVacs" to="/Beheer/vacs">VACs</router-link>
+    <router-link
+      v-if="useVacs && userStore.requirePermission('vacsbeheer')"
+      to="/Beheer/vacs"
+      >VACs</router-link
+    >
   </nav>
 
   <main>

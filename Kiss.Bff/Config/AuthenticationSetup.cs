@@ -265,7 +265,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOpenIdConnectAccessTokenManagement();
 
             var permissionConfig = new PermissionConfiguration();
-            permissionConfig.CreateDefault(redacteurRole, beheerderRole);
+            permissionConfig.CreateDefault(redacteurRole, beheerderRole, klantcontactmedewerkerRole);
             services.AddSingleton(permissionConfig);
 
             services.AddAuthorization(options =>

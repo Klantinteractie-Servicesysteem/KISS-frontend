@@ -24,7 +24,7 @@ namespace Kiss.Bff.Groepen
 
         public string Destination { get; }
         public string ObjectTypeUrl { get; }
-        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.contactformulierengroepen];
+        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.groepen];
 
         private readonly AuthenticationHeaderProvider _authHeaderProvider;
 

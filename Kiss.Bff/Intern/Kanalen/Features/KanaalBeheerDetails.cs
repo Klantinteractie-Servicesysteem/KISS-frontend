@@ -1,6 +1,5 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,12 +17,13 @@ namespace Kiss.Bff.Intern.Kanalen
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(RequirePermissionTo.kanalenread)]
         public async Task<ActionResult<KanaalOverzichtModel>> Get(Guid id)
         {
             var result = await _context
                .Kanalen
                .AsNoTracking()
-               .FirstOrDefaultAsync( x=>x.Id == id );
+               .FirstOrDefaultAsync(x => x.Id == id);
 
             return result == null
               ? NotFound()
