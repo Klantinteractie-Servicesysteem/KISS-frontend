@@ -4,10 +4,19 @@
 
 ### New features
 
+- Geslacht and geheimhoudingswaarschuwing are now displayed on Persoonsgegevens tab.
+
+### Bugfixes
+
+- 'Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.
+
+## v2.1.0
+
+### New features
+
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface.
 - Applied feedback from integration team on helm chart
-- Geslacht and geheimhoudingswaarschuwing are now displayed on Persoonsgegevens tab.
 
 ## v2.0.0
 
