@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Testing;
 using static System.Net.HttpStatusCode;
-using Microsoft.AspNetCore.Mvc.Routing;
-using System.Net;
-using Kiss.Bff.ZaakGerichtWerken.Contactmomenten;
-using Kiss.Bff.Beheer.Faq;
 using Kiss.Bff.Beheer.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -147,7 +143,16 @@ namespace Kiss.Bff.Test
         /// </summary>
         public void TestControllerAuthorizeAttribute(Type controllerType, object[] controllerParameters, string policyToVerify)
         {
-            var controller = Activator.CreateInstance(controllerType, controllerParameters) as ControllerBase;
+            object? controller = null;
+            try
+            {
+                controller = Activator.CreateInstance(controllerType, controllerParameters) as ControllerBase;
+            }
+            catch (Exception)
+            {
+                // Running the test in Visual Studio results in marking the test as 'not run' instead of failed when controller creation throws an error. This forces the test to fail if there is something wrong.
+                Assert.Fail($"Controller {controllerType.Name} not found or failed to initialize.");
+            }
 
             Assert.IsNotNull(controller);
 
@@ -179,6 +184,7 @@ namespace Kiss.Bff.Test
             }
             catch (Exception)
             {
+                // Running the test in Visual Studio results in marking the test as 'not run' instead of failed when controller creation throws an error. This forces the test to fail if there is something wrong.
                 Assert.Fail($"Controller {controllerType.Name} not found or failed to initialize.");
             }
 
@@ -217,7 +223,16 @@ namespace Kiss.Bff.Test
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
             var dbContext = new BeheerDbContext(dbContextOptions);
-            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            object? controller = null;
+            try
+            {
+                controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            }
+            catch (Exception)
+            {
+                // Running the test in Visual Studio results in marking the test as 'not run' instead of failed when controller creation throws an error. This forces the test to fail if there is something wrong.
+                Assert.Fail($"Controller {controllerType.Name} not found or failed to initialize.");
+            }
 
             // Assert that the controller instance is not null
             Assert.IsNotNull(controller);
@@ -243,7 +258,16 @@ namespace Kiss.Bff.Test
             var controllerType = typeof(ContactmomentDetailsRapportageOverzicht);
 
             var dbContext = new BeheerDbContext(new DbContextOptions<BeheerDbContext>());
-            var controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            object? controller = null;
+            try
+            {
+                controller = Activator.CreateInstance(controllerType, dbContext) as ControllerBase;
+            }
+            catch (Exception)
+            {
+                // Running the test in Visual Studio results in marking the test as 'not run' instead of failed when controller creation throws an error. This forces the test to fail if there is something wrong.
+                Assert.Fail($"Controller {controllerType.Name} not found or failed to initialize.");
+            }
 
             Assert.IsNotNull(controller);
 
