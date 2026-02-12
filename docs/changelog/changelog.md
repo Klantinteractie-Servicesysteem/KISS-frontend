@@ -4,10 +4,15 @@
 
 ### New features
 
+- Only a single Klant can be added to a Contactmoment/-verzoek i.s.o. multiple.
+
+## v2.1.0
+
+### New features
+
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface.
 - Applied feedback from integration team on helm chart
-- Only a single Klant can be added to a Contactmoment/-verzoek i.s.o. multiple.
 
 ## v2.0.0
 
