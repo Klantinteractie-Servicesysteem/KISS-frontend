@@ -138,7 +138,8 @@ export interface Vraag {
   startdatum: string;
   kanaal: string;
   gespreksresultaat: string;
-  klanten: { klant: ContactmomentKlant; shouldStore: boolean }[];
+  klanten: ContactmomentKlant[];
+  klantToStore?: ContactmomentKlant;
   medewerkers: { medewerker: Medewerker; shouldStore: boolean }[];
   websites: { website: Bron; shouldStore: boolean }[];
   kennisartikelen: {
@@ -217,17 +218,17 @@ export const useContactmomentStore = defineStore("contactmoment", {
     getKlantByInternalId(state) {
       return (internalKlantId: string): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x) => x.klant.internalId == internalKlantId,
+          (x) => x.internalId == internalKlantId,
         );
-        return x?.klant;
+        return x;
       };
     },
     getBrpKlant(state) {
       return (bsn: string): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find(
-          (x) => x.klant.bsn == bsn,
+          (x) => x.bsn == bsn,
         );
-        return x?.klant;
+        return x;
       };
     },
     getBedrijfsKlant(state) {
@@ -237,18 +238,13 @@ export const useContactmomentStore = defineStore("contactmoment", {
       ): ContactmomentKlant | undefined => {
         const x = state.huidigContactmoment?.huidigeVraag.klanten?.find((x) => {
           return (
-            ((!vestigingsnummer && !x.klant.vestigingsnummer) ||
-              x.klant.vestigingsnummer === vestigingsnummer) &&
-            x.klant.kvkNummer == kvkNummer
+            ((!vestigingsnummer && !x.vestigingsnummer) ||
+              x.vestigingsnummer === vestigingsnummer) &&
+            x.kvkNummer == kvkNummer
           );
         });
-        return x?.klant;
+        return x;
       };
-    },
-    klantVoorHuidigeVraag(state): ContactmomentKlant | undefined {
-      return state.huidigContactmoment?.huidigeVraag.klanten
-        ?.filter((x) => x.shouldStore)
-        ?.map((x) => x.klant)?.[0];
     },
   },
   actions: {
@@ -333,17 +329,12 @@ export const useContactmomentStore = defineStore("contactmoment", {
       if (!huidigContactmoment) return;
 
       if (huidigContactmoment.huidigeVraag.klanten) {
-        nieuweVraag.klanten = huidigContactmoment.huidigeVraag.klanten.map(
-          (klantKoppeling) => ({
-            ...klantKoppeling,
-          }),
-        );
-        const activeKlanten = nieuweVraag.klanten.filter((x) => x.shouldStore);
-        if (activeKlanten.length === 1) {
-          mapKlantToContactverzoek(
-            activeKlanten[0].klant,
-            nieuweVraag.contactverzoek,
-          );
+        nieuweVraag.klanten = huidigContactmoment.huidigeVraag.klanten;
+        nieuweVraag.klantToStore =
+          huidigContactmoment.huidigeVraag.klantToStore;
+        const activeKlant = nieuweVraag.klantToStore;
+        if (activeKlant) {
+          mapKlantToContactverzoek(activeKlant, nieuweVraag.contactverzoek);
         }
       }
       huidigContactmoment.vragen.push(nieuweVraag);
@@ -422,16 +413,11 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const match = huidigeVraag.klanten.find(
-        (x) =>
-          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+        (x) => x.internalId === klant.internalId || x.id === klant.id,
       );
 
       if (match) {
-        huidigeVraag.klanten.forEach((x) => {
-          x.shouldStore = false;
-        });
-
-        match.shouldStore = true;
+        huidigeVraag.klantToStore = match;
         const currentIndex = huidigeVraag.klanten.indexOf(match);
         huidigeVraag.klanten.splice(currentIndex, 1);
         huidigeVraag.klanten.splice(0, 0, match);
@@ -444,22 +430,15 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
       const { contactverzoek } = huidigeVraag;
 
-      huidigeVraag.klanten.forEach((x) => {
-        x.shouldStore = false;
-      });
-
       mapKlantToContactverzoek(klant, contactverzoek);
 
       const match = huidigeVraag.klanten.find(
-        (x) =>
-          x.klant.internalId === klant.internalId || x.klant.id === klant.id,
+        (x) => x.internalId === klant.internalId || x.id === klant.id,
       );
 
       if (match) {
-        klant.internalId = match.klant.internalId;
-        match.klant = klant;
-        match.shouldStore = true;
-
+        huidigeVraag.klantToStore = match;
+        klant.internalId = match.internalId;
         return;
       }
 
@@ -472,10 +451,7 @@ export const useContactmomentStore = defineStore("contactmoment", {
       //currently the first item is considered the active klant who will be displayed
       //in the contactmoment switcher dropdown at the top left
       //we'll just insert the item there
-      huidigeVraag.klanten.unshift({
-        shouldStore: true,
-        klant,
-      });
+      huidigeVraag.klanten.unshift(klant);
     },
 
     setKlantHasContactgegevens(klantId: string) {
@@ -486,12 +462,12 @@ export const useContactmomentStore = defineStore("contactmoment", {
       const { huidigeVraag } = huidigContactmoment;
 
       const targetKlantIndex = huidigeVraag.klanten.findIndex(
-        (k) => k.klant.id === klantId,
+        (k) => k.id === klantId,
       );
 
       if (targetKlantIndex === -1) return;
 
-      huidigeVraag.klanten[targetKlantIndex].klant.hasContactInformation = true;
+      huidigeVraag.klanten[targetKlantIndex].hasContactInformation = true;
     },
 
     addMedewerker(medewerker: any, url: string) {
