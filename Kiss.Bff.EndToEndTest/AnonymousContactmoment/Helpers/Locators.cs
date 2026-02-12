@@ -31,9 +31,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
             return page.GetByRole(AriaRole.Checkbox, new() { Name = "Kennisbank" });
         }
 
-        public static ILocator GetDeventerCheckbox(this IPage page)
+        public static ILocator GetInfoNlCheckbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Checkbox, new() { Name = "Deventer.nl" });
+            return page.GetByRole(AriaRole.Checkbox, new() { Name = "info.nl" });
         }
         public static ILocator GetBijzonderhedenTab(this IPage page)
         {

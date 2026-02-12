@@ -81,7 +81,7 @@ whenever(
 menu {
   display: flex;
   gap: var(--spacing-default);
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 form {
@@ -95,6 +95,7 @@ dialog {
   padding: var(--spacing-large);
   border: 1px solid var(--color-primary);
   min-width: 50%;
+  max-width: 70%;
 }
 
 ::backdrop {
