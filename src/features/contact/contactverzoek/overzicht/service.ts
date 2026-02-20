@@ -251,10 +251,6 @@ function mapObjectToContactverzoekOverzichtItem({
     vraag,
     toelichtingVoorCollega: data.toelichting || "",
     behandelaar: data.actor?.naam || "",
-    behandelaarOrganisatie:
-      data.actor?.soortActor == "organisatorische_eenheid"
-        ? data.actor.naam
-        : "",
     betrokkene: {
       isGeauthenticeerd: !!data.betrokkene?.klant,
       persoonsnaam: data.betrokkene?.persoonsnaam || {},
