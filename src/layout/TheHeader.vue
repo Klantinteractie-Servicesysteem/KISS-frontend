@@ -101,15 +101,17 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
+import {
+  featuredWerkberichtenCount,
+  fetchFeaturedWerkberichten,
+} from "@/features/werkbericht";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
-import { computed } from "vue";
+import { computed, watchEffect } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import { useLoader } from "@/services";
 
 const route = useRoute();
 
@@ -118,9 +120,10 @@ const { user } = storeToRefs(userStore);
 
 const contactmomentStore = useContactmomentStore();
 
-const { data: featuredWerkberichtenCount } = useLoader(() => {
+// Required for reactive behavior of the featured werk berichten counter.
+watchEffect(() => {
   if (userStore.user.isKcm || userStore.user.isRedacteur) {
-    return fetchFeaturedWerkberichten();
+    fetchFeaturedWerkberichten();
   }
 });
 
