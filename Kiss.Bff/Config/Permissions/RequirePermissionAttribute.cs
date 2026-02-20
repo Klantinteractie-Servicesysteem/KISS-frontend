@@ -6,23 +6,30 @@ namespace Kiss.Bff.Config.Permissions
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum RequirePermissionTo
     {
-        skills,
+        afdelingen,
+        groepen,
+        skillsread,
+        skillsbeheer,
+        kanalenread,
         kanalenbeheer,
-        gespreksresultaten,
-        contactformulierenafdelingen,
-        contactformulierengroepen,
-        nieuwsenwerkinstructies,
+        gespreksresultatenread,
+        gespreksresultatenbeheer,
+        contactformulierenread,
+        contactformulierenbeheer,
+        berichtenread,
+        berichtenbeheer,
+        linksread,
         linksbeheer,
-        vacs,
+        vacsbeheer,
     }
 
     /// <summary>
     /// Authorization attribute that restricts access based on one or more permissions.
     /// Can be applied to controllers or action methods to enforce permission-based authorization.
     /// </summary>
-    public sealed class RequirePermissionAttribute(params RequirePermissionTo[] permissions) : AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
+    public sealed class RequirePermissionAttribute(RequirePermissionTo permissions) : AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
     {
-        public RequirePermissionTo[] Permissions => permissions;
+        public RequirePermissionTo Permissions => permissions;
         public IEnumerable<IAuthorizationRequirement> GetRequirements() => [this];
         public static string? GetPermissionsStringValue(RequirePermissionTo[]? permissions)
         {
