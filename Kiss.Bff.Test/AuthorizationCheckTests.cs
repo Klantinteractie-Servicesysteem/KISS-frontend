@@ -92,23 +92,23 @@ namespace Kiss.Bff.Test
         public static IEnumerable<object[]> GetControllersMethodsWithRequirePermissionAttribute()
         {
             // Define the controllers and methods to test here
-            var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo[] requiredPermissions)>
+            var controllersWithMethodsToTest = new List<(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo requiredPermissions)>
                 {
-                    (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }, [RequirePermissionTo.gespreksresultatenbeheer]),
-                    (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}, [RequirePermissionTo.gespreksresultatenbeheer]),
-                    (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}, [RequirePermissionTo.gespreksresultatenbeheer]),
-                    (typeof(LinksController), "GetLinks", new Type[0], [RequirePermissionTo.linksread]),
-                    (typeof(LinksController), "PutLink", new[] { typeof(int), typeof(LinkPutModel),typeof(CancellationToken)}, [RequirePermissionTo.linksbeheer]),
-                    (typeof(LinksController), "PostLink", new[] { typeof(LinkPostModel) }, [RequirePermissionTo.linksbeheer]),
-                    (typeof(LinksController), "DeleteLink", new[] { typeof(int) }, [RequirePermissionTo.linksbeheer]),
-                    (typeof(SkillsController), "GetSkills", new Type[0], [RequirePermissionTo.skillsread]),
-                    (typeof(SkillsController), "PutSkill", new[] { typeof(int), typeof(SkillPutModel), typeof(CancellationToken) }, [RequirePermissionTo.skillsbeheer]),
-                    (typeof(SkillsController), "PostSkill", new[] { typeof(SkillPostModel), typeof(CancellationToken) }, [RequirePermissionTo.skillsbeheer]),
-                    (typeof(SkillsController), "DeleteSkill", new[] { typeof(int), typeof(CancellationToken) }, [RequirePermissionTo.skillsbeheer]),
-                    (typeof(BerichtenController), "GetBerichten", new Type[0], [RequirePermissionTo.berichtenread]),
-                    (typeof(BerichtenController), "PostBericht", new[] { typeof(BerichtPostModel), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
-                    (typeof(BerichtenController), "PutBericht", new[] { typeof(int),typeof(BerichtPutModel), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
-                    (typeof(BerichtenController), "DeleteBericht", new[] { typeof(int), typeof(CancellationToken) }, [RequirePermissionTo.berichtenbeheer]),
+                    (typeof(GespreksresultatenController), "PutGespreksresultaat", new[] { typeof(Guid), typeof(GespreksresultaatModel), typeof(CancellationToken) }, RequirePermissionTo.gespreksresultatenbeheer),
+                    (typeof(GespreksresultatenController), "PostGespreksresultaat", new[] { typeof(GespreksresultaatModel), typeof(CancellationToken)}, RequirePermissionTo.gespreksresultatenbeheer),
+                    (typeof(GespreksresultatenController), "DeleteGespreksresultaat", new[] { typeof(Guid), typeof(CancellationToken)}, RequirePermissionTo.gespreksresultatenbeheer),
+                    (typeof(LinksController), "GetLinks", new Type[0], RequirePermissionTo.linksread),
+                    (typeof(LinksController), "PutLink", new[] { typeof(int), typeof(LinkPutModel),typeof(CancellationToken)}, RequirePermissionTo.linksbeheer),
+                    (typeof(LinksController), "PostLink", new[] { typeof(LinkPostModel) }, RequirePermissionTo.linksbeheer),
+                    (typeof(LinksController), "DeleteLink", new[] { typeof(int) }, RequirePermissionTo.linksbeheer),
+                    (typeof(SkillsController), "GetSkills", new Type[0], RequirePermissionTo.skillsread),
+                    (typeof(SkillsController), "PutSkill", new[] { typeof(int), typeof(SkillPutModel), typeof(CancellationToken) }, RequirePermissionTo.skillsbeheer),
+                    (typeof(SkillsController), "PostSkill", new[] { typeof(SkillPostModel), typeof(CancellationToken) }, RequirePermissionTo.skillsbeheer),
+                    (typeof(SkillsController), "DeleteSkill", new[] { typeof(int), typeof(CancellationToken) }, RequirePermissionTo.skillsbeheer),
+                    (typeof(BerichtenController), "GetBerichten", new Type[0], RequirePermissionTo.berichtenread),
+                    (typeof(BerichtenController), "PostBericht", new[] { typeof(BerichtPostModel), typeof(CancellationToken) }, RequirePermissionTo.berichtenbeheer),
+                    (typeof(BerichtenController), "PutBericht", new[] { typeof(int),typeof(BerichtPutModel), typeof(CancellationToken) }, RequirePermissionTo.berichtenbeheer),
+                    (typeof(BerichtenController), "DeleteBericht", new[] { typeof(int), typeof(CancellationToken) }, RequirePermissionTo.berichtenbeheer),
 
                     // Add more controller, method, and parameter combinations as needed
                 };
@@ -217,7 +217,7 @@ namespace Kiss.Bff.Test
         /// <summary>
         /// Verifies that the specified controller method carries a <see cref="RequirePermissionAttribute"/> with the expected permissions.
         /// </summary>
-        public void TestPermissionAttribute(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo[] requiredPermissions)
+        public void TestPermissionAttribute(Type controllerType, string methodName, Type[] parameterTypes, RequirePermissionTo requiredPermission)
         {
             var dbContextOptions = new DbContextOptionsBuilder<BeheerDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
@@ -248,7 +248,7 @@ namespace Kiss.Bff.Test
                 .FirstOrDefault() as RequirePermissionAttribute;
 
             // Assert that the method has the right permission
-            CollectionAssert.AreEquivalent(new List<RequirePermissionTo>(requiredPermissions), permissionAttribute?.Permissions);
+            Assert.AreEqual(requiredPermission, permissionAttribute!.Permissions);
         }
 
 
