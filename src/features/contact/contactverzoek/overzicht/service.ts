@@ -205,7 +205,8 @@ function mapKlantcontactToContactverzoekOverzichtItem(
         registratiedatum: klantContact.plaatsgevondenOp,
         vraag: klantContact.onderwerp,
         aangemaaktDoor: klantContact.hadBetrokkenActoren?.[0]?.naam || "",
-        behandelaar: internetaak?.actor?.naam,
+        behandelaar: internetaak?.actorMedewerker?.naam,
+        behandelaarOrganisatie: internetaak.actorOrganisatie?.naam,
         toelichtingVoorCollega: internetaak.toelichting,
         betrokkene: {
           persoonsnaam: contactnaam,
@@ -250,6 +251,10 @@ function mapObjectToContactverzoekOverzichtItem({
     vraag,
     toelichtingVoorCollega: data.toelichting || "",
     behandelaar: data.actor?.naam || "",
+    behandelaarOrganisatie:
+      data.actor?.soortActor == "organisatorische_eenheid"
+        ? data.actor.naam
+        : "",
     betrokkene: {
       isGeauthenticeerd: !!data.betrokkene?.klant,
       persoonsnaam: data.betrokkene?.persoonsnaam || {},

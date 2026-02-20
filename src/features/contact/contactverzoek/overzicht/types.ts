@@ -8,7 +8,8 @@ export type ContactverzoekOverzichtItem = {
   onderwerp: string;
   status: string;
   aangemaaktDoor: string;
-  behandelaar: string;
+  behandelaar: string | undefined;
+  behandelaarOrganisatie?: string;
   toelichtingVoorCollega: string;
   toelichtingBijContactmoment: string;
   betrokkene?: {
