@@ -13,7 +13,7 @@
 ## v2.1.0
 
 - Additional warning text is displayed when cancelling multiple questions. #1352
-- [Change colors of warning box on BRP Gegevens tab] (https://dimpact.atlassian.net/browse/PC-2266)
+- Improved contrast for a variety of warning / error messages in the user interface. [Change colors of warning box on BRP Gegevens tab] (https://dimpact.atlassian.net/browse/PC-2266)
 - Applied feedback from integration team on helm chart
 
 ## v2.0.0
