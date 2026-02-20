@@ -22,15 +22,10 @@ public class PermissionAuthorizationPolicyProvider : IAuthorizationPolicyProvide
     {
         if (policyName.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase))
         {
-            var permissions = policyName[Prefix.Length..]
-                .Split(',')
-                .Select(Enum.Parse<RequirePermissionTo>)
-                .ToArray();
-
-            if (permissions.Length > 0)
+            if (Enum.TryParse<RequirePermissionTo>(policyName[Prefix.Length..], out var permission))
             {
                 var policy = new AuthorizationPolicyBuilder()
-                    .AddRequirements(new RequirePermissionAttribute(permissions));
+                    .AddRequirements(new RequirePermissionAttribute(permission));
                 return Task.FromResult<AuthorizationPolicy?>(policy.Build());
             }
         }

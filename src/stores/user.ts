@@ -14,8 +14,7 @@ export type Permission =
   | "skillsread"
   | "gespreksresultatenread"
   | "gespreksresultatenbeheer"
-  | "contactformulierenafdelingenbeheer"
-  | "contactformulierengroepenbeheer"
+  | "contactformulierenbeheer"
   | "contactformulierenread"
   | "berichtenread"
   | "berichtenbeheer"
@@ -28,8 +27,7 @@ export const BEHEER_TAB_PERMISSIONS: Permission[] = [
   "kanalenbeheer",
   "skillsbeheer",
   "gespreksresultatenbeheer",
-  "contactformulierenafdelingenbeheer",
-  "contactformulierengroepenbeheer",
+  "contactformulierenbeheer",
   "berichtenbeheer",
   "vacsbeheer",
 ];

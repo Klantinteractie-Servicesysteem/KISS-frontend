@@ -51,8 +51,7 @@ namespace Kiss.Bff.Config.Permissions
                 RequirePermissionTo.kanalenread,
                 RequirePermissionTo.kanalenbeheer,
                 RequirePermissionTo.contactformulierenread,
-                RequirePermissionTo.contactformulierengroepenbeheer,
-                RequirePermissionTo.contactformulierenafdelingenbeheer]);
+                RequirePermissionTo.contactformulierenbeheer]);
             _permissionsByRole[beheerderRole] = beheerderPermissions;
 
             var kcmPermissions = new HashSet<RequirePermissionTo>([

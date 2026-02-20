@@ -28,12 +28,12 @@
       >Kanalen</router-link
     >
     <router-link
-      v-if="userStore.requirePermission('contactformulierenafdelingenbeheer')"
+      v-if="userStore.requirePermission('contactformulierenbeheer')"
       to="/Beheer/formulieren-contactverzoek-afdeling"
       >Contactverzoekformulieren afdelingen</router-link
     >
     <router-link
-      v-if="userStore.requirePermission('contactformulierengroepenbeheer')"
+      v-if="userStore.requirePermission('contactformulierenbeheer')"
       to="/Beheer/formulieren-contactverzoek-groep"
       >Contactverzoekformulieren groepen</router-link
     >

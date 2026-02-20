@@ -6,7 +6,7 @@ namespace Kiss.Bff.Config.Permissions
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RequirePermissionAttribute requirement)
         {
-            if (requirement.Permissions.All(configuration.GetPermissions(context.User).Contains))
+            if (configuration.GetPermissions(context.User).Contains(requirement.Permissions))
             {
                 context.Succeed(requirement);
             }

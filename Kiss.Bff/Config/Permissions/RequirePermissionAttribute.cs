@@ -15,8 +15,7 @@ namespace Kiss.Bff.Config.Permissions
         gespreksresultatenread,
         gespreksresultatenbeheer,
         contactformulierenread,
-        contactformulierenafdelingenbeheer,
-        contactformulierengroepenbeheer,
+        contactformulierenbeheer,
         berichtenread,
         berichtenbeheer,
         linksread,
@@ -28,9 +27,9 @@ namespace Kiss.Bff.Config.Permissions
     /// Authorization attribute that restricts access based on one or more permissions.
     /// Can be applied to controllers or action methods to enforce permission-based authorization.
     /// </summary>
-    public sealed class RequirePermissionAttribute(params RequirePermissionTo[] permissions) : AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
+    public sealed class RequirePermissionAttribute(RequirePermissionTo permissions) : AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
     {
-        public RequirePermissionTo[] Permissions => permissions;
+        public RequirePermissionTo Permissions => permissions;
         public IEnumerable<IAuthorizationRequirement> GetRequirements() => [this];
         public static string? GetPermissionsStringValue(RequirePermissionTo[]? permissions)
         {

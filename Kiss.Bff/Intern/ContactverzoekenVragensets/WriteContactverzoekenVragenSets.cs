@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Kiss.Bff.Intern.ContactverzoekenVragensets
 {
     [ApiController]
-    [RequirePermission(RequirePermissionTo.contactformulierenafdelingenbeheer, RequirePermissionTo.contactformulierengroepenbeheer)]
+    [RequirePermission(RequirePermissionTo.contactformulierenbeheer)]
     public class WriteContactverzoekenVragenSets : ControllerBase
     {
         private readonly BeheerDbContext _db;

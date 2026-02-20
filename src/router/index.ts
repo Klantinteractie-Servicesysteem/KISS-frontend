@@ -263,9 +263,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-afdeling",
           name: "FormulierenContactverzoekAfdelingenBeheer",
-          beforeEnter: guardRequirePermission(
-            "contactformulierenafdelingenbeheer",
-          ),
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "afdeling" },
           meta: {},
@@ -273,9 +271,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-afdeling/:id?",
           name: "FormulierContactverzoekAfdelingenBeheer",
-          beforeEnter: guardRequirePermission(
-            "contactformulierenafdelingenbeheer",
-          ),
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
@@ -286,9 +282,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-groep",
           name: "FormulierenContactverzoekGroepenBeheer",
-          beforeEnter: guardRequirePermission(
-            "contactformulierengroepenbeheer",
-          ),
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "groep" },
           meta: {},
@@ -296,9 +290,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-groep/:id?",
           name: "FormulierContactverzoekGroepenBeheer",
-          beforeEnter: guardRequirePermission(
-            "contactformulierengroepenbeheer",
-          ),
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
