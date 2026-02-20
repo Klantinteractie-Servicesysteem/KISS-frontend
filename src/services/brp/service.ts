@@ -8,6 +8,7 @@ const zoekUrl = "/api/haalcentraal/brp/personen";
 const minimalFields = [
   "burgerservicenummer",
   "geboorte.datum",
+  "geslacht",
   "adressering.adresregel1",
   "adressering.adresregel2",
   "adressering.adresregel3",
@@ -60,7 +61,14 @@ const compareAdres = sortBy<Persoon>(
 const compareAdresThenNaam = combineCompare(compareAdres, compareNaam);
 
 function mapPersoon(json: any): Persoon {
-  const { adressering, naam, geboorte, burgerservicenummer } = json ?? {};
+  const {
+    adressering,
+    naam,
+    geboorte,
+    burgerservicenummer,
+    geslacht,
+    geheimhoudingPersoonsgegevens,
+  } = json ?? {};
   const { plaats, land, datum } = geboorte ?? {};
 
   const { adresregel1, adresregel2, adresregel3 } = adressering ?? {};
@@ -71,6 +79,7 @@ function mapPersoon(json: any): Persoon {
     _typeOfKlant: "persoon",
     bsn: burgerservicenummer,
     geboortedatum,
+    geslacht: geslacht?.omschrijving,
     voornaam: voornamen,
     voorvoegselAchternaam: voorvoegsel,
     achternaam: geslachtsnaam,
@@ -79,6 +88,7 @@ function mapPersoon(json: any): Persoon {
     adresregel1,
     adresregel2,
     adresregel3,
+    geheimhoudingPersoonsgegevens,
   };
 }
 
