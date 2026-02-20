@@ -7,11 +7,9 @@
 - Supporting `Beheerder` role. #1335
 
 ## v2.2.0
-
 - [KISS | Show more personal information on the screen "persoonsgegevens"](https://dimpact.atlassian.net/browse/PC-1702)
 
 ## v2.1.0
-
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface. [Change colors of warning box on BRP Gegevens tab] (https://dimpact.atlassian.net/browse/PC-2266)
 - Applied feedback from integration team on helm chart
