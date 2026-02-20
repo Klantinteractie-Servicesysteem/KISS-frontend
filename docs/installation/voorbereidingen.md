@@ -6,7 +6,7 @@ De authenticatie van gebruikers binnen KISS gebeurt m.b.v. een OIDC koppeling me
 
 ## Postgresql Database
 
-KISS heeft een postgresql database nodig voor het bijhouden van verschillende interne gegevens. De helm chart biedt een mogelijkheid om voor ontwikkeldoeleinden een postgresql database mee te installeren maar dit is niet bedoeld voor productieomgevingen. [Zie ook de documentatie bij de helm chart](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/tree/main/helm/kiss-frontend#requirements).
+KISS heeft een postgresql database nodig voor het bijhouden van verschillende interne gegevens. De helm chart installeert geen postgresql database mee. Voor het hosten van een postgresql in Kubernetes raden wij [CloudNativePG](https://github.com/cloudnative-pg/cloudnative-pg) aan.
 
 ## Elasticsearch, Kibana en Enterprise Search
 
@@ -24,4 +24,4 @@ KISS maakt verder gebruik van verschillende registers:
 
 ## Helm / Kubernetes
 
-KISS is ontwikkeld om in een Kubernetes cluster te draaien. We gaan er in de handleiding van uit dat je dat hebt, en dat je weet hoe je een helm chart installeert. Er is een [helm chart](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/tree/main/helm/kiss-frontend#requirements) beschikbaar die je kunt gebruiken, rechtstreeks of ter inspiratie.
+KISS is ontwikkeld om in een Kubernetes cluster te draaien. We gaan er in de handleiding van uit dat je dat hebt, en dat je weet hoe je een helm chart installeert. Er is een [helm chart](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/tree/main/helm/kiss-chart) beschikbaar die je kunt gebruiken, rechtstreeks of ter inspiratie.

@@ -69,9 +69,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Page.GetGlobalSearch().PressAsync("Enter");
 
-            await Step("Then 8 items should appear");
+            await Step("Then 9 items should appear");
 
-            await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(8);
+            await Expect(Page.GetGlobalSearchResults()).ToHaveCountAsync(9);
 
             await Step("And each item has a label Smoelenboek in the first column");
 
@@ -163,13 +163,13 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And checks the box Deventer.nl in the Search pane");
+            await Step("And checks the box info.nl in the Search pane");
 
-            await Page.GetDeventerCheckbox().CheckAsync();
+            await Page.GetInfoNlCheckbox().CheckAsync();
 
-            await Step("And enters 'boom' in the search field in the Search pane");
+            await Step("And enters 'clients' in the search field in the Search pane");
 
-            await Page.GetGlobalSearch().FillAsync("boom");
+            await Page.GetGlobalSearch().FillAsync("clients-INFO");
 
             await Step("And presses Enter");
 

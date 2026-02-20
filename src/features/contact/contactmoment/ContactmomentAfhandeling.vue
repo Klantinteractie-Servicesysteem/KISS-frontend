@@ -1055,9 +1055,11 @@ const handleSaveVraagSuccess = async (
     gespreksId = nanoid();
   }
 
-  const promises = otherVragen.map((x) => saveVraag(x, gespreksId));
-  const otherVrageSaveResults = await Promise.all(promises);
-  const firstErrorInOtherVragen = otherVrageSaveResults.find(
+  const otherVragenSaveResults = [];
+  for (const vraag of otherVragen) {
+    otherVragenSaveResults.push(await saveVraag(vraag, gespreksId));
+  }
+  const firstErrorInOtherVragen = otherVragenSaveResults.find(
     (x) => x.errorMessage,
   );
 

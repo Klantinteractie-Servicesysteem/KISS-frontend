@@ -16,9 +16,6 @@ data:
   {{- if .Values.settings.afdelingen.baseUrl }}
   AFDELINGEN_BASE_URL: {{ .Values.settings.afdelingen.baseUrl | toString | quote }}
   {{- end }}
-  {{- if .Values.settings.afdelingen.clientId }}
-  AFDELINGEN_CLIENT_ID: {{ .Values.settings.afdelingen.clientId | toString | quote }}
-  {{- end }}
   {{- if .Values.settings.afdelingen.objectTypeUrl }}
   AFDELINGEN_OBJECT_TYPE_URL: {{ .Values.settings.afdelingen.objectTypeUrl | toString | quote }}
   {{- end }}
@@ -62,9 +59,6 @@ data:
 
   {{- if .Values.settings.groepen.baseUrl }}
   GROEPEN_BASE_URL: {{ .Values.settings.groepen.baseUrl | toString | quote }}
-  {{- end }}
-  {{- if .Values.settings.groepen.clientId }}
-  GROEPEN_CLIENT_ID: {{ .Values.settings.groepen.clientId | toString | quote }}
   {{- end }}
   {{- if .Values.settings.groepen.objectTypeUrl }}
   GROEPEN_OBJECT_TYPE_URL: {{ .Values.settings.groepen.objectTypeUrl | toString | quote }}

@@ -6,11 +6,22 @@
       messageType="error"
       :message="'Er is een fout opgetreden'"
     />
+    <application-message message-type="warning">
+      <utrecht-paragraph>
+        Onderstaande gegevens mogen alleen worden gebruikt ter controle van de
+        identiteit van de inwoner.<br />
+        Verstrek nooit de hier getoonde gegevens.
+      </utrecht-paragraph>
+    </application-message>
     <application-message
-      v-if="persoon"
-      messageType="warning"
-      :message="'Onderstaande gegevens mogen alleen worden gebruikt ter controle van de identiteit van de inwoner. Verstrek nooit de hier getoonde gegevens.'"
-    />
+      v-if="persoon?.geheimhoudingPersoonsgegevens"
+      message-type="warning"
+    >
+      <utrecht-paragraph>
+        Deze persoon heeft aangegeven om gegevens uit de BRP geheim te houden en
+        niet te delen met bepaalde organisaties.
+      </utrecht-paragraph>
+    </application-message>
     <dl v-if="persoon">
       <dt>Naam</dt>
       <dd>
@@ -37,13 +48,18 @@
       </dd>
       <dt>Geboorteplaats</dt>
       <dd>{{ persoon.geboorteplaats }}, {{ persoon.geboorteland }}</dd>
+      <dt>Geslacht</dt>
+      <dd>{{ persoon.geslacht }}</dd>
     </dl>
   </article>
 </template>
 
 <script setup lang="ts">
 import { searchPersonen, type Persoon } from "@/services/brp";
-import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
+import {
+  Heading as UtrechtHeading,
+  Paragraph as UtrechtParagraph,
+} from "@utrecht/component-library-vue";
 import DutchDate from "@/components/DutchDate.vue";
 import { enforceOneOrZero, useLoader } from "@/services";
 import { watchEffect } from "vue";

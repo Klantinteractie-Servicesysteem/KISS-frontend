@@ -27,7 +27,7 @@ spec:
           {{- end }}
           labels:
             {{- include "kiss-frontend.labels" $ | nindent 12 }}
-            {{- with $.Values.podAnnotations }}
+            {{- with $.Values.podLabels }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
         spec:
