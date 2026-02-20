@@ -5,9 +5,8 @@ import type {
 
 export function getKlantInfo(contactmoment: ContactmomentState) {
   const klanten = contactmoment.vragen
-    .flatMap(({ klanten }) => klanten)
-    .filter(({ shouldStore }) => shouldStore)
-    .map(({ klant }) => klant);
+    .filter((vraag) => vraag.klantToStore)
+    .map((vraag) => vraag.klantToStore);
 
   const infos = klanten.map(_getKlantInfo);
 
@@ -18,14 +17,14 @@ export function getKlantInfo(contactmoment: ContactmomentState) {
   return infos.find((info) => info.name || info.contact);
 }
 
-function _getKlantInfo(klant: ContactmomentKlant) {
+function _getKlantInfo(klant: ContactmomentKlant | undefined) {
   const name =
-    [klant.voornaam, klant.voorvoegselAchternaam, klant.achternaam]
+    [klant?.voornaam, klant?.voorvoegselAchternaam, klant?.achternaam]
       .filter(Boolean)
-      .join(" ") || klant.bedrijfsnaam;
+      .join(" ") || klant?.bedrijfsnaam;
 
-  const email = klant.emailadressen.find(Boolean);
-  const phone = klant.telefoonnummers.find(Boolean);
+  const email = klant?.emailadressen.find(Boolean);
+  const phone = klant?.telefoonnummers.find(Boolean);
 
   const contact = email || phone;
 
