@@ -205,7 +205,8 @@ function mapKlantcontactToContactverzoekOverzichtItem(
         registratiedatum: klantContact.plaatsgevondenOp,
         vraag: klantContact.onderwerp,
         aangemaaktDoor: klantContact.hadBetrokkenActoren?.[0]?.naam || "",
-        behandelaar: internetaak?.actor?.naam,
+        behandelaar: internetaak?.actorMedewerker?.naam,
+        behandelaarOrganisatie: internetaak.actorOrganisatie?.naam,
         toelichtingVoorCollega: internetaak.toelichting,
         betrokkene: {
           persoonsnaam: contactnaam,
