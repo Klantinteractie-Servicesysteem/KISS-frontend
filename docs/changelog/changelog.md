@@ -3,7 +3,7 @@
 ## Latest version
 
 ### New features
-
+- Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
 
 ## v2.2.0
@@ -13,7 +13,7 @@
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface. [Change colors of warning box on BRP Gegevens tab] (https://dimpact.atlassian.net/browse/PC-2266)
 - Applied feedback from integration team on helm chart
-  
+
 ## v2.0.0
 
 ### New features
