@@ -1,5 +1,10 @@
 # Changelog
 
+## Latest version
+
+### New features
+
+- Twee actoren tonen bij inzien Contactverzoeken #882
 
 ## v2.2.0
 - [KISS | Show more personal information on the screen "persoonsgegevens"](https://dimpact.atlassian.net/browse/PC-1702)
