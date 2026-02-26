@@ -813,6 +813,12 @@
               "title": "authority",
               "type": "string"
             },
+            "beheerderRole": {
+              "default": "",
+              "description": "Name of the role for a Beheerder.",
+              "title": "beheerderRole",
+              "type": "string"
+            },
             "clientId": {
               "default": "",
               "description": "For access to the OpenID Connect Identity Provider",
@@ -867,14 +873,8 @@
             },
             "redacteurRole": {
               "default": "",
-              "description": "Name of the role for a Redacteur.",
+              "description": "Name of the role for a Redacteur. ",
               "title": "redacteurRole",
-              "type": "string"
-            },
-            "beheerderRole": {
-              "default": "",
-              "description": "Name of the role for a Beheerder",
-              "title": "beheerderRole",
               "type": "string"
             }
           },
