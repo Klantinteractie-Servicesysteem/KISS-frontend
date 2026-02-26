@@ -443,8 +443,10 @@ settings:
       # @schema
       # -- max number of characters before truncation
       truncate:
-    # -- (string) Name of the role for a Redacteur.
+    # -- (string) Name of the role for a Redacteur. 
     redacteurRole: ""
+    # -- (string) Name of the role for a Beheerder.
+    beheerderRole: ""
 
   # @schema
   # type: array

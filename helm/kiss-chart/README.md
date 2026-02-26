@@ -102,6 +102,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.logboek.token | string | `""` | Token for the Objects API for Logbooks |
 | settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contact moment details |
 | settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider |
+| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. |
 | settings.oidc.clientId | string | `""` | For access to the OpenID Connect Identity Provider |
 | settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider |
 | settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. |
