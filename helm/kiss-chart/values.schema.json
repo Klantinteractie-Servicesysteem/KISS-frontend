@@ -873,7 +873,7 @@
             },
             "beheerderRole": {
               "default": "",
-              "description": "Name of the role for a Beheerder.",
+              "description": "Name of the role for a Beheerder",
               "title": "beheerderRole",
               "type": "string"
             }
