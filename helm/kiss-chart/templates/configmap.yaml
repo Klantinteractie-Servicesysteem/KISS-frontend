@@ -135,6 +135,9 @@ data:
   {{- if .Values.settings.oidc.redacteurRole }}
   OIDC_REDACTEUR_ROLE: {{ .Values.settings.oidc.redacteurRole | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.oidc.beheerderRole }}
+  OIDC_BEHEERDER_ROLE: {{ .Values.settings.oidc.beheerderRole | toString | quote }}
+  {{- end }}
   
   {{- if .Values.settings.organisatieIds }}
   ORGANISATIE_IDS: {{ (join "/" .Values.settings.organisatieIds) | quote }}
