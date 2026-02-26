@@ -870,6 +870,12 @@
               "description": "Name of the role for a Redacteur.",
               "title": "redacteurRole",
               "type": "string"
+            },
+            "beheerderRole": {
+              "default": "",
+              "description": "Name of the role for a Beheerder.",
+              "title": "beheerderRole",
+              "type": "string"
             }
           },
           "required": [
