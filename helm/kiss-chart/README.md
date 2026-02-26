@@ -109,7 +109,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klant Contact Employee. |
 | settings.oidc.medewerkerIdentificatie.claim | string | `""` | the claim to use for identifying the medewerker |
 | settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | max number of characters before truncation |
-| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. |
+| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur.  |
 | settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
