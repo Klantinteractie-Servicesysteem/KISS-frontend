@@ -43,9 +43,17 @@ jobs:
         run: |
           dotnet test --no-build --logger "console;verbosity=detailed" 2>&1 | tee test-output.log
           EXIT_CODE=$?
+          
+          # Check for test failures in the output (MSTest format)
+          FAILED_COUNT=$(grep -c "^\s*Failed " test-output.log || true)
+          
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          echo "failed_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
           echo "First run exit code: $EXIT_CODE"
-          exit $EXIT_CODE
+          echo "First run failed tests: $FAILED_COUNT"
+          
+          # Always exit 0 here to continue to retry step
+          exit 0
         env:
           TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
           TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
@@ -55,7 +63,7 @@ jobs:
           TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
 
       - name: Extract and retry only failed tests
-        if: steps.first-run.outputs.exit_code != '0'
+        if: steps.first-run.outputs.failed_count != '0'
         id: retry-run
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
@@ -152,9 +160,9 @@ jobs:
           echo "## 🧪 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          FIRST_EXIT="${{ steps.first-run.outputs.exit_code }}"
+          FIRST_FAILED="${{ steps.first-run.outputs.failed_count }}"
           
-          if [ "$FIRST_EXIT" == "0" ]; then
+          if [ "$FIRST_FAILED" == "0" ]; then
             echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ **First run had failures**" >> $GITHUB_STEP_SUMMARY
@@ -177,6 +185,10 @@ jobs:
               else
                 echo "❌ **Some tests still failing after retry**" >> $GITHUB_STEP_SUMMARY
               fi
+            else
+              echo "⚠️ **Retry step was skipped or had issues**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Failed tests: $FIRST_FAILED" >> $GITHUB_STEP_SUMMARY
             fi
           fi
           
@@ -184,9 +196,13 @@ jobs:
           echo "📊 [View Playwright Traces](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail job if tests failed
-        if: steps.first-run.outcome == 'failure' && steps.retry-run.outcome == 'failure'
+        if: |
+          (steps.first-run.outputs.failed_count != '0' && steps.retry-run.outputs.retry_failed != '0') ||
+          (steps.first-run.outputs.failed_count != '0' && steps.retry-run.outcome == 'skipped')
         run: |
-          echo "❌ Tests failed and retry step also failed"
+          echo "❌ Tests failed after retry or retry was skipped"
+          echo "Failed on first run: ${{ steps.first-run.outputs.failed_count }}"
+          echo "Still failed after retry: ${{ steps.retry-run.outputs.retry_failed }}"
           exit 1
 
       - name: Upload Playwright Report
@@ -204,7 +220,7 @@ jobs:
           retention-days: 30
 
   deploy:
-    if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    if: ${{ always() && needs.test.result != 'cancelled' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test
     environment:
       name: github-pages
