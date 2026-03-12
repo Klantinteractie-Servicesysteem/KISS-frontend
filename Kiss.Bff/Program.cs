@@ -55,6 +55,7 @@ try
         options.ClientSecret = builder.Configuration["OIDC_CLIENT_SECRET"];
         options.KlantcontactmedewerkerRole = builder.Configuration["OIDC_KLANTCONTACTMEDEWERKER_ROLE"];
         options.RedacteurRole = builder.Configuration["OIDC_REDACTEUR_ROLE"];
+        options.BeheerderRole = builder.Configuration["OIDC_BEHEERDER_ROLE"];
         options.KennisbankRole = builder.Configuration["OIDC_KENNISBANK_ROLE"];
         options.MedewerkerIdentificatieClaimType = builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM"];
         if (int.TryParse(builder.Configuration["OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE"], out var truncate))

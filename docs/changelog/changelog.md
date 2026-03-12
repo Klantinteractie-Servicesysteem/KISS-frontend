@@ -1,5 +1,12 @@
 # Changelog
 
+## Latest version
+
+### New features
+
+- Supporting `Beheerder` role. #1335
+- Twee actoren tonen bij inzien Contactverzoeken #882
+
 ## v2.2.1
 
 - update vulnerable dependencies

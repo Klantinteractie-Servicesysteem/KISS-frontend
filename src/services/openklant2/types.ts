@@ -48,7 +48,8 @@ export type InternetaakApiViewModel = {
   status: string;
   toegewezenOp: string;
   afgehandeldOp: string;
-  actor: ActorApiViewModel;
+  actorMedewerker: ActorApiViewModel | undefined;
+  actorOrganisatie: ActorApiViewModel | undefined;
 };
 
 export type ActorApiViewModel = {

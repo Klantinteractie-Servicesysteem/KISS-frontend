@@ -3,10 +3,7 @@
     <seed-beheer />
     <p
       v-if="
-        userStore.user.isLoggedIn &&
-        !userStore.user.isKcm &&
-        !userStore.user.isRedacteur &&
-        !userStore.user.isKennisbank
+        userStore.user.isLoggedIn && userStore.user.permissions.length === 0
       "
     >
       Je hebt niet de juist rechten voor het gebruik van deze applicatie. Neem

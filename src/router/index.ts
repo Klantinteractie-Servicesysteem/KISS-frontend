@@ -15,7 +15,11 @@ import {
   createWebHistory,
   type NavigationGuard,
 } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import {
+  BEHEER_TAB_PERMISSIONS,
+  useUserStore,
+  type Permission,
+} from "@/stores/user";
 //import ContactverzoekenDetailView from "@/views/ContactverzoekenDetailView.vue";
 
 const NieuwsEnWerkinstructiesBeheer = () =>
@@ -58,25 +62,32 @@ const guardContactMoment: NavigationGuard = (to, from, next) => {
   }
 };
 
-const guardIsKcmOrRedacteur: NavigationGuard = async (to, from, next) => {
-  const userStore = useUserStore();
-  await userStore.promise;
-  if (userStore.user.isKcm || userStore.user.isRedacteur) {
-    next();
-  } else {
-    next("/");
-  }
-};
+const guardRequirePermission =
+  (permissions: Permission | Permission[]): NavigationGuard =>
+  async (to, from, next) => {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (userStore.user.isLoggedIn && userStore.requirePermission(permissions)) {
+      next();
+    } else {
+      next("/");
+    }
+  };
 
-const guardIsRedacteur: NavigationGuard = async (to, from, next) => {
-  const userStore = useUserStore();
-  await userStore.promise;
-  if (userStore.user.isRedacteur) {
-    next();
-  } else {
-    next("/");
-  }
-};
+const guardBeheertab =
+  (permissions: Permission | Permission[]): NavigationGuard =>
+  async (to, from, next) => {
+    const userStore = useUserStore();
+    await userStore.promise;
+    if (
+      userStore.user.isLoggedIn &&
+      userStore.user.permissions.some((p) => permissions.includes(p))
+    ) {
+      next();
+    } else {
+      next("/");
+    }
+  };
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -176,7 +187,7 @@ const router = createRouter({
     {
       path: "/links",
       name: "links",
-      beforeEnter: guardIsKcmOrRedacteur,
+      beforeEnter: guardRequirePermission(["linksread"]),
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
@@ -185,37 +196,42 @@ const router = createRouter({
       path: "/beheer",
       name: "Beheer",
       component: BeheerLayout,
-      beforeEnter: guardIsRedacteur,
+      beforeEnter: guardBeheertab(BEHEER_TAB_PERMISSIONS),
       props: () => ({}), // Don't pass params to BeheerLayout
       meta: { hideSidebar: true },
       children: [
         {
           path: "NieuwsEnWerkinstructies",
           name: "NieuwsEnWerkinstructiesBeheer",
+          beforeEnter: guardRequirePermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructiesBeheer,
           meta: {},
         },
         {
           path: "Skills",
           name: "SkillsBeheer",
+          beforeEnter: guardRequirePermission("skillsbeheer"),
           component: SkillsBeheer,
           meta: {},
         },
         {
           path: "Links",
           name: "LinksBeheer",
+          beforeEnter: guardRequirePermission("linksbeheer"),
           component: LinksBeheer,
           meta: {},
         },
         {
           path: "gespreksresultaten",
           name: "GespreksresultatenBeheer",
+          beforeEnter: guardRequirePermission("gespreksresultatenbeheer"),
           component: GespreksresultatenBeheer,
           meta: {},
         },
         {
           path: "NieuwsEnWerkinstructie/:id?",
           name: "NieuwsEnWerkinstructieBeheer",
+          beforeEnter: guardRequirePermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructieBeheer,
           props: true,
           meta: {},
@@ -223,6 +239,7 @@ const router = createRouter({
         {
           path: "Skill/:id?",
           name: "SkillBeheer",
+          beforeEnter: guardRequirePermission("skillsbeheer"),
           component: SkillBeheer,
           props: true,
           meta: {},
@@ -230,6 +247,7 @@ const router = createRouter({
         {
           path: "Link/:id?",
           name: "LinkBeheer",
+          beforeEnter: guardRequirePermission("linksbeheer"),
           component: LinkBeheer,
           props: true,
           meta: {},
@@ -237,6 +255,7 @@ const router = createRouter({
         {
           path: "gespreksresultaat/:id?",
           name: "GespreksresultaatBeheer",
+          beforeEnter: guardRequirePermission("gespreksresultatenbeheer"),
           component: GespreksresultaatBeheer,
           props: true,
           meta: {},
@@ -244,6 +263,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-afdeling",
           name: "FormulierenContactverzoekAfdelingenBeheer",
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "afdeling" },
           meta: {},
@@ -251,6 +271,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-afdeling/:id?",
           name: "FormulierContactverzoekAfdelingenBeheer",
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
@@ -261,6 +282,7 @@ const router = createRouter({
         {
           path: "formulieren-contactverzoek-groep",
           name: "FormulierenContactverzoekGroepenBeheer",
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "groep" },
           meta: {},
@@ -268,6 +290,7 @@ const router = createRouter({
         {
           path: "formulier-contactverzoek-groep/:id?",
           name: "FormulierContactverzoekGroepenBeheer",
+          beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
             ...route.params,
@@ -278,12 +301,14 @@ const router = createRouter({
         {
           path: "kanalen",
           name: "KanalenBeheer",
+          beforeEnter: guardRequirePermission("kanalenbeheer"),
           component: KanalenBeheer,
           meta: {},
         },
         {
           path: "kanaal/:id?",
           name: "KanaalBeheer",
+          beforeEnter: guardRequirePermission("kanalenbeheer"),
           component: KanaalBeheer,
           props: true,
           meta: {},
@@ -291,12 +316,14 @@ const router = createRouter({
         {
           path: "vacs",
           name: "VacsBeheer",
+          beforeEnter: guardRequirePermission("vacsbeheer"),
           component: VacsBeheer,
           meta: {},
         },
         {
           path: "vac/:uuid?",
           name: "VacBeheer",
+          beforeEnter: guardRequirePermission("vacsbeheer"),
           component: VacBeheer,
           props: true,
           meta: {},

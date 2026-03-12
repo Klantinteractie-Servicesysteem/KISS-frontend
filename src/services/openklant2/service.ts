@@ -100,18 +100,12 @@ export async function enrichInterneTakenWithActoren(
       actorenDetails.push(actorDetails);
     }
 
-    const medewerkerActor = actorenDetails.find(
+    internetaak.actorMedewerker = actorenDetails.find(
       (x) => x.soortActor === "medewerker",
     );
-
-    if (medewerkerActor) {
-      internetaak.actor = medewerkerActor as ActorApiViewModel;
-    } else {
-      const organisatorischerEenheidActor = actorenDetails.find(
-        (x) => x.soortActor === "organisatorische_eenheid",
-      );
-      internetaak.actor = organisatorischerEenheidActor as ActorApiViewModel;
-    }
+    internetaak.actorOrganisatie = actorenDetails.find(
+      (x) => x.soortActor === "organisatorische_eenheid",
+    );
   }
 
   return value;
