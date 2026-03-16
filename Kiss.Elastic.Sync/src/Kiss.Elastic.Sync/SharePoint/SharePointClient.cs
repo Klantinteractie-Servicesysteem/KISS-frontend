@@ -159,10 +159,9 @@ namespace Kiss.Elastic.Sync.SharePoint
             {
                 if (
                     // this query also returns the root site, we don't want that
-                    site.Id != rootSite.Id &&
-                    // to be completely safe in case the DepartmentId query stops working as expected at some point in the futre,
-                    // we double-check that the site indeed has the correct SiteId
-                    site.SharepointIds?.SiteId == rootSite.SharepointIds.SiteId
+                    site.Id != rootSite.Id
+                    // we used to double check the site.SharepointIds?.SiteId against the root siteId, but in practice we've seen some sites that are returned by this query that don't have the DepartmentId in their SharePointIds at all,
+                    // even though they are correctly associated with the hub. Therefore, we will trust the search query and not filter out sites that don't have the SiteId in their SharePointIds.
                     )
                 {
                     yield return site;
