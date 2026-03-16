@@ -36,7 +36,10 @@ namespace Kiss.Elastic.Sync
             _httpClient.BaseAddress = baseUri;
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Helpers.EncodeCredential(username, password));
             // because we stream the request body as we get records from the source, we need to set a long timeout for the http client
-            _httpClient.Timeout = TimeSpan.FromMinutes(10);
+            var timeoutMinutes = int.TryParse(Helpers.GetOptionalEnvironmentVariable("ELASTIC_BULK_HTTP_TIMEOUT_MINUTES"), out var fromEnv) && fromEnv > 0
+                ? fromEnv
+                : 10;
+            _httpClient.Timeout = TimeSpan.FromMinutes(timeoutMinutes);
             var clientSettings = new ElasticsearchClientSettings(baseUri)
                 .Authentication(new BasicAuthentication(username, password))
                 // skip checking the certificate because we run Elastic internally, with a local certificate
