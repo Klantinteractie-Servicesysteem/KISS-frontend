@@ -71,6 +71,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.database.port | int | `5432` | Port of the database used by KISS |
 | settings.database.username | string | `""` | Username for KISS to access the database |
 | settings.elastic.baseUrl | string | `""` | The URL for Elasticsearch |
+| settings.elastic.bulkHttpTimeoutMinutes | int | `10` | The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs. |
 | settings.elastic.excludedFieldsKennisbank | list | `[]` | Fields that a Kennisbank user is not allowed to search and view. |
 | settings.elastic.password | string | `""` | Password to log in to Elasticsearch |
 | settings.elastic.username | string | `""` | Username to log in to Elasticsearch |
@@ -114,7 +115,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
-| settings.syncJobs.image.tag | string | `"0.3.1"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
+| settings.syncJobs.image.tag | string | `"0.3.2"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
 | settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |

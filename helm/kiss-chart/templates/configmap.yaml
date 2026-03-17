@@ -29,6 +29,9 @@ data:
   {{- if .Values.settings.elastic.username }}
   ELASTIC_USERNAME: {{ .Values.settings.elastic.username | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.elastic.bulkHttpTimeoutMinutes }}
+  ELASTIC_BULK_HTTP_TIMEOUT_MINUTES: {{ .Values.settings.elastic.bulkHttpTimeoutMinutes | toString | quote }}
+  {{- end }}
 
   {{- if .Values.settings.email.enableSsl }}
   EMAIL_ENABLE_SSL: {{ .Values.settings.email.enableSsl | toString | quote }}
