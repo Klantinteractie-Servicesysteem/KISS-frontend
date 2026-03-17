@@ -1,6 +1,5 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +17,7 @@ namespace Kiss.Bff.Intern.Kanalen
         }
 
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.kanalenread)]
         public ActionResult<IAsyncEnumerable<KanalenKeuzelijstModel>> Get()
         {
             var result = _context
@@ -26,7 +26,7 @@ namespace Kiss.Bff.Intern.Kanalen
                .OrderBy(x => x.Naam)
                .Select(x => new KanalenOverzichtModel(x.Id, x.Naam))
                .AsAsyncEnumerable();
-                                  
+
             return Ok(result);
         }
 

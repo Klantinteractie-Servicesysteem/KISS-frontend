@@ -17,11 +17,19 @@
         'toelichtingVoorCollega',
       ],
       ['klantnaam', 'emails', 'telefoonnummer1', 'otherTelefoonnummers'],
-      ['registratiedatum', 'aangemaaktDoor', 'behandelaar', 'status', 'kanaal'],
+      [
+        'registratiedatum',
+        'aangemaaktDoor',
+        'behandelaar',
+        'behandelaarOrganisatie',
+        'status',
+        'kanaal',
+      ],
     ]"
     :headings="{
       aangemaaktDoor: 'Aangemaakt door',
       behandelaar: 'Behandelaar',
+      behandelaarOrganisatie: 'Behandelaar Organisatie',
       klantnaam: 'Klantnaam',
       kanaal: 'Kanaal',
       onderwerp: 'Onderwerp',

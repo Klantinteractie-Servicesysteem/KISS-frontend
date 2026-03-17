@@ -1,12 +1,11 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kiss.Bff.Intern.Links.Features
 {
     [Route("api/[controller]")]
-    [Authorize(Policies.KcmOrRedactiePolicy)]
     [ApiController]
     public class CategorienController : ControllerBase
     {
@@ -19,6 +18,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // GET: api/Categorien
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.linksbeheer)]
         public IActionResult GetLinks()
         {
             if (_context.Links == null)
