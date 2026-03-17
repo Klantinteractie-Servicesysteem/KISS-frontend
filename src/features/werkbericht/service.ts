@@ -159,4 +159,6 @@ export async function putBerichtRead(id: string, isGelezen: boolean) {
 
   if (!res.ok)
     throw new Error(`Expected to read bericht: ${res.status.toString()}`);
+
+  fetchFeaturedWerkberichten();
 }

@@ -54,7 +54,7 @@
             </template>
             <template v-if="isKcm || isRedacteur">
               <li v-if="route.meta.showNav">
-                <router-link :to="{ name: 'home' }">
+                <router-link :to="{ name: routenames.home }">
                   <span>Nieuws en werkinstructies</span>
                   <span
                     v-if="featuredWerkberichtenCount"
@@ -109,9 +109,10 @@ import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
-import { computed, watchEffect } from "vue";
+import { computed, watch } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import { routenames } from "@/router";
 
 const route = useRoute();
 
@@ -120,12 +121,15 @@ const { user } = storeToRefs(userStore);
 
 const contactmomentStore = useContactmomentStore();
 
-// Required for reactive behavior of the featured werk berichten counter.
-watchEffect(() => {
-  if (userStore.user.isKcm || userStore.user.isRedacteur) {
-    fetchFeaturedWerkberichten();
-  }
-});
+watch(
+  [route, userStore],
+  ([r, u]) => {
+    if (r.name === routenames.home && (u.user.isKcm || u.user.isRedacteur)) {
+      fetchFeaturedWerkberichten();
+    }
+  },
+  { immediate: true },
+);
 
 const isRedacteur = computed(
   () => user.value.isLoggedIn && user.value.isRedacteur,
