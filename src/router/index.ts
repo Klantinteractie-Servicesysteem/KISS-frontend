@@ -89,18 +89,52 @@ const guardBeheertab =
     }
   };
 
+export const routenames = {
+  home: "home",
+  afhandeling: "afhandeling",
+  contactverzoeken: "contactverzoeken",
+  personen: "personen",
+  persoonDetail: "persoonDetail",
+  bedrijven: "bedrijven",
+  bedrijfDetail: "bedrijfDetail",
+  zaken: "zaken",
+  zaakDetail: "zaakDetail",
+  links: "links",
+  Beheer: "Beheer",
+  // Beheer children
+  NieuwsEnWerkinstructiesBeheer: "NieuwsEnWerkinstructiesBeheer",
+  NieuwsEnWerkinstructieBeheer: "NieuwsEnWerkinstructieBeheer",
+  SkillsBeheer: "SkillsBeheer",
+  SkillBeheer: "SkillBeheer",
+  LinksBeheer: "LinksBeheer",
+  LinkBeheer: "LinkBeheer",
+  GespreksresultatenBeheer: "GespreksresultatenBeheer",
+  GespreksresultaatBeheer: "GespreksresultaatBeheer",
+  FormulierenContactverzoekAfdelingenBeheer:
+    "FormulierenContactverzoekAfdelingenBeheer",
+  FormulierContactverzoekAfdelingenBeheer:
+    "FormulierContactverzoekAfdelingenBeheer",
+  FormulierenContactverzoekGroepenBeheer:
+    "FormulierenContactverzoekGroepenBeheer",
+  FormulierContactverzoekGroepenBeheer: "FormulierContactverzoekGroepenBeheer",
+  KanalenBeheer: "KanalenBeheer",
+  KanaalBeheer: "KanaalBeheer",
+  VacsBeheer: "VacsBeheer",
+  VacBeheer: "VacBeheer",
+};
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
-      name: "home",
+      name: routenames.home,
       component: HomeView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
     },
     {
       path: "/afhandeling",
-      name: "afhandeling",
+      name: routenames.afhandeling,
       component: AfhandelingView,
       beforeEnter: guardContactMoment,
       meta: {
@@ -112,7 +146,7 @@ const router = createRouter({
     },
     {
       path: "/contactverzoeken",
-      name: "contactverzoeken",
+      name: routenames.contactverzoeken,
       component: ContactenverzoekenView,
       beforeEnter: guardContactMoment,
       meta: {
@@ -124,7 +158,7 @@ const router = createRouter({
     },
     {
       path: "/personen",
-      name: "personen",
+      name: routenames.personen,
       component: PersonenView,
       beforeEnter: guardContactMoment,
       meta: {
@@ -136,7 +170,7 @@ const router = createRouter({
     },
     {
       path: "/personen/:internalKlantId",
-      name: "persoonDetail",
+      name: routenames.persoonDetail,
       props: true,
       component: PersoonDetailView,
       beforeEnter: guardContactMoment,
@@ -144,7 +178,7 @@ const router = createRouter({
     },
     {
       path: "/bedrijven",
-      name: "bedrijven",
+      name: routenames.bedrijven,
       component: BedrijvenView,
       beforeEnter: guardContactMoment,
       meta: {
@@ -156,7 +190,7 @@ const router = createRouter({
     },
     {
       path: "/bedrijven/:internalKlantId",
-      name: "bedrijfDetail",
+      name: routenames.bedrijfDetail,
       props: true,
       component: BedrijfDetailView,
       beforeEnter: guardContactMoment,
@@ -164,7 +198,7 @@ const router = createRouter({
     },
     {
       path: "/zaken",
-      name: "zaken",
+      name: routenames.zaken,
       component: ZakenView,
       beforeEnter: guardContactMoment,
       meta: {
@@ -176,7 +210,7 @@ const router = createRouter({
     },
     {
       path: "/zaken/:zaakId",
-      name: "zaakDetail",
+      name: routenames.zaakDetail,
       // als je props op true zet, worden alleen de path parameters als props meegegeven aan de component
       // op deze manier geldt dit ook voor de query parameters.
       props: ({ query = {}, params = {} }) => ({ ...query, ...params }),
@@ -186,7 +220,7 @@ const router = createRouter({
     },
     {
       path: "/links",
-      name: "links",
+      name: routenames.links,
       beforeEnter: guardRequirePermission(["linksread"]),
       component: LinksView,
       meta: { showNav: true, showNotitie: true, showSearch: true },
@@ -194,7 +228,7 @@ const router = createRouter({
 
     {
       path: "/beheer",
-      name: "Beheer",
+      name: routenames.Beheer,
       component: BeheerLayout,
       beforeEnter: guardBeheertab(BEHEER_TAB_PERMISSIONS),
       props: () => ({}), // Don't pass params to BeheerLayout
@@ -202,35 +236,35 @@ const router = createRouter({
       children: [
         {
           path: "NieuwsEnWerkinstructies",
-          name: "NieuwsEnWerkinstructiesBeheer",
+          name: routenames.NieuwsEnWerkinstructiesBeheer,
           beforeEnter: guardRequirePermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructiesBeheer,
           meta: {},
         },
         {
           path: "Skills",
-          name: "SkillsBeheer",
+          name: routenames.SkillsBeheer,
           beforeEnter: guardRequirePermission("skillsbeheer"),
           component: SkillsBeheer,
           meta: {},
         },
         {
           path: "Links",
-          name: "LinksBeheer",
+          name: routenames.LinksBeheer,
           beforeEnter: guardRequirePermission("linksbeheer"),
           component: LinksBeheer,
           meta: {},
         },
         {
           path: "gespreksresultaten",
-          name: "GespreksresultatenBeheer",
+          name: routenames.GespreksresultatenBeheer,
           beforeEnter: guardRequirePermission("gespreksresultatenbeheer"),
           component: GespreksresultatenBeheer,
           meta: {},
         },
         {
           path: "NieuwsEnWerkinstructie/:id?",
-          name: "NieuwsEnWerkinstructieBeheer",
+          name: routenames.NieuwsEnWerkinstructieBeheer,
           beforeEnter: guardRequirePermission("berichtenbeheer"),
           component: NieuwsEnWerkinstructieBeheer,
           props: true,
@@ -238,7 +272,7 @@ const router = createRouter({
         },
         {
           path: "Skill/:id?",
-          name: "SkillBeheer",
+          name: routenames.SkillBeheer,
           beforeEnter: guardRequirePermission("skillsbeheer"),
           component: SkillBeheer,
           props: true,
@@ -246,7 +280,7 @@ const router = createRouter({
         },
         {
           path: "Link/:id?",
-          name: "LinkBeheer",
+          name: routenames.LinkBeheer,
           beforeEnter: guardRequirePermission("linksbeheer"),
           component: LinkBeheer,
           props: true,
@@ -254,7 +288,7 @@ const router = createRouter({
         },
         {
           path: "gespreksresultaat/:id?",
-          name: "GespreksresultaatBeheer",
+          name: routenames.GespreksresultaatBeheer,
           beforeEnter: guardRequirePermission("gespreksresultatenbeheer"),
           component: GespreksresultaatBeheer,
           props: true,
@@ -262,7 +296,7 @@ const router = createRouter({
         },
         {
           path: "formulieren-contactverzoek-afdeling",
-          name: "FormulierenContactverzoekAfdelingenBeheer",
+          name: routenames.FormulierenContactverzoekAfdelingenBeheer,
           beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "afdeling" },
@@ -270,7 +304,7 @@ const router = createRouter({
         },
         {
           path: "formulier-contactverzoek-afdeling/:id?",
-          name: "FormulierContactverzoekAfdelingenBeheer",
+          name: routenames.FormulierContactverzoekAfdelingenBeheer,
           beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
@@ -281,7 +315,7 @@ const router = createRouter({
         },
         {
           path: "formulieren-contactverzoek-groep",
-          name: "FormulierenContactverzoekGroepenBeheer",
+          name: routenames.FormulierenContactverzoekGroepenBeheer,
           beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierenBeheer,
           props: { soort: "groep" },
@@ -289,7 +323,7 @@ const router = createRouter({
         },
         {
           path: "formulier-contactverzoek-groep/:id?",
-          name: "FormulierContactverzoekGroepenBeheer",
+          name: routenames.FormulierContactverzoekGroepenBeheer,
           beforeEnter: guardRequirePermission("contactformulierenbeheer"),
           component: ContactverzoekFormulierBeheer,
           props: (route) => ({
@@ -300,14 +334,14 @@ const router = createRouter({
         },
         {
           path: "kanalen",
-          name: "KanalenBeheer",
+          name: routenames.KanalenBeheer,
           beforeEnter: guardRequirePermission("kanalenbeheer"),
           component: KanalenBeheer,
           meta: {},
         },
         {
           path: "kanaal/:id?",
-          name: "KanaalBeheer",
+          name: routenames.KanaalBeheer,
           beforeEnter: guardRequirePermission("kanalenbeheer"),
           component: KanaalBeheer,
           props: true,
@@ -315,14 +349,14 @@ const router = createRouter({
         },
         {
           path: "vacs",
-          name: "VacsBeheer",
+          name: routenames.VacsBeheer,
           beforeEnter: guardRequirePermission("vacsbeheer"),
           component: VacsBeheer,
           meta: {},
         },
         {
           path: "vac/:uuid?",
-          name: "VacBeheer",
+          name: routenames.VacBeheer,
           beforeEnter: guardRequirePermission("vacsbeheer"),
           component: VacBeheer,
           props: true,

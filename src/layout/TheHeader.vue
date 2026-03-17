@@ -54,7 +54,7 @@
             </template>
             <template v-if="isKcm || isRedacteur">
               <li v-if="route.meta.showNav">
-                <router-link :to="{ name: 'home' }">
+                <router-link :to="{ name: routenames.home }">
                   <span>Nieuws en werkinstructies</span>
                   <span
                     v-if="featuredWerkberichtenCount"
@@ -95,15 +95,20 @@
 </template>
 
 <script lang="ts" setup>
-import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
+import {
+  featuredWerkberichtenCount,
+  fetchFeaturedWerkberichten,
+} from "@/features/werkbericht";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import { useRoute } from "vue-router";
 import { LoginOverlay, logoutUrl } from "../features/login";
 import GlobalSearch from "../features/search/GlobalSearch.vue";
-import { computed } from "vue";
+import { computed, watch } from "vue";
+
+
 import { BEHEER_TAB_PERMISSIONS, useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import { useLoader } from "@/services";
+import { routenames } from "@/router";
 
 const route = useRoute();
 
@@ -112,11 +117,15 @@ const { user } = storeToRefs(userStore);
 
 const contactmomentStore = useContactmomentStore();
 
-const { data: featuredWerkberichtenCount } = useLoader(() => {
-  if (userStore.user.isKcm || userStore.user.isRedacteur) {
-    return fetchFeaturedWerkberichten();
-  }
-});
+watch(
+  [route, userStore],
+  ([r, u]) => {
+    if (r.name === routenames.home && (u.user.isKcm || u.user.isRedacteur)) {
+      fetchFeaturedWerkberichten();
+    }
+  },
+  { immediate: true },
+);
 
 const canSeeBeheer = computed(() => {
   return (
