@@ -2,9 +2,11 @@
 
 ## Latest version
 
-### Bugfixes
+- ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
 
-- 'Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.
+## v2.2.1
+
+- update vulnerable dependencies
 
 ## v2.2.0
 
