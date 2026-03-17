@@ -16,9 +16,9 @@
     "lint:style": "stylelint \"**/*.{css,scss,vue}\" --ignore-path .gitignore"
   },
   "dependencies": {
-    "@ckeditor/ckeditor5-vue": "^7.3.0",
+    "@ckeditor/ckeditor5-vue": "^7.3.1",
     "@vueuse/core": "^8.9.4",
-    "ckeditor5": "^46.1.1",
+    "ckeditor5": "^47.6.1",
     "dompurify": "^3.2.7",
     "nanoid": "^5.1.6",
     "pinia": "^2.3.1",

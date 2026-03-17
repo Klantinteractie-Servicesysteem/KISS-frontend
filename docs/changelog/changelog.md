@@ -2,7 +2,10 @@
 
 ## Latest version
 
+ 
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
+- Supporting `Beheerder` role. #1335
+- Twee actoren tonen bij inzien Contactverzoeken #882
 
 ## v2.2.1
 

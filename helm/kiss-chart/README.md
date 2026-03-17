@@ -102,18 +102,19 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.logboek.token | string | `""` | Token for the Objects API for Logbooks |
 | settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contact moment details |
 | settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider |
+| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. |
 | settings.oidc.clientId | string | `""` | For access to the OpenID Connect Identity Provider |
 | settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider |
 | settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. |
 | settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klant Contact Employee. |
 | settings.oidc.medewerkerIdentificatie.claim | string | `""` | the claim to use for identifying the medewerker |
 | settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | max number of characters before truncation |
-| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. |
+| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur.  |
 | settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
-| settings.syncJobs.image.tag | string | `"0.3.0"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
+| settings.syncJobs.image.tag | string | `"0.3.1"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
 | settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |
