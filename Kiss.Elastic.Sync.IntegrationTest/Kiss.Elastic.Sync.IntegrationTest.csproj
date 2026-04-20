@@ -19,6 +19,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.14.6" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.14" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="Testcontainers.Elasticsearch" Version="3.9.0" />
     <PackageReference Include="xunit" Version="2.9.0" />
