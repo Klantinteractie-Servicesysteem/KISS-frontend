@@ -71,9 +71,11 @@ De frontend stuurt eenvoudige zoekparameters (`query`, `page`, `filters`). De BF
 
 **Hoe:** Roep `search_explain` aan op de huidige omgeving en sla het complete response op (zowel `query_string` als `query_body`).
 
+> **Goed nieuws:** De gestructureerde bronindices (kennisbank, vac, smoelenboek, sharepoint) zijn al **gewone Elasticsearch indices**. KISS-Elastic-Sync indexeert al direct via de `_bulk` API en past daarvoor een rijke custom mapping toe (`mapping.json` met Dutch analyzers, `.enum` / `.stem` / `.prefix` sub-fields, `_completion` voor autocomplete). Enterprise Search wordt alleen gebruikt om deze indices te registreren in de meta-engine — dat stukje vervalt gewoon.
+
 ### Stap 1: `search_explain` vervangen door statisch/configureerbaar template
 
-**Wat:** De `search_explain` endpoint retourneert een `multi_match` query met veld-specifieke gewichten. Dit is de **enige** reden dat Enterprise Search runtime wordt aangeroepen.
+**Wat:** De `search_explain` endpoint retourneert een `multi_match` query die gebruik maakt van de `.stem`, `.prefix`, `.delimiter`, `.joined` sub-velden die KISS-Elastic-Sync via `mapping.json` aanmaakt. Dit is de **enige** reden dat Enterprise Search runtime wordt aangeroepen.
 
 **Hoe:**
 - Vervang `useQueryTemplate()` in `src/features/search/service.ts` (regels 167-212) door een statisch query-template of een BFF config-endpoint
@@ -87,76 +89,62 @@ De frontend stuurt eenvoudige zoekparameters (`query`, `page`, `filters`). De BF
 
 ### Stap 2: Meta-engine vervangen door Elasticsearch index alias
 
-**Wat:** De `kiss-engine` meta-engine aggregeert alle bron-engines.
+**Wat:** De `kiss-engine` meta-engine aggregeert alle bron-engines. Na migratie worden dit gewoon aliassen.
 
 **Hoe:**
 - Maak een Elasticsearch alias (bijv. `kiss-search`) die naar alle relevante indices wijst
 - OF bied een config-gestuurde lijst van indices aan via het BFF
-- De `useSources()` functie leidt beschikbare indices af uit het template; na migratie moet deze lijst uit configuratie komen
 
 ### Stap 3: Enterprise Search Web Crawler vervangen door Open Web Crawler
 
-**Wat:** Websites worden gecrawld via de ingebouwde crawler van Enterprise Search, beheerd door KISS-Elastic-Sync.
+**Wat:** Websites worden gecrawld via de ingebouwde crawler van Enterprise Search. De crawler zet documenten in `.ent-search-engine-documents-*` hidden indices.
 
 **Hoe:**
 - Neem de [Elastic Open Web Crawler](https://github.com/elastic/crawler) in gebruik (Docker-based, CLI)
 - Configureer schrijven naar reguliere ES indices (bijv. `kiss-crawl-{domein}`)
+- Pas de **volledige `mapping.json`** toe op de crawler index vóór de eerste crawl (dit zorgt voor de `.enum`, `.stem` sub-velden die de query template nodig heeft)
+- Gebruik een ingest pipeline voor: `body` → `body_content` (Open Crawler gebruikt `body`) en `object_bron` instellen op het domein
 - Draai via K8s CronJob
 
 **Schemaverschillen:**
 
-| Enterprise Search veld | Open Crawler veld | Status |
+| Enterprise Search veld | Open Crawler veld | Oplossing |
 |---|---|---|
-| `body_content` | `body` | **Afwijkend** — mapping nodig |
-| `title` | `title` | Gelijk |
-| `headings` | `headings` | Gelijk |
-| `url` | `url` | Gelijk |
-| `domains` | `domains` | Gelijk |
-| `meta_description` | `meta_description` | Gelijk |
-| N/A | `last_crawled_at` | Nieuw veld |
-
-**Oplossing voor schemaverschillen:**
-- Gebruik een [ingest pipeline](https://github.com/elastic/crawler/blob/main/docs/features/INGEST_PIPELINES.md) om `body` → `body_content` te mappen
-- Voeg `object_bron` veld toe via ingest pipeline (op domein-URL zetten) zodat filteraggregaties blijven werken
-- Maak custom index mappings aan met `.enum` keyword sub-velden
+| `body_content` | `body` | Ingest pipeline: rename |
+| `object_bron` | ontbreekt | Ingest pipeline: set op domein-URL |
+| `title`, `headings`, `url`, `domains` | Gelijk | Geen actie |
 
 ### Stap 4: KISS-Elastic-Sync updaten
 
-**Wat:** [KISS-Elastic-Sync](https://github.com/Klantinteractie-Servicesysteem/KISS-Elastic-Sync) maakt momenteel engines, meta-engines en crawlers aan via de Enterprise Search API.
+**Wat:** [KISS-Elastic-Sync](https://github.com/Klantinteractie-Servicesysteem/KISS-Elastic-Sync) roept voor gestructureerde bronnen al direct de ES `_bulk` API aan — dat blijft intact. Wat vervalt:
+- `ElasticEnterpriseSearchClient.cs` (hele klasse)
+- De aanroepen `AddIndexEngineAsync()`, `AddDomain()`, `CrawlDomain()` in `Program.cs`
+- De `domain`-command-afhandeling → vervangen door Open Crawler configuratie
 
-**Hoe:**
-- Verwijder alle Enterprise Search API-aanroepen
-- Voor **websites**: integreer Open Crawler CLI of deploy apart als K8s CronJob
-- Voor **gestructureerde bronnen**: blijf direct naar ES indices indexeren
-- Beheer index aliases ter vervanging van de meta-engine
+**Toevoegen:** beheer van index aliases ter vervanging van de meta-engine.
 
-**Let op:** Dit is een apart repository en waarschijnlijk het grootste werkpakket.
+**Let op:** Dit is een apart repository en vereist een gecoördineerde release.
 
-### Stap 5: `indices_boost` en indexreferenties bijwerken
+### Stap 5: `indices_boost` bijwerken
 
-**Wat:** De frontend gebruikt `indices_boost: [{ ".ent-search*": 1 }, { "*": 10 }]` om crawlerresultaten lager te ranken.
-
-**Hoe:** Wijzig naar het nieuwe crawler index-patroon, bijv. `[{ "kiss-crawl-*": 1 }, { "*": 10 }]`
+Wijzig van `.ent-search*` naar het nieuwe crawler index-patroon, bijv. `kiss-crawl-*`.
 
 ### Stap 6: Frontend veldmappings bijwerken
 
-**Wat:** `mapResult()` in `service.ts` leest `_source.body_content`. De Open Crawler gebruikt `body`.
-
-**Hoe:**
-- Als ingest pipeline `body` → `body_content` mapt: geen frontend-wijziging nodig
-- Anders: `obj?._source?.body_content ?? obj?._source?.body` in `mapResult`
+`mapResult()` in `service.ts` leest `body_content`. Als de ingest pipeline `body` → `body_content` mapt, is geen frontend-wijziging nodig. Anders: `obj?._source?.body_content ?? obj?._source?.body`.
 
 ### Stap 7: Enterprise Search infrastructuur verwijderen
 
 - Verwijder `Kiss.Bff/Extern/EnterpriseSearch/EnterpriseSearchProxyConfig.cs`
 - Verwijder env vars: `ENTERPRISE_SEARCH_BASE_URL`, `ENTERPRISE_SEARCH_PRIVATE_API_KEY`, `ENTERPRISE_SEARCH_PUBLIC_API_KEY`, `ENTERPRISE_SEARCH_ENGINE`
 - Werk Helm chart bij: `values.yaml`, `values.schema.json`, `configmap.yaml`, `secret.yaml`
+- Verwijder de Enterprise Search K8s service
 - Werk documentatie bij
 
 ### Stap 8: Tests bijwerken
 
 - Verwijder `Kiss.Bff.Test/EnterpriseProxyConfigTests.cs`
-- Werk `Kiss.Bff.Test/ElasticsearchControllerTests.cs` bij indien indexpatronen wijzigen
+- Werk `Kiss.Bff.Test/ElasticsearchControllerTests.cs` bij indien nodig
 - Voeg tests toe voor het nieuwe query template config-endpoint
 
 ## Risico's en overwegingen
