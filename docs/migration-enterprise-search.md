@@ -58,22 +58,68 @@ Frontend (Vue.js)                 BFF (.NET YARP)                  Elastic Stack
 
 | Variable | Purpose | Used By |
 |---|---|---|
-| `ENTERPRISE_SEARCH_BASE_URL` | Enterprise Search server URL | BFF YARP proxy |
-| `ENTERPRISE_SEARCH_PRIVATE_API_KEY` | Bearer token for App Search API | BFF YARP proxy |
+| `ENTERPRISE_SEARCH_BASE_URL` | Enterprise Search server URL | BFF YARP proxy + KISS-Elastic-Sync |
+| `ENTERPRISE_SEARCH_PRIVATE_API_KEY` | Bearer token for App Search API | BFF YARP proxy + KISS-Elastic-Sync |
 | `ENTERPRISE_SEARCH_PUBLIC_API_KEY` | Public API key (stored as K8s secret) | Not used in BFF directly |
 | `ENTERPRISE_SEARCH_ENGINE` | Meta-engine name (e.g., `kiss-engine`) | KISS-Elastic-Sync |
-| `ELASTIC_BASE_URL` | Elasticsearch cluster URL | BFF HttpClient (stays) |
-| `ELASTIC_USERNAME` | ES basic auth username | BFF HttpClient (stays) |
-| `ELASTIC_PASSWORD` | ES basic auth password | BFF HttpClient (stays) |
+| `ELASTIC_BASE_URL` | Elasticsearch cluster URL | BFF HttpClient (stays) + KISS-Elastic-Sync |
+| `ELASTIC_USERNAME` | ES basic auth username | BFF HttpClient (stays) + KISS-Elastic-Sync |
+| `ELASTIC_PASSWORD` | ES basic auth password | BFF HttpClient (stays) + KISS-Elastic-Sync |
 | `ELASTIC_EXCLUDED_FIELDS_KENNISBANK` | Fields hidden from Kennisbank users | ElasticsearchService (stays) |
 
 ### Elasticsearch Indices Used
 
-| Index Pattern | Source | Created By |
-|---|---|---|
-| `.ent-search-engine-*` | Website crawl results | Enterprise Search Crawler |
-| `search-smoelenboek` | Employee data | KISS-Elastic-Sync |
-| (structured source indices) | VACs, Kennisartikelen, SharePoint | KISS-Elastic-Sync |
+| Index Pattern | Source | Created By | Index type |
+|---|---|---|---|
+| `.ent-search-engine-documents-engine-{name}` | Website crawl results | Enterprise Search Crawler | Hidden `.ent-search*` index |
+| `kennisbank` | SDG Producten / Kennisartikelen | KISS-Elastic-Sync (direct `_bulk`) | Regular ES index |
+| `smoelenboek` | Medewerkers | KISS-Elastic-Sync (direct `_bulk`) | Regular ES index |
+| `vac` | VAC's | KISS-Elastic-Sync (direct `_bulk`) | Regular ES index |
+| `sharepoint-*` | SharePoint pages | KISS-Elastic-Sync (direct `_bulk`) | Regular ES index |
+
+> **Key insight:** All structured source indices are already **native Elasticsearch indices**. KISS-Elastic-Sync only calls the Enterprise Search API to register them into the meta-engine (`AddIndexEngineAsync`) and to manage crawler domains. The actual indexing goes direct to ES via `_bulk`.
+
+### Index Mapping (mapping.json)
+
+KISS-Elastic-Sync applies a rich custom mapping when it creates a structured source index. This mapping is central to how search works — it must be preserved in the migration.
+
+```
+Dynamic template applies to ALL string fields, giving each field these sub-fields:
+  .enum        — keyword, used for aggregations (object_bron.enum, domains.enum)
+  .stem        — Dutch stemmer (nl-stem-filter)
+  .prefix      — edge-ngram for prefix search
+  .delimiter   — word delimiter (split on case change, numerics, etc.)
+  .joined      — bigram for phrase proximity
+  .date        — date parsing
+  .float       — numeric parsing
+
+Custom Dutch analyzers: iq_text_base, iq_text_stem, iq_text_delimiter, i_text_bigram, q_text_bigram
+Dutch stop words + stemmer built in.
+
+Special fields:
+  _completion  — completion suggester (autocomplete). Source fields copy_to this via field.json.
+  headings     — also copies to _completion (engine.json, applied to crawler indices)
+```
+
+The `search_explain` query from App Search leverages all these sub-fields (`.stem`, `.prefix`, `.delimiter`, `.joined`) via a `multi_match` with per-field boosts. **This mapping is already applied by KISS-Elastic-Sync** and is the same format as what App Search uses internally — which is why `search_explain` works against native indices.
+
+### Document Structure (KissEnvelope)
+
+Every structured-source document written by KISS-Elastic-Sync has this shape:
+
+```json
+{
+  "title": "Parkeervergunning aanvragen",
+  "object_meta": "U kunt een parkeervergunning aanvragen via...",
+  "object_bron": "Kennisbank",
+  "url": "https://...",
+  "Kennisbank": { ...full source object... }
+}
+```
+
+`object_bron` is the source name (= index name, capitalised). The full object is nested under the source name, which is why field paths like `Kennisbank.vertalingen.deskMemo` are used in `ELASTIC_EXCLUDED_FIELDS_KENNISBANK`.
+
+The `CompletionFields` per source client (e.g., `["vertalingen.tekst", "vertalingen.titel"]` for SDG) drive which nested fields get `copy_to: _completion` in the index mapping.
 
 ---
 
@@ -89,7 +135,8 @@ POST /api/as/v1/engines/kiss-engine/search_explain
 ```
 
 And receives back an Elasticsearch query DSL template containing:
-- A `multi_match` query with per-field `^weight` boosts from Relevance Tuning
+- A `multi_match` query across all indexed fields with per-field `^weight` boosts from Relevance Tuning
+- The multi_match leverages the `.stem`, `.prefix`, `.delimiter`, `.joined` sub-fields from `mapping.json`
 - A list of indices (derived from the meta-engine's source engines)
 
 The frontend then:
@@ -102,7 +149,12 @@ The frontend then:
 
 ### 2. Meta-Engine `kiss-engine` (Configuration)
 
-Aggregates multiple source engines into one searchable unit. The KISS-Elastic-Sync tool creates and manages this. The frontend derives the list of searchable indices from the `search_explain` response's `query_string`.
+Aggregates multiple source engines into one searchable unit. KISS-Elastic-Sync creates:
+- An **index engine** per structured source (e.g., `engine-kennisbank` wrapping the `kennisbank` index)
+- A **crawler engine** per website domain (e.g., `engine-engine-crawler` with `.ent-search*` index)
+- The **meta-engine** `kiss-engine` linking all source engines
+
+The frontend derives the list of searchable indices from the `search_explain` response's `query_string`.
 
 ### 3. Enterprise Search Web Crawler (Data Ingestion)
 
@@ -375,12 +427,53 @@ Or use a config-driven comma-separated index list in the BFF.
 ### Task 4: Update KISS-Elastic-Sync
 
 See [KISS-Elastic-Sync repository](https://github.com/Klantinteractie-Servicesysteem/KISS-Elastic-Sync). Changes needed:
-- Remove all Enterprise Search API calls (engine/meta-engine/crawler management)
-- For websites: generate Open Crawler config YAML + trigger crawl, OR deploy separately
-- For structured sources: continue direct ES indexing (likely minimal changes)
-- Create/manage the `kiss-search` alias
+- Remove all Enterprise Search API calls (`ElasticEnterpriseSearchClient.cs` — `AddDomain`, `CrawlDomain`, `AddIndexEngineAsync`, `EnsureMetaEngineAsync`, etc.)
+- For **structured sources**: the `ElasticBulkClient.IndexBulk()` path is already pure ES — minimal changes needed. Just remove the `enterpriseClient.AddIndexEngineAsync()` call that follows.
+- For **website crawling**: remove the `domain` command path and replace with Open Crawler (see Task 2)
+- Create/manage the `kiss-search` index alias to replace the meta-engine
+- Remove `ENTERPRISE_SEARCH_*` env vars
 
-### Task 5: Update `indices_boost`
+### Task 5: Apply `mapping.json` to crawler indices
+
+The structured source indices already have the correct mapping because KISS-Elastic-Sync applies `mapping.json` on creation. The **crawler index** currently gets only `engine.json` (a subset) applied to the hidden `.ent-search*` index managed by Enterprise Search.
+
+For the Open Crawler, create the target index with the **full `mapping.json`** before the first crawl, plus crawler-specific fields:
+
+```json
+PUT kiss-crawl-example-nl
+{
+  // ... full contents of mapping.json ...
+  "mappings": {
+    "properties": {
+      "_completion": { "type": "completion" },
+      "title": {
+        "analyzer": "iq_text_base",
+        "index_options": "freqs",
+        "type": "text",
+        "copy_to": "_completion",
+        "fields": { "enum": { "type": "keyword", "ignore_above": 2048 } }
+      },
+      "headings": {
+        "analyzer": "iq_text_base",
+        "index_options": "freqs",
+        "type": "text",
+        "copy_to": "_completion"
+      },
+      "body_content": { "analyzer": "iq_text_base", "type": "text", "index_options": "freqs" },
+      "url":          { "type": "keyword" },
+      "object_bron":  { "type": "text", "fields": { "enum": { "type": "keyword", "ignore_above": 2048 } } },
+      "domains":      { "type": "text", "fields": { "enum": { "type": "keyword", "ignore_above": 2048 } } }
+    },
+    "dynamic": "true",
+    "dynamic_templates": [ /* ... same as mapping.json ... */ ]
+  },
+  "settings": { /* ... same analyzers as mapping.json ... */ }
+}
+```
+
+This ensures the `.enum`, `.stem`, `.prefix` etc. sub-fields exist, making the query template work unchanged against crawler indices.
+
+### Task 6: Update `indices_boost`
 
 In `src/features/search/service.ts`, change:
 ```typescript
@@ -391,18 +484,18 @@ query_body.indices_boost = [{ ".ent-search*": 1 }, { "*": 10 }];
 query_body.indices_boost = [{ "kiss-crawl-*": 1 }, { "*": 10 }];
 ```
 
-### Task 6: Update Frontend Field Mappings
+### Task 7: Update Frontend Field Mappings
 
 In `mapResult()` in `src/features/search/service.ts`:
 ```typescript
 // Before
 const content = obj?._source?.body_content;
 
-// After (if not using ingest pipeline)
+// After (if not using ingest pipeline to rename body → body_content)
 const content = obj?._source?.body_content ?? obj?._source?.body;
 ```
 
-### Task 7: Remove Enterprise Search Infrastructure
+### Task 8: Remove Enterprise Search Infrastructure
 
 **Files to delete:**
 - `Kiss.Bff/Extern/EnterpriseSearch/EnterpriseSearchProxyConfig.cs`
@@ -428,7 +521,7 @@ const content = obj?._source?.body_content ?? obj?._source?.body;
 - `docs/installation/installatie.md`
 - `docs/installation/voorbereidingen.md`
 
-### Task 8: Update Tests
+### Task 9: Update Tests
 
 - Delete `Kiss.Bff.Test/EnterpriseProxyConfigTests.cs`
 - Update `Kiss.Bff.Test/ElasticsearchControllerTests.cs` if index patterns change
@@ -436,9 +529,13 @@ const content = obj?._source?.body_content ?? obj?._source?.body;
 
 ---
 
+---
+
 ## Ingest Pipeline Reference
 
-To normalize Open Crawler documents to match the current schema:
+An ingest pipeline is needed for the Open Crawler to:
+1. Rename `body` → `body_content` (Open Crawler uses `body`; KISS reads `body_content`)
+2. Set `object_bron` to the domain URL (used by the filter aggregations)
 
 ```json
 PUT _ingest/pipeline/kiss-crawler-pipeline
@@ -455,46 +552,16 @@ PUT _ingest/pipeline/kiss-crawler-pipeline
     {
       "set": {
         "field": "object_bron",
-        "value": "Website"
-      }
-    },
-    {
-      "script": {
-        "description": "Add .enum keyword copies for aggregation fields",
-        "source": """
-          // domains.enum is used for source filtering in the frontend
-          // The actual .enum sub-field should be handled by index mappings
-        """
+        "value": "{{url_host}}"
       }
     }
   ]
 }
 ```
 
-Index mappings for crawler indices:
-```json
-PUT kiss-crawl-example-nl
-{
-  "mappings": {
-    "properties": {
-      "body_content": { "type": "text" },
-      "title": { "type": "text" },
-      "url": { "type": "keyword" },
-      "domains": {
-        "type": "text",
-        "fields": { "enum": { "type": "keyword" } }
-      },
-      "object_bron": {
-        "type": "text",
-        "fields": { "enum": { "type": "keyword" } }
-      },
-      "headings": { "type": "text" },
-      "meta_description": { "type": "text" },
-      "last_crawled_at": { "type": "date" }
-    }
-  }
-}
-```
+> **Note:** The `.enum` sub-fields for `domains` and `object_bron` are handled entirely by the **index mapping** (the `mapping.json` dynamic template), not by the ingest pipeline. The pipeline only needs to handle field renaming and setting `object_bron`.
+
+> **Note on structured source indices:** KISS-Elastic-Sync already applies `mapping.json` when it creates structured source indices — no ingest pipeline needed there. Only crawler indices require pipeline processing.
 
 ---
 
@@ -504,10 +571,11 @@ PUT kiss-crawl-example-nl
 |---|---|---|
 | **Loss of Relevance Tuning UI** | Admins can no longer adjust field weights via Kibana | Export weights before migration; provide a config file/endpoint |
 | **Open Crawler is in beta** | Potential bugs, API changes | It's the official Elastic replacement; feature coverage is sufficient for KISS |
-| **Schema differences** | `body` vs `body_content`, missing `object_bron` | Use ES ingest pipelines to normalize |
-| **KISS-Elastic-Sync coordination** | Separate repo needs simultaneous changes | Plan a coordinated release |
+| **`body` vs `body_content` field name** | Crawler uses `body`, KISS reads `body_content` | Use ingest pipeline (see above) |
+| **`object_bron` missing from crawler docs** | Filter aggregations break for website sources | Set via ingest pipeline |
+| **Crawler index mapping** | Must have `.enum`, `.stem` etc. sub-fields for query template to work | Apply full `mapping.json` to crawler index before first crawl |
+| **KISS-Elastic-Sync coordination** | Separate repo; structured-source changes are minimal (remove `AddIndexEngineAsync`) | Plan a coordinated release |
 | **Downtime risk** | Search may be unavailable during switchover | Run both systems in parallel during transition |
-| **`.enum` sub-fields** | Aggregations depend on `.enum` keyword fields | Set up proper index mappings before first crawl |
 
 ---
 
@@ -518,25 +586,27 @@ PUT kiss-crawl-example-nl
 ```
 Phase 1: Preparation (no user impact)
 ├── 0. Export current search_explain template and Relevance Tuning weights
-├── 1. Set up Open Crawler with ingest pipeline on staging
-└── 2. Create index mappings and alias for crawler indices
+├── 1. Create crawler index with full mapping.json + ingest pipeline
+└── 2. Set up Open Crawler on staging, verify documents land correctly
 
 Phase 2: KISS-frontend changes
 ├── 3. Replace useQueryTemplate() with static/configurable template
-├── 4. Update indices_boost pattern
-├── 5. Update mapResult() if not using ingest pipeline
+├── 4. Update indices_boost pattern (.ent-search* → kiss-crawl-*)
+├── 5. Update mapResult() body_content fallback (if not using ingest pipeline)
 └── 6. Remove Enterprise Search proxy code from BFF
 
-Phase 3: Infrastructure
-├── 7. Update KISS-Elastic-Sync (separate repo)
-├── 8. Deploy Open Crawler CronJobs in K8s
-└── 9. Verify search results match previous behavior
+Phase 3: KISS-Elastic-Sync changes
+├── 7. Remove AddIndexEngineAsync() / AddDomain() / CrawlDomain() calls
+├── 8. Remove ElasticEnterpriseSearchClient.cs
+├── 9. Add index alias management
+└── 10. Deploy Open Crawler CronJobs in K8s
 
-Phase 4: Cleanup
-├── 10. Remove Enterprise Search K8s resources
-├── 11. Remove env vars and Helm chart entries
-├── 12. Update documentation
-└── 13. Delete old .ent-search* indices
+Phase 4: Verify and clean up
+├── 11. Verify search results match previous behavior
+├── 12. Remove Enterprise Search K8s service
+├── 13. Remove env vars and Helm chart entries
+├── 14. Update documentation
+└── 15. Delete old .ent-search* indices
 ```
 
 ### If Option B (backend query construction — recommended):
@@ -544,11 +614,11 @@ Phase 4: Cleanup
 ```
 Phase 1: Preparation (no user impact)
 ├── 0. Export current search_explain template and Relevance Tuning weights
-├── 1. Set up Open Crawler with ingest pipeline on staging
-└── 2. Create index mappings and alias for crawler indices
+├── 1. Create crawler index with full mapping.json + ingest pipeline
+└── 2. Set up Open Crawler on staging, verify documents land correctly
 
 Phase 2: Build new backend search API
-├── 3. Create SearchService.cs (query construction, template, field weights)
+├── 3. Create SearchService.cs (query construction, template config, field weights)
 ├── 4. Create SearchController.cs (POST /api/search, GET /api/search/sources,
 │      POST /api/search/medewerkers)
 ├── 5. Create SearchConfig.cs + SearchModels.cs (config binding + DTOs)
@@ -557,14 +627,28 @@ Phase 2: Build new backend search API
 
 Phase 3: Update frontend
 ├── 8. Replace useQueryTemplate() + ES query construction with calls to new API
-│      (POST /api/search with simple parameters)
 ├── 9. Replace useSources() with GET /api/search/sources call
 ├── 10. Replace searchMedewerkers() with POST /api/search/medewerkers call
-└── 11. Remove BRON_QUERY, mapSuggestions, getPayload from service.ts
+└── 11. Remove BRON_QUERY, mapSuggestions, getPayload, useQueryTemplate from service.ts
 
-Phase 4: Remove old code
+Phase 4: Remove Enterprise Search from BFF
 ├── 12. Remove Enterprise Search proxy (EnterpriseSearchProxyConfig.cs, YARP route)
 ├── 13. Deprecate/remove api/elasticsearch passthrough endpoint
+└── 14. Remove EnterpriseProxyConfigTests.cs
+
+Phase 5: KISS-Elastic-Sync changes
+├── 15. Remove AddIndexEngineAsync() / AddDomain() / CrawlDomain() calls
+├── 16. Remove ElasticEnterpriseSearchClient.cs
+├── 17. Add index alias management
+└── 18. Deploy Open Crawler CronJobs in K8s
+
+Phase 6: Verify and clean up
+├── 19. Verify search results match previous behavior
+├── 20. Remove Enterprise Search K8s service
+├── 21. Remove env vars and Helm chart entries
+├── 22. Update documentation
+└── 23. Delete old .ent-search* indices
+```
 └── 14. Remove EnterpriseProxyConfigTests.cs
 
 Phase 5: Infrastructure
