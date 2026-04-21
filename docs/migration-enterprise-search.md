@@ -6,6 +6,7 @@
 
 - [Current Architecture](#current-architecture)
 - [What Enterprise Search Does for KISS](#what-enterprise-search-does-for-kiss)
+- [Migration as an Opportunity to Simplify](#migration-as-an-opportunity-to-simplify)
 - [Architecture Decision: Frontend vs Backend Query Construction](#architecture-decision-frontend-vs-backend-query-construction)
 - [Migration Tasks](#migration-tasks)
 - [Detailed File Changes](#detailed-file-changes)
@@ -169,6 +170,58 @@ Configured in Kibana via the App Search Relevance Tuning page:
 - Per-field weight configuration (e.g., `VAC.trefwoorden.trefwoord^3`)
 - Controls which fields are searchable
 - Changes are reflected in `search_explain` output
+
+### 5. Precision Tuning (Admin UI)
+
+Also configured in Kibana. Precision tuning is a slider from **1 to 11** that controls the tradeoff between precision (exact matches) and recall (broad matches):
+
+| Level | Analyzers active | Fuzzy matching | Phrase matching |
+|---|---|---|---|
+| 1–2 | All (default, stem, prefix, delimiter, joined) | Yes | Partial — few terms need to match |
+| 3–8 | All | Yes | Increasingly strict |
+| 9 | Default, stem, joined (prefix disabled) | No | All terms, same field |
+| 10 | Default, stem (delimiter/joined disabled) | No | All terms, same field |
+| 11 | Default only (stem disabled) | No | Exact tokenized match |
+
+In practice, the precision level controls **which sub-fields** from `mapping.json` are included in the `multi_match` query:
+- Lower precision → includes `.prefix`, `.delimiter`, `.joined` (broad, forgiving)
+- Higher precision → strips those sub-fields, uses only `.stem` and base (strict)
+
+It also controls the `minimum_should_match` parameter and whether `fuzziness` is applied.
+
+**The current precision setting is implicitly baked into the `search_explain` output.** Capturing the template captures the precision level as it exists today.
+
+---
+
+## Migration as an Opportunity to Simplify
+
+KISS has largely stuck with **App Search defaults** throughout its setup — with one known exception:
+
+- **Precision tuning** has been actively experimented with. The App Search default is **2** (high recall, low precision), but customers reported unhappiness with the broad results this produces. The setting has been tested at **8** (more precise, fewer false matches). The current live value is not certain — **always capture the current `search_explain` output before any migration work begins** (Step 0), as it reflects the actual precision in use.
+- **Relevance tuning** field weights are probably close to defaults or were set once and never revisited.
+- **`mapping.json`** and **`engine.json`** in KISS-Elastic-Sync are derived from App Search's internal mappings. They define seven sub-fields per string (`.enum`, `.stem`, `.prefix`, `.delimiter`, `.joined`, `.date`, `.float`) because App Search needs to support all eleven precision levels.
+- **`field.json`** controls completion fields and was copied from App Search defaults.
+
+The precision experimentation confirms that this setting **matters to users** and should be explicitly controlled after migration — not left as an implicit side effect of which query template was last exported.
+
+### What could be simplified
+
+| Area | Current state | Possible simplification |
+|---|---|---|
+| Sub-fields per string | 7 (`.enum`, `.stem`, `.prefix`, `.delimiter`, `.joined`, `.date`, `.float`) | `.enum` (aggregations) + `.stem` are likely sufficient; `.prefix` useful for prefix-search; `.delimiter`/`.joined` mainly matter at low precision levels |
+| Analyzers | 5 custom Dutch analyzers + bigrams | Fewer analyzers if fewer sub-fields are used |
+| `minimum_should_match` | Implicitly controlled by precision slider | Should be set explicitly after migration |
+| Fuzzy matching | On at low precision levels, off at ≥9 | At precision 8 fuzzy is still on; make this an explicit config rather than implicit |
+| Completion suggester | `_completion` field with `copy_to` from specific nested fields | Works well; keep unless autocomplete quality needs improving |
+| `engine.json` for crawlers | Adds `_completion` + `headings` copy to hidden crawler index | Replicate only what's needed in the new crawler index mapping |
+
+### Simplification might improve results
+
+The App Search internal analyzers were designed for a general-purpose product across many languages. A simpler, purpose-built Dutch query (for example, a `multi_match` over `title`, `object_meta`, and a few nested source fields with Dutch stemming plus an explicit `minimum_should_match`) might deliver better relevance than the current auto-generated multi-analyzer query — especially for the specific types of municipal content KISS indexes.
+
+The precision complaints from customers also point to a broader need: **the precision/recall tradeoff should be an explicit, tunable setting**, not something buried in a query template. This is a strong argument for the in-KISS Relevance Tuning UI (Option C), which could surface a precision slider or mode selector directly to admins.
+
+**Recommendation:** Do the core migration with minimal changes first (capture the current `search_explain` output, reproduce its behavior in native ES). Once running, treat precision, field weights, and the query structure as things to iterate on with real search quality testing. Option B (backend query construction) makes this iteration much easier since query changes no longer require frontend deploys.
 
 ---
 
@@ -338,6 +391,56 @@ Kiss.Bff/Extern/Search/SearchConfig.cs        — query template + index config
 #### Recommendation
 
 **Option B is recommended.** The migration is the natural moment to fix the architectural issue of exposing raw ES query DSL to the browser. The extra effort is moderate (one new controller + service) and the security and maintainability benefits are significant.
+
+### Option C: Build a Relevance Tuning UI in KISS itself
+
+Regardless of whether Option A or B is chosen for query construction, the **loss of the Kibana Relevance Tuning UI** is a separate concern. Currently, admins use the App Search UI in Kibana to adjust per-field boosts. After migration this capability disappears.
+
+An alternative is to build a basic relevance tuning interface inside KISS, allowing admins (or technically authorised users) to adjust field weights without touching config files or redeploying.
+
+#### Scope
+
+The minimum viable version would let admins edit a list of `{ field, boost }` pairs that are stored in the database and applied to the search query at runtime.
+
+The query template generated from `search_explain` is a `multi_match` query with entries like:
+
+```json
+{
+  "multi_match": {
+    "query": "{{query}}",
+    "fields": [
+      "VAC.trefwoorden.trefwoord^3",
+      "Kennisbank.vertalingen.titel^2",
+      "body_content^1",
+      ...
+    ]
+  }
+}
+```
+
+A UI that reads and writes these `field^boost` values, stored in a simple DB table, is sufficient to replicate the core of Relevance Tuning.
+
+**Precision tuning** is a second lever currently available in App Search. It is a slider from 1–11 that controls the tradeoff between broad (high recall) and strict (high precision) matching. It manifests in the query as:
+- Which sub-fields (`.prefix`, `.delimiter`, `.joined`, `.stem`) are included in the `multi_match`
+- The `minimum_should_match` value
+- Whether `fuzziness` is applied
+
+A KISS-native precision control could be as simple as a single numeric config value (1–11) that the BFF translates into the appropriate query structure — or a radio button group (`Breed` / `Normaal` / `Strikt`) for non-technical users.
+
+#### What this would require
+
+| Component | Work |
+|---|---|
+| DB table `search_field_weights` (field, boost, searchable) | Small |
+| Admin page in KISS to list/edit weights | Medium |
+| BFF reads weights from DB when building query | Small (natural fit for Option B) |
+| Authorization: restrict to admin role | Small |
+
+**This is most natural as an extension of Option B** — if the BFF is already building the query, reading weights from a DB table is a small additional step. With Option A (frontend builds the query), you'd need a config endpoint and the weights would still need to be fetched from somewhere.
+
+#### Recommendation
+
+Build the Relevance Tuning UI as a **follow-on feature** after the core migration is complete, not as a blocker. For the initial migration, export the current weights from `search_explain` and store them as config. The UI can be added later without changing the overall architecture.
 
 If Option B is chosen, the existing `api/elasticsearch/{index}/_search` passthrough endpoint should be deprecated and eventually removed.
 
@@ -569,13 +672,14 @@ PUT _ingest/pipeline/kiss-crawler-pipeline
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **Loss of Relevance Tuning UI** | Admins can no longer adjust field weights via Kibana | Export weights before migration; provide a config file/endpoint |
+| **Loss of Relevance Tuning UI** | Admins can no longer adjust field weights via Kibana | Export weights before migration; store as config. Optionally build a basic Relevance Tuning UI in KISS (see Option C above) |
 | **Open Crawler is in beta** | Potential bugs, API changes | It's the official Elastic replacement; feature coverage is sufficient for KISS |
 | **`body` vs `body_content` field name** | Crawler uses `body`, KISS reads `body_content` | Use ingest pipeline (see above) |
 | **`object_bron` missing from crawler docs** | Filter aggregations break for website sources | Set via ingest pipeline |
 | **Crawler index mapping** | Must have `.enum`, `.stem` etc. sub-fields for query template to work | Apply full `mapping.json` to crawler index before first crawl |
 | **KISS-Elastic-Sync coordination** | Separate repo; structured-source changes are minimal (remove `AddIndexEngineAsync`) | Plan a coordinated release |
 | **Downtime risk** | Search may be unavailable during switchover | Run both systems in parallel during transition |
+| **Over-replicating App Search defaults** | Recreating all App Search complexity in native ES gains nothing | Keep the initial migration simple; treat query/mapping as a follow-on improvement (see [Migration as an Opportunity](#migration-as-an-opportunity-to-simplify)) |
 
 ---
 
