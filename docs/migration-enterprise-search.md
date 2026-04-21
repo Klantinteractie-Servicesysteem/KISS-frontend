@@ -51,7 +51,7 @@ Frontend (Vue.js)                 BFF (.NET YARP)                  Elastic Stack
 | DI registration | `Kiss.Bff/Program.cs` | `AddEnterpriseSearch()` + ES HttpClient setup |
 | Proxy tests | `Kiss.Bff.Test/EnterpriseProxyConfigTests.cs` | Validates only search_explain is exposed |
 | ES controller tests | `Kiss.Bff.Test/ElasticsearchControllerTests.cs` | Tests field removal and proxy behavior |
-| ECK Enterprise CRD | `docs/scripts/elastic/eck/templates/enterprise.yaml` | K8s Enterprise Search deployment |
+| ECK Enterprise CRD | `docs/scripts/elastic/eck/templates/enterprise.yaml` | K8s Enterprise Search deployment (legacy, not maintained) |
 | Sync tool | [KISS-Elastic-Sync](https://github.com/Klantinteractie-Servicesysteem/KISS-Elastic-Sync) (separate repo) | Creates engines, crawlers, syncs structured data |
 
 ### Configuration Environment Variables
@@ -407,7 +407,6 @@ const content = obj?._source?.body_content ?? obj?._source?.body;
 **Files to delete:**
 - `Kiss.Bff/Extern/EnterpriseSearch/EnterpriseSearchProxyConfig.cs`
 - `Kiss.Bff.Test/EnterpriseProxyConfigTests.cs`
-- `docs/scripts/elastic/eck/templates/enterprise.yaml`
 
 **Files to modify:**
 - `Kiss.Bff/Config/ProxyConfig.cs` — remove Enterprise Search special-case (lines ~149-183)
