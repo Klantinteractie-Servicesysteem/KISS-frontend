@@ -28,7 +28,20 @@ Frontend                          BFF (.NET)                       Elastic Stack
    {aangepaste ES query DSL}        (rol-gebaseerde veldfilter)  ←
 ```
 
-## Migratieaanpak
+## Migratie als kans voor vereenvoudiging
+
+KISS maakt grotendeels gebruik van de **standaardinstellingen van App Search** — met één bekende uitzondering:
+
+- **Precision Tuning** is actief geëxperimenteerd. De App Search standaardinstelling is **2** (hoge recall, lage precisie), maar klanten uitten onvrede over de brede, weinig trefzekere resultaten. Er is getest met instelling **8** (preciezer, minder ruis). De huidige live-instelling is niet zeker — **exporteer altijd het `search_explain` response vóór de migratie begint** (Stap 0), want dat weerspiegelt de werkelijke instelling.
+- **Relevance Tuning** veldgewichten zijn waarschijnlijk (bijna) ongewijzigd.
+- **`mapping.json`** en **`engine.json`** in KISS-Elastic-Sync zijn afgeleid van App Search interne mappings en ondersteunen alle elf precisieniveaus via zeven sub-velden per string-veld.
+- **`field.json`** regelt completion-velden en is overgenomen van App Search defaults.
+
+De precisie-experimenten laten zien dat dit een instelling is die er toe doet voor gebruikers. Na de migratie moet precisie een **expliciete, instelbare configuratie** zijn — niet iets dat verborgen zit in een geëxporteerde query template. Dit is een sterk argument voor een Relevance Tuning UI in KISS zelf (Optie C).
+
+**Aanbeveling:** Doe de kernmigratie eerst met minimale wijzigingen (huidige `search_explain` output vastleggen en reproduceren in native ES). Behandel precisie, veldgewichten en querystructuur daarna als iets om iteratief op te verbeteren met echte zoekresultaten als maatstaf.
+
+
 
 Alle Enterprise Search afhankelijkheden vervangen door native Elasticsearch-functionaliteit en de Elastic Open Web Crawler.
 
@@ -62,6 +75,20 @@ De frontend stuurt eenvoudige zoekparameters (`query`, `page`, `filters`). De BF
 **Nadelen:** Meer migratie-inspanning (nieuwe controller + service), backend-deploy nodig voor query-wijzigingen.
 
 **Aanbeveling:** Optie B — de migratie is het natuurlijke moment om de architectuur te verbeteren.
+
+### Relevance Tuning UI in KISS zelf bouwen
+
+Los van de keuze voor Optie A of B vervalt de Kibana Relevance Tuning UI. Admins kunnen dan niet meer via een UI de veldgewichten aanpassen.
+
+Naast de veldgewichten (per-field boosts) maakt KISS ook gebruik van **Precision Tuning**: een schuifregelaar van 1 tot 11 die de balans tussen brede en exacte zoekopdrachten bepaalt. De instelling bepaalt welke sub-velden (`.prefix`, `.delimiter`, `.joined`, `.stem`) worden meegenomen in de `multi_match` query, en hoe streng de term-matching is (fuzzy matching aan/uit, `minimum_should_match`). De huidige instelling is impliciet opgenomen in het `search_explain` response.
+
+**Optionele aanvulling:** Bouw een eenvoudige beheerpagina in KISS met:
+- Een lijst van velden met boost-waarden (vervanger van Relevance Tuning)
+- Een precision-instelling (bijv. een keuze `Breed / Normaal / Strikt` voor niet-technische gebruikers)
+
+Beide worden opgeslagen in de database en bij runtime gebruikt in de `multi_match` query. Dit is het meest logisch als uitbreiding op Optie B (BFF bouwt de query al).
+
+**Aanbeveling:** Plan dit als een **follow-on feature** na de kernmigratie. Voor de initiële migratie: exporteer de huidige gewichten en precision-instelling uit `search_explain` en sla ze op als configuratie.
 
 ## Migratiestappen
 
@@ -156,3 +183,4 @@ Wijzig van `.ent-search*` naar het nieuwe crawler index-patroon, bijv. `kiss-cra
 | **Schemaverschillen** | ES ingest pipelines om Open Crawler output te normaliseren |
 | **KISS-Elastic-Sync is apart repo** | Gecoördineerde release nodig |
 | **Downtime tijdens migratie** | Beide systemen parallel draaien tijdens transitie |
+| **App Search defaults klakkeloos overnemen** | Vermijd het volledig nabootsen van de App Search complexiteit in native ES; gebruik de migratie als kans om te vereenvoudigen |
