@@ -8,6 +8,8 @@
 - [What Enterprise Search Does for KISS](#what-enterprise-search-does-for-kiss)
 - [Migration as an Opportunity to Simplify](#migration-as-an-opportunity-to-simplify)
 - [Architecture Decision: Frontend vs Backend Query Construction](#architecture-decision-frontend-vs-backend-query-construction)
+- [Recommendation: Merge KISS-Elastic-Sync into This Repository](#recommendation-merge-kiss-elastic-sync-into-this-repository)
+- [Relevance Tuning UI (Optional Follow-on)](#relevance-tuning-ui-optional-follow-on)
 - [Migration Tasks](#migration-tasks)
 - [Detailed File Changes](#detailed-file-changes)
 - [Open Crawler Setup Guide](#open-crawler-setup-guide)
@@ -392,9 +394,48 @@ Kiss.Bff/Extern/Search/SearchConfig.cs        — query template + index config
 
 **Option B is recommended.** The migration is the natural moment to fix the architectural issue of exposing raw ES query DSL to the browser. The extra effort is moderate (one new controller + service) and the security and maintainability benefits are significant.
 
-### Option C: Build a Relevance Tuning UI in KISS itself
+### Option C → moved
 
-Regardless of whether Option A or B is chosen for query construction, the **loss of the Kibana Relevance Tuning UI** is a separate concern. Currently, admins use the App Search UI in Kibana to adjust per-field boosts. After migration this capability disappears.
+The question of building a Relevance Tuning UI in KISS is independent of whether Option A or B is chosen. It is covered in its own section: [Relevance Tuning UI (Optional Follow-on)](#relevance-tuning-ui-optional-follow-on).
+
+---
+
+## Recommendation: Merge KISS-Elastic-Sync into This Repository
+
+KISS-Elastic-Sync and KISS are parts of the same product delivered together. They share the same Elasticsearch cluster, the same index schema (`mapping.json`), and the same data model. A change to how content is indexed almost always has a matching change in how it is searched — yet those changes currently require coordinating pull requests, reviews, and releases across two separate repositories.
+
+### Why merge
+
+- **Coordinated changes in a single PR.** This migration touches both repositories significantly. Having them together means one PR, one review, one release.
+- **Full-codebase AI assistance.** Tools like GitHub Copilot work best with full context. A developer (or AI agent) working on the search query can directly see and modify the indexing logic that feeds it, and vice versa.
+- **Simpler CI/CD and issue tracking.** One pipeline, one issue tracker, one changelog.
+- **Shared code becomes possible.** Index names, field names, and document shape (`KissEnvelope`) are currently duplicated by convention. A shared C# project (e.g. `Kiss.Search.Shared`) could make them a single source of truth.
+
+### How to do it
+
+KISS-Elastic-Sync is a .NET project (`Kiss.Elastic.Sync`). It fits naturally alongside `Kiss.Bff` in the existing solution (`KISS-frontend.sln`).
+
+```
+KISS-frontend/
+  Kiss.Bff/               ← existing BFF
+  Kiss.Elastic.Sync/      ← moved from KISS-Elastic-Sync repo
+  Kiss.Bff.Test/          ← existing tests
+  Kiss.Bff.EndToEndTest/  ← existing E2E tests
+```
+
+Git history from KISS-Elastic-Sync can be preserved using `git subtree` or `git filter-repo` before the source repo is archived.
+
+Deployment stays separate — the sync tool runs as a scheduled job (K8s CronJob), not alongside the BFF. The merge is a source-code concern, not a deployment concern.
+
+### Recommendation
+
+Do this **as part of the migration work**, not after. The scope of changes in KISS-Elastic-Sync during this migration is large enough that the friction of a separate repository will be felt immediately. Merging first makes the rest of the migration simpler.
+
+---
+
+## Relevance Tuning UI (Optional Follow-on)
+
+Regardless of the query construction decision (Option A or B), the **loss of the Kibana Relevance Tuning UI** is a separate concern. Currently, admins use the App Search UI in Kibana to adjust per-field boosts. After migration this capability disappears.
 
 An alternative is to build a basic relevance tuning interface inside KISS, allowing admins (or technically authorised users) to adjust field weights without touching config files or redeploying.
 
@@ -433,7 +474,7 @@ A KISS-native precision control could be as simple as a single numeric config va
 |---|---|
 | DB table `search_field_weights` (field, boost, searchable) | Small |
 | Admin page in KISS to list/edit weights | Medium |
-| BFF reads weights from DB when building query | Small (natural fit for Option B) |
+| BFF reads weights from DB when building query | Small (fits naturally if BFF builds the query, but possible with either option) |
 | Authorization: restrict to admin role | Small |
 
 **This is most natural as an extension of Option B** — if the BFF is already building the query, reading weights from a DB table is a small additional step. With Option A (frontend builds the query), you'd need a config endpoint and the weights would still need to be fetched from somewhere.
@@ -441,8 +482,6 @@ A KISS-native precision control could be as simple as a single numeric config va
 #### Recommendation
 
 Build the Relevance Tuning UI as a **follow-on feature** after the core migration is complete, not as a blocker. For the initial migration, export the current weights from `search_explain` and store them as config. The UI can be added later without changing the overall architecture.
-
-If Option B is chosen, the existing `api/elasticsearch/{index}/_search` passthrough endpoint should be deprecated and eventually removed.
 
 ---
 
@@ -672,12 +711,12 @@ PUT _ingest/pipeline/kiss-crawler-pipeline
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **Loss of Relevance Tuning UI** | Admins can no longer adjust field weights via Kibana | Export weights before migration; store as config. Optionally build a basic Relevance Tuning UI in KISS (see Option C above) |
+| **Loss of Relevance Tuning UI** | Admins can no longer adjust field weights via Kibana | Export weights before migration; store as config. Optionally build a Relevance Tuning UI in KISS (see [separate section](#relevance-tuning-ui-optional-follow-on)) |
 | **Open Crawler is in beta** | Potential bugs, API changes | It's the official Elastic replacement; feature coverage is sufficient for KISS |
 | **`body` vs `body_content` field name** | Crawler uses `body`, KISS reads `body_content` | Use ingest pipeline (see above) |
 | **`object_bron` missing from crawler docs** | Filter aggregations break for website sources | Set via ingest pipeline |
 | **Crawler index mapping** | Must have `.enum`, `.stem` etc. sub-fields for query template to work | Apply full `mapping.json` to crawler index before first crawl |
-| **KISS-Elastic-Sync coordination** | Separate repo; structured-source changes are minimal (remove `AddIndexEngineAsync`) | Plan a coordinated release |
+| **KISS-Elastic-Sync coordination** | Separate repo; changes during migration are significant | Consider merging into this repo first — see [recommendation above](#recommendation-merge-kiss-elastic-sync-into-this-repository) |
 | **Downtime risk** | Search may be unavailable during switchover | Run both systems in parallel during transition |
 | **Over-replicating App Search defaults** | Recreating all App Search complexity in native ES gains nothing | Keep the initial migration simple; treat query/mapping as a follow-on improvement (see [Migration as an Opportunity](#migration-as-an-opportunity-to-simplify)) |
 
