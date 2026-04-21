@@ -195,13 +195,13 @@ Save the complete answer. This gives us:
 
 # Migration phases
 
-| Phase                              | Work                                                                      | User impact |
-| ---------------------------------- | ------------------------------------------------------------------------- | ----------- |
-| **1 — Prepare**                    | Capture search recipe · set up new crawler on staging                     | None        |
-| **2 — Server search** _(Option B)_ | Build server-side search component · apply field weights · verify quality | None        |
-| **3 — Update browser**             | Remove Enterprise Search calls · connect to new server endpoints          | Transparent |
-| **4 — Update sync tool**           | Remove Enterprise Search calls · configure Open Crawler                   | None        |
-| **5 — Clean up**                   | Remove Enterprise Search service · delete old indices · update config     | None        |
+| Phase                              | Work                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| **1 — Prepare**                    | Capture search recipe · set up new crawler on staging                     |
+| **2 — Server search** _(Option B)_ | Build server-side search component · apply field weights · verify quality |
+| **3 — Update browser**             | Remove Enterprise Search calls · connect to new server endpoints          |
+| **4 — Update sync tool**           | Remove Enterprise Search calls · configure Open Crawler                   |
+| **5 — Clean up**                   | Remove Enterprise Search service · delete old indices · update config     |
 
 ---
 
