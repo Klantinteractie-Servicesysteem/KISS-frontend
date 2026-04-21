@@ -148,7 +148,7 @@ De frontend stuurt eenvoudige zoekparameters (`query`, `page`, `filters`). De BF
 
 ### Stap 7: Enterprise Search infrastructuur verwijderen
 
-- Verwijder `docs/scripts/elastic/eck/templates/enterprise.yaml` (ECK CRD)
+- Verwijder `Kiss.Bff/Extern/EnterpriseSearch/EnterpriseSearchProxyConfig.cs`
 - Verwijder env vars: `ENTERPRISE_SEARCH_BASE_URL`, `ENTERPRISE_SEARCH_PRIVATE_API_KEY`, `ENTERPRISE_SEARCH_PUBLIC_API_KEY`, `ENTERPRISE_SEARCH_ENGINE`
 - Werk Helm chart bij: `values.yaml`, `values.schema.json`, `configmap.yaml`, `secret.yaml`
 - Werk documentatie bij
