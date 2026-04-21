@@ -207,16 +207,11 @@ Save the complete answer. This gives us:
 
 # Replacing the web crawler
 
-|                     | Enterprise Search Crawler           | Elastic Open Crawler                                                        |
-| ------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
-| Where it runs       | Built into Enterprise Search        | Separate service (scheduled job)                                            |
-| Where content lands | Hidden internal Elasticsearch index | Regular Elasticsearch index                                                 |
-| Status              | Discontinued in ES9                 | Official Elastic replacement (currently in beta)                            |
-| Schema differences  | —                                   | Field `body` instead of `body_content`; `object_bron` not set automatically |
-
-The two schema differences are handled automatically by a data processing rule (ingest pipeline) — no manual data conversion needed.
-
-The new crawler index needs to be set up with the same search configuration (analyzers, sub-fields) as the structured content indices, so the existing search recipe works against it unchanged.
+|                     | Enterprise Search Crawler           | Elastic Open Crawler                             |
+| ------------------- | ----------------------------------- | ------------------------------------------------ |
+| Where it runs       | Built into Enterprise Search        | Separate service (scheduled job)                 |
+| Where content lands | Hidden internal Elasticsearch index | Regular Elasticsearch index                      |
+| Status              | Discontinued in ES9                 | Official Elastic replacement (currently in beta) |
 
 ---
 
@@ -235,11 +230,11 @@ The new crawler index needs to be set up with the same search configuration (ana
 
 # Component overview
 
-| Component         | Change                                 | Effort       |
-| ----------------- | -------------------------------------- | ------------ |
-| Enterprise Search | Remove entirely                        | Small        |
-| Web crawler       | Replace with Open Crawler              | Medium       |
-| Sync tool         | Remove Enterprise Search calls         | Small        |
-| Backend server    | Add search logic (Option B)            | Medium–large |
-| Frontend code     | Simplify, remove recipe fetching       | Medium       |
-| Search config     | Export current recipe; store as config | Small        |
+| Component         | Change                                 |
+| ----------------- | -------------------------------------- |
+| Enterprise Search | Remove entirely                        |
+| Web crawler       | Replace with Open Crawler              |
+| Sync tool         | Remove Enterprise Search calls         |
+| Backend server    | Add search logic (Option B)            |
+| Frontend code     | Simplify, remove recipe fetching       |
+| Search config     | Export current recipe; store as config |
