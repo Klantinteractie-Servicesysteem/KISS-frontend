@@ -18,5 +18,4 @@ Er was echter niet voor alle functionaliteiten al een standaard beschikbaar Daar
    zoeken-in-bronnen.md
    logging-voor-verwerking.md
    autorisatie.md
-   migratie-enterprise-search.md
 
