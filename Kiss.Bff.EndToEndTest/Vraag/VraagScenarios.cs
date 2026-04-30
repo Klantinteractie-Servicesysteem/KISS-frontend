@@ -83,20 +83,27 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
 
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .Locator("input[type='search']").ClickAsync();
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            var vraag1Article = Page.Locator("article").Filter(new() { HasText = "Vraag 1" });
+            var vraag1SearchInput = vraag1Article.Locator("input[type='search']");
+            await vraag1SearchInput.ClickAsync();
+            await vraag1SearchInput.FillAsync("Parkeren");
+            await vraag1Article.GetByText("Parkeren", new() { Exact = true }).WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await vraag1Article.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
 
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("input[type='search']").ClickAsync();
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            var vraag2Article = Page.Locator("article").Filter(new() { HasText = "Vraag 2" });
+            var vraag2SearchInput = vraag2Article.Locator("input[type='search']");
+            await vraag2SearchInput.ClickAsync();
+            await vraag2SearchInput.FillAsync("Parkeren");
+            await vraag2Article.GetByText("Parkeren", new() { Exact = true }).WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await vraag2Article.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Opslaan button");
 
+            await Page.GetOpslaanButton().WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Page.GetOpslaanButton().ScrollIntoViewIfNeededAsync();
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
                 await Page.GetOpslaanButton().ClickAsync();
@@ -198,20 +205,29 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 1");
 
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .Locator("input[type='search']").ClickAsync();
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 1" })
-                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            var vraag1Article = Page.Locator("article").Filter(new() { HasText = "Vraag 1" });
+            var vraag1SearchInput = vraag1Article.Locator("input[type='search']");
+            await vraag1SearchInput.ClickAsync();
+            await vraag1SearchInput.FillAsync("Parkeren");
+            await vraag1Article.GetByText("Parkeren", new() { Exact = true }).WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await vraag1Article.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
 
             await Step("And selects value 'Parkeren' in field Afdeling for vraag 2");
 
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .Locator("input[type='search']").ClickAsync();
-            await Page.Locator("article").Filter(new() { HasText = "Vraag 2" })
-                .GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            var vraag2Article = Page.Locator("article").Filter(new() { HasText = "Vraag 2" });
+            var vraag2SearchInput = vraag2Article.Locator("input[type='search']");
+            await vraag2SearchInput.ClickAsync();
+            await vraag2SearchInput.FillAsync("Parkeren");
+            await Page.WaitForTimeoutAsync(1000); // Wait for dropdown to stabilize
+            var parkeren2 = vraag2Article.GetByText("Parkeren", new() { Exact = true });
+            await parkeren2.WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await parkeren2.ClickAsync(new() { Force = true });
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Opslaan button");
 
+            await Page.GetOpslaanButton().WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Page.GetOpslaanButton().ScrollIntoViewIfNeededAsync();
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
             {
                 await Page.GetOpslaanButton().ClickAsync();

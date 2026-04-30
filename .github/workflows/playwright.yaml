@@ -53,21 +53,22 @@ jobs:
           # Save failed tests to a simple list file
           if [ $EXIT_CODE -ne 0 ]; then
             # Extract fully qualified test names from MSTest output
-            # Look for lines like: "Failed Kiss.Bff.EndToEndTest.Namespace.ClassName.MethodName [duration]"
-            # The fully qualified name comes after "Failed " and before " ["
-            grep -oE "Failed\s+[A-Za-z0-9_\.]+\s+\[" first-run.log | \
-              sed -E 's/Failed\s+([A-Za-z0-9_\.]+)\s+\[/\1/' | \
+            # Look for lines like: "Test method Kiss.Bff.EndToEndTest.Namespace.ClassName.MethodName threw exception:"
+            # The fully qualified name comes after "Test method " and before " threw exception"
+            grep -oE "Test method [A-Za-z0-9_\.]+ threw exception:" first-run.log | \
+              sed -E 's/Test method ([A-Za-z0-9_\.]+) threw exception:/\1/' | \
               grep -E "^Kiss\.Bff\.EndToEndTest\." | \
               sort -u > failed-tests.txt || echo "" > failed-tests.txt
             
             FAILED_COUNT=$(wc -l < failed-tests.txt | tr -d ' ')
             
-            # If we didn't find any fully qualified names, try to extract test method names differently
+            # If we didn't find any fully qualified names, try the old pattern as fallback
             if [ $FAILED_COUNT -eq 0 ]; then
               echo "⚠️  Could not extract fully qualified names with primary pattern, trying alternative..."
-              # Try to find test results with fully qualified names in verbose output
-              grep -E "(Failed|Error)\s+[A-Za-z0-9_]+\.[A-Za-z0-9_]+\.[A-Za-z0-9_]+" first-run.log | \
-                grep -oE "Kiss\.Bff\.EndToEndTest\.[A-Za-z0-9_\.]+(\.[A-Za-z0-9_]+)+" | \
+              # Try old pattern: "Failed Kiss.Bff.EndToEndTest.Namespace.ClassName.MethodName [duration]"
+              grep -oE "Failed\s+[A-Za-z0-9_\.]+\s+\[" first-run.log | \
+                sed -E 's/Failed\s+([A-Za-z0-9_\.]+)\s+\[/\1/' | \
+                grep -E "^Kiss\.Bff\.EndToEndTest\." | \
                 sort -u > failed-tests.txt || echo "" > failed-tests.txt
               FAILED_COUNT=$(wc -l < failed-tests.txt | tr -d ' ')
             fi
@@ -160,11 +161,11 @@ jobs:
               if [ $TEST_RESULT -eq 0 ]; then
                 echo "   ✅ PASSED on retry"
                 echo "$test_name: PASSED" >> retry-summary.txt
-                ((RETRY_PASSED++))
+                RETRY_PASSED=$((RETRY_PASSED + 1))
               else
                 echo "   ❌ FAILED again"
                 echo "$test_name: FAILED" >> retry-summary.txt
-                ((RETRY_FAILED++))
+                RETRY_FAILED=$((RETRY_FAILED + 1))
               fi
             fi
           done < failed-tests.txt
