@@ -161,11 +161,11 @@ jobs:
               if [ $TEST_RESULT -eq 0 ]; then
                 echo "   ✅ PASSED on retry"
                 echo "$test_name: PASSED" >> retry-summary.txt
-                ((RETRY_PASSED++))
+                RETRY_PASSED=$((RETRY_PASSED + 1))
               else
                 echo "   ❌ FAILED again"
                 echo "$test_name: FAILED" >> retry-summary.txt
-                ((RETRY_FAILED++))
+                RETRY_FAILED=$((RETRY_FAILED + 1))
               fi
             fi
           done < failed-tests.txt
