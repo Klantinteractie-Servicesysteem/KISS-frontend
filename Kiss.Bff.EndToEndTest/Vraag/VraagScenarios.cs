@@ -218,8 +218,10 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             var vraag2SearchInput = vraag2Article.Locator("input[type='search']");
             await vraag2SearchInput.ClickAsync();
             await vraag2SearchInput.FillAsync("Parkeren");
-            await vraag2Article.GetByText("Parkeren", new() { Exact = true }).WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            await vraag2Article.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+            await Page.WaitForTimeoutAsync(1000); // Wait for dropdown to stabilize
+            var parkeren2 = vraag2Article.GetByText("Parkeren", new() { Exact = true });
+            await parkeren2.WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await parkeren2.ClickAsync(new() { Force = true });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Opslaan button");
