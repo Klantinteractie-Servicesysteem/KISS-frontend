@@ -2,7 +2,12 @@
 
 ## Latest version
 
-### New features
+### v2.1.1
+
+- update vulnerable dependencies
+
+
+### v2.1.0
 
 - Additional warning text is displayed when cancelling multiple questions. #1352
 - Improved contrast for a variety of warning / error messages in the user interface.
