@@ -193,6 +193,7 @@ jobs:
             exit 0
           fi
         env:
+          SKIP_REPORT_GENERATION: "true"
           TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
           TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
           TestSettings__TEST_TOTP_SECRET: ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
@@ -212,6 +213,61 @@ jobs:
             cp -rn "$FIRST_RUN_DIR"/* "$TRACES_DIR"/ 2>/dev/null || true
             rm -rf "$FIRST_RUN_DIR"
             echo "✅ Traces merged. Total trace files: $(ls "$TRACES_DIR" | wc -l)"
+          fi
+
+          # Update index.html to reflect retry results
+          if [ -f retry-summary.txt ] && [ -f "$TRACES_DIR/index.html" ]; then
+            echo "📝 Updating report with retry results..."
+            python3 << 'PYTHON_SCRIPT'
+import re
+
+traces_dir = "bin/Debug/net8.0/playwright-traces"
+index_path = f"{traces_dir}/index.html"
+
+# Read retry results
+passed_on_retry = []
+with open("retry-summary.txt") as f:
+    for line in f:
+        parts = line.strip().split(": ", 1)
+        if len(parts) == 2 and parts[1] == "PASSED":
+            passed_on_retry.append(parts[0])
+
+if not passed_on_retry:
+    print("No tests passed on retry, nothing to update")
+    exit(0)
+
+with open(index_path, "r") as f:
+    html = f.read()
+
+# For each test that passed on retry, change its data-outcome from Failed to Passed
+# The test name appears in the trace zip filename within the same div block
+for tname in passed_on_retry:
+    # Escape dots for regex
+    escaped = re.escape(tname)
+    # Match a div block: data-outcome="Failed" ... tname.zip (with DOTALL for multiline)
+    pattern = r'(data-outcome=")Failed("[^>]*>.*?' + escaped + r')'
+    match = re.search(pattern, html, re.DOTALL)
+    if match:
+        html = html[:match.start()] + match.group(1) + "Passed" + match.group(2) + html[match.end():]
+        print(f"  ✅ Updated: {tname}")
+    else:
+        print(f"  ⚠️  Could not find in report: {tname}")
+
+# Update summary counts
+count = len(passed_on_retry)
+m = re.search(r'Passed:</strong>\s*(\d+)', html)
+if m:
+    old_passed = int(m.group(1))
+    html = html.replace(f'Passed:</strong> {old_passed}', f'Passed:</strong> {old_passed + count}', 1)
+m = re.search(r'Failed:</strong>\s*(\d+)', html)
+if m:
+    old_failed = int(m.group(1))
+    html = html.replace(f'Failed:</strong> {old_failed}', f'Failed:</strong> {max(0, old_failed - count)}', 1)
+
+with open(index_path, "w") as f:
+    f.write(html)
+print(f"✅ Report updated: {count} test(s) marked as passed on retry")
+PYTHON_SCRIPT
           fi
 
       - name: Generate Summary
