@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.2.3
+- update vulnerable dependencies
+
 ## v2.2.2
 
 - update docs and helm chart for kiss-elastic-sync 0.3.2
