@@ -95,6 +95,13 @@ jobs:
           echo "════════════════════════════════════════════════════"
           echo ""
           
+          # Preserve first-run traces so they aren't overwritten by retry
+          TRACES_DIR="bin/Debug/net8.0/playwright-traces"
+          if [ -d "$TRACES_DIR" ]; then
+            echo "📁 Backing up first-run traces..."
+            cp -r "$TRACES_DIR" "${TRACES_DIR}-first-run"
+          fi
+          
           # Check if we have failed tests
           if [ ! -f failed-tests.txt ] || [ ! -s failed-tests.txt ]; then
             echo "❌ No failed tests list found or it's empty"
@@ -192,6 +199,20 @@ jobs:
           TestSettings__TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+
+      - name: Merge traces from first run and retry
+        if: always()
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          TRACES_DIR="bin/Debug/net8.0/playwright-traces"
+          FIRST_RUN_DIR="${TRACES_DIR}-first-run"
+          if [ -d "$FIRST_RUN_DIR" ]; then
+            echo "📁 Merging first-run traces with retry traces..."
+            # Copy all first-run traces into the main directory (won't overwrite retry traces)
+            cp -rn "$FIRST_RUN_DIR"/* "$TRACES_DIR"/ 2>/dev/null || true
+            rm -rf "$FIRST_RUN_DIR"
+            echo "✅ Traces merged. Total trace files: $(ls "$TRACES_DIR" | wc -l)"
+          fi
 
       - name: Generate Summary
         if: always()
