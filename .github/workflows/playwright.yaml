@@ -149,11 +149,11 @@ jobs:
               if [ $TEST_RESULT -eq 0 ]; then
                 echo "   ✅ PASSED on retry"
                 echo "$test_name: PASSED" >> retry-summary.txt
-                ((RETRY_PASSED++))
+                RETRY_PASSED=$((RETRY_PASSED + 1))
               else
                 echo "   ❌ FAILED again"
                 echo "$test_name: FAILED" >> retry-summary.txt
-                ((RETRY_FAILED++))
+                RETRY_FAILED=$((RETRY_FAILED + 1))
               fi
             fi
           done < failed-tests.txt
@@ -202,81 +202,102 @@ jobs:
           
           FIRST_EXIT="${{ steps.first-run.outputs.exit_code }}"
           FIRST_FAILED="${{ steps.first-run.outputs.failed_count }}"
+          RETRY_TOTAL="${{ steps.retry-run.outputs.total_failed }}"
+          RETRY_PASSED="${{ steps.retry-run.outputs.retry_passed }}"
+          RETRY_FAILED="${{ steps.retry-run.outputs.retry_failed }}"
           
+          # Extract test counts from first run log
+          TOTAL_TESTS="N/A"
+          PASSED_TESTS="N/A"
+          FAILED_TESTS="N/A"
+          if [ -f first-run.log ]; then
+            TOTAL_TESTS=$(grep -oP "Total tests: \K\d+" first-run.log | tail -1 || echo "N/A")
+            PASSED_TESTS=$(grep -oP "Passed: \K\d+" first-run.log | tail -1 || echo "N/A")
+            FAILED_TESTS=$(grep -oP "Failed: \K\d+" first-run.log | tail -1 || echo "N/A")
+          fi
+          
+          # Determine final verdict
           if [ "$FIRST_EXIT" == "0" ]; then
-            echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
+            FINAL_STATUS="✅ ALL PASSED"
+          elif [ -n "$RETRY_FAILED" ] && [ "$RETRY_FAILED" == "0" ]; then
+            FINAL_STATUS="✅ ALL PASSED (after retry)"
           else
-            echo "### 📊 First Run Results" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # Extract test counts from first run log
-            if [ -f first-run.log ]; then
-              TOTAL_TESTS=$(grep -oP "Total tests: \K\d+" first-run.log | tail -1 || echo "N/A")
-              PASSED_TESTS=$(grep -oP "Passed: \K\d+" first-run.log | tail -1 || echo "N/A")
-              FAILED_TESTS=$(grep -oP "Failed: \K\d+" first-run.log | tail -1 || echo "N/A")
-              SKIPPED_TESTS=$(grep -oP "Skipped: \K\d+" first-run.log | tail -1 || echo "N/A")
-              
-              echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
-              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-              echo "| Total | $TOTAL_TESTS |" >> $GITHUB_STEP_SUMMARY
-              echo "| ✅ Passed | $PASSED_TESTS |" >> $GITHUB_STEP_SUMMARY
-              echo "| ❌ Failed | $FAILED_TESTS |" >> $GITHUB_STEP_SUMMARY
-              if [ "$SKIPPED_TESTS" != "0" ] && [ "$SKIPPED_TESTS" != "N/A" ]; then
-                echo "| ⏭️ Skipped | $SKIPPED_TESTS |" >> $GITHUB_STEP_SUMMARY
-              fi
-              echo "" >> $GITHUB_STEP_SUMMARY
-            fi
-            
-            # Show failed test names
-            if [ -f failed-tests.txt ] && [ -s failed-tests.txt ]; then
-              echo "<details>" >> $GITHUB_STEP_SUMMARY
-              echo "<summary>Failed tests (click to expand)</summary>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              cat failed-tests.txt >> $GITHUB_STEP_SUMMARY
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              echo "</details>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-            fi
-            
-            # Show retry results if retry was executed
-            TOTAL="${{ steps.retry-run.outputs.total_failed }}"
-            PASSED="${{ steps.retry-run.outputs.retry_passed }}"
-            FAILED="${{ steps.retry-run.outputs.retry_failed }}"
-            
-            if [ -n "$TOTAL" ] && [ "$TOTAL" != "0" ]; then
-              echo "### 🔄 Retry Run Results" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
-              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-              echo "| Tests retried | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-              echo "| ✅ Passed on retry | $PASSED |" >> $GITHUB_STEP_SUMMARY
-              echo "| ❌ Still failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              
-              # Show retry details if available
-              if [ -f retry-summary.txt ]; then
-                echo "<details>" >> $GITHUB_STEP_SUMMARY
-                echo "<summary>Retry details (click to expand)</summary>" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-                cat retry-summary.txt >> $GITHUB_STEP_SUMMARY
-                echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-                echo "</details>" >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-              fi
-              
-              if [ "$FAILED" == "0" ]; then
-                echo "### ✅ Final Result: All failed tests passed on retry!" >> $GITHUB_STEP_SUMMARY
+            FINAL_STATUS="❌ FAILED"
+          fi
+          
+          echo "### Final Result: $FINAL_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Full test report table ---
+          echo "### 📋 Full Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| # | Test Name | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Build list of retried tests
+          declare -A RETRIED_TESTS
+          if [ -f retry-summary.txt ]; then
+            while IFS=': ' read -r tname tstatus; do
+              RETRIED_TESTS["$tname"]="$tstatus"
+            done < retry-summary.txt
+          fi
+          
+          # Parse all test results from first-run.log
+          ROW=0
+          if [ -f first-run.log ]; then
+            # Extract Passed and Failed lines
+            grep -E "^\s+(Passed|Failed)\s+" first-run.log | while IFS= read -r line; do
+              ROW=$((ROW + 1))
+              # Determine status from the line
+              if echo "$line" | grep -q "^[[:space:]]*Passed"; then
+                STATUS="✅ Passed"
+                # Extract display name: everything between "Passed " and " ["
+                DISPLAY_NAME=$(echo "$line" | sed -E 's/^\s*Passed\s+//' | sed -E 's/\s*\[[^\]]*\]\s*$//')
               else
-                echo "### ❌ Final Result: $FAILED test(s) still failing after retry" >> $GITHUB_STEP_SUMMARY
+                STATUS="❌ Failed"
+                DISPLAY_NAME=$(echo "$line" | sed -E 's/^\s*Failed\s+//' | sed -E 's/\s*\[[^\]]*\]\s*$//')
               fi
-            else
-              echo "⚠️ **Retry step was skipped or had issues**" >> $GITHUB_STEP_SUMMARY
-            fi
+              echo "| $ROW | $DISPLAY_NAME | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            done
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Aggregated counts ---
+          echo "### 📊 Aggregate Counts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total tests | $TOTAL_TESTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed (first run) | $PASSED_TESTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed (first run) | $FAILED_TESTS |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$RETRY_TOTAL" ] && [ "$RETRY_TOTAL" != "0" ]; then
+            echo "| 🔄 Retried | $RETRY_TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed on retry | $RETRY_PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Still failed after retry | $RETRY_FAILED |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Retry details ---
+          if [ -n "$RETRY_TOTAL" ] && [ "$RETRY_TOTAL" != "0" ]; then
+            echo "### 🔄 Retry Details" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Test | Retry Result |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|--------------|" >> $GITHUB_STEP_SUMMARY
+            if [ -f retry-summary.txt ]; then
+              while IFS= read -r rline; do
+                TNAME=$(echo "$rline" | cut -d: -f1)
+                TRESULT=$(echo "$rline" | cut -d: -f2 | xargs)
+                if [ "$TRESULT" == "PASSED" ]; then
+                  echo "| $TNAME | ✅ Passed on retry |" >> $GITHUB_STEP_SUMMARY
+                else
+                  echo "| $TNAME | ❌ Still failed |" >> $GITHUB_STEP_SUMMARY
+                fi
+              done < retry-summary.txt
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
           echo "📊 [View Playwright Traces](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail job if tests failed
