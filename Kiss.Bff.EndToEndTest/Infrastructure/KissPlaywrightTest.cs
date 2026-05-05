@@ -241,12 +241,6 @@ namespace Kiss.Bff.EndToEndTest
         {
             try
             {
-                // Skip report generation during retry runs to avoid overwriting the full report
-                if (Environment.GetEnvironmentVariable("SKIP_REPORT_GENERATION") == "true")
-                {
-                    return;
-                }
-
                 if (s_testReports.Count == 0)
                 {
                     return;
@@ -541,12 +535,6 @@ namespace Kiss.Bff.EndToEndTest
 
         private static async Task TryGenerateReportAsync()
         {
-            // Skip report generation during retry runs to avoid overwriting the full report
-            if (Environment.GetEnvironmentVariable("SKIP_REPORT_GENERATION") == "true")
-            {
-                return;
-            }
-
             lock (s_reportLock)
             {
                 if (s_reportGenerated || s_testReports.Count == 0)
