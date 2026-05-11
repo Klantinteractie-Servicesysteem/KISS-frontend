@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Kiss.Elastic.Sync\Kiss.Elastic.Sync.csproj" />
+    <ProjectReference Include="..\Kiss.Elastic.Sync\Kiss.Elastic.Sync.csproj" />
   </ItemGroup>
 
   <ItemGroup>
