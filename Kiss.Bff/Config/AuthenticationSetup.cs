@@ -224,7 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.Scope.Add(OidcConstants.StandardScopes.OpenId);
                     options.Scope.Add(OidcConstants.StandardScopes.Profile);
                     //options.Scope.Add(OidcConstants.StandardScopes.OfflineAccess);
-                    options.SaveTokens = true;
+                    //options.SaveTokens = true;
 
                     options.Events.OnRemoteFailure = RedirectToRoot;
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
@@ -237,6 +237,12 @@ namespace Microsoft.Extensions.DependencyInjection
                             ctx.HandleResponse();
                         }
 
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToIdentityProviderForSignOut = ctx =>
+                    {
+                        // needed for logging out from keycloak
+                        ctx.ProtocolMessage.Parameters.Add("client_id", authOptions.ClientId);
                         return Task.CompletedTask;
                     };
                 });
