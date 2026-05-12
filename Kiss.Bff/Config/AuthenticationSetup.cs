@@ -224,7 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.Scope.Add(OidcConstants.StandardScopes.OpenId);
                     options.Scope.Add(OidcConstants.StandardScopes.Profile);
                     //options.Scope.Add(OidcConstants.StandardScopes.OfflineAccess);
-                    //options.SaveTokens = true;
+                    options.SaveTokens = true;
 
                     options.Events.OnRemoteFailure = RedirectToRoot;
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
