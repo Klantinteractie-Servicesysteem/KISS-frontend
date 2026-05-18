@@ -22,6 +22,9 @@ env:
   REVISION: ""
   CHART_NAME: kiss-chart
   CHART_URL: ghcr.io/klantinteractie-servicesysteem
+  SYNCTOOL_IMAGE_NAME: kiss-elastic-sync
+  # CONTAINER_REGISTRY_BASE and CONTAINER_PROJECT_NAME are defined in the .env file because they are used in the docker-compose.deploy.yaml file.
+  # we probably want to simplify the build process in the future by moving these to the github workflow file and removing the docker-compose.deploy.yaml file alltogether.
 
 jobs:
   build-node:
@@ -76,8 +79,8 @@ jobs:
         if: github.event_name != 'pull_request'
 
       # extract Docker metadata for semantic versioning
-      - name: Extract Docker metadata
-        id: meta
+      - name: Extract Docker metadata for kiss-frontend
+        id: meta-frontend
         uses: docker/metadata-action@v5
         with:
           flavor: |
@@ -90,14 +93,28 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
 
+      - name: Extract Docker metadata for kiss-elastic-sync
+        id: meta-synctool
+        uses: docker/metadata-action@v5
+        with:
+          flavor: |
+            latest=${{ env.IS_LATEST }}
+          images: |
+            ${{ env.CONTAINER_REGISTRY_BASE }}/${{ env.SYNCTOOL_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
       # set version and revision in environment variables
       - name: Set version and revision in env
         run: |
-          echo "VERSION=${{ fromJson(env.SHOULD_RELEASE) && fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
-          echo "REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}" >> "$GITHUB_ENV"
+          echo "VERSION=${{ fromJson(env.SHOULD_RELEASE) && fromJSON(steps.meta-frontend.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
+          echo "REVISION=${{ fromJSON(steps.meta-frontend.outputs.json).labels['org.opencontainers.image.revision'] }}" >> "$GITHUB_ENV"
 
       # build containers
-      - name: Build containers
+      - name: Build kiss containers
         uses: docker/bake-action@v5
         with:
           push: false
@@ -137,16 +154,31 @@ jobs:
           reporter: jest-junit
 
       # push image with tags
-      - name: push image
+      - name: push frontend image
         uses: docker/build-push-action@v4
         if: github.event_name != 'pull_request'
         with:
           context: .
           file: Kiss.Bff/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
           target: final
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            REVISION=${{ env.REVISION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: build & push synctool image
+        uses: docker/build-push-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          context: Kiss.Elastic.Sync
+          file: Kiss.Elastic.Sync/src/Kiss.Elastic.Sync/Dockerfile
+          push: ${{ fromJSON(env.SHOULD_PUSH) }}
+          tags: ${{ steps.meta-synctool.outputs.tags }}
+          labels: ${{ steps.meta-synctool.outputs.labels }}
           build-args: |
             VERSION=${{ env.VERSION }}
             REVISION=${{ env.REVISION }}
@@ -165,6 +197,7 @@ jobs:
             yq eval '.appVersion = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/Chart.yaml
             yq eval '.version = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/Chart.yaml
             yq eval '.image.tag = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/values.yaml
+            yq eval '.settings.syncJobs.image.tag = "${{ env.VERSION }}"' -i helm/${{env.CHART_NAME}}/values.yaml
 
       - name: push helm chart to oci
         if: ${{ fromJson(env.SHOULD_RELEASE) }}
@@ -173,3 +206,28 @@ jobs:
           helm package ./${{env.CHART_NAME}}
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.CHART_URL }} --username ${{ github.actor }} --password-stdin
           helm push ${{env.CHART_NAME}}-${{ env.VERSION }}.tgz oci://${{ env.CHART_URL }}
+
+  elastic-sync-integration-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      checks: write
+      pull-requests: write
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet test Kiss.Elastic.Sync/test/Kiss.Elastic.Sync.IntegrationTest -c Release --logger trx --results-directory ./testresults -v n /p:CollectCoverage=true /p:CoverletOutput=./testresults/ /p:CoverletOutputFormat=lcov
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          action_fail: true
+          files: |
+            testresults/*.trx
+            testresults/*.xml
