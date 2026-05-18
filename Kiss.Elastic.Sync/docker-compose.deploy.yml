@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  kiss.elastic.sync:
+    image: ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
+    command: smoelenboek
+    build:
+      context: .
+      dockerfile: src/Kiss.Elastic.Sync/Dockerfile

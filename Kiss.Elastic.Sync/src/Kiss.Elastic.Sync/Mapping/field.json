@@ -1,0 +1,47 @@
+{
+  "analyzer": "iq_text_base",
+  "fields": {
+    "date": {
+      "format": "strict_date_time||strict_date",
+      "ignore_malformed": true,
+      "type": "date"
+    },
+    "prefix": {
+      "search_analyzer": "q_prefix",
+      "analyzer": "i_prefix",
+      "type": "text",
+      "index_options": "docs"
+    },
+    "delimiter": {
+      "analyzer": "iq_text_delimiter",
+      "type": "text",
+      "index_options": "freqs"
+    },
+    "joined": {
+      "search_analyzer": "q_text_bigram",
+      "analyzer": "i_text_bigram",
+      "type": "text",
+      "index_options": "freqs"
+    },
+    "location": {
+      "ignore_malformed": true,
+      "type": "geo_point",
+      "ignore_z_value": false
+    },
+    "float": {
+      "ignore_malformed": true,
+      "type": "double"
+    },
+    "enum": {
+      "ignore_above": 2048,
+      "type": "keyword"
+    },
+    "stem": {
+      "analyzer": "iq_text_stem",
+      "type": "text"
+    }
+  },
+  "index_options": "freqs",
+  "type": "text",
+  "copy_to": "_completion"
+}
