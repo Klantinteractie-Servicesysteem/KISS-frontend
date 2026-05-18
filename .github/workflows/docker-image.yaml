@@ -190,7 +190,6 @@ jobs:
         run: helm template . --debug --values dummy-values.yaml
 
       - name: Update chart values with new image tag
-        if: ${{ fromJson(env.SHOULD_RELEASE) }}
         uses: mikefarah/yq@v4.34.1
         with:
           cmd: |
