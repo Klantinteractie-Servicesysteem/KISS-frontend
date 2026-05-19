@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
+    <UserSecretsId>2e40871b-f2e7-4790-862b-182b13f4b4c9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,8 @@
     <PackageReference Include="Azure.Identity" Version="1.17.0" />
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.14.6" />
     <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.1" />
     <PackageReference Include="Microsoft.Graph" Version="5.87.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.1" />

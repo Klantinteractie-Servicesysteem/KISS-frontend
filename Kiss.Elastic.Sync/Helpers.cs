@@ -4,12 +4,14 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 
 namespace Kiss.Elastic.Sync
 {
     public static partial class Helpers
     {
         public const string CompletionField = "_completion_all";
+        private static readonly IConfiguration s_configuration = new ConfigurationBuilder().AddEnvironmentVariables().AddUserSecrets<ElasticBulkClient>().Build();
 
         public static void CancelSafely(this CancellationTokenSource source)
         {
@@ -23,7 +25,7 @@ namespace Kiss.Elastic.Sync
         }
 
         public static string GetRequiredEnvironmentVariable(string name) => GetOptionalEnvironmentVariable(name) ?? throw new Exception("missing environment variable: " + name);
-        public static string? GetOptionalEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
+        public static string? GetOptionalEnvironmentVariable(string name) => s_configuration[name];
 
         public static string EncodeCredential(string userName, string password)
         {
