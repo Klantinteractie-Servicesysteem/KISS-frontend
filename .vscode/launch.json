@@ -2,18 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "chrome",
+      "type": "aspire",
       "request": "launch",
-      "name": "localhost (Chrome)",
-      "url": "https://localhost:3000",
-      "webRoot": "${workspaceFolder}"
-    },
-    {
-      "type": "msedge",
-      "request": "launch",
-      "name": "localhost (Edge)",
-      "url": "https://localhost:3000",
-      "webRoot": "${workspaceFolder}"
+      "name": "Aspire: Launch default AppHost",
+      "program": "${workspaceFolder}"
     },
     {
       "name": ".NET Core Attach",
@@ -25,11 +17,7 @@
       "type": "coreclr",
       "request": "launch",
       "program": "dotnet",
-      "args": [
-        "test",
-        "--filter",
-        "VragenAnonymousContactMoment"
-      ],
+      "args": ["test", "--filter", "VragenAnonymousContactMoment"],
       "cwd": "${workspaceFolder}/Kiss.Bff.EndToEndTest",
       "console": "internalConsole",
       "stopAtEntry": false,
