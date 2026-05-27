@@ -282,7 +282,9 @@ jobs:
           # Determine final verdict
           if [ "$FIRST_EXIT" == "0" ]; then
             FINAL_STATUS="✅ ALL PASSED"
-          elif [ -n "$RETRY_FAILED" ] && [ "$RETRY_FAILED" == "0" ]; then
+          elif [ "$RETRY_FAILED" == "0" ]; then
+            FINAL_STATUS="✅ ALL PASSED (after retry)"
+          elif [ -z "$RETRY_FAILED" ] && [ "${{ steps.retry-run.outcome }}" == "success" ]; then
             FINAL_STATUS="✅ ALL PASSED (after retry)"
           else
             FINAL_STATUS="❌ FAILED"
