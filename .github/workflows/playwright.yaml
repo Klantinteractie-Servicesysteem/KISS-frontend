@@ -41,9 +41,10 @@ jobs:
         continue-on-error: true
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
-          # Run tests and capture output
+          # Run tests and capture output, with TRX logger for reliable failed test extraction
           dotnet test --no-build \
             --logger "console;verbosity=normal" \
+            --logger "trx;LogFileName=first-run.trx" \
             --results-directory ./TestResults 2>&1 | tee first-run.log
           
           EXIT_CODE=${PIPESTATUS[0]}
@@ -52,12 +53,37 @@ jobs:
           
           # Save failed tests to a simple list file
           if [ $EXIT_CODE -ne 0 ]; then
-            # Extract fully qualified test names from MSTest error output.
-            # MSTest console logger uses display names in "Failed N. test name [duration]" lines,
-            # so we parse the "Test method FQTN threw exception:" lines instead.
-            grep "Test method.*threw exception" first-run.log | \
-              grep -oE "Kiss\.Bff\.EndToEndTest\.[A-Za-z0-9_\.]+" | \
-              sort -u > failed-tests.txt || echo "" > failed-tests.txt
+            # Find the TRX file
+            TRX_FILE=$(find ./TestResults -name "first-run.trx" -o -name "*.trx" | head -1)
+            
+            if [ -n "$TRX_FILE" ] && [ -f "$TRX_FILE" ]; then
+              echo "📄 Parsing failed tests from TRX: $TRX_FILE"
+              
+              # Use python3 (available on all GitHub runners) to reliably parse TRX XML
+              python3 -c "
+          import xml.etree.ElementTree as ET
+          ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+          tree = ET.parse('$TRX_FILE')
+          root = tree.getroot()
+
+          # Get failed test IDs from Results
+          failed_ids = set()
+          for r in root.findall('.//t:UnitTestResult[@outcome=\"Failed\"]', ns):
+              failed_ids.add(r.get('testId'))
+
+          # Map test IDs to fully qualified names via TestDefinitions
+          for ut in root.findall('.//t:UnitTest', ns):
+              if ut.get('id') in failed_ids:
+                  tm = ut.find('t:TestMethod', ns)
+                  if tm is not None:
+                      print(f'{tm.get(\"className\")}.{tm.get(\"name\")}')
+          " | sort -u > failed-tests.txt
+            else
+              echo "⚠️ No TRX file found, falling back to console log parsing"
+              grep "Test method.*threw exception" first-run.log | \
+                grep -oE "Kiss\.Bff\.EndToEndTest\.[A-Za-z0-9_\.]+" | \
+                sort -u > failed-tests.txt || echo "" > failed-tests.txt
+            fi
             
             FAILED_COUNT=$(wc -l < failed-tests.txt | tr -d ' ')
             
@@ -133,11 +159,14 @@ jobs:
               echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               
               # Try to run the specific test
+              SAFE_NAME=$(echo "$test_name" | sed 's/[^a-zA-Z0-9]/_/g')
               set +e
               dotnet test \
                 --no-build \
                 --filter "FullyQualifiedName~${test_name}" \
-                --logger "console;verbosity=normal" 2>&1 | tee -a retry-results.log
+                --logger "console;verbosity=normal" \
+                --logger "trx;LogFileName=retry-${SAFE_NAME}.trx" \
+                --results-directory ./TestResults 2>&1 | tee -a retry-results.log
               TEST_RESULT=${PIPESTATUS[0]}
               set -e
               
@@ -148,7 +177,9 @@ jobs:
                 dotnet test \
                   --no-build \
                   --filter "FullyQualifiedName=${test_name}" \
-                  --logger "console;verbosity=normal" 2>&1 | tee -a retry-results.log
+                  --logger "console;verbosity=normal" \
+                  --logger "trx;LogFileName=retry-${SAFE_NAME}.trx" \
+                  --results-directory ./TestResults 2>&1 | tee -a retry-results.log
                 TEST_RESULT=${PIPESTATUS[0]}
                 set -e
               fi
@@ -199,6 +230,7 @@ jobs:
           TestSettings__TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+          SKIP_HTML_REPORT_GENERATION: "true"
 
       - name: Merge traces from first run and retry
         if: always()
@@ -213,6 +245,16 @@ jobs:
             rm -rf "$FIRST_RUN_DIR"
             echo "✅ Traces merged. Total trace files: $(ls "$TRACES_DIR" | wc -l)"
           fi
+
+      - name: Generate consolidated HTML report
+        if: always()
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          echo "📊 Generating consolidated test report from TRX files..."
+          python3 generate-consolidated-report.py \
+            ./TestResults \
+            ./bin/Debug/net8.0/playwright-traces \
+            https://klantinteractie-servicesysteem.github.io/KISS-frontend
 
       - name: Generate Summary
         if: always()

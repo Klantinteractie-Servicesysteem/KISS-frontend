@@ -241,6 +241,12 @@ namespace Kiss.Bff.EndToEndTest
         {
             try
             {
+                // Skip in-process report generation when running retries in CI
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SKIP_HTML_REPORT_GENERATION")))
+                {
+                    return;
+                }
+
                 if (s_testReports.Count == 0)
                 {
                     return;
@@ -535,6 +541,13 @@ namespace Kiss.Bff.EndToEndTest
 
         private static async Task TryGenerateReportAsync()
         {
+            // Skip in-process report generation when running retries in CI
+            // The consolidated report is generated externally from TRX files
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SKIP_HTML_REPORT_GENERATION")))
+            {
+                return;
+            }
+
             lock (s_reportLock)
             {
                 if (s_reportGenerated || s_testReports.Count == 0)
