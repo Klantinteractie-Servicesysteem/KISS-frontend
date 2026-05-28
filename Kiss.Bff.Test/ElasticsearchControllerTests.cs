@@ -468,14 +468,15 @@ namespace Kiss.Bff.Test
         #region Proxy Functionality Tests
 
         [TestMethod]
-        public async Task Search_ForwardsRequestToElasticsearch()
+        public async Task GlobalSearch_ForwardsRequestToElasticsearch()
         {
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
+            configuration.Setup(c => c["ELASTIC_SEARCH_INDICES"]).Returns("search-kennisbank,search-vac");
 
             var mockHttp = new MockHttpMessageHandler();
             var wasCalled = false;
-            mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/my-index/_search")
+            mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/*")
                 .With(req =>
                 {
                     wasCalled = true;
@@ -483,24 +484,16 @@ namespace Kiss.Bff.Test
                 })
                 .Respond("application/json", JsonSerializer.Serialize(new
                 {
-                    hits = new { hits = Array.Empty<object>() }
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
                 }));
 
             var httpClient = mockHttp.ToHttpClient();
             httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
 
-            var service = new ElasticsearchService(httpClient, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+            var service = new ElasticsearchService(httpClient, (isKennisBank) => false, (isKcm) => true, null!, configuration.Object);
 
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["term"] = new JsonObject { ["field"] = "value" }
-                },
-                ["size"] = 20
-            };
-
-            await service.Search("my-index/_search", elasticQuery, CancellationToken.None);
+            var request = new SearchRequest("test query", 1, []);
+            await service.GlobalSearch(request, CancellationToken.None);
 
             Assert.IsTrue(wasCalled);
         }

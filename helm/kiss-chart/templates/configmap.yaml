@@ -46,11 +46,8 @@ data:
   EMAIL_USERNAME: {{ .Values.settings.email.username | toString | quote }}
   {{- end }}
 
-  {{- if .Values.settings.enterpriseSearch.baseUrl }}
-  ENTERPRISE_SEARCH_BASE_URL: {{ .Values.settings.enterpriseSearch.baseUrl | toString | quote }}
-  {{- end }}
-  {{- if .Values.settings.enterpriseSearch.engine }}
-  ENTERPRISE_SEARCH_ENGINE: {{ .Values.settings.enterpriseSearch.engine | toString | quote }}
+  {{- if .Values.settings.elastic.searchIndices }}
+  ELASTIC_SEARCH_INDICES: {{ (join "," .Values.settings.elastic.searchIndices) | quote }}
   {{- end }}
 
   {{- if .Values.settings.feedback.emailFrom }}

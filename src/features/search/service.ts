@@ -8,7 +8,6 @@ import {
 import { fetchLoggedIn } from "@/services";
 import type { Ref } from "vue";
 import type { SearchResult, Source } from "./types";
-import { computed } from "vue";
 
 export function mapResult(obj: any): SearchResult {
   const source = obj?._source?.object_bron ?? "Website";
@@ -32,21 +31,7 @@ export function mapResult(obj: any): SearchResult {
   };
 }
 
-const globalSearchBaseUri = "/api/elasticsearch";
-
 const pageSize = 10;
-
-const getSearchUrl = (query: string, sources: Source[]) => {
-  if (!query) return "";
-  const uniqueIndices = [...new Set(sources.map((x) => x.index))];
-
-  const url = new URL(location.origin);
-  url.pathname = `${globalSearchBaseUri}/${uniqueIndices
-    .sort((a, b) => a.localeCompare(b))
-    .join(",")}/_search`;
-
-  return url.toString();
-};
 
 function mapSuggestions(json: any): string[] {
   if (!Array.isArray(json?.suggest?.suggestions)) return [];
@@ -63,67 +48,16 @@ export function useGlobalSearch(
     filters: Source[];
   }>,
 ) {
-  const templateResult = useQueryTemplate();
-  const template = computed(
-    () => templateResult.success && templateResult.data.template,
-  );
-
-  const getUrl = () => {
-    if (!template.value) return "";
-    return getSearchUrl(
-      parameters.value.search || "",
-      parameters.value.filters,
-    );
-  };
+  const getUrl = () =>
+    parameters.value.search ? "/api/search" : "";
 
   const getPayload = () => {
-    if (!template.value || !parameters.value.search) return "";
-
-    const page = parameters.value.page || 1;
-    const from = (page - 1) * pageSize;
-
-    const rawQuery = template.value.replace(
-      /\{\{query\}\}/g,
-      parameters.value.search,
-    );
-
-    const query = JSON.parse(rawQuery);
-    query.from = from;
-    query.size = pageSize;
-
-    const filters = parameters.value.filters ?? [];
-
-    const filterClauses = filters.reduce(
-      (acc, { name }) => {
-        if (name.startsWith("http")) {
-          acc.domains.push(name);
-        } else {
-          acc.bronnen.push(name);
-        }
-        return acc;
-      },
-      { domains: [], bronnen: [] } as { domains: string[]; bronnen: string[] },
-    );
-
-    const conditions = [];
-
-    if (filterClauses.domains.length) {
-      conditions.push({ terms: { "domains.enum": filterClauses.domains } });
-    }
-    if (filterClauses.bronnen.length) {
-      conditions.push({ terms: { "object_bron.enum": filterClauses.bronnen } });
-    }
-
-    if (conditions.length) {
-      query.query = {
-        bool: {
-          must: [query.query],
-          filter: [{ bool: { should: conditions } }],
-        },
-      };
-    }
-
-    return JSON.stringify(query);
+    if (!parameters.value.search) return "";
+    return JSON.stringify({
+      query: parameters.value.search,
+      page: parameters.value.page || 1,
+      filters: parameters.value.filters ?? [],
+    });
   };
 
   async function fetcher(
@@ -131,9 +65,7 @@ export function useGlobalSearch(
   ): Promise<Paginated<SearchResult> & { suggestions: string[] }> {
     const r = await fetchLoggedIn(url, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: getPayload(),
     });
     if (!r.ok) throw new Error();
@@ -154,115 +86,15 @@ export function useGlobalSearch(
 
   function getUniqueId() {
     if (!parameters.value.search) return "";
-    const payload = getPayload();
-    const url = getUrl();
-    return `${payload}${url}`;
+    return `${getPayload()}`;
   }
 
-  return ServiceResult.fromFetcher(getUrl, fetcher, {
-    getUniqueId,
-  });
+  return ServiceResult.fromFetcher(getUrl, fetcher, { getUniqueId });
 }
-
-function useQueryTemplate() {
-  const url =
-    "/api/enterprisesearch/api/as/v1/engines/kiss-engine/search_explain";
-
-  const body = JSON.stringify({
-    query: "{{query}}",
-  });
-
-  function fetcher(url: string) {
-    return fetchLoggedIn(url, {
-      method: "POST",
-      body,
-      headers: {
-        "content-type": "application/json",
-      },
-    })
-      .then(throwIfNotOk)
-      .then(parseJson)
-      .then(({ query_string, query_body }) => {
-        delete query_body.from;
-        delete query_body.size;
-        delete query_body._source;
-        query_body.indices_boost = [{ ".ent-search*": 1 }, { "*": 10 }];
-        query_body.suggest = {
-          suggestions: {
-            prefix: "{{query}}",
-            completion: {
-              field: "_completion",
-              skip_duplicates: true,
-              fuzzy: {},
-            },
-          },
-        };
-
-        const searchUrl: string = query_string.split(" ").at(-1);
-        const indicesStr = searchUrl.split("/")[0];
-        const indices = indicesStr.split(",");
-        return {
-          indices,
-          template: JSON.stringify(query_body),
-        };
-      });
-  }
-
-  return ServiceResult.fromFetcher(url, fetcher);
-}
-
-const BRON_QUERY = JSON.stringify({
-  size: 0,
-  aggs: {
-    bronnen: {
-      terms: {
-        field: "object_bron.enum",
-      },
-      aggs: {
-        by_index: {
-          terms: {
-            field: "_index",
-          },
-        },
-      },
-    },
-    domains: {
-      terms: {
-        field: "domains.enum",
-      },
-      aggs: {
-        by_index: {
-          terms: {
-            field: "_index",
-          },
-        },
-      },
-    },
-  },
-});
 
 export function useSources() {
-  const templateResult = useQueryTemplate();
-  const templateSources = computed(
-    () =>
-      templateResult.success &&
-      !!templateResult.data.indices.length &&
-      templateResult.data.indices,
-  );
-
-  const getUrl = () =>
-    !templateSources.value
-      ? ""
-      : `${globalSearchBaseUri}/${templateSources.value.join(",")}/_search`;
-
   async function fetcher(u: string): Promise<Source[]> {
-    const r = await fetchLoggedIn(u, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: BRON_QUERY,
-    });
+    const r = await fetchLoggedIn(u, { method: "GET" });
     if (!r.ok) throw new Error();
     const json = await r.json();
     const {
@@ -280,17 +112,15 @@ export function useSources() {
     return sources;
   }
 
-  return ServiceResult.fromFetcher(getUrl, fetcher);
+  return ServiceResult.fromFetcher(() => "/api/search/sources", fetcher);
 }
-
-//
 
 export type DatalistItem = {
   value: string;
   description: string;
 };
 
-export function searchMedewerkers(parameters: any): Promise<DatalistItem[]> {
+export async function searchMedewerkers(parameters: any): Promise<DatalistItem[]> {
   function mapToDataListItem(obj: any): any {
     const functie = obj?._source.Smoelenboek.functie || obj.function;
     const department =
@@ -301,62 +131,23 @@ export function searchMedewerkers(parameters: any): Promise<DatalistItem[]> {
     return {
       value: obj?._source.title,
       description: werk,
-
       identificatie: obj?._source?.Smoelenboek?.identificatie,
       afdelingen: obj?._source?.Smoelenboek?.afdelingen,
       groepen: obj?._source?.Smoelenboek?.groepen,
     };
   }
 
-  const getPayload = () => {
-    const { search, filterField, filterValue } = parameters;
-
-    const searchQuery = search
-      ? {
-          simple_query_string: {
-            query: search,
-            default_operator: "and",
-          },
-        }
-      : null;
-
-    const filterMatchQuery =
-      filterField && filterValue
-        ? {
-            match: {
-              [`${filterField}.enum`]: filterValue,
-            },
-          }
-        : null;
-
-    const query = {
-      from: 0,
-      size: 30,
-      sort: [{ "Smoelenboek.achternaam.enum": { order: "asc" } }],
-      query: {
-        bool: {
-          must: [searchQuery, filterMatchQuery].filter(Boolean),
-        },
-      },
-    };
-
-    return JSON.stringify(query);
-  };
-
-  return fetchLoggedIn(`${globalSearchBaseUri}/search-smoelenboek/_search`, {
+  const r = await fetchLoggedIn("/api/search/medewerkers", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: getPayload(),
-  })
-    .then(throwIfNotOk)
-    .then(parseJson)
-    .then((r: any) => {
-      const {
-        hits: { hits },
-      } = r ?? {};
-
-      return Array.isArray(hits) ? hits.map(mapToDataListItem) : [];
-    });
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      search: parameters.search || null,
+      filterField: parameters.filterField || null,
+      filterValue: parameters.filterValue || null,
+    }),
+  });
+  throwIfNotOk(r);
+  const json = await parseJson(r);
+  const { hits: { hits } } = json ?? {};
+  return Array.isArray(hits) ? hits.map(mapToDataListItem) : [];
 }

@@ -12,6 +12,9 @@
     <Compile Remove="Extern\Klantinteracties\PostContactmomentenCustomProxy.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Extern\Elasticsearch\query-template.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" Version="3.2.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
