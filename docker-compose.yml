@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.4"
 
 services:
   kiss.bff:
@@ -20,6 +20,15 @@ services:
     restart: always
     ports:
       - "${POSTGRES_PORT}:5432"
+
+  kiss.elastic.sync:
+    image: ${DOCKER_REGISTRY-}kiss.elastic.sync
+    build:
+      context: .
+      dockerfile: Kiss.Elastic.Sync/Dockerfile
+    env_file:
+      - .env.local
+    network_mode: host
 
 volumes:
   db:

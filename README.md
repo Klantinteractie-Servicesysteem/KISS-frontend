@@ -82,8 +82,35 @@ Run the following commands:
 1. `az account set --subscription [...your subscription id...]` (once)
 1. `az aks get-credentials --resource-group [for example: KISS_Kubernetes_Dev] --name [for example: KISS_Kubernetes_Dev]`
 1. `kubectl config set-context --current --namespace=[for example: kiss-namespace]`
-1. `kubectl port-forward service/kiss-ent-http 3002`
-1. In a new window: `kubectl port-forward service/kiss-es-http 9200`
+1. `kubectl port-forward service/kiss-ent-http 3002 -n kiss-namespace`
+1. In a new window: `kubectl port-forward service/kiss-es-http 9200 -n kiss-namespace`
+
+## Elastic Sync
+
+The `Kiss.Elastic.Sync` tool syncs structured data sources (VACs, Medewerkers, SDG Producten, SharePoint) into Elasticsearch so they can be searched from KISS.
+
+### Prerequisites
+
+- Make sure `.env.local` in the root of this repo contains the required Elastic Sync variables. See the full list at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html#kiss-elastic-sync
+- Set up port forwards for Enterprise Search and Elasticsearch (see the [Elastic search section](#elastic-search) above).
+
+### Running the sync
+
+From the root of this repo:
+
+```sh
+docker compose build kiss.elastic.sync
+```
+
+Then run the desired sync:
+
+```sh
+docker compose run --rm kiss.elastic.sync           # SDG Producten
+docker compose run --rm kiss.elastic.sync vac        # VACs
+docker compose run --rm kiss.elastic.sync smoelenboek # Medewerkers
+docker compose run --rm kiss.elastic.sync sharepoint  # SharePoint
+docker compose run --rm kiss.elastic.sync domain https://www.example.nl  # Website crawler
+```
 
 ## Adding Migrations
 

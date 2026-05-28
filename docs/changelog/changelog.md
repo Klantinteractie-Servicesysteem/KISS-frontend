@@ -5,6 +5,7 @@
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
 - Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
+- [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350)
 
 ## v2.2.2
 
