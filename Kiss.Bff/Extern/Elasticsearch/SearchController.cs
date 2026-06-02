@@ -1,31 +1,31 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Extern.Elasticsearch
 {
-    [Route("api/elasticsearch")]
+    [Route("api/search")]
     [ApiController]
-    public class ElasticsearchController : ControllerBase
+    [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
+    public class SearchController : ControllerBase
     {
         private readonly ElasticsearchService _elasticsearchService;
-        private readonly ILogger<ElasticsearchController> _logger;
+        private readonly ILogger<SearchController> _logger;
 
-        public ElasticsearchController(
+        public SearchController(
             ElasticsearchService elasticsearchService,
-            ILogger<ElasticsearchController> logger)
+            ILogger<SearchController> logger)
         {
             _elasticsearchService = elasticsearchService;
             _logger = logger;
         }
 
-        [HttpPost("/api/search")]
-        [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
+        [HttpPost]
         public async Task<IActionResult> GlobalSearch([FromBody] SearchRequest request, CancellationToken cancellationToken)
         {
             try
             {
                 var responseBody = await _elasticsearchService.GlobalSearch(request, cancellationToken);
-                 return Ok(responseBody);
+                return Ok(responseBody);
             }
             catch (HttpRequestException ex)
             {
@@ -34,8 +34,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             }
         }
 
-        [HttpGet("/api/search/sources")]
-        [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
+        [HttpGet("sources")]
         public async Task<IActionResult> GetSources(CancellationToken cancellationToken)
         {
             try
@@ -50,8 +49,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             }
         }
 
-        [HttpPost("/api/search/medewerkers")]
-        [Authorize(Policy = Policies.KcmOrKennisbankPolicy)]
+        [HttpPost("medewerkers")]
         public async Task<IActionResult> SearchMedewerkers([FromBody] MedewerkerSearchRequest request, CancellationToken cancellationToken)
         {
             try

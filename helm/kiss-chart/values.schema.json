@@ -557,46 +557,6 @@
           ],
           "title": "email"
         },
-        "enterpriseSearch": {
-          "description": " required: true @schema",
-          "properties": {
-            "baseUrl": {
-              "default": "",
-              "description": "URL of the API through which KISS can query enterprise search",
-              "minLength": 1,
-              "title": "baseUrl",
-              "type": "string"
-            },
-            "engine": {
-              "default": "",
-              "description": "The name of the `meta-engine` engine used by KISS.",
-              "minLength": 1,
-              "title": "engine",
-              "type": "string"
-            },
-            "privateApiKey": {
-              "default": "",
-              "description": "Private API key for Elastic API",
-              "minLength": 1,
-              "title": "privateApiKey",
-              "type": "string"
-            },
-            "publicApiKey": {
-              "default": "",
-              "description": "Public API key for Elastic API",
-              "minLength": 1,
-              "title": "publicApiKey",
-              "type": "string"
-            }
-          },
-          "required": [
-            "baseUrl",
-            "engine",
-            "publicApiKey",
-            "privateApiKey"
-          ],
-          "title": "enterpriseSearch"
-        },
         "feedback": {
           "description": " required: true @schema",
           "properties": {
@@ -1372,7 +1332,6 @@
         "database",
         "elastic",
         "email",
-        "enterpriseSearch",
         "feedback",
         "groepen",
         "haalCentraal",

@@ -2,8 +2,13 @@
 
 namespace Kiss.Bff.Extern.Elasticsearch
 {
-    public class ElasticsearchMetadataCache(HttpClient httpClient, ILogger<ElasticsearchMetadataCache> logger)
+    public class ElasticsearchMetadataCache(IHttpClientFactory httpClientFactory, ILogger<ElasticsearchMetadataCache> logger)
     {
+        // Reuses the same named HttpClient that AddHttpClient<ElasticsearchService> registers
+        // (the typed-client name is nameof(ElasticsearchService)), so base URL, auth, and
+        // certificate handling stay in one place.
+        private HttpClient HttpClient => httpClientFactory.CreateClient(nameof(ElasticsearchService));
+
         private const string TextType = "text";
 
         private static readonly Dictionary<string, double> s_boostBySuffix = new()
@@ -15,30 +20,19 @@ namespace Kiss.Bff.Extern.Elasticsearch
             { ".prefix",    0.10 },
         };
 
-        private static readonly HashSet<string> s_excludedSuffixes = [".enum", ".date", ".float", ".location"];
+        private static readonly HashSet<string> s_excludedSuffixes = new() { ".enum", ".date", ".float", ".location" };
 
-        private Task<Metadata>? _metadataTask;
-        private readonly object _lock = new();
+        private Metadata? _cached;
 
-        public Task<Metadata> GetMetadata(CancellationToken cancellationToken)
+        public async Task<Metadata> GetMetadata(CancellationToken cancellationToken)
         {
-            lock (_lock)
-            {
-                if (_metadataTask == null || _metadataTask.IsFaulted)
-                    _metadataTask = FetchMetadata(cancellationToken);
-                return _metadataTask;
-            }
-        }
+            if (_cached != null) return _cached;
 
-        private async Task<Metadata> FetchMetadata(CancellationToken cancellationToken)
-        {
-            var response = await httpClient.GetFromJsonAsync<FieldCapsResponse>(
+            var response = await HttpClient.GetFromJsonAsync<FieldCapsResponse>(
                 "search-*/_field_caps?fields=*", cancellationToken)
                 ?? throw new InvalidOperationException("Empty field caps response");
 
-            var indices = response.Indices
-                .OrderBy(i => i)
-                .ToArray();
+            var indices = response.Indices.OrderBy(i => i).ToArray();
 
             var fields = response.Fields
                 .Where(kv => IsSearchableTextField(kv.Key, kv.Value))
@@ -48,10 +42,10 @@ namespace Kiss.Bff.Extern.Elasticsearch
             logger.LogInformation("Discovered {IndexCount} search indices, {FieldCount} searchable fields",
                 indices.Length, fields.Length);
 
-            return new Metadata(indices, fields);
+            return _cached = new Metadata(indices, fields);
         }
 
-        private static bool IsSearchableTextField(string fieldName, Dictionary<string, FieldType> types)
+        private static bool IsSearchableTextField(string fieldName, Dictionary<string, object> types)
         {
             if (fieldName.StartsWith('_')) return false;
             if (s_excludedSuffixes.Any(s => fieldName.EndsWith(s, StringComparison.OrdinalIgnoreCase))) return false;
@@ -71,9 +65,6 @@ namespace Kiss.Bff.Extern.Elasticsearch
 
         private record FieldCapsResponse(
             [property: JsonPropertyName("indices")] string[] Indices,
-            [property: JsonPropertyName("fields")] Dictionary<string, Dictionary<string, FieldType>> Fields);
-
-        private record FieldType(
-            [property: JsonPropertyName("indices")] string[]? Indices);
+            [property: JsonPropertyName("fields")] Dictionary<string, Dictionary<string, object>> Fields);
     }
 }

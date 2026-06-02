@@ -20,7 +20,7 @@ namespace Kiss.Bff.Beheer.Verwerking
                 _logger = logger;
             }
 
-            public bool IsEnabled(string? clusterId) => clusterId == null;
+            public bool IsEnabled(string? clusterId) => true;
 
             public async Task<HttpResponseMessage> SendAsync(SendRequestMessageAsync next, HttpRequestMessage request, CancellationToken cancellationToken)
             {

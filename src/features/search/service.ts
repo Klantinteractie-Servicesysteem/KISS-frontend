@@ -86,7 +86,7 @@ export function useGlobalSearch(
 
   function getUniqueId() {
     if (!parameters.value.search) return "";
-    return `${getPayload()}`;
+    return getPayload();
   }
 
   return ServiceResult.fromFetcher(getUrl, fetcher, { getUniqueId });

@@ -36,7 +36,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 multi_match = new
                 {
                     query = request.Query,
-                    minimum_should_match = "100%",
+                    minimum_should_match = "8",
                     type = "best_fields",
                     fields,
                 }
@@ -111,6 +111,10 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 });
 
             if (!string.IsNullOrWhiteSpace(request.FilterField) && !string.IsNullOrWhiteSpace(request.FilterValue))
+                // TODO(PC-2385 follow-up): FilterField comes from the request body and is
+                // interpolated directly into the ES field name. An authenticated user can pass
+                // any field name and probe the smoelenboek index. Constrain to an allowlist of
+                // fields the frontend actually uses (e.g. afdelingen, groepen).
                 mustClauses.Add(new Dictionary<string, object>
                 {
                     ["match"] = new Dictionary<string, string> { [$"{request.FilterField}.enum"] = request.FilterValue }
