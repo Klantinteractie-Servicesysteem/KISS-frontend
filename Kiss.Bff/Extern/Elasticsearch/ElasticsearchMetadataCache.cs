@@ -1,10 +1,9 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Kiss.Bff.Extern.Elasticsearch
 {
     public class ElasticsearchMetadataCache(HttpClient httpClient, ILogger<ElasticsearchMetadataCache> logger)
     {
-        private const string SmoelenboekIndex = "search-smoelenboek";
         private const string TextType = "text";
 
         private static readonly Dictionary<string, double> s_boostBySuffix = new()
@@ -38,7 +37,6 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 ?? throw new InvalidOperationException("Empty field caps response");
 
             var indices = response.Indices
-                .Where(IsSearchable)
                 .OrderBy(i => i)
                 .ToArray();
 
@@ -53,27 +51,14 @@ namespace Kiss.Bff.Extern.Elasticsearch
             return new Metadata(indices, fields);
         }
 
-        private static bool IsSearchable(string index) =>
-            !index.Equals(SmoelenboekIndex, StringComparison.OrdinalIgnoreCase);
-
         private static bool IsSearchableTextField(string fieldName, Dictionary<string, FieldType> types)
         {
             if (fieldName.StartsWith('_')) return false;
             if (s_excludedSuffixes.Any(s => fieldName.EndsWith(s, StringComparison.OrdinalIgnoreCase))) return false;
             if (!types.ContainsKey(TextType)) return false;
 
-            // If "indices" is present and contains only smoelenboek, skip the field.
-            // When absent, the field exists in all queried indices, so it's relevant.
-            var allFieldIndices = types.Values
-                .Where(t => t.Indices != null)
-                .SelectMany(t => t.Indices!)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            return allFieldIndices.Count == 0 || !allFieldIndices.All(IsSmoelenboek);
+            return true;
         }
-
-        private static bool IsSmoelenboek(string index) =>
-            index.Equals(SmoelenboekIndex, StringComparison.OrdinalIgnoreCase);
 
         private static double BoostFor(string fieldName) =>
             s_boostBySuffix
