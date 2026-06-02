@@ -46,10 +46,6 @@ data:
   EMAIL_USERNAME: {{ .Values.settings.email.username | toString | quote }}
   {{- end }}
 
-  {{- if .Values.settings.elastic.searchIndices }}
-  ELASTIC_SEARCH_INDICES: {{ (join "," .Values.settings.elastic.searchIndices) | quote }}
-  {{- end }}
-
   {{- if .Values.settings.feedback.emailFrom }}
   FEEDBACK_EMAIL_FROM: {{ .Values.settings.feedback.emailFrom | toString | quote }}
   {{- end }}

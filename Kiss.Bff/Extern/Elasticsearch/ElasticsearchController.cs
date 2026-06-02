@@ -25,7 +25,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             try
             {
                 var responseBody = await _elasticsearchService.GlobalSearch(request, cancellationToken);
-                return Ok(responseBody);
+                 return Ok(responseBody);
             }
             catch (HttpRequestException ex)
             {

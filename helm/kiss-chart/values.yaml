@@ -219,14 +219,6 @@ settings:
 
     # -- (int) The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.
     bulkHttpTimeoutMinutes: 10
-    # @schema
-    # type: array
-    # items:
-    #   type: string
-    #   minLength: 1
-    # @schema
-    # -- (list) Comma-separated list of Elasticsearch indices to search across (excludes smoelenboek).
-    searchIndices: []
 
   # @schema
   # required: true
