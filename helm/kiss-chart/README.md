@@ -80,10 +80,6 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.email.password | string | `""` | Password for the mail server |
 | settings.email.port | int | `25` | Port number of the mail connection |
 | settings.email.username | string | `""` | Username for the mail server |
-| settings.enterpriseSearch.baseUrl | string | `""` | URL of the API through which KISS can query enterprise search |
-| settings.enterpriseSearch.engine | string | `""` | The name of the `meta-engine` engine used by KISS. |
-| settings.enterpriseSearch.privateApiKey | string | `""` | Private API key for Elastic API |
-| settings.enterpriseSearch.publicApiKey | string | `""` | Public API key for Elastic API |
 | settings.feedback.emailFrom | string | `""` | From address of the feedback email |
 | settings.feedback.emailTo | string | `""` | Address where the feedback email should be sent |
 | settings.groepen.baseUrl | string | `""` | URL of the Objects API for groepen. |
