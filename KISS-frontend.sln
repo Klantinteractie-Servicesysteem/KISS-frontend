@@ -23,6 +23,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kiss.Bff.EndToEndTest", "Kiss.Bff.EndToEndTest\Kiss.Bff.EndToEndTest.csproj", "{D2EF3BA8-432E-42CE-AE01-04903D2F63FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiss.Elastic.Sync", "Kiss.Elastic.Sync\Kiss.Elastic.Sync.csproj", "{564B7EDB-6786-94CC-416F-FE67FEAD06DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiss.Elastic.Sync.IntegrationTest", "Kiss.Elastic.Sync.IntegrationTest\Kiss.Elastic.Sync.IntegrationTest.csproj", "{5C175123-8450-33C1-091F-A3B401B1B789}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{D2EF3BA8-432E-42CE-AE01-04903D2F63FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2EF3BA8-432E-42CE-AE01-04903D2F63FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2EF3BA8-432E-42CE-AE01-04903D2F63FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{564B7EDB-6786-94CC-416F-FE67FEAD06DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{564B7EDB-6786-94CC-416F-FE67FEAD06DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{564B7EDB-6786-94CC-416F-FE67FEAD06DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{564B7EDB-6786-94CC-416F-FE67FEAD06DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C175123-8450-33C1-091F-A3B401B1B789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C175123-8450-33C1-091F-A3B401B1B789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C175123-8450-33C1-091F-A3B401B1B789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C175123-8450-33C1-091F-A3B401B1B789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
