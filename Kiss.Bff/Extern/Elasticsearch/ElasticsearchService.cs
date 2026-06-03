@@ -31,8 +31,8 @@ namespace Kiss.Bff.Extern.Elasticsearch
             // concatenated into the ES URL, so without this an authenticated user could
             // probe arbitrary indices.
             var knownIndices = metadata.Indices.ToHashSet(StringComparer.Ordinal);
-            var indices = request.Filters.Count > 0
-                ? request.Filters.Select(f => f.Index).Where(knownIndices.Contains).Distinct().OrderBy(x => x).ToArray()
+            var indices = request.Filters is { Count: > 0 } filters
+                ? filters.Select(f => f.Index).Where(knownIndices.Contains).Distinct().OrderBy(x => x).ToArray()
                 : metadata.Indices;
             var query = QueryBuilder.BuildGlobalSearchQuery(request, fields, excludes);
             return await PostSearch<ElasticResponse>(indices, query, cancellationToken);

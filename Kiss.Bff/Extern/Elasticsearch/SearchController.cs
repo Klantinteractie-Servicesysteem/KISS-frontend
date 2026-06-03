@@ -29,7 +29,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError("{Message}", ex.Message);
+                _logger.LogError(ex, "Elasticsearch request failed");
                 return StatusCode((int?)ex.StatusCode ?? StatusCodes.Status500InternalServerError);
             }
         }
@@ -44,7 +44,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError("{Message}", ex.Message);
+                _logger.LogError(ex, "Elasticsearch request failed");
                 return StatusCode((int?)ex.StatusCode ?? StatusCodes.Status500InternalServerError);
             }
         }
@@ -59,7 +59,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError("{Message}", ex.Message);
+                _logger.LogError(ex, "Elasticsearch request failed");
                 return StatusCode((int?)ex.StatusCode ?? StatusCodes.Status500InternalServerError);
             }
         }
