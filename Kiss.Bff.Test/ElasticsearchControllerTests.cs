@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Kiss.Bff.Extern.Elasticsearch;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using RichardSzalay.MockHttp;
 
@@ -23,18 +23,9 @@ namespace Kiss.Bff.Test
             var httpClient = http.ToHttpClient();
             httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
 
-            var factory = new Mock<IHttpClientFactory>();
-            factory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
-            {
-                var c = http.ToHttpClient();
-                c.BaseAddress = new Uri("https://elasticsearch.example.com");
-                return c;
-            });
-            var cache = new ElasticsearchMetadataCache(factory.Object, NullLogger<ElasticsearchMetadataCache>.Instance);
-
             var service = new ElasticsearchService(
                 httpClient,
-                cache,
+                new MemoryCache(new MemoryCacheOptions()),
                 _ => isKennisbank,
                 _ => isKcm,
                 null!,
