@@ -1029,29 +1029,6 @@
         },
         "syncJobs": {
           "properties": {
-            "image": {
-              "properties": {
-                "pullPolicy": {
-                  "default": "IfNotPresent",
-                  "title": "pullPolicy",
-                  "type": "string"
-                },
-                "repository": {
-                  "default": "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync",
-                  "title": "repository",
-                  "type": "string"
-                },
-                "tag": {
-                  "default": "0.3.2",
-                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
-                  "title": "tag",
-                  "type": "string"
-                }
-              },
-              "required": [],
-              "title": "image",
-              "type": "object"
-            },
             "crawlerImage": {
               "properties": {
                 "pullPolicy": {
@@ -1074,6 +1051,29 @@
               },
               "required": [],
               "title": "crawlerImage",
+              "type": "object"
+            },
+            "image": {
+              "properties": {
+                "pullPolicy": {
+                  "default": "IfNotPresent",
+                  "title": "pullPolicy",
+                  "type": "string"
+                },
+                "repository": {
+                  "default": "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync",
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "0.3.2",
+                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "image",
               "type": "object"
             },
             "kennisbank": {
@@ -1318,28 +1318,31 @@
               ]
             },
             "website": {
-              "description": "Website crawler jobs configuration. Each entry creates a CronJob that runs the Elastic Open Crawler for the given domain.",
+              "description": "pattern: /login",
               "items": {
                 "properties": {
+                  "crawlRules": {
+                    "items": {
+                      "required": [],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "domain": {
                     "format": "uri",
                     "type": "string"
                   },
+                  "excludeTags": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "fullHtmlExtractionEnabled": {
+                    "type": "boolean"
+                  },
                   "historyLimit": {
                     "type": "integer"
-                  },
-                  "resources": {
-                    "required": [],
-                    "type": "object"
-                  },
-                  "schedule": {
-                    "type": "string"
-                  },
-                  "sourceName": {
-                    "type": "string"
-                  },
-                  "outputIndex": {
-                    "type": "string"
                   },
                   "maxCrawlDepth": {
                     "type": "integer"
@@ -1350,30 +1353,31 @@
                   "maxUniqueUrlCount": {
                     "type": "integer"
                   },
+                  "outputIndex": {
+                    "type": "string"
+                  },
                   "purgeCrawlEnabled": {
                     "type": "boolean"
                   },
-                  "fullHtmlExtractionEnabled": {
-                    "type": "boolean"
+                  "resources": {
+                    "required": [],
+                    "type": "object"
                   },
-                  "excludeTags": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
+                  "schedule": {
+                    "type": "string"
                   },
-                  "crawlRules": {
-                    "items": {
-                      "type": "object"
-                    },
-                    "type": "array"
+                  "sourceName": {
+                    "type": "string"
                   }
                 },
-                "required": ["domain", "sourceName"],
+                "required": [
+                  "domain",
+                  "sourceName"
+                ],
                 "type": "object"
               },
-              "title": "website",
-              "type": "array"
+              "required": [],
+              "title": "website"
             }
           },
           "required": [],
