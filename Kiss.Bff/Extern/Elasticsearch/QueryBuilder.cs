@@ -9,24 +9,6 @@ namespace Kiss.Bff.Extern.Elasticsearch
     {
         private const int PageSize = 10;
 
-        public static object BronnenAggregation { get; } = new
-        {
-            size = 0,
-            aggs = new
-            {
-                bronnen = new
-                {
-                    terms = new { field = "object_bron.enum" },
-                    aggs = new { by_index = new { terms = new { field = "_index" } } }
-                },
-                domains = new
-                {
-                    terms = new { field = "domains.enum" },
-                    aggs = new { by_index = new { terms = new { field = "_index" } } }
-                },
-            }
-        };
-
         public static object BuildGlobalSearchQuery(SearchRequest request, string[] fields, string[] excludedSourceFields)
         {
             var page = Math.Max(1, request.Page);
@@ -36,7 +18,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 multi_match = new
                 {
                     query = request.Query,
-                    minimum_should_match = "8",
+                    minimum_should_match = "2<75%",
                     type = "best_fields",
                     fields,
                 }
@@ -64,39 +46,13 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 }
             };
 
-            var filterConditions = BuildFilterConditions(request.Filters);
-
-            object query = filterConditions.Count == 0
-                ? baseQuery
-                : new
-                {
-                    @bool = new
-                    {
-                        must = new object[] { baseQuery },
-                        filter = new object[] { new { @bool = new { should = filterConditions } } }
-                    }
-                };
-
             return new
             {
                 from = (page - 1) * PageSize,
                 size = PageSize,
                 _source = new { excludes = excludedSourceFields },
                 indices_boost = new[] { new Dictionary<string, int> { ["*"] = 10 } },
-                suggest = new
-                {
-                    suggestions = new
-                    {
-                        prefix = request.Query,
-                        completion = new
-                        {
-                            field = "_completion",
-                            skip_duplicates = true,
-                            fuzzy = new { },
-                        }
-                    }
-                },
-                query,
+                query = baseQuery,
             };
         }
 
@@ -132,20 +88,5 @@ namespace Kiss.Bff.Extern.Elasticsearch
             };
         }
 
-        private static List<object> BuildFilterConditions(IReadOnlyList<SearchFilter>? filters)
-        {
-            var conditions = new List<object>();
-            if (filters == null || filters.Count == 0) return conditions;
-
-            var domains = filters.Where(f => f.Name.StartsWith("http")).Select(f => f.Name).ToList();
-            var bronnen = filters.Where(f => !f.Name.StartsWith("http")).Select(f => f.Name).ToList();
-
-            if (domains.Count > 0)
-                conditions.Add(new { terms = new Dictionary<string, List<string>> { ["domains.enum"] = domains } });
-            if (bronnen.Count > 0)
-                conditions.Add(new { terms = new Dictionary<string, List<string>> { ["object_bron.enum"] = bronnen } });
-
-            return conditions;
-        }
     }
 }

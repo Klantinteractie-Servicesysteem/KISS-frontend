@@ -78,27 +78,20 @@ namespace Kiss.Bff.Test
         }
 
         [TestMethod]
-        public async Task GetSources_CallsElasticsearch()
+        public async Task GetSources_ReturnsDiscoveredIndices()
         {
             var (service, http) = BuildService();
-            RespondToFieldCaps(http, "search-kennisbank");
-
-            var called = false;
-            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
-                .With(_ => { called = true; return true; })
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    aggregations = new
-                    {
-                        bronnen = new { buckets = Array.Empty<object>() },
-                        domains = new { buckets = Array.Empty<object>() },
-                    }
-                }));
+            RespondToFieldCaps(http, "search-kennisbank", "search-website");
 
             var result = await service.GetSources(CancellationToken.None);
 
-            Assert.IsTrue(called);
             Assert.IsNotNull(result);
+            CollectionAssert.AreEquivalent(
+                new[] { "search-kennisbank", "search-website" },
+                result.Select(s => s.Index).ToArray());
+            CollectionAssert.AreEquivalent(
+                new[] { "kennisbank", "website" },
+                result.Select(s => s.Name).ToArray());
         }
 
         [TestMethod]

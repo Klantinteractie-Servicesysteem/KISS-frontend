@@ -525,6 +525,12 @@ settings:
       pullPolicy: IfNotPresent
       # -- (string) The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.
       tag: "0.3.2"
+    crawlerImage:
+      # -- (string) The image repository for the Elastic Open Crawler
+      repository: "docker.elastic.co/integrations/crawler"
+      # -- (string) The tag for the Open Crawler image
+      tag: "1.0.0"
+      pullPolicy: IfNotPresent
     # @schema
     # type: [object, null]
     # @schema
@@ -679,8 +685,46 @@ settings:
     #       type: string
     #     resources:
     #       type: object
+    #     outputIndex:
+    #       type: string
+    #     maxCrawlDepth:
+    #       type: integer
+    #     maxExtractedLinksCount:
+    #       type: integer
+    #     maxUniqueUrlCount:
+    #       type: integer
+    #     purgeCrawlEnabled:
+    #       type: boolean
+    #     fullHtmlExtractionEnabled:
+    #       type: boolean
+    #     excludeTags:
+    #       type: array
+    #       items:
+    #         type: string
+    #     crawlRules:
+    #       type: array
+    #       items:
+    #         type: object
+    #   required: [domain, sourceName]
     # @schema
-    # -- (list) website sync jobs configuration
+    # -- (list) Website crawler jobs configuration. Each entry creates a CronJob that runs the Elastic Open Crawler for the given domain.
+    # -- Example:
+    # -- website:
+    # --   - domain: https://example.nl
+    # --     sourceName: "Voorbeeld"
+    # --     schedule: "*/59 * * * *"          # default: every 59 minutes
+    # --     historyLimit: 1
+    # --     outputIndex: "search-voorbeeld"       # default: search-<sourceName lowercased>
+    # --     maxCrawlDepth: 3                      # default: 3
+    # --     maxExtractedLinksCount: 1000          # default: 1000
+    # --     maxUniqueUrlCount: 10000              # default: 10000
+    # --     purgeCrawlEnabled: true               # default: true
+    # --     fullHtmlExtractionEnabled: false      # default: false
+    # --     excludeTags: [header, footer, nav]    # default: [header, footer, nav]
+    # --     crawlRules:                           # default: none
+    # --       - policy: deny
+    # --         type: contains
+    # --         pattern: /login
     website: []
 
 # -- (list) Optionally specify extra list of additional volumes, for example to trust extra ca certificates.

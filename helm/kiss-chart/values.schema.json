@@ -1052,6 +1052,30 @@
               "title": "image",
               "type": "object"
             },
+            "crawlerImage": {
+              "properties": {
+                "pullPolicy": {
+                  "default": "IfNotPresent",
+                  "title": "pullPolicy",
+                  "type": "string"
+                },
+                "repository": {
+                  "default": "docker.elastic.co/integrations/crawler",
+                  "description": "The image repository for the Elastic Open Crawler",
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "1.0.0",
+                  "description": "The tag for the Open Crawler image",
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "crawlerImage",
+              "type": "object"
+            },
             "kennisbank": {
               "description": " type: [object, null] @schema",
               "properties": {
@@ -1294,7 +1318,7 @@
               ]
             },
             "website": {
-              "description": "website sync jobs configuration",
+              "description": "Website crawler jobs configuration. Each entry creates a CronJob that runs the Elastic Open Crawler for the given domain.",
               "items": {
                 "properties": {
                   "domain": {
@@ -1313,9 +1337,39 @@
                   },
                   "sourceName": {
                     "type": "string"
+                  },
+                  "outputIndex": {
+                    "type": "string"
+                  },
+                  "maxCrawlDepth": {
+                    "type": "integer"
+                  },
+                  "maxExtractedLinksCount": {
+                    "type": "integer"
+                  },
+                  "maxUniqueUrlCount": {
+                    "type": "integer"
+                  },
+                  "purgeCrawlEnabled": {
+                    "type": "boolean"
+                  },
+                  "fullHtmlExtractionEnabled": {
+                    "type": "boolean"
+                  },
+                  "excludeTags": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "crawlRules": {
+                    "items": {
+                      "type": "object"
+                    },
+                    "type": "array"
                   }
                 },
-                "required": [],
+                "required": ["domain", "sourceName"],
                 "type": "object"
               },
               "title": "website",

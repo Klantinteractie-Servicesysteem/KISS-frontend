@@ -35,16 +35,36 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 ? filters.Select(f => f.Index).Where(knownIndices.Contains).Distinct().OrderBy(x => x).ToArray()
                 : metadata.Indices;
             var query = QueryBuilder.BuildGlobalSearchQuery(request, fields, excludes);
-            return await PostSearch<ElasticResponse>(indices, query, cancellationToken);
+            var response = await PostSearch<ElasticResponse>(indices, query, cancellationToken);
+            NormalizeLegacyBodyField(response);
+            return response;
         }
 
-        public async Task<JsonObject?> GetSources(CancellationToken cancellationToken)
+        // Enterprise Search docs use `body_content`; Open Crawler docs use `body`. Rename so
+        // the frontend only needs to read one field. Drop once all legacy docs are reindexed.
+        private static void NormalizeLegacyBodyField(ElasticResponse? response)
+        {
+            if (response?.Hits?.Hits is not { } hits) return;
+            foreach (var hit in hits)
+            {
+                if (hit.Source is not JsonObject src) continue;
+                if (src.ContainsKey("body") || !src.ContainsKey("body_content")) continue;
+                var value = src["body_content"];
+                src.Remove("body_content");
+                src["body"] = value?.DeepClone();
+            }
+        }
+
+        public async Task<Source[]> GetSources(CancellationToken cancellationToken)
         {
             var metadata = await metadataCache.GetMetadata(cancellationToken);
-            if (metadata.Indices.Length == 0) return null;
-
-            return await PostSearch<JsonObject>(metadata.Indices, QueryBuilder.BronnenAggregation, cancellationToken);
+            return metadata.Indices
+                .Select(i => new Source(i, DisplayNameFor(i)))
+                .ToArray();
         }
+
+        private static string DisplayNameFor(string index) =>
+            index.StartsWith("search-", StringComparison.Ordinal) ? index["search-".Length..] : index;
 
         public async Task<JsonObject?> SearchMedewerkers(MedewerkerSearchRequest request, CancellationToken cancellationToken)
         {
@@ -74,5 +94,6 @@ namespace Kiss.Bff.Extern.Elasticsearch
 
     public record SearchRequest(string Query, int Page, List<SearchFilter> Filters);
     public record SearchFilter(string Name, string Index);
+    public record Source(string Index, string Name);
     public record MedewerkerSearchRequest(string? Search, string? FilterField, string? FilterValue);
 }
