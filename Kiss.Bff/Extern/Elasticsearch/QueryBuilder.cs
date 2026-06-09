@@ -18,7 +18,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 multi_match = new
                 {
                     query = request.Query,
-                    minimum_should_match = "2<75%",
+                    minimum_should_match = "8",
                     type = "best_fields",
                     fields,
                 }
