@@ -43,18 +43,14 @@ namespace Kiss.Bff.Test
             return (service, http);
         }
 
-        private static void RespondToFieldCaps(MockHttpMessageHandler http, params string[] indices)
+        private static void RespondToFieldCaps(MockHttpMessageHandler http, params string[] indices) =>
+            RespondToFieldCaps(http, indices, new[] { "title", "body_content" });
+
+        private static void RespondToFieldCaps(MockHttpMessageHandler http, string[] indices, string[] fieldNames)
         {
+            var fields = fieldNames.ToDictionary(f => f, _ => new Dictionary<string, object> { ["text"] = new { } });
             http.When(HttpMethod.Get, "https://elasticsearch.example.com/search-*/_field_caps*")
-                .Respond("application/json", JsonSerializer.Serialize(new
-                {
-                    indices,
-                    fields = new Dictionary<string, Dictionary<string, object>>
-                    {
-                        ["title"] = new() { ["text"] = new { } },
-                        ["body_content"] = new() { ["text"] = new { } },
-                    }
-                }));
+                .Respond("application/json", JsonSerializer.Serialize(new { indices, fields }));
         }
 
         [TestMethod]
@@ -113,6 +109,134 @@ namespace Kiss.Bff.Test
 
             Assert.IsTrue(called);
             Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public async Task GlobalSearch_KennisbankOnlyUser_ExcludesConfiguredFieldsFromQueryAndSource()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: true,
+                isKcm: false,
+                excludedFields: "VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank", "search-vac"],
+                ["title", "VAC.toelichting", "VAC.toelichting.stem", "Kennisbank.vertalingen.deskMemo", "Kennisbank.naam"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            // Excluded fields must not appear in multi_match fields
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsFalse(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should be excluded from multi_match fields");
+            Assert.IsFalse(fieldList.Any(f => f.StartsWith("Kennisbank.vertalingen.deskMemo")), "Kennisbank.vertalingen.deskMemo should be excluded from multi_match fields");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("title")), "title should remain in multi_match fields");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("Kennisbank.naam")), "Kennisbank.naam should remain in multi_match fields");
+
+            // Excluded fields must appear in _source.excludes
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            var excludeList = excludes.EnumerateArray().Select(f => f.GetString()!).ToList();
+            CollectionAssert.Contains(excludeList, "VAC.toelichting");
+            CollectionAssert.Contains(excludeList, "Kennisbank.vertalingen.deskMemo");
+        }
+
+        [TestMethod]
+        public async Task GlobalSearch_KcmUser_DoesNotExcludeFields()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: false,
+                isKcm: true,
+                excludedFields: "VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank", "search-vac"],
+                ["title", "VAC.toelichting", "Kennisbank.vertalingen.deskMemo"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should NOT be excluded for KCM users");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("Kennisbank.vertalingen.deskMemo")), "Kennisbank.vertalingen.deskMemo should NOT be excluded for KCM users");
+
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            Assert.AreEqual(0, excludes.GetArrayLength(), "_source.excludes should be empty for KCM users");
+        }
+
+        [TestMethod]
+        public async Task GlobalSearch_UserWithBothRoles_DoesNotExcludeFields()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: true,
+                isKcm: true,
+                excludedFields: "VAC.toelichting");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank"],
+                ["title", "VAC.toelichting"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should NOT be excluded when user has both roles");
+
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            Assert.AreEqual(0, excludes.GetArrayLength(), "_source.excludes should be empty when user has both roles");
         }
     }
 }
