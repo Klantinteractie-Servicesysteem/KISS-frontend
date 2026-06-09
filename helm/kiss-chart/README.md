@@ -109,6 +109,9 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur.  |
 | settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
+| settings.syncJobs.crawlerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| settings.syncJobs.crawlerImage.repository | string | `"docker.elastic.co/integrations/crawler"` | The image repository for the Elastic Open Crawler |
+| settings.syncJobs.crawlerImage.tag | string | `"1.0.0"` | The tag for the Open Crawler image |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
 | settings.syncJobs.image.tag | string | `"0.3.2"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
@@ -136,7 +139,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.vac.resources | object | `{}` |  |
 | settings.syncJobs.vac.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs |
-| settings.syncJobs.website | list | `[]` | website sync jobs configuration |
+| settings.syncJobs.website | list | `[]` | pattern: /login |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------
