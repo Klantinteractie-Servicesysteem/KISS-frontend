@@ -1,27 +1,78 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Memory;
 
 [assembly: InternalsVisibleTo("Kiss.Bff.Test")]
 namespace Kiss.Bff.Extern.Elasticsearch
 {
     public class ElasticsearchService(
         HttpClient httpClient,
-        ElasticsearchMetadataCache metadataCache,
+        IMemoryCache memoryCache,
         IsKennisbank isKennisbank,
         IsKcm isKcm,
         ClaimsPrincipal user,
         IConfiguration configuration)
     {
         private const string SmoelenboekIndex = "search-smoelenboek";
+        private const string MetadataCacheKey = "elasticsearch_metadata";
+        private static readonly TimeSpan s_metadataCacheExpiry = TimeSpan.FromHours(1);
+
+        private static readonly Dictionary<string, double> s_boostBySuffix = new()
+        {
+            { "",           1.00 },
+            { ".stem",      0.95 },
+            { ".joined",    0.75 },
+            { ".delimiter", 0.40 },
+            { ".prefix",    0.10 },
+        };
+
+        private static readonly HashSet<string> s_excludedSuffixes =
+            [".enum", ".date", ".float", ".location"];
 
         private readonly string[] _excludedFieldsForKennisbank =
             (configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"] ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+        private async Task<Metadata> GetMetadata(CancellationToken cancellationToken)
+        {
+            if (memoryCache.TryGetValue(MetadataCacheKey, out Metadata? cached) && cached != null)
+                return cached;
+
+            var response = await httpClient.GetFromJsonAsync<FieldCapsResponse>(
+                "search-*/_field_caps?fields=*", cancellationToken)
+                ?? throw new InvalidOperationException("Empty field caps response");
+
+            var indices = response.Indices.OrderBy(i => i).ToArray();
+            var fields = response.Fields
+                .Where(kv => IsSearchableTextField(kv.Key, kv.Value))
+                .Select(kv => $"{kv.Key}^{BoostFor(kv.Key)}")
+                .ToArray();
+
+            var metadata = new Metadata(indices, fields);
+            memoryCache.Set(MetadataCacheKey, metadata, s_metadataCacheExpiry);
+            return metadata;
+        }
+
+        private static bool IsSearchableTextField(string fieldName, Dictionary<string, object> types)
+        {
+            if (fieldName.StartsWith('_')) return false;
+            if (s_excludedSuffixes.Any(s => fieldName.EndsWith(s, StringComparison.OrdinalIgnoreCase))) return false;
+            if (!types.ContainsKey("text")) return false;
+            return true;
+        }
+
+        private static double BoostFor(string fieldName) =>
+            s_boostBySuffix
+                .Where(kv => kv.Key.Length == 0 || fieldName.EndsWith(kv.Key, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(kv => kv.Key.Length)
+                .Select(kv => kv.Value)
+                .FirstOrDefault(1.0);
+
         public async Task<ElasticResponse?> GlobalSearch(SearchRequest request, CancellationToken cancellationToken)
         {
-            var metadata = await metadataCache.GetMetadata(cancellationToken);
+            var metadata = await GetMetadata(cancellationToken);
 
             var excludes = GetExcludedFieldsForUser();
             var fields = metadata.Fields
@@ -57,7 +108,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
 
         public async Task<Source[]> GetSources(CancellationToken cancellationToken)
         {
-            var metadata = await metadataCache.GetMetadata(cancellationToken);
+            var metadata = await GetMetadata(cancellationToken);
             return metadata.Indices
                 .Select(i => new Source(i, DisplayNameFor(i)))
                 .ToArray();
@@ -90,6 +141,12 @@ namespace Kiss.Bff.Extern.Elasticsearch
             IsOnlyKennisbank() ? _excludedFieldsForKennisbank : [];
 
         private bool IsOnlyKennisbank() => isKennisbank(user) && !isKcm(user);
+
+        private record Metadata(string[] Indices, string[] Fields);
+
+        private record FieldCapsResponse(
+            [property: JsonPropertyName("indices")] string[] Indices,
+            [property: JsonPropertyName("fields")] Dictionary<string, Dictionary<string, object>> Fields);
     }
 
     public record SearchRequest(string Query, int Page, List<SearchFilter> Filters);
