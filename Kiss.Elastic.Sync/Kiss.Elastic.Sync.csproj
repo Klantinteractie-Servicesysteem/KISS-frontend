@@ -10,13 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Mapping\engine.json" />
     <None Remove="Mapping\field.json" />
     <None Remove="Mapping\mapping.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Mapping\engine.json" />
     <EmbeddedResource Include="Mapping\field.json" />
     <EmbeddedResource Include="Mapping\mapping.json" />
   </ItemGroup>

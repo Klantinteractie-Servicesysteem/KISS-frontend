@@ -117,21 +117,6 @@ namespace Kiss.Elastic.Sync
             }
         }
 
-        public async Task<bool> UpdateMappingForCrawlEngine(string engineName, CancellationToken token)
-        {
-            var indexName = ".ent-search-engine-documents-" + engineName;
-            using var existsResponse = await _httpClient.HeadAsync(indexName, token);
-
-            if (!existsResponse.IsSuccessStatusCode) return false;
-
-            using var body = Helpers.GetEmbedded("engine.json");
-            using var putResponse = await _httpClient.SendJsonAsync(HttpMethod.Put, indexName + "/_mapping", body, token);
-
-            await Helpers.LogResponse(putResponse, token);
-
-            return putResponse.IsSuccessStatusCode;
-        }
-
         private async Task<bool> EnsureIndex(string bron, string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
         {
             using var existsRequest = new HttpRequestMessage(HttpMethod.Head, indexName);
