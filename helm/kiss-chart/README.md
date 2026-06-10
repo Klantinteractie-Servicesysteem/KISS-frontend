@@ -139,7 +139,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.vac.resources | object | `{}` |  |
 | settings.syncJobs.vac.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs |
-| settings.syncJobs.website | list | `[]` | Website crawler jobs. Each entry creates a CronJob with the Elastic Open Crawler. Required: `domain`, `sourceName`. Optional: `schedule`, `outputIndex`, `maxCrawlDepth`, `excludeTags`, `crawlRules`, and more. See values.yaml for a full example. |
+| settings.syncJobs.website | list | `[]` | pattern: /login |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------
