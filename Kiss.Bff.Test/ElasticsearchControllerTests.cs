@@ -1,6 +1,7 @@
+using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Kiss.Bff.Extern.Elasticsearch;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using RichardSzalay.MockHttp;
@@ -10,501 +11,230 @@ namespace Kiss.Bff.Test
     [TestClass]
     public class ElasticsearchControllerTests
     {
-        #region Request Transformation Tests (Kennisbank Users)
-
-        [TestMethod]
-        public async Task Search_KennisbankUser_RemovesExcludedFieldsFromRequest()
+        private static (ElasticsearchService service, MockHttpMessageHandler http) BuildService(
+            bool isKennisbank = false,
+            bool isKcm = true,
+            string excludedFields = "")
         {
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns(excludedFields);
 
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
+            var http = new MockHttpMessageHandler();
+            var httpClient = http.ToHttpClient();
+            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
 
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["multi_match"] = new JsonObject
-                    {
-                        ["query"] = "test",
-                        ["fields"] = new JsonArray(
-                            "VAC.toelichting^1.0",
-                            "VAC.toelichting.stem^0.95",
-                            "VAC.status^1.0",
-                            "Kennisbank.vertalingen.deskMemo^1.0",
-                            "Kennisbank.vertalingen.deskMemo.stem^0.95",
-                            "Kennisbank.naam^1.0",
-                            "title^1.0"
-                        )
-                    }
-                }
-            };
+            var service = new ElasticsearchService(
+                httpClient,
+                new MemoryCache(new MemoryCacheOptions()),
+                _ => isKennisbank,
+                _ => isKcm,
+                null!,
+                configuration.Object);
 
-            service.ApplyRequestTransform(elasticQuery);
-
-            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
-            Assert.IsNotNull(fields);
-
-            // Should only have 3 fields remaining (removed VAC.toelichting and Kennisbank.vertalingen.deskMemo)
-            Assert.AreEqual(3, fields.Count);
-            Assert.IsFalse(fields.Any(x => x?.ToString().StartsWith("VAC.toelichting") ?? false));
-            Assert.IsFalse(fields.Any(x => x?.ToString().StartsWith("Kennisbank.vertalingen.deskMemo") ?? false));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.status^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.naam^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
+            return (service, http);
         }
 
-        #endregion
+        private static void RespondToFieldCaps(MockHttpMessageHandler http, params string[] indices) =>
+            RespondToFieldCaps(http, indices, new[] { "title", "body_content" });
 
-        #region Response Transformation Tests (Kennisbank Users)
-
-        [TestMethod]
-        public async Task Search_KennisbankUser_RemovesExcludedFieldsFromResponse()
+        private static void RespondToFieldCaps(MockHttpMessageHandler http, string[] indices, string[] fieldNames)
         {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
-
-            var elasticResponse = new ElasticResponse
-            {
-                Hits = new HitsWrapper
-                {
-                    Hits = new List<Hit>
-                    {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "First item",
-                                ["VAC"] = new JsonObject
-                                    {
-                                        ["allowedField"] = "This should remain",
-                                        ["toelichting"] = "This must be removed!"
-                                    },
-                                ["toelichting"] = "Should remain"
-                            }
-                        },
-                    new Hit
-                    {
-                        Source = new JsonObject
-                        {
-                            ["title"] = "Second item",
-                            ["Kennisbank"] = new JsonObject
-                            {
-                                ["allowedField"] = "This should remain",
-                                ["vertalingen"] = new JsonObject
-                                {
-                                    ["deskMemo"] = "This must be removed!"
-                                }
-                            },
-                            ["toelichting"] = "This should remain"
-                        }
-                    }
-                }
-                }
-            };
-
-            service.ApplyResponseTransform(elasticResponse);
-
-            var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
-
-            Assert.IsNotNull(sourceVAC);
-            var vacObject = sourceVAC["VAC"]?.AsObject();
-            Assert.IsNotNull(vacObject);
-            Assert.IsFalse(vacObject.ContainsKey("toelichting"));
-            Assert.IsTrue(vacObject.ContainsKey("allowedField"));
-            Assert.AreEqual("This should remain", vacObject["allowedField"]?.ToString());
+            var fields = fieldNames.ToDictionary(f => f, _ => new Dictionary<string, object> { ["text"] = new { } });
+            http.When(HttpMethod.Get, "https://elasticsearch.example.com/search-*/_field_caps*")
+                .Respond("application/json", JsonSerializer.Serialize(new { indices, fields }));
         }
 
         [TestMethod]
-        public async Task Search_KennisbankUser_RemovesExcludedFieldsFromNestedObjects()
+        public async Task GlobalSearch_CallsElasticsearch()
         {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            var (service, http) = BuildService();
+            RespondToFieldCaps(http, "search-kennisbank", "search-vac");
 
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
-
-            var elasticResponse = new ElasticResponse
-            {
-                Hits = new HitsWrapper
+            var called = false;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(_ => { called = true; return true; })
+                .Respond("application/json", JsonSerializer.Serialize(new
                 {
-                    Hits = new List<Hit>
-                    {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "First item",
-                                ["VAC"] = new JsonObject
-                                    {
-                                        ["allowedField"] = "This should remain",
-                                        ["toelichting"] = "This must be removed!"
-                                    },
-                                ["toelichting"] = "Should remain"
-                            }
-                        },
-                    new Hit
-                    {
-                        Source = new JsonObject
-                        {
-                            ["title"] = "Second item",
-                            ["Kennisbank"] = new JsonObject
-                            {
-                                ["allowedField"] = "This should remain",
-                                ["vertalingen"] = new JsonObject
-                                {
-                                    ["deskMemo"] = "This must be removed!"
-                                }
-                            },
-                            ["toelichting"] = "This should remain"
-                        }
-                    }
-                }
-                }
-            };
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
 
-            service.ApplyResponseTransform(elasticResponse);
+            var result = await service.GlobalSearch(new SearchRequest("hello", 1, []), CancellationToken.None);
 
-            var sourceKennisbank = elasticResponse.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
-
-            Assert.IsNotNull(sourceKennisbank);
-            Assert.IsFalse(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
-            Assert.IsTrue(sourceKennisbank.ContainsKey("allowedField"));
-            Assert.AreEqual("This should remain", sourceKennisbank["allowedField"]?.ToString());
+            Assert.IsTrue(called);
+            Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public async Task Search_KennisbankUser_RemovesExcludedFieldsFromArrays()
+        public async Task GetSources_CallsElasticsearch()
         {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            var (service, http) = BuildService();
+            RespondToFieldCaps(http, "search-kennisbank");
 
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
-
-            var elasticResponse = new ElasticResponse
-            {
-                Hits = new HitsWrapper
+            var called = false;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(_ => { called = true; return true; })
+                .Respond("application/json", JsonSerializer.Serialize(new
                 {
-                    Hits = new List<Hit>
+                    aggregations = new
                     {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "First item",
-                                ["VAC"] = new JsonArray(
-
-                                    new JsonObject {["allowedField"] = "This should remain"},
-                                    new JsonObject {["toelichting"] = "This must be removed!"}
-                                ),
-                                ["toelichting"] = "Should remain"
-                            }
-                        },
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "Second item",
-                                ["Kennisbank"] = new JsonObject
-                                {
-                                    ["allowedField"] = "This should remain",
-                                    ["vertalingen"] = new JsonObject
-                                    {
-                                        ["deskMemo"] = "This must be removed!"
-                                    }
-                                },
-                                ["toelichting"] = "This should remain"
-                            }
-                        }
+                        bronnen = new { buckets = Array.Empty<object>() },
+                        domains = new { buckets = Array.Empty<object>() },
                     }
-                }
-            };
+                }));
 
-            service.ApplyResponseTransform(elasticResponse);
+            var result = await service.GetSources(CancellationToken.None);
 
-            var sourceVAC = elasticResponse.Hits?.Hits?[0].Source?["VAC"]?[0]?.AsObject();
-
-            Assert.IsNotNull(sourceVAC);
-            Assert.IsFalse(sourceVAC.ContainsKey("toelichting"));
-            Assert.IsTrue(sourceVAC.ContainsKey("allowedField"));
-            Assert.AreEqual("This should remain", sourceVAC["allowedField"]?.ToString());
-        }
-
-        #endregion
-
-        #region Only Kennisbank Users Are Affected Tests
-
-        [TestMethod]
-        public async Task Search_NonKennisbankUser_DoesNotModifyRequest()
-        {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            var service = new ElasticsearchService(null!, (isKennisBank) => false, (isKcm) => true, null!, configuration.Object);
-
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["multi_match"] = new JsonObject
-                    {
-                        ["query"] = "test",
-                        ["fields"] = new JsonArray(
-                            "VAC.toelichting^1.0",
-                            "Kennisbank.vertalingen.deskMemo^1.0",
-                            "title^1.0"
-                        )
-                    }
-                },
-                ["size"] = 10
-            };
-
-            service.ApplyRequestTransform(elasticQuery);
-
-            // Fields should NOT be removed
-            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
-            Assert.IsNotNull(fields);
-            Assert.AreEqual(3, fields.Count);
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
-
-            // Original query should be preserved
-            Assert.IsNotNull(elasticQuery["query"]);
-            Assert.AreEqual(10, elasticQuery["size"]?.GetValue<int>());
+            Assert.IsTrue(called);
+            Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public async Task Search_NonKennisbankUser_DoesNotModifyResponse()
+        public async Task SearchMedewerkers_CallsSmoelenboekIndex()
         {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+            var (service, http) = BuildService();
 
-            var service = new ElasticsearchService(null!, (isKennisBank) => false, (isKcm) => true, null!, configuration.Object);
-
-            var elasticResponse = new ElasticResponse
-            {
-                Hits = new HitsWrapper
-                {
-                    Hits = new List<Hit>
-                    {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "Test document",
-                                ["toelichting"] = "This should remain for non-Kennisbank users",
-                                ["allowedField"] = "This should remain"
-                            }
-                        }
-                    }
-                }
-            };
-
-            service.ApplyResponseTransform(elasticResponse);
-
-            var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
-
-            Assert.IsNotNull(source);
-            Assert.IsTrue(source.ContainsKey("toelichting"));
-            Assert.IsTrue(source.ContainsKey("allowedField"));
-            Assert.AreEqual("This should remain for non-Kennisbank users", source["toelichting"]?.ToString());
-        }
-
-        [TestMethod]
-        public async Task Search_KennisbankUser_WithNoEnvironmentVariableConfigured_DoesNotModifyRequestOrResponse()
-        {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("");
-
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
-
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["multi_match"] = new JsonObject
-                    {
-                        ["query"] = "test",
-                        ["fields"] = new JsonArray(
-                            "VAC.toelichting^1.0",
-                            "title^1.0"
-                        )
-                    }
-                }
-            };
-
-            var elasticResponse = new ElasticResponse
-            {
-                Hits = new HitsWrapper
-                {
-                    Hits = new List<Hit>
-                    {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["toelichting"] = "Should remain"
-                            }
-                        }
-                    }
-                }
-            };
-
-            // Assert - Request should not be modified
-            service.ApplyRequestTransform(elasticQuery);
-            var fields = elasticQuery!["query"]?["multi_match"]?["fields"]?.AsArray();
-            Assert.IsNotNull(fields);
-            Assert.AreEqual(2, fields.Count);
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
-
-            // Assert - Response should not be modified
-            service.ApplyResponseTransform(elasticResponse);
-            var source = elasticResponse.Hits?.Hits?[0].Source?.AsObject();
-            Assert.IsNotNull(source);
-            Assert.IsTrue(source.ContainsKey("toelichting"));
-        }
-
-        [TestMethod]
-        public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveFieldsFromRequest()
-        {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => true, null!, configuration.Object);
-
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["multi_match"] = new JsonObject
-                    {
-                        ["query"] = "test",
-                        ["fields"] = new JsonArray(
-                            "VAC.toelichting^1.0",
-                            "Kennisbank.vertalingen.deskMemo^1.0",
-                            "title^1.0"
-                        )
-                    }
-                }
-            };
-
-            service.ApplyRequestTransform(elasticQuery);
-
-            var fields = elasticQuery["query"]?["multi_match"]?["fields"]?.AsArray();
-            Assert.IsNotNull(fields);
-            Assert.AreEqual(3, fields.Count);
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "VAC.toelichting^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "Kennisbank.vertalingen.deskMemo^1.0"));
-            Assert.IsTrue(fields.Any(x => x?.ToString() == "title^1.0"));
-        }
-
-        [TestMethod]
-        public async Task Search_UserWithKennisbankAndKcmRoles_DoesNotRemoveExcludedFieldsFromResponse()
-        {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            var service = new ElasticsearchService(null!, (isKennisBank) => true, (isKcm) => true, null!, configuration.Object);
-
-            var responseBody = new ElasticResponse
-            {
-                Hits = new HitsWrapper
-                {
-                    Hits = new List<Hit>
-                    {
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "First item",
-                                ["VAC"] = new JsonObject
-                                {
-                                    ["allowedField"] = "This should remain",
-                                    ["toelichting"] = "This must be removed!"
-                                },
-                                ["toelichting"] = "Should remain"
-                            }
-                        },
-                        new Hit
-                        {
-                            Source = new JsonObject
-                            {
-                                ["title"] = "Second item",
-                                ["Kennisbank"] = new JsonObject
-                                {
-                                    ["allowedField"] = "This should remain",
-                                    ["vertalingen"] = new JsonObject
-                                    {
-                                        ["deskMemo"] = "This must be removed!"
-                                    }
-                                },
-                                ["toelichting"] = "This should remain"
-                            }
-                        }
-                    }
-                }
-            };
-
-            service.ApplyResponseTransform(responseBody);
-
-            // Verify VAC.toelichting is NOT removed
-            var sourceVAC = responseBody.Hits?.Hits?[0].Source?["VAC"]?.AsObject();
-            Assert.IsNotNull(sourceVAC);
-            Assert.IsTrue(sourceVAC.ContainsKey("toelichting"));
-            Assert.IsTrue(sourceVAC.ContainsKey("allowedField"));
-
-            // Verify Kennisbank.vertalingen.deskMemo is NOT removed
-            var sourceKennisbank = responseBody.Hits?.Hits?[1].Source?["Kennisbank"]?.AsObject();
-            Assert.IsNotNull(sourceKennisbank);
-            Assert.IsTrue(sourceKennisbank["vertalingen"]?.AsObject().ContainsKey("deskMemo"));
-            Assert.IsTrue(sourceKennisbank.ContainsKey("allowedField"));
-        }
-
-        #endregion
-
-        #region Proxy Functionality Tests
-
-        [TestMethod]
-        public async Task Search_ForwardsRequestToElasticsearch()
-        {
-            var configuration = new Mock<IConfiguration>();
-            configuration.Setup(c => c["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"]).Returns("VAC.toelichting,Kennisbank.vertalingen.deskMemo");
-
-            var mockHttp = new MockHttpMessageHandler();
-            var wasCalled = false;
-            mockHttp.When(HttpMethod.Post, "https://elasticsearch.example.com/my-index/_search")
-                .With(req =>
-                {
-                    wasCalled = true;
-                    return true;
-                })
+            var called = false;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/search-smoelenboek/_search")
+                .With(_ => { called = true; return true; })
                 .Respond("application/json", JsonSerializer.Serialize(new
                 {
                     hits = new { hits = Array.Empty<object>() }
                 }));
 
-            var httpClient = mockHttp.ToHttpClient();
-            httpClient.BaseAddress = new Uri("https://elasticsearch.example.com");
+            var result = await service.SearchMedewerkers(
+                new MedewerkerSearchRequest("jan", null, null),
+                CancellationToken.None);
 
-            var service = new ElasticsearchService(httpClient, (isKennisBank) => true, (isKcm) => false, null!, configuration.Object);
-
-            var elasticQuery = new JsonObject
-            {
-                ["query"] = new JsonObject
-                {
-                    ["term"] = new JsonObject { ["field"] = "value" }
-                },
-                ["size"] = 20
-            };
-
-            await service.Search("my-index/_search", elasticQuery, CancellationToken.None);
-
-            Assert.IsTrue(wasCalled);
+            Assert.IsTrue(called);
+            Assert.IsNotNull(result);
         }
 
-        #endregion
+        [TestMethod]
+        public async Task GlobalSearch_KennisbankOnlyUser_ExcludesConfiguredFieldsFromQueryAndSource()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: true,
+                isKcm: false,
+                excludedFields: "VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank", "search-vac"],
+                ["title", "VAC.toelichting", "VAC.toelichting.stem", "Kennisbank.vertalingen.deskMemo", "Kennisbank.naam"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            // Excluded fields must not appear in multi_match fields
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsFalse(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should be excluded from multi_match fields");
+            Assert.IsFalse(fieldList.Any(f => f.StartsWith("Kennisbank.vertalingen.deskMemo")), "Kennisbank.vertalingen.deskMemo should be excluded from multi_match fields");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("title")), "title should remain in multi_match fields");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("Kennisbank.naam")), "Kennisbank.naam should remain in multi_match fields");
+
+            // Excluded fields must appear in _source.excludes
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            var excludeList = excludes.EnumerateArray().Select(f => f.GetString()!).ToList();
+            CollectionAssert.Contains(excludeList, "VAC.toelichting");
+            CollectionAssert.Contains(excludeList, "Kennisbank.vertalingen.deskMemo");
+        }
+
+        [TestMethod]
+        public async Task GlobalSearch_KcmUser_DoesNotExcludeFields()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: false,
+                isKcm: true,
+                excludedFields: "VAC.toelichting,Kennisbank.vertalingen.deskMemo");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank", "search-vac"],
+                ["title", "VAC.toelichting", "Kennisbank.vertalingen.deskMemo"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should NOT be excluded for KCM users");
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("Kennisbank.vertalingen.deskMemo")), "Kennisbank.vertalingen.deskMemo should NOT be excluded for KCM users");
+
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            Assert.AreEqual(0, excludes.GetArrayLength(), "_source.excludes should be empty for KCM users");
+        }
+
+        [TestMethod]
+        public async Task GlobalSearch_UserWithBothRoles_DoesNotExcludeFields()
+        {
+            var (service, http) = BuildService(
+                isKennisbank: true,
+                isKcm: true,
+                excludedFields: "VAC.toelichting");
+
+            RespondToFieldCaps(http,
+                ["search-kennisbank"],
+                ["title", "VAC.toelichting"]);
+
+            string? capturedBody = null;
+            http.When(HttpMethod.Post, "https://elasticsearch.example.com/*/_search")
+                .With(req =>
+                {
+                    capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return true;
+                })
+                .Respond("application/json", JsonSerializer.Serialize(new
+                {
+                    hits = new { total = new { value = 0 }, hits = Array.Empty<object>() }
+                }));
+
+            await service.GlobalSearch(new SearchRequest("test", 1, []), CancellationToken.None);
+
+            Assert.IsNotNull(capturedBody);
+            using var doc = JsonDocument.Parse(capturedBody);
+
+            var fields = doc.RootElement
+                .GetProperty("query").GetProperty("bool").GetProperty("must").GetProperty("bool")
+                .GetProperty("must")[0].GetProperty("bool").GetProperty("should")[0]
+                .GetProperty("multi_match").GetProperty("fields");
+            var fieldList = fields.EnumerateArray().Select(f => f.GetString()!).ToList();
+            Assert.IsTrue(fieldList.Any(f => f.StartsWith("VAC.toelichting")), "VAC.toelichting should NOT be excluded when user has both roles");
+
+            var excludes = doc.RootElement.GetProperty("_source").GetProperty("excludes");
+            Assert.AreEqual(0, excludes.GetArrayLength(), "_source.excludes should be empty when user has both roles");
+        }
     }
 }

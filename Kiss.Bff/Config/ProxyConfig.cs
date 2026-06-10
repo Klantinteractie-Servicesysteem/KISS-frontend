@@ -144,66 +144,27 @@ namespace Microsoft.Extensions.DependencyInjection
                         {
                             Address = proxyRoute.Destination
                         }
-                    },
-                    // TODO: discuss if we need to get a valid certificate for Enterprise Search
-                    HttpClient = proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE
-                     ? new HttpClientConfig
-                     {
-                         DangerousAcceptAnyServerCertificate = true
-                     }
-                     : null
+                    }
                 });
 
-                // TODO: Expose dedicated API controller to handle the Enterprise Search endpoint
-                // Create specific routes based on the proxy route type
-                if (proxyRoute.Route == EnterpriseSearchProxyConfig.ROUTE)
+                allRoutes.Add(new RouteConfig
                 {
-                    // Only allow POST to search_explain endpoint
-                    allRoutes.Add(new RouteConfig
+                    RouteId = proxyRoute.Route,
+                    ClusterId = proxyRoute.Route,
+                    Match = new RouteMatch { Path = $"/api/{proxyRoute.Route.Trim('/')}/{{*any}}" },
+                    AuthorizationPolicy = RequirePermissionAttribute.GetPermissionsStringValue(proxyRoute.RequirePermissions),
+                    Transforms = new[]
                     {
-                        RouteId = $"{proxyRoute.Route}-search-explain",
-                        ClusterId = proxyRoute.Route,
-                        Match = new RouteMatch
+                        new Dictionary<string, string>
                         {
-                            Path = "/api/enterprisesearch/api/as/v1/engines/{engine}/search_explain",
-                            Methods = new[] { "POST" }
+                            ["PathRemovePrefix"] = $"/api/{proxyRoute.Route.Trim('/')}",
                         },
-                        AuthorizationPolicy = Kiss.Policies.KcmOrKennisbankPolicy,
-                        Transforms = new[]
+                        new Dictionary<string, string>
                         {
-                            new Dictionary<string, string>
-                            {
-                                ["PathRemovePrefix"] = "/api/enterprisesearch",
-                            },
-                            new Dictionary<string, string>
-                            {
-                                ["RequestHeaderRemove"] = "Cookie",
-                            }
+                            ["RequestHeaderRemove"] = "Cookie",
                         }
-                    });
-                }
-                else
-                {
-                    // For all other proxy routes, use the original wildcard pattern
-                    allRoutes.Add(new RouteConfig
-                    {
-                        RouteId = proxyRoute.Route,
-                        ClusterId = proxyRoute.Route,
-                        Match = new RouteMatch { Path = $"/api/{proxyRoute.Route.Trim('/')}/{{*any}}" },
-                        AuthorizationPolicy = RequirePermissionAttribute.GetPermissionsStringValue(proxyRoute.RequirePermissions),
-                        Transforms = new[]
-                        {
-                            new Dictionary<string, string>
-                            {
-                                ["PathRemovePrefix"] = $"/api/{proxyRoute.Route.Trim('/')}",
-                            },
-                            new Dictionary<string, string>
-                            {
-                                ["RequestHeaderRemove"] = "Cookie",
-                            }
-                        }
-                    });
-                }
+                    }
+                });
             }
 
             _config = new SimpleProxyConfig(allRoutes, clusters);
