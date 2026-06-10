@@ -708,25 +708,13 @@ settings:
     #   required: [domain, sourceName]
     # @schema
     # -- (list) Website crawler jobs configuration. Each entry creates a CronJob that runs the Elastic Open Crawler for the given domain.
-    # -- Example:
-    # -- website:
-    # --   - domain: https://example.nl
-    # --     sourceName: "Voorbeeld"
-    # --     schedule: "*/59 * * * *"          # default: every 59 minutes
-    # --     historyLimit: 1
-    # --     outputIndex: "search-voorbeeld"       # default: search-<sourceName lowercased>
-    # --     maxCrawlDepth: 3                      # default: 3
-    # --     maxExtractedLinksCount: 1000          # default: 1000
-    # --     maxUniqueUrlCount: 10000              # default: 10000
-    # --     purgeCrawlEnabled: true               # default: true
-    # --     fullHtmlExtractionEnabled: false      # default: false
-    # --     excludeTags: [header, footer, nav]    # default: [header, footer, nav]
-    # --     userAgent: "MyOrg-Crawler/1.0"       # default: Elastic-Crawler (<version>)
-    # --     threadsPerCrawl: 5                    # default: 10
-    # --     crawlRules:                           # default: none
-    # --       - policy: deny
-    # --         type: contains
-    # --         pattern: /login
+    # -- Required fields per entry: `domain` (URL to crawl) and `sourceName` (used as index name: `search-<sourceName>`).
+    # -- Optional fields: `schedule` (cron, default: `*/59 * * * *`), `historyLimit`, `outputIndex`, `maxCrawlDepth`, `maxExtractedLinksCount`, `maxUniqueUrlCount`, `purgeCrawlEnabled`, `fullHtmlExtractionEnabled`, `excludeTags` (default: `[header, footer, nav]`), `userAgent`, `threadsPerCrawl`, `crawlRules`.
+    # -- Example crawlRules to block login pages:
+    # -- crawlRules:
+    # --   - policy: deny
+    # --     type: contains
+    # --     pattern: /login
     website: []
 
 # -- (list) Optionally specify extra list of additional volumes, for example to trust extra ca certificates.

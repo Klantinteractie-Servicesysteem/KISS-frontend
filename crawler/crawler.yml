@@ -6,7 +6,7 @@
 
 ## ------------------------------- Domains ------------------------------------
 domains:
-  - url: https://testing.googleblog.com
+  - url: https://example.com
 
     exclude_tags:
       - header
