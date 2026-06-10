@@ -1347,6 +1347,12 @@
                   "maxCrawlDepth": {
                     "type": "integer"
                   },
+                  "userAgent": {
+                    "type": "string"
+                  },
+                  "threadsPerCrawl": {
+                    "type": "integer"
+                  },
                   "maxExtractedLinksCount": {
                     "type": "integer"
                   },

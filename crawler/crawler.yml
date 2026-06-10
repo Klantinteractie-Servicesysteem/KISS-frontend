@@ -1,5 +1,5 @@
 ## ================== Open Crawler Configuration - Elasticsearch ====================
-## Config for docker.elastic.co/integrations/crawler:latest
+## Config for docker.elastic.co/integrations/crawler:1.0.0
 ## Replace placeholders (https://www.example.nl, ${ELASTIC_HOST}, ${ELASTIC_API_KEY})
 ## before running. Env-style placeholders are NOT expanded by the crawler itself;
 ## either render this file from a template or substitute values at deploy time.
@@ -31,6 +31,8 @@ max_extracted_links_count: 10
 max_unique_url_count: 10
 purge_crawl_enabled: true
 full_html_extraction_enabled: false
+# user_agent: "My-Crawler/1.0"
+# threads_per_crawl: 5
 
 ## ------------------------------- Binary content -----------------------------
 binary_content_extraction_enabled: true

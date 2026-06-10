@@ -721,6 +721,8 @@ settings:
     # --     purgeCrawlEnabled: true               # default: true
     # --     fullHtmlExtractionEnabled: false      # default: false
     # --     excludeTags: [header, footer, nav]    # default: [header, footer, nav]
+    # --     userAgent: "MyOrg-Crawler/1.0"       # default: Elastic-Crawler (<version>)
+    # --     threadsPerCrawl: 5                    # default: 10
     # --     crawlRules:                           # default: none
     # --       - policy: deny
     # --         type: contains
