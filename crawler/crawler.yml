@@ -1,4 +1,4 @@
-## ================== Open Crawler Configuration - Elasticsearch ====================
+﻿## ================== Open Crawler Configuration - Elasticsearch ====================
 ## Config for docker.elastic.co/integrations/crawler:1.0.0
 ## Replace placeholders (https://www.example.nl, ${ELASTIC_HOST}, ${ELASTIC_API_KEY})
 ## before running. Env-style placeholders are NOT expanded by the crawler itself;
@@ -56,4 +56,4 @@ elasticsearch:
   password: YOUR_ES_PASSWORD
   bulk_api:
     max_items: 100
-    max_size_bytes: 1_048_576
+    max_size_bytes: 1048576
