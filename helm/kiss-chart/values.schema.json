@@ -395,7 +395,11 @@
               "type": "string"
             }
           },
-          "required": ["baseUrl", "objectTypeUrl", "token"],
+          "required": [
+            "baseUrl",
+            "objectTypeUrl",
+            "token"
+          ],
           "title": "afdelingen"
         },
         "aspnetcore": {
@@ -458,7 +462,12 @@
               "type": "string"
             }
           },
-          "required": ["name", "host", "username", "password"],
+          "required": [
+            "name",
+            "host",
+            "username",
+            "password"
+          ],
           "title": "database"
         },
         "elastic": {
@@ -501,7 +510,11 @@
               "type": "string"
             }
           },
-          "required": ["baseUrl", "username", "password"],
+          "required": [
+            "baseUrl",
+            "username",
+            "password"
+          ],
           "title": "elastic"
         },
         "email": {
@@ -539,7 +552,9 @@
               "type": "string"
             }
           },
-          "required": ["host"],
+          "required": [
+            "host"
+          ],
           "title": "email"
         },
         "feedback": {
@@ -560,7 +575,10 @@
               "type": "string"
             }
           },
-          "required": ["emailFrom", "emailTo"],
+          "required": [
+            "emailFrom",
+            "emailTo"
+          ],
           "title": "feedback"
         },
         "groepen": {
@@ -588,7 +606,11 @@
               "type": "string"
             }
           },
-          "required": ["baseUrl", "objectTypeUrl", "token"],
+          "required": [
+            "baseUrl",
+            "objectTypeUrl",
+            "token"
+          ],
           "title": "groepen"
         },
         "haalCentraal": {
@@ -647,7 +669,10 @@
               "type": "string"
             }
           },
-          "required": ["baseUrl", "apiKey"],
+          "required": [
+            "baseUrl",
+            "apiKey"
+          ],
           "title": "haalCentraal"
         },
         "kvk": {
@@ -683,7 +708,10 @@
               "type": "string"
             }
           },
-          "required": ["baseUrl", "apiKey"],
+          "required": [
+            "baseUrl",
+            "apiKey"
+          ],
           "title": "kvk"
         },
         "logboek": {
@@ -735,7 +763,9 @@
               "type": "string"
             }
           },
-          "required": ["apiKey"],
+          "required": [
+            "apiKey"
+          ],
           "title": "managementInformatie",
           "type": "object"
         },
@@ -796,15 +826,20 @@
                   "description": "max number of characters before truncation",
                   "required": [],
                   "title": "truncate",
-                  "type": ["integer", "null"]
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
                 }
               },
-              "required": ["claim"],
+              "required": [
+                "claim"
+              ],
               "title": "medewerkerIdentificatie"
             },
             "redacteurRole": {
               "default": "",
-              "description": "Name of the role for a Redacteur. ",
+              "description": "Name of the role for a Redacteur.",
               "title": "redacteurRole",
               "type": "string"
             }
@@ -882,7 +917,9 @@
                     ]
                   }
                 },
-                "required": ["zaaksysteem"]
+                "required": [
+                  "zaaksysteem"
+                ]
               },
               {
                 "oneOf": [
@@ -901,7 +938,11 @@
                             "type": "string"
                           }
                         },
-                        "required": ["baseUrl", "clientId", "clientSecret"]
+                        "required": [
+                          "baseUrl",
+                          "clientId",
+                          "clientSecret"
+                        ]
                       },
                       "interneTaak": {
                         "properties": {
@@ -941,10 +982,18 @@
                             "type": "string"
                           }
                         },
-                        "required": ["baseUrl", "clientId", "clientSecret"]
+                        "required": [
+                          "baseUrl",
+                          "clientId",
+                          "clientSecret"
+                        ]
                       }
                     },
-                    "required": ["contactmomenten", "interneTaak", "klanten"]
+                    "required": [
+                      "contactmomenten",
+                      "interneTaak",
+                      "klanten"
+                    ]
                   },
                   {
                     "description": "Nieuw (klantinteracties) register configuration",
@@ -958,10 +1007,15 @@
                             "type": "string"
                           }
                         },
-                        "required": ["baseUrl", "token"]
+                        "required": [
+                          "baseUrl",
+                          "token"
+                        ]
                       }
                     },
-                    "required": ["klantinteractie"]
+                    "required": [
+                      "klantinteractie"
+                    ]
                   }
                 ],
                 "required": []
@@ -1062,9 +1116,16 @@
                   "type": "string"
                 }
               },
-              "required": ["baseUrl", "objectTypeUrl", "token"],
+              "required": [
+                "baseUrl",
+                "objectTypeUrl",
+                "token"
+              ],
               "title": "kennisbank",
-              "type": ["object", "null"]
+              "type": [
+                "object",
+                "null"
+              ]
             },
             "medewerkers": {
               "description": " properties: {} oneOf:   - description: Use email to assign medewerkers to contactverzoeken. No other configuration required     properties:       useEmail:         const: true     required: [useEmail]   - allOf:       - description: Common medewerkers configuration         properties:           baseUrl:             type: string             minLength: 1           historyLimit:             type: integer           objectTypeUrl:             type: string             minLength: 1           resources:             type: object           schedule:             type: string         required: [baseUrl, objectTypeUrl]       - oneOf:         - description: Token based medewerkers configuration           properties:             token:               type: string               minLength: 1           required: [token]         - description: Client credentials based medewerkers configuration           properties:             clientId:               type: string               minLength: 1             clientSecret:               type: string               minLength: 1           required: [clientId, clientSecret] @schema",
@@ -1077,7 +1138,9 @@
                       "required": []
                     }
                   },
-                  "required": ["useEmail"]
+                  "required": [
+                    "useEmail"
+                  ]
                 },
                 {
                   "allOf": [
@@ -1103,7 +1166,10 @@
                           "type": "string"
                         }
                       },
-                      "required": ["baseUrl", "objectTypeUrl"]
+                      "required": [
+                        "baseUrl",
+                        "objectTypeUrl"
+                      ]
                     },
                     {
                       "oneOf": [
@@ -1115,7 +1181,9 @@
                               "type": "string"
                             }
                           },
-                          "required": ["token"]
+                          "required": [
+                            "token"
+                          ]
                         },
                         {
                           "description": "Client credentials based medewerkers configuration",
@@ -1129,7 +1197,10 @@
                               "type": "string"
                             }
                           },
-                          "required": ["clientId", "clientSecret"]
+                          "required": [
+                            "clientId",
+                            "clientSecret"
+                          ]
                         }
                       ],
                       "required": []
@@ -1235,9 +1306,16 @@
                   "type": "string"
                 }
               },
-              "required": ["token", "baseUrl", "objectTypeUrl"],
+              "required": [
+                "token",
+                "baseUrl",
+                "objectTypeUrl"
+              ],
               "title": "vac",
-              "type": ["object", "null"]
+              "type": [
+                "object",
+                "null"
+              ]
             },
             "website": {
               "description": "website sync jobs configuration",
@@ -1292,11 +1370,14 @@
                     "type": "string"
                   }
                 },
-                "required": ["domain", "sourceName"],
+                "required": [
+                  "domain",
+                  "sourceName"
+                ],
                 "type": "object"
               },
-              "required": [],
-              "title": "website"
+              "title": "website",
+              "type": "array"
             }
           },
           "required": [],
@@ -1328,6 +1409,8 @@
       "type": "array"
     }
   },
-  "required": ["settings"],
+  "required": [
+    "settings"
+  ],
   "type": "object"
 }
