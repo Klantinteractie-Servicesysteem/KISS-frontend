@@ -706,6 +706,7 @@ settings:
     #       items:
     #         type: object
     #   required: [domain, sourceName]
+    # @schema
     # -- (list) website sync jobs configuration
     website: []
 
