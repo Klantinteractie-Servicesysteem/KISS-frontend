@@ -27,6 +27,6 @@ De sync tool schrijft elke bron naar een eigen Elasticsearch-index (patroon: `se
 
 ## Relevance Tuning
 
-KISS doorzoekt alle indices die overeenkomen met het patroon `search-*`. De zoekresultaten worden bepaald door de veldweging in de Elasticsearch-query. U kunt via Kibana de index-instellingen bekijken. Door de relevantie van specifieke velden aan te passen in de query-configuratie, kunt u bepaalde velden zwaarder laten meewegen in het zoekresultaat.
+KISS doorzoekt alle indices die overeenkomen met het patroon `search-*`. De zoekresultaten worden bepaald door de veldweging in de Elasticsearch-query. Via Kibana kunt u de index-instellingen en geïndexeerde documenten bekijken. De veldgewichten zelf liggen vast in de broncode en zijn niet via Kibana aan te passen.
 
 Alle property's van het type text worden standaard doorzoekbaar gemaakt. Het is raadzaam deze standaard instellingen na te lopen. Vooral bij Kennisartikelen (waarvan het object gebaseerd is op de API van de SDG invoervoorziening) zijn er veel text property's die niet relevant zijn voor de zoekresultaten.
