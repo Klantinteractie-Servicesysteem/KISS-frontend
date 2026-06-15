@@ -706,6 +706,7 @@ settings:
     #       items:
     #         type: object
     #   required: [domain, sourceName]
+    # -- (list) website sync jobs configuration
     website: []
 
 # -- (list) Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
