@@ -2,12 +2,13 @@
 {{ range $index, $websiteJob := $.Values.settings.syncJobs.website }}
 ---
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
+type: Opaque
 metadata:
   name: {{ include "kiss-frontend.fullname" $ }}-crawler-website-{{ $index }}
   labels:
     {{- include "kiss-frontend.labels" $ | nindent 4 }}
-data:
+stringData:
   crawler.yml: |
     domains:
       - url: {{ $websiteJob.domain }}
