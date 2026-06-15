@@ -1,187 +1,135 @@
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Memory;
 
 [assembly: InternalsVisibleTo("Kiss.Bff.Test")]
 namespace Kiss.Bff.Extern.Elasticsearch
 {
-    public class ElasticsearchService
+    public class ElasticsearchService(
+        HttpClient httpClient,
+        IMemoryCache memoryCache,
+        IsKennisbank isKennisbank,
+        IsKcm isKcm,
+        ClaimsPrincipal user,
+        IConfiguration configuration)
     {
-        private readonly HttpClient _httpClient;
-        private readonly IsKennisbank _isKennisbank;
-        private readonly IsKcm _isKcm;
-        private readonly ClaimsPrincipal _user;
-        private readonly string[] _excludedFieldsForKennisbank;
+        private const string SmoelenboekIndex = "search-smoelenboek";
+        private const string MetadataCacheKey = "elasticsearch_metadata";
+        private static readonly TimeSpan s_metadataCacheExpiry = TimeSpan.FromHours(1);
 
-        public ElasticsearchService(HttpClient httpClient, IsKennisbank isKennisbank, IsKcm isKcm, ClaimsPrincipal user, IConfiguration configuration)
+        private static readonly Dictionary<string, double> s_boostBySuffix = new()
         {
-            _httpClient = httpClient;
-            _isKennisbank = isKennisbank;
-            _isKcm = isKcm;
-            _user = user;
-            var excludedFields = configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"];
-            _excludedFieldsForKennisbank = string.IsNullOrWhiteSpace(excludedFields) ? [] : excludedFields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            { "",           1.00 },
+            { ".stem",      0.95 },
+            { ".joined",    0.75 },
+            { ".delimiter", 0.40 },
+            { ".prefix",    0.10 },
+        };
+
+        private static readonly HashSet<string> s_excludedSuffixes =
+            [".enum", ".date", ".float", ".location"];
+
+        private readonly string[] _excludedFieldsForKennisbank =
+            (configuration["ELASTIC_EXCLUDED_FIELDS_KENNISBANK"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        private async Task<Metadata> GetMetadata(CancellationToken cancellationToken)
+        {
+            if (memoryCache.TryGetValue(MetadataCacheKey, out Metadata? cached) && cached != null)
+                return cached;
+
+            var response = await httpClient.GetFromJsonAsync<FieldCapsResponse>(
+                "search-*/_field_caps?fields=*", cancellationToken)
+                ?? throw new InvalidOperationException("Empty field caps response");
+
+            var indices = response.Indices.OrderBy(i => i).ToArray();
+            var fields = response.Fields
+                .Where(kv => IsSearchableTextField(kv.Key, kv.Value))
+                .Select(kv => $"{kv.Key}^{BoostFor(kv.Key)}")
+                .ToArray();
+
+            var metadata = new Metadata(indices, fields);
+            memoryCache.Set(MetadataCacheKey, metadata, s_metadataCacheExpiry);
+            return metadata;
         }
 
-        /// <summary>
-        /// Executes an Elasticsearch search request with request/response transformations
-        /// </summary>
-        /// <param name="url">The Elasticsearch endpoint URL</param>
-        /// <param name="elasticQuery">The JSON query object to send to Elasticsearch</param>
-        /// <returns>Transformed Elasticsearch response</returns>
-        public async Task<ElasticResponse?> Search(string url, JsonObject elasticQuery, CancellationToken cancellationToken)
+        private static bool IsSearchableTextField(string fieldName, Dictionary<string, object> types)
         {
-            ApplyRequestTransform(elasticQuery);
-            var esResponse = await _httpClient.PostAsJsonAsync(url, elasticQuery, cancellationToken);
-
-            if (!esResponse.IsSuccessStatusCode)
-            {
-                var errorBody = await esResponse.Content.ReadAsStringAsync(cancellationToken);
-                throw new HttpRequestException($"Elasticsearch request failed: {errorBody}", null, esResponse.StatusCode);
-            }
-
-            var esResponseBody = await esResponse.Content.ReadFromJsonAsync<ElasticResponse>(cancellationToken);
-            ApplyResponseTransform(esResponseBody);
-
-            return esResponseBody;
+            if (fieldName.StartsWith('_')) return false;
+            if (s_excludedSuffixes.Any(s => fieldName.EndsWith(s, StringComparison.OrdinalIgnoreCase))) return false;
+            if (!types.ContainsKey("text")) return false;
+            return true;
         }
 
+        private static double BoostFor(string fieldName) =>
+            s_boostBySuffix
+                .Where(kv => kv.Key.Length == 0 || fieldName.EndsWith(kv.Key, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(kv => kv.Key.Length)
+                .Select(kv => kv.Value)
+                .FirstOrDefault(1.0);
 
-        /// <summary>
-        /// Transform the request query based on user role.
-        /// Removes fields that should not be searched from the query.
-        /// </summary>
-        internal void ApplyRequestTransform(JsonObject query)
+        public async Task<ElasticResponse?> GlobalSearch(SearchRequest request, CancellationToken cancellationToken)
         {
-            if (IsOnlyKennisbank())
-            {
-                foreach (var excludedField in _excludedFieldsForKennisbank)
-                {
-                    RemoveMatchingFieldsRecursive(query, excludedField);
-                }
-            }
+            var metadata = await GetMetadata(cancellationToken);
+
+            var excludes = GetExcludedFieldsForUser();
+            var fields = metadata.Fields
+                .Where(f => !excludes.Any(ex => f.StartsWith(ex, StringComparison.OrdinalIgnoreCase)))
+                .ToArray();
+            // Constrain to known indices: filter.Index comes from the browser and is
+            // concatenated into the ES URL, so without this an authenticated user could
+            // probe arbitrary indices.
+            var knownIndices = metadata.Indices.ToHashSet(StringComparer.Ordinal);
+            var indices = request.Filters is { Count: > 0 } filters
+                ? filters.Select(f => f.Index).Where(knownIndices.Contains).Distinct().OrderBy(x => x).ToArray()
+                : metadata.Indices;
+            var query = QueryBuilder.BuildGlobalSearchQuery(request, fields, excludes);
+            return await PostSearch<ElasticResponse>(indices, query, cancellationToken);
         }
 
-        /// <summary>
-        /// Recursively traverses JSON structure and removes values starting with fieldName from arrays and objects
-        /// </summary>
-        private static void RemoveMatchingFieldsRecursive(JsonNode? node, string fieldName)
+        public async Task<JsonObject?> GetSources(CancellationToken cancellationToken)
         {
-            if (node == null) return;
+            var metadata = await GetMetadata(cancellationToken);
+            if (metadata.Indices.Length == 0) return null;
 
-            if (node is JsonObject jsonObject)
-            {
-                foreach (var property in jsonObject)
-                {
-                    if (property.Value is JsonArray jsonArray)
-                    {
-                        var itemsToRemove = new List<JsonNode?>();
-
-                        foreach (var item in jsonArray)
-                        {
-                            if (item is JsonValue itemValue)
-                            {
-                                var valueStr = itemValue.ToString();
-
-                                if (valueStr.StartsWith(fieldName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    itemsToRemove.Add(item);
-                                }
-                            }
-                        }
-
-                        foreach (var item in itemsToRemove)
-                        {
-                            jsonArray.Remove(item);
-                        }
-                    }
-
-                    RemoveMatchingFieldsRecursive(property.Value, fieldName);
-                }
-            }
-            else if (node is JsonArray jsonArray)
-            {
-                foreach (var item in jsonArray)
-                {
-                    RemoveMatchingFieldsRecursive(item, fieldName);
-                }
-            }
+            return await PostSearch<JsonObject>(metadata.Indices, QueryBuilder.BronnenAggregation, cancellationToken);
         }
 
-        /// <summary>
-        /// Transform the response body by removing excluded fields from the search results
-        /// Filters out any restricted fields for Kennisbank users
-        /// </summary>
-        internal void ApplyResponseTransform(ElasticResponse? responseBody)
+        public async Task<JsonObject?> SearchMedewerkers(MedewerkerSearchRequest request, CancellationToken cancellationToken)
         {
-            if (IsOnlyKennisbank() && _excludedFieldsForKennisbank.Length > 0)
-            {
-                if (responseBody?.Hits?.Hits != null)
-                {
-                    foreach (var hit in responseBody.Hits.Hits)
-                    {
-                        if (hit.Source != null)
-                        {
-                            foreach (var fieldPath in _excludedFieldsForKennisbank)
-                            {
-                                var splitPath = fieldPath.Split('.');
-                                RemoveFieldRecursively(hit.Source, splitPath);
-                            }
-                        }
-                    }
-                }
-            }
+            var query = QueryBuilder.BuildMedewerkerQuery(request);
+            return await PostSearch<JsonObject>([SmoelenboekIndex], query, cancellationToken);
         }
 
-        /// <summary>
-        /// Recursively moves down the field path and removes the field object if it is found.
-        /// </summary>
-        private void RemoveFieldRecursively(JsonNode? node, string[] fieldPath)
+        private async Task<T?> PostSearch<T>(string[] indices, object query, CancellationToken cancellationToken)
         {
-            if (node == null || fieldPath.Length == 0) return;
+            var url = $"{string.Join(",", indices)}/_search";
+            var response = await httpClient.PostAsJsonAsync(url, query, cancellationToken);
 
-            if (fieldPath.Length == 1 && node is JsonObject fieldObject)
+            if (!response.IsSuccessStatusCode)
             {
-                if (fieldObject.ContainsKey(fieldPath[0]))
-                {
-                    fieldObject.Remove(fieldPath[0]);
-                }
-                return;
+                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                throw new HttpRequestException($"Elasticsearch request failed: {errorBody}", null, response.StatusCode);
             }
 
-            var headOfPath = fieldPath[0];
-            var tailOfPath = fieldPath[1..];
-
-            // Check if the current head of the path is in the given node object.
-            if (node is JsonObject jsonObject)
-            {
-                if (jsonObject.ContainsKey(headOfPath))
-                {
-                    RemoveFieldRecursively(jsonObject[headOfPath], tailOfPath);
-                }
-                else
-                {
-                    foreach (var field in jsonObject)
-                    {
-                        RemoveFieldRecursively(field.Value, fieldPath);
-                    }
-                }
-            }
-            else if (node is JsonArray jsonArray)
-            {
-                foreach (var item in jsonArray)
-                {
-                    // If the node is an array, don't skip the field path until an object is encountered.
-                    RemoveFieldRecursively(item, fieldPath);
-                }
-            }
+            return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
         }
-        /// <summary>
-        /// Checks if the user only has the Kennisbank role.
-        /// </summary>
-        private bool IsOnlyKennisbank()
-        {
-            return _isKennisbank(_user) && !_isKcm(_user);
-        }
+
+        private string[] GetExcludedFieldsForUser() =>
+            IsOnlyKennisbank() ? _excludedFieldsForKennisbank : [];
+
+        private bool IsOnlyKennisbank() => isKennisbank(user) && !isKcm(user);
+
+        private record Metadata(string[] Indices, string[] Fields);
+
+        private record FieldCapsResponse(
+            [property: JsonPropertyName("indices")] string[] Indices,
+            [property: JsonPropertyName("fields")] Dictionary<string, Dictionary<string, object>> Fields);
     }
+
+    public record SearchRequest(string Query, int Page, List<SearchFilter> Filters);
+    public record SearchFilter(string Name, string Index);
+    public record MedewerkerSearchRequest(string? Search, string? FilterField, string? FilterValue);
 }

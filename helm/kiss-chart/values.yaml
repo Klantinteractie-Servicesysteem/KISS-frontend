@@ -242,35 +242,6 @@ settings:
   # @schema
   # required: true
   # @schema
-  enterpriseSearch:
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) URL of the API through which KISS can query enterprise search
-    baseUrl: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) The name of the `meta-engine` engine used by KISS.
-    engine: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) Public API key for Elastic API
-    publicApiKey: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) Private API key for Elastic API
-    privateApiKey: ""
-
-  # @schema
-  # required: true
-  # @schema
   feedback:
     # @schema
     # required: true
