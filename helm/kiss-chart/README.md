@@ -139,7 +139,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.vac.resources | object | `{}` |  |
 | settings.syncJobs.vac.schedule | string | `"*/59 * * * *"` |  |
 | settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs |
-| settings.syncJobs.website | list | `[]` |  |
+| settings.syncJobs.website | list | `[]` | website sync jobs configuration |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------
