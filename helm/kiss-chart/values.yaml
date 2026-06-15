@@ -710,11 +710,11 @@ settings:
     # -- (list) Website crawler jobs configuration. Each entry creates a CronJob that runs the Elastic Open Crawler for the given domain.
     # -- Required fields per entry: `domain` (URL to crawl) and `sourceName` (used as index name: `search-<sourceName>`).
     # -- Optional fields: `schedule` (cron, default: `*/59 * * * *`), `historyLimit`, `outputIndex`, `maxCrawlDepth`, `maxExtractedLinksCount`, `maxUniqueUrlCount`, `purgeCrawlEnabled`, `fullHtmlExtractionEnabled`, `excludeTags` (default: `[header, footer, nav]`), `userAgent`, `threadsPerCrawl`, `crawlRules`.
-    # -- Example crawlRules to block login pages:
-    # -- crawlRules:
-    # --   - policy: deny
-    # --     type: contains
-    # --     pattern: /login
+    # e.g. crawlRules to block login pages:
+    # crawlRules:
+    #   - policy: deny
+    #     type: contains
+    #     pattern: /login
     website: []
 
 # -- (list) Optionally specify extra list of additional volumes, for example to trust extra ca certificates.
