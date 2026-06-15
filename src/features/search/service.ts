@@ -9,12 +9,17 @@ import { fetchLoggedIn } from "@/services";
 import type { Ref } from "vue";
 import type { SearchResult, Source } from "./types";
 
+function sourceNameFromIndex(index: string | undefined): string {
+  if (!index) return "Website";
+  return index.startsWith("search-") ? index.slice("search-".length) : index;
+}
+
 export function mapResult(obj: any): SearchResult {
-  const source = obj?._source?.object_bron ?? "Website";
+  const source = obj?._source?.object_bron ?? sourceNameFromIndex(obj?._index);
   const id = obj?._id;
 
   const title = obj?._source?.title ?? obj?._source?.headings?.[0];
-  const content = obj?._source?.body_content;
+  const content = obj?._source?.body;
   const url = parseValidUrl(obj?._source?.url);
   const documentUrl = new URL(location.origin);
   documentUrl.searchParams.set("query", id);
@@ -48,8 +53,7 @@ export function useGlobalSearch(
     filters: Source[];
   }>,
 ) {
-  const getUrl = () =>
-    parameters.value.search ? "/api/search" : "";
+  const getUrl = () => (parameters.value.search ? "/api/search" : "");
 
   const getPayload = () => {
     if (!parameters.value.search) return "";
@@ -97,19 +101,7 @@ export function useSources() {
     const r = await fetchLoggedIn(u, { method: "GET" });
     if (!r.ok) throw new Error();
     const json = await r.json();
-    const {
-      aggregations: { bronnen, domains },
-    } = json ?? {};
-
-    const sources: Source[] = [...bronnen.buckets, ...domains.buckets].flatMap(
-      ({ key, by_index: { buckets } }) =>
-        buckets.map((x: any) => ({
-          index: x.key,
-          name: key,
-        })),
-    );
-
-    return sources;
+    return json.map((s: any) => ({ index: s.index, name: s.name }));
   }
 
   return ServiceResult.fromFetcher(() => "/api/search/sources", fetcher);
@@ -120,7 +112,9 @@ export type DatalistItem = {
   description: string;
 };
 
-export async function searchMedewerkers(parameters: any): Promise<DatalistItem[]> {
+export async function searchMedewerkers(
+  parameters: any,
+): Promise<DatalistItem[]> {
   function mapToDataListItem(obj: any): any {
     const functie = obj?._source.Smoelenboek.functie || obj.function;
     const department =
@@ -148,6 +142,8 @@ export async function searchMedewerkers(parameters: any): Promise<DatalistItem[]
   });
   throwIfNotOk(r);
   const json = await parseJson(r);
-  const { hits: { hits } } = json ?? {};
+  const {
+    hits: { hits },
+  } = json ?? {};
   return Array.isArray(hits) ? hits.map(mapToDataListItem) : [];
 }

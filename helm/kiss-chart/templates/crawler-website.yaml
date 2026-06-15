@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "kiss-frontend.fullname" $ }}-website-sync-{{ $index }}
+  name: {{ include "kiss-frontend.fullname" $ }}-crawler-website-{{ $index }}
   labels:
     {{- include "kiss-frontend.labels" $ | nindent 4 }}
 spec:
@@ -40,31 +40,24 @@ spec:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}
           restartPolicy: OnFailure
           containers:
-            - name: {{ $.Chart.Name }}
+            - name: crawler
               securityContext:
                 {{- toYaml $.Values.securityContext | nindent 16 }}
-              image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag }}"
-              imagePullPolicy: {{ $.Values.settings.syncJobs.image.pullPolicy }}
-              envFrom:
-                - secretRef:
-                    name: {{ include "kiss-frontend.fullname" $ }}
-                - configMapRef:
-                    name: {{ include "kiss-frontend.fullname" $ }}
-              env:
-                {{- if $.Values.extraEnvVars }}
-                {{- include "kiss-frontend.tplvalues.render" (dict "value" $.Values.extraEnvVars "context" $) | nindent 16 }}
-                {{- end }}
+              image: "{{ $.Values.settings.syncJobs.crawlerImage.repository }}:{{ $.Values.settings.syncJobs.crawlerImage.tag }}"
+              imagePullPolicy: {{ $.Values.settings.syncJobs.crawlerImage.pullPolicy }}
               resources:
               {{- toYaml $websiteJob.resources | nindent 16 }}
-              args:
-                - domain
-                - {{ $websiteJob.domain }}
-                - {{ $websiteJob.sourceName }}
               volumeMounts:
+                - name: crawler-config
+                  mountPath: /app/config
+                  readOnly: true
                 {{- if $.Values.extraVolumeMounts }}
                 {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumeMounts "context" $ ) | nindent 16 }}
                 {{- end }}
           volumes:
+            - name: crawler-config
+              secret:
+                secretName: {{ include "kiss-frontend.fullname" $ }}-crawler-website-{{ $index }}
             {{- if $.Values.extraVolumes }}
             {{- include "kiss-frontend.tplvalues.render" ( dict "value" $.Values.extraVolumes "context" $ ) | nindent 12 }}
             {{- end }}
