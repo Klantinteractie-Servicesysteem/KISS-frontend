@@ -77,8 +77,6 @@ watch(
   { immediate: true },
 );
 
-// INTENTIONAL
-// eslint-disable-next-line vue/no-setup-props-destructure
 const data = props.getData(() => debouncedSearchText.value);
 
 const datalistItems = computed(() => ({
