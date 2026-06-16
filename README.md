@@ -64,11 +64,7 @@ To run the front-end and BFF with docker you need a cmd-window opened at the roo
 
 ## Elastic search
 
-KISS uses Elastic search. Building a search query is composed of two steps:
-
-1. The [App Search search-explain endpoint](https://www.elastic.co/guide/en/app-search/current/search-explain.html) is called to build an elasticsearch query template.
-1. The [Elasticsearch search endpoint](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) is called with the query template from the previous step.
-   This is why both Enterprise Search and Elasticsearch need to be accessed by KISS.
+KISS uses Elasticsearch directly. The BFF queries the `search-*` index pattern to search across all configured sources.
 
 Follow these steps to connect your local development environment to an Elastic search instance hosted in Azure/kubernetes:
 
@@ -82,8 +78,7 @@ Run the following commands:
 1. `az account set --subscription [...your subscription id...]` (once)
 1. `az aks get-credentials --resource-group [for example: KISS_Kubernetes_Dev] --name [for example: KISS_Kubernetes_Dev]`
 1. `kubectl config set-context --current --namespace=[for example: kiss-namespace]`
-1. `kubectl port-forward service/kiss-ent-http 3002 -n kiss-namespace`
-1. In a new window: `kubectl port-forward service/kiss-es-http 9200 -n kiss-namespace`
+1. `kubectl port-forward service/kiss-es-http 9200 -n kiss-namespace`
 
 ## Elastic Sync
 
@@ -92,7 +87,7 @@ The `Kiss.Elastic.Sync` tool syncs structured data sources (VACs, Medewerkers, S
 ### Prerequisites
 
 - Make sure `.env.local` in the root of this repo contains the required Elastic Sync variables. See the full list at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html#kiss-elastic-sync
-- Set up port forwards for Enterprise Search and Elasticsearch (see the [Elastic search section](#elastic-search) above).
+- Set up a port forward for Elasticsearch (see the [Elastic search section](#elastic-search) above).
 
 ### Running the sync
 
@@ -109,7 +104,6 @@ docker compose run --rm kiss.elastic.sync           # SDG Producten
 docker compose run --rm kiss.elastic.sync vac        # VACs
 docker compose run --rm kiss.elastic.sync smoelenboek # Medewerkers
 docker compose run --rm kiss.elastic.sync sharepoint  # SharePoint
-docker compose run --rm kiss.elastic.sync domain https://www.example.nl  # Website crawler
 ```
 
 ## Adding Migrations

@@ -839,7 +839,7 @@
             },
             "redacteurRole": {
               "default": "",
-              "description": "Name of the role for a Redacteur. ",
+              "description": "Name of the role for a Redacteur.",
               "title": "redacteurRole",
               "type": "string"
             }
@@ -1029,6 +1029,30 @@
         },
         "syncJobs": {
           "properties": {
+            "crawlerImage": {
+              "properties": {
+                "pullPolicy": {
+                  "default": "IfNotPresent",
+                  "title": "pullPolicy",
+                  "type": "string"
+                },
+                "repository": {
+                  "default": "docker.elastic.co/integrations/crawler",
+                  "description": "The image repository for the Elastic Open Crawler",
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "1.0.0",
+                  "description": "The tag for the Open Crawler image",
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "crawlerImage",
+              "type": "object"
+            },
             "image": {
               "properties": {
                 "pullPolicy": {
@@ -1297,12 +1321,43 @@
               "description": "website sync jobs configuration",
               "items": {
                 "properties": {
+                  "crawlRules": {
+                    "items": {
+                      "required": [],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "domain": {
                     "format": "uri",
                     "type": "string"
                   },
+                  "excludeTags": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "fullHtmlExtractionEnabled": {
+                    "type": "boolean"
+                  },
                   "historyLimit": {
                     "type": "integer"
+                  },
+                  "maxCrawlDepth": {
+                    "type": "integer"
+                  },
+                  "maxExtractedLinksCount": {
+                    "type": "integer"
+                  },
+                  "maxUniqueUrlCount": {
+                    "type": "integer"
+                  },
+                  "outputIndex": {
+                    "type": "string"
+                  },
+                  "purgeCrawlEnabled": {
+                    "type": "boolean"
                   },
                   "resources": {
                     "required": [],
@@ -1315,7 +1370,10 @@
                     "type": "string"
                   }
                 },
-                "required": [],
+                "required": [
+                  "domain",
+                  "sourceName"
+                ],
                 "type": "object"
               },
               "title": "website",
