@@ -1,4 +1,4 @@
-namespace Kiss.Bff.Extern.Elasticsearch
+﻿namespace Kiss.Bff.Extern.Elasticsearch
 {
     /// <summary>
     /// Builds Elasticsearch query DSL using anonymous objects.
@@ -18,7 +18,8 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 multi_match = new
                 {
                     query = request.Query,
-                    minimum_should_match = "8",
+                    minimum_should_match = "100%",
+                    fuzziness = "AUTO",
                     type = "best_fields",
                     fields,
                 }
@@ -52,6 +53,19 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 size = PageSize,
                 _source = new { excludes = excludedSourceFields },
                 indices_boost = new[] { new Dictionary<string, int> { ["*"] = 10 } },
+                suggest = new
+                {
+                    suggestions = new
+                    {
+                        prefix = request.Query,
+                        completion = new
+                        {
+                            field = "_completion",
+                            skip_duplicates = true,
+                            fuzzy = new { },
+                        }
+                    }
+                },
                 query = baseQuery,
             };
         }

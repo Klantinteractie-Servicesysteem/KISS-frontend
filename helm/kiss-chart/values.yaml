@@ -531,6 +531,12 @@ settings:
       # -- (string) The tag for the Open Crawler image
       tag: "1.0.0"
       pullPolicy: IfNotPresent
+    indexTemplateImage:
+      # -- (string) Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl).
+      repository: "curlimages/curl"
+      # -- (string) The tag for the index-template hook image
+      tag: "8.11.0"
+      pullPolicy: IfNotPresent
     # @schema
     # type: [object, null]
     # @schema
