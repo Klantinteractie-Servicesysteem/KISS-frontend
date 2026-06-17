@@ -115,6 +115,9 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
 | settings.syncJobs.image.tag | string | `"0.3.2"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
+| settings.syncJobs.indexTemplateImage.pullPolicy | string | `"IfNotPresent"` |  |
+| settings.syncJobs.indexTemplateImage.repository | string | `"curlimages/curl"` | Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl). |
+| settings.syncJobs.indexTemplateImage.tag | string | `"8.11.0"` | The tag for the index-template hook image |
 | settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |
