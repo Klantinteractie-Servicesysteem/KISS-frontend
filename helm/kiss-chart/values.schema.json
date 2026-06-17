@@ -1076,6 +1076,30 @@
               "title": "image",
               "type": "object"
             },
+            "indexTemplateImage": {
+              "properties": {
+                "pullPolicy": {
+                  "default": "IfNotPresent",
+                  "title": "pullPolicy",
+                  "type": "string"
+                },
+                "repository": {
+                  "default": "curlimages/curl",
+                  "description": "Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl).",
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "8.11.0",
+                  "description": "The tag for the index-template hook image",
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "indexTemplateImage",
+              "type": "object"
+            },
             "kennisbank": {
               "description": " type: [object, null] @schema",
               "properties": {
