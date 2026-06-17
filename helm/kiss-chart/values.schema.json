@@ -1090,7 +1090,7 @@
                   "type": "string"
                 },
                 "tag": {
-                  "default": "8.11.0",
+                  "default": "8.20.0",
                   "description": "The tag for the index-template hook image",
                   "title": "tag",
                   "type": "string"
