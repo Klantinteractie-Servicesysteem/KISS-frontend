@@ -535,7 +535,7 @@ settings:
       # -- (string) Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl).
       repository: "curlimages/curl"
       # -- (string) The tag for the index-template hook image
-      tag: "8.11.0"
+      tag: "8.20.0"
       pullPolicy: IfNotPresent
     # @schema
     # type: [object, null]
