@@ -20,6 +20,16 @@ stringData:
         crawl_rules:
           {{- toYaml $websiteJob.crawlRules | nindent 10 }}
         {{- end }}
+        # Extract page headings into `_completion` to feed the search autocomplete
+        # suggester. Requires `_completion` to be mapped as type `completion`, which
+        # the crawler-index-template hook registers for `search-*` indices.
+        extraction_rulesets:
+          - rules:
+              - action: extract
+                field_name: _completion
+                selector: h1,h2,h3,h4,h5
+                source: html
+                join_as: array
     output_sink: elasticsearch
     output_index: {{ default (printf "search-%s" ($websiteJob.sourceName | lower | replace " " "-")) $websiteJob.outputIndex }}
     {{- if $websiteJob.maxCrawlDepth }}

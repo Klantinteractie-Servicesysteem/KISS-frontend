@@ -1,0 +1,48 @@
+{{- if $.Values.settings.syncJobs.website }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "kiss-frontend.fullname" $ }}-crawler-index-template
+  labels:
+    {{- include "kiss-frontend.labels" $ | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: index-template
+          image: "{{ $.Values.settings.syncJobs.indexTemplateImage.repository }}:{{ $.Values.settings.syncJobs.indexTemplateImage.tag }}"
+          env:
+            - name: ELASTIC_BASE_URL
+              value: {{ $.Values.settings.elastic.baseUrl | quote }}
+            - name: ELASTIC_USERNAME
+              value: {{ $.Values.settings.elastic.username | quote }}
+            - name: ELASTIC_PASSWORD
+              value: {{ $.Values.settings.elastic.password | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              curl -sS -k -f -X PUT \
+                --retry 3 --retry-delay 5 --retry-all-errors \
+                "${ELASTIC_BASE_URL}/_index_template/kiss-crawler-website" \
+                -u "${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}" \
+                -H 'Content-Type: application/json' \
+                -d '{
+                  "index_patterns": ["search-*"],
+                  "template": {
+                    "mappings": {
+                      "properties": {
+                        "_completion": { "type": "completion" }
+                      }
+                    }
+                  }
+                }'
+{{- end }}
