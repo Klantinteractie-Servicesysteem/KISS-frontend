@@ -1066,8 +1066,8 @@
                   "type": "string"
                 },
                 "tag": {
-                  "default": "0.3.2",
-                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
+                  "default": "sha-2ca835f",
+                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. ",
                   "title": "tag",
                   "type": "string"
                 }
