@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -17,7 +17,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
     {
         private const string SmoelenboekIndex = "search-smoelenboek";
         private const string MetadataCacheKey = "elasticsearch_metadata";
-        private static readonly TimeSpan s_metadataCacheExpiry = TimeSpan.FromHours(1);
+        private static readonly TimeSpan s_metadataCacheExpiry = TimeSpan.FromMinutes(1);
 
         private static readonly Dictionary<string, double> s_boostBySuffix = new()
         {
@@ -114,8 +114,17 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 .ToArray();
         }
 
-        private static string DisplayNameFor(string index) =>
-            index.StartsWith("search-", StringComparison.Ordinal) ? index["search-".Length..] : index;
+        private static string DisplayNameFor(string index)
+        {
+            var span = index.AsSpan();
+            if (span.StartsWith("search-", StringComparison.Ordinal))
+            {
+                span = span["search-".Length..];
+            }
+            Span<char> result = stackalloc char[span.Length];
+            span.Replace(result, '-', ' ');
+            return new string(result);
+        }
 
         public async Task<JsonObject?> SearchMedewerkers(MedewerkerSearchRequest request, CancellationToken cancellationToken)
         {
