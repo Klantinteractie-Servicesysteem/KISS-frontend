@@ -74,6 +74,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.elastic.bulkHttpTimeoutMinutes | int | `10` | The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs. |
 | settings.elastic.excludedFieldsKennisbank | list | `[]` | Fields that a Kennisbank user is not allowed to search and view. |
 | settings.elastic.password | string | `""` | Password to log in to Elasticsearch |
+| settings.elastic.sslVerify | bool | `false` | Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates. |
 | settings.elastic.username | string | `""` | Username to log in to Elasticsearch |
 | settings.email.enableSsl | bool | `true` | Use SSL (true/false) |
 | settings.email.host | string | `""` | Address of the mail server |
@@ -114,7 +115,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.syncJobs.crawlerImage.tag | string | `"1.0.0"` | The tag for the Open Crawler image |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
-| settings.syncJobs.image.tag | string | `"sha-2ca835f"` | The tag for the `kiss-elastic-sync` image to use for sync jobs.  |
+| settings.syncJobs.image.tag | string | `""` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
 | settings.syncJobs.indexTemplateImage.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.indexTemplateImage.repository | string | `"curlimages/curl"` | Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl). |
 | settings.syncJobs.indexTemplateImage.tag | string | `"8.20.0"` | The tag for the index-template hook image |
