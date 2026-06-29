@@ -239,6 +239,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
                         return Task.CompletedTask;
                     };
+                    options.Events.OnRedirectToIdentityProviderForSignOut = ctx =>
+                    {
+                        // needed for logging out from keycloak
+                        ctx.ProtocolMessage.Parameters.Add("client_id", authOptions.ClientId);
+                        return Task.CompletedTask;
+                    };
                 });
             }
 
