@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.2.4
+- Fix logout: send `client_id` on the Keycloak RP-initiated logout redirect (fixes "Missing parameters: id_token_hint" when signing out).
+
 ## v2.2.3
 - update vulnerable dependencies
 
