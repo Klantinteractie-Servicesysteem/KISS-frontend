@@ -45,6 +45,11 @@ spec:
                 {{- toYaml $.Values.securityContext | nindent 16 }}
               image: "{{ $.Values.settings.syncJobs.crawlerImage.repository }}:{{ $.Values.settings.syncJobs.crawlerImage.tag }}"
               imagePullPolicy: {{ $.Values.settings.syncJobs.crawlerImage.pullPolicy }}
+              command:
+                - bin/crawler
+              args:
+                - crawl
+                - /app/config/crawler.yml
               resources:
               {{- toYaml $websiteJob.resources | nindent 16 }}
               volumeMounts:
