@@ -43,7 +43,7 @@ spec:
             - name: {{ $.Chart.Name }}
               securityContext:
                 {{- toYaml $.Values.securityContext | nindent 16 }}
-              image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag }}"
+              image: "{{ $.Values.settings.syncJobs.image.repository }}:{{ $.Values.settings.syncJobs.image.tag | default $.Chart.AppVersion }}"
               imagePullPolicy: {{ $.Values.settings.syncJobs.image.pullPolicy }}
               envFrom:
                 - secretRef:
