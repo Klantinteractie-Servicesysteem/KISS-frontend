@@ -502,6 +502,12 @@
               "title": "password",
               "type": "string"
             },
+            "sslVerify": {
+              "default": "false",
+              "description": "Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.",
+              "required": [],
+              "title": "sslVerify"
+            },
             "username": {
               "default": "",
               "description": "Username to log in to Elasticsearch",
@@ -1066,8 +1072,8 @@
                   "type": "string"
                 },
                 "tag": {
-                  "default": "sha-2ca835f",
-                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. ",
+                  "default": "",
+                  "description": "The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.",
                   "title": "tag",
                   "type": "string"
                 }
@@ -1345,6 +1351,9 @@
               "description": "website sync jobs configuration",
               "items": {
                 "properties": {
+                  "binaryContentExtractionEnabled": {
+                    "type": "boolean"
+                  },
                   "crawlRules": {
                     "items": {
                       "required": [],
