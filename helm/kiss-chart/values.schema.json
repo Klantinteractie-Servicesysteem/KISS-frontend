@@ -503,10 +503,10 @@
               "type": "string"
             },
             "sslVerify": {
-              "default": "false",
+              "default": false,
               "description": "Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.",
-              "required": [],
-              "title": "sslVerify"
+              "title": "sslVerify",
+              "type": "boolean"
             },
             "username": {
               "default": "",
