@@ -220,7 +220,7 @@ settings:
     # -- (int) The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.
     bulkHttpTimeoutMinutes: 10
 
-    # -- Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.
+    # -- (bool) Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.
     sslVerify: false
 
   # @schema
