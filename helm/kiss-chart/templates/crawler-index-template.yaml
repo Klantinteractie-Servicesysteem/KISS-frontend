@@ -30,7 +30,7 @@ spec:
             - -c
             - |
               set -e
-              curl -sS -k -f -X PUT \
+              curl -sS {{ $.Values.settings.elastic.sslVerify | ternary "" "-k" }} -f -X PUT \
                 --retry 3 --retry-delay 5 --retry-all-errors \
                 "${ELASTIC_BASE_URL}/_index_template/kiss-crawler-website" \
                 -u "${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}" \

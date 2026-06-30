@@ -220,6 +220,9 @@ settings:
     # -- (int) The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.
     bulkHttpTimeoutMinutes: 10
 
+    # -- (bool) Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.
+    sslVerify: false
+
   # @schema
   # required: true
   # @schema
@@ -523,8 +526,8 @@ settings:
     image:
       repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"
       pullPolicy: IfNotPresent
-      # -- (string) The tag for the `kiss-elastic-sync` image to use for sync jobs. 
-      tag: "sha-2ca835f"
+      # -- (string) The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.
+      tag: ""
     crawlerImage:
       # -- (string) The image repository for the Elastic Open Crawler
       repository: "docker.elastic.co/integrations/crawler"
@@ -702,6 +705,8 @@ settings:
     #     purgeCrawlEnabled:
     #       type: boolean
     #     fullHtmlExtractionEnabled:
+    #       type: boolean
+    #     binaryContentExtractionEnabled:
     #       type: boolean
     #     excludeTags:
     #       type: array
