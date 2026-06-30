@@ -44,7 +44,11 @@ namespace Kiss.Bff.Extern.Elasticsearch
                 "search-*/_field_caps?fields=*", cancellationToken)
                 ?? throw new InvalidOperationException("Empty field caps response");
 
-            var indices = response.Indices.OrderBy(i => i).ToArray();
+            var indices = response.Indices
+                .OrderBy(i => i)
+                .Select(i => new Source(i, DisplayNameFor(i)))
+                .ToArray();
+
             var fields = response.Fields
                 .Where(kv => IsSearchableTextField(kv.Key, kv.Value))
                 .Select(kv => $"{kv.Key}^{BoostFor(kv.Key)}")
@@ -81,10 +85,10 @@ namespace Kiss.Bff.Extern.Elasticsearch
             // Constrain to known indices: filter.Index comes from the browser and is
             // concatenated into the ES URL, so without this an authenticated user could
             // probe arbitrary indices.
-            var knownIndices = metadata.Indices.ToHashSet(StringComparer.Ordinal);
-            var indices = request.Filters is { Count: > 0 } filters
+            var knownIndices = metadata.Sources.Select(x => x.Index).ToHashSet(StringComparer.Ordinal);
+            IReadOnlyCollection<string> indices = request.Filters is { Count: > 0 } filters
                 ? filters.Select(f => f.Index).Where(knownIndices.Contains).Distinct().OrderBy(x => x).ToArray()
-                : metadata.Indices;
+                : knownIndices;
             var query = QueryBuilder.BuildGlobalSearchQuery(request, fields, excludes);
             var response = await PostSearch<ElasticResponse>(indices, query, cancellationToken);
             NormalizeLegacyBodyField(response);
@@ -109,9 +113,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
         public async Task<Source[]> GetSources(CancellationToken cancellationToken)
         {
             var metadata = await GetMetadata(cancellationToken);
-            return metadata.Indices
-                .Select(i => new Source(i, DisplayNameFor(i)))
-                .ToArray();
+            return metadata.Sources;
         }
 
         private static string DisplayNameFor(string index)
@@ -121,7 +123,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             {
                 span = span["search-".Length..];
             }
-            Span<char> result = stackalloc char[span.Length];
+            var result = new char[span.Length];
             span.Replace(result, '-', ' ');
             return new string(result);
         }
@@ -132,7 +134,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
             return await PostSearch<JsonObject>([SmoelenboekIndex], query, cancellationToken);
         }
 
-        private async Task<T?> PostSearch<T>(string[] indices, object query, CancellationToken cancellationToken)
+        private async Task<T?> PostSearch<T>(IReadOnlyCollection<string> indices, object query, CancellationToken cancellationToken)
         {
             var url = $"{string.Join(",", indices)}/_search";
             var response = await httpClient.PostAsJsonAsync(url, query, cancellationToken);
@@ -151,7 +153,7 @@ namespace Kiss.Bff.Extern.Elasticsearch
 
         private bool IsOnlyKennisbank() => isKennisbank(user) && !isKcm(user);
 
-        private record Metadata(string[] Indices, string[] Fields);
+        private record Metadata(Source[] Sources, string[] Fields);
 
         private record FieldCapsResponse(
             [property: JsonPropertyName("indices")] string[] Indices,
