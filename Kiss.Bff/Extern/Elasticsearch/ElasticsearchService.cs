@@ -118,14 +118,12 @@ namespace Kiss.Bff.Extern.Elasticsearch
 
         private static string DisplayNameFor(string index)
         {
-            var span = index.AsSpan();
-            if (span.StartsWith("search-", StringComparison.Ordinal))
+            const string Prefix = "search-";
+            if (index.StartsWith(Prefix, StringComparison.Ordinal))
             {
-                span = span["search-".Length..];
+                index = index["search-".Length..];
             }
-            var result = new char[span.Length];
-            span.Replace(result, '-', ' ');
-            return new string(result);
+            return index.Replace('-', ' ');
         }
 
         public async Task<JsonObject?> SearchMedewerkers(MedewerkerSearchRequest request, CancellationToken cancellationToken)
