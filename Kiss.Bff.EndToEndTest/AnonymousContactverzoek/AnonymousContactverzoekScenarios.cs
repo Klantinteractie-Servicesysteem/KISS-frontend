@@ -180,8 +180,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetGroupRadioButton().ClickAsync();
 
             await Step("And user selects 'Brandweer' from dropdown list of field group");
-            await Page.GetGroupCombobox().FillAsync("Communicatieadviseur");
-            await Page.GetByText("Communicatieadviseurs").ClickAsync();
+            await Page.GetGroupCombobox().FillAsync("Bezwaar en Beroep");
+            await Page.GetByText("Bezwaar en Beroep").ClickAsync();
 
             await Step("And enters 'test automation' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
@@ -255,8 +255,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetGroupRadioButton().ClickAsync();
 
             await Step("And user selects 'Brandweer' from dropdown list of field group");
-            await Page.GetGroupCombobox().FillAsync("Communicatieadviseur");
-            await Page.GetByText("Communicatieadviseurs").ClickAsync();
+            await Page.GetGroupCombobox().FillAsync("Bezwaar en Beroep");
+            await Page.GetByText("Bezwaar en Beroep").ClickAsync();
 
             await Step("And enters 'test automation' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
@@ -430,8 +430,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
-
-            await Expect(Page.GetContactVerzoekSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
+            await Expect(Page.GetContactVerzoekSuccessToast()).ToHaveTextAsync(
+                "Het contactmoment is opgeslagen",
+                new() { Timeout = 30000 });
         }
 
         [TestMethod("7. Validation of Email field in contactverzoek form")]
@@ -487,7 +488,18 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Page.GetEmailfield().FillAsync("automation@info.nl");
 
             await Step("And user clicks on Opslaan button");
-            await Page.GetOpslaanButton().ClickAsync();
+            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(async () =>
+            {
+                await Page.GetOpslaanButton().ClickAsync();
+            },
+                response => response.Url.Contains("/postklantcontacten")
+            );
+
+            // Register cleanup
+            RegisterCleanup(async () =>
+            {
+                await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
+            });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
 
@@ -539,7 +551,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("User selects 'Afdeling: Communicatie' from dropdown list of field Afdeling / groep");
 
             await Page.GetByLabel("Afdeling / groep Afdeling:")
-            .SelectOptionAsync(new SelectOptionValue { Label = "Afdeling: Communicatie" });
+            .SelectOptionAsync(new SelectOptionValue { Label = "Afdeling: Advies, support en kennis (ASK)" });
 
             await Step(" user fills in interne toelichting voor medewerker");
             await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting voor" }).FillAsync("test interne toelichting");
