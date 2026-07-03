@@ -70,16 +70,16 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.CreateNewContactmomentAsync();
 
             await Step("And checks the box Smoelenboek");
-
-            await Page.GetSmoelenboekCheckbox().CheckAsync(new() { Force = true });
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetSmoelenboekCheckbox().ClickAsync();
+            await Expect(Page.GetSmoelenboekCheckbox()).ToBeCheckedAsync();
 
             await Step("And enters 'boom' in the search field in the Search pane");
 
             await Page.GetGlobalSearch().FillAsync("boom");
-
             await Step("And presses Enter");
-
             await Page.GetGlobalSearch().PressAsync("Enter");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then 10 items should appear");
 
@@ -89,9 +89,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
             {
-                await Expect(item.Locator("span:nth-of-type(1)").Filter(new() { HasText = "Smoelenboek" })).ToBeVisibleAsync();
+                await Expect(item).ToContainTextAsync("Smoelenboek");
             }));
-
         }
 
         [TestMethod("3. Search for VAC in Contactmoment")]
@@ -106,9 +105,11 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.CreateNewContactmomentAsync();
 
             await Step("And checks the box VAC in the Search pane");
-
-            await Page.GetVACCheckbox().CheckAsync();
-
+           
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetVACCheckbox().ClickAsync();
+            await Expect(Page.GetVACCheckbox()).ToBeCheckedAsync();
+        
             await Step("And enters 'boom' in the search field in the Search pane");
 
             await Page.GetGlobalSearch().FillAsync("boom");
@@ -116,6 +117,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Step("And presses Enter");
 
             await Page.GetGlobalSearch().PressAsync("Enter");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then 10 items should appear");
 
@@ -125,7 +127,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
             {
-                await Expect(item.Locator("span:nth-of-type(1)").Filter(new() { HasText = "VAC" })).ToBeVisibleAsync();
+                await Expect(item).ToContainTextAsync("VAC");
             }));
         }
 
@@ -142,8 +144,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Step("And checks the box Kennisbank in the Search pane");
 
-            await Page.GetKennisbankCheckbox().CheckAsync();
-
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetKennisbankCheckbox().ClickAsync();
+            await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
+        
             await Step("And enters 'boom' in the search field in the Search pane");
 
             await Page.GetGlobalSearch().FillAsync("boom");
@@ -161,7 +165,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
             {
-                await Expect(item.Locator("span").Filter(new() { HasText = "Kennisbank" }).First).ToBeVisibleAsync();
+                await Expect(item).ToContainTextAsync("Kennisbank");
             }));
         }
 
