@@ -71,7 +71,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Step("And checks the box Smoelenboek");
 
-            await Page.GetSmoelenboekCheckbox().CheckAsync();
+            await Page.GetSmoelenboekCheckbox().CheckAsync(new() { Force = true });
 
             await Step("And enters 'boom' in the search field in the Search pane");
 
@@ -151,6 +151,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Step("And presses Enter");
 
             await Page.GetGlobalSearch().PressAsync("Enter");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then 10 items should appear");
 
@@ -160,7 +161,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Task.WhenAll((await Page.GetGlobalSearchResults().AllAsync()).Select(async item =>
             {
-                await Expect(item.Locator("span:nth-of-type(1)").Filter(new() { HasText = "Kennisbank" })).ToBeVisibleAsync();
+                await Expect(item.Locator("span").Filter(new() { HasText = "Kennisbank" }).First).ToBeVisibleAsync();
             }));
         }
 
