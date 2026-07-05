@@ -548,7 +548,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("error message as 'Please select an item in the list.' is displayed for the field Afdeling / groep.");
             await Expect(Page.GetAfdelingTextbox()).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
 
-            await Step("User selects 'Afdeling: Communicatie' from dropdown list of field Afdeling / groep");
+            await Step("User selects 'Afdeling: Advies, support en kennis (ASK)' from dropdown list of field Afdeling / groep");
 
             await Page.GetByLabel("Afdeling / groep Afdeling:")
             .SelectOptionAsync(new SelectOptionValue { Label = "Afdeling: Advies, support en kennis (ASK)" });

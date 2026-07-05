@@ -71,7 +71,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
 
             await Step("And checks the box Smoelenboek");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetSmoelenboekCheckbox().ClickAsync();
+            await Page.GetSmoelenboekCheckbox().CheckAsync();
             await Expect(Page.GetSmoelenboekCheckbox()).ToBeCheckedAsync();
 
             await Step("And enters 'boom' in the search field in the Search pane");
@@ -105,9 +105,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.CreateNewContactmomentAsync();
 
             await Step("And checks the box VAC in the Search pane");
-           
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetVACCheckbox().ClickAsync();
+            await Page.GetVACCheckbox().CheckAsync();
             await Expect(Page.GetVACCheckbox()).ToBeCheckedAsync();
         
             await Step("And enters 'boom' in the search field in the Search pane");
@@ -143,9 +142,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen
             await Page.CreateNewContactmomentAsync();
 
             await Step("And checks the box Kennisbank in the Search pane");
-
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetKennisbankCheckbox().ClickAsync();
+            await Page.GetKennisbankCheckbox().CheckAsync();
             await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
         
             await Step("And enters 'boom' in the search field in the Search pane");

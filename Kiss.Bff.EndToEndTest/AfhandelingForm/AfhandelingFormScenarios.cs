@@ -266,8 +266,8 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
         {
             if (title == null) return string.Empty;
             var t = title.Trim();
-            if (t.StartsWith("Kennisbank ")) return t.Substring("Kennisbank ".Length).Trim();
-            if (t.StartsWith("VAC ")) return t.Substring("VAC ".Length).Trim();
+            if (t.StartsWith("Kennisbank ", StringComparison.Ordinal)) return t.Substring("Kennisbank ".Length).Trim();
+            if (t.StartsWith("VAC ", StringComparison.Ordinal)) return t.Substring("VAC ".Length).Trim();
             return t;
         }
 
@@ -286,7 +286,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             var responseTask = Page.WaitForResponseAsync(
-                response => response.Url.Contains("/api/search"),
+                response => response.Url.Contains("/api/search") && !response.Url.Contains("/api/search/"),
                 new() { Timeout = 50000 });
 
             await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
@@ -381,7 +381,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             var responseTask = Page.WaitForResponseAsync(
-                response => response.Url.Contains("/api/search"),
+                response => response.Url.Contains("/api/search") && !response.Url.Contains("/api/search/"),
                 new() { Timeout = 50000 });
 
             await Page.SearchAndSelectItem(searchTerm, resultName, exact: true);
