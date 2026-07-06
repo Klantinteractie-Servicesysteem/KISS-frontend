@@ -19,7 +19,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
             await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
             await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync(searchTerm);
 
-            await page.GetByRole(AriaRole.Combobox).PressAsync("Enter");
+            await page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).PressAsync("Enter");
 
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 

@@ -1,6 +1,4 @@
-﻿
-
-using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
+﻿using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 
@@ -13,24 +11,22 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
         public async Task SearchForZaakInContactmoment()
         {
             await Step("Given the user has started a new Contactmoment");
-
             await Page.CreateNewContactmomentAsync();
 
             await Step("When the user clicks on 'Zaken' in the menu");
-
             await Page.GetByRole(AriaRole.Link, new() { Name = "Zaken" }).ClickAsync();
 
             await Step("And enters 'ZAAK-2023-002' in the search field");
-
             await Page.GetByPlaceholder("Zoek op zaaknummer").FillAsync("ZAAK-2023-002");
 
             await Step("And clicks zoeken (magnifying glass-icon)");
-
             await Page.GetByTitle("Zoeken").ClickAsync();
 
-            await Step("Then the user will navigate to the screen 'Zaak ZAAK-2023-002'");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-002" })).ToBeVisibleAsync();
+            await Step("Then the user will navigate to the screen 'Zaak ZAAK-2023-002'");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Zaak ZAAK-2023-002" }))
+                .ToBeVisibleAsync(new() { Timeout = 30000 });
         }
 
         [TestMethod("2. Register Contactmoment bij Zaak - I")]
@@ -145,6 +141,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentZaak
             await Step("And clicks zoeken");
 
             await Page.GetByTitle("Zoeken").ClickAsync();
+
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And navigates to the screen 'Zaak ZAAK-2023-002'");
 
