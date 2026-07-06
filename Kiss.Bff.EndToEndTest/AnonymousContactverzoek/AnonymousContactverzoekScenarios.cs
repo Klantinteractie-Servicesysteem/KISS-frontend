@@ -164,7 +164,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
         }
 
         [TestMethod("3. Contactverzoek creation and search via telefoonnummer for group")]
-
         public async Task AnonymousContactVerzoekTelefoonGroup()
         {
             await Step("Given the user is on the Startpagina");
@@ -179,7 +178,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And selects group radiobutton");
             await Page.GetGroupRadioButton().ClickAsync();
 
-            await Step("And user selects 'Brandweer' from dropdown list of field group");
+            await Step("And user selects 'Bezwaar en Beroep' from dropdown list of field group");
             await Page.GetGroupCombobox().FillAsync("Bezwaar en Beroep");
             await Page.GetByText("Bezwaar en Beroep").ClickAsync();
 
@@ -254,7 +253,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And selects group radiobutton");
             await Page.GetGroupRadioButton().ClickAsync();
 
-            await Step("And user selects 'Brandweer' from dropdown list of field group");
+            await Step("And user selects 'Bezwaar en Beroep' from dropdown list of field group");
             await Page.GetGroupCombobox().FillAsync("Bezwaar en Beroep");
             await Page.GetByText("Bezwaar en Beroep").ClickAsync();
 
