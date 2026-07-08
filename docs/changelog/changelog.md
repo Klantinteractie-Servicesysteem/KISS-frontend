@@ -7,6 +7,14 @@
 - Twee actoren tonen bij inzien Contactverzoeken #882
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350)
 
+## v2.2.4
+
+- Fix logout: send `client_id` on the Keycloak RP-initiated logout redirect (fixes "Missing parameters: id_token_hint" when signing out).
+
+## v2.2.3
+
+- update vulnerable dependencies
+
 ## v2.2.2
 
 - update docs and helm chart for kiss-elastic-sync 0.3.2
