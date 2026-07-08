@@ -9,4 +9,6 @@ Als je KISS installeert gaan we er vanuit dat je [de bijbehorende helm chart](ht
 
 ## KISS-Elastic-Sync
 
-KISS-Elastic-Sync is het component dat zorgt voor het creëren van de benodigde engines in een Elasticsearch-installatie, zodat gekoppelde bronnen eenvoudig door KISS doorzoekbaar zijn. Het ondersteunt zowel websites als gestructureerde bronnen door respectievelijk een crawler en een index te gebruiken. Dit component wordt meegeïnstalleerd met de helm chart van KISS, en aangeroepen door middel van cron jobs.
+KISS-Elastic-Sync is het component dat zorgt voor het creëren van de benodigde engines in een Elasticsearch-installatie, zodat gekoppelde bronnen eenvoudig door KISS doorzoekbaar zijn. Het ondersteunt gestructureerde bronnen (SDG Producten, VAC, Medewerkers, SharePoint) via indexering. Dit component wordt meegeïnstalleerd met de helm chart van KISS, en aangeroepen door middel van cron jobs.
+
+Websites worden gecrawld door de [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html), die als aparte Kubernetes CronJob draait per geconfigureerd domein. Configuratie vindt plaats via `settings.syncJobs.website` in de Helm-chart values.

@@ -1,15 +1,18 @@
 Handleiding beheer
 =======================
 
-Als beheerder van KISS kan je de volgende zaken beheren:
+Als Redacteur van KISS kan je de volgende zaken beheren:
 - Nieuws en werkinstructies
-- Skills
 - Links
+- VACs (indien Environment Variabele `USE_VACS` is ingesteld op `true`)
+
+Als Beheerder van KISS kan je de volgende zaken beheren:
+- Skills
 - Gespreksresultaten
-- Formulier contactverzoeken
+- Formulier contactverzoeken (voor groepen en afdelingen)
 - Kanalen
 
-Per onderwerp leggen wij uit wat de mogelijkheden zijn en hoe je de werkzaamheden uitvoert. Om deze taken te kunnen uitvoeren moet je de rol `Redacteur` hebben (zie ook Configuratie).
+Per onderwerp leggen wij uit wat de mogelijkheden zijn en hoe je de werkzaamheden uitvoert. Om deze taken te kunnen uitvoeren moet je de rol `Redacteur` of `Beheerder` hebben (zie ook Configuratie).
 
 .. toctree::
    :maxdepth: 1

@@ -3,6 +3,35 @@ import { useStorage } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed } from "vue";
 
+export type Permission =
+  | "afdelingen"
+  | "groepen"
+  | "linksread"
+  | "linksbeheer"
+  | "kanalenbeheer"
+  | "kanalenread"
+  | "skillsbeheer"
+  | "skillsread"
+  | "gespreksresultatenread"
+  | "gespreksresultatenbeheer"
+  | "contactformulierenbeheer"
+  | "contactformulierenread"
+  | "berichtenread"
+  | "berichtenbeheer"
+  | "vacsread"
+  | "vacsbeheer";
+
+// Any of these permissions is required to see the beheer tab.
+export const BEHEER_TAB_PERMISSIONS: Permission[] = [
+  "linksbeheer",
+  "kanalenbeheer",
+  "skillsbeheer",
+  "gespreksresultatenbeheer",
+  "contactformulierenbeheer",
+  "berichtenbeheer",
+  "vacsbeheer",
+];
+
 export type User = {
   isLoggedIn: boolean;
   isRedacteur: boolean;
@@ -11,6 +40,7 @@ export type User = {
   email: string;
   organisatieIds: string[];
   isSessionExpired: boolean;
+  permissions: Permission[];
 };
 
 export const useUserStore = defineStore("user", {
@@ -51,6 +81,16 @@ export const useUserStore = defineStore("user", {
     setPromise(promise: Promise<User>) {
       this.promise = promise.then();
     },
+  },
+  getters: {
+    // Checks if the user has EVERY requiredPermission.
+    requirePermission:
+      (state) => (requiredPermissions: Permission | Permission[]) => {
+        const permissions = Array.isArray(requiredPermissions)
+          ? requiredPermissions
+          : [requiredPermissions];
+        return permissions.every((p) => state.user.permissions.includes(p));
+      },
   },
 });
 

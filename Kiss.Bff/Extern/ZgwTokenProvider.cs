@@ -36,16 +36,14 @@ namespace Kiss.Bff
             var iss = _clientId;
             var user_id = claimsPrincipal.GetUserName() ?? string.Empty;
             var user_representation = claimsPrincipal?.Identity?.Name ?? string.Empty;
-            var now = DateTimeOffset.UtcNow;
+            var now = DateTime.UtcNow;
             // one minute leeway to account for clock differences between machines
             var issuedAt = now.AddMinutes(-1);
-            var iat = issuedAt.ToUnixTimeSeconds();
 
             var claims = new Dictionary<string, object>
                 {
                     { "client_id", client_id },
                     { "iss", iss },
-                    { "iat", iat },
                     { "user_id", user_id},
                     { "user_representation", user_representation }
                 };
@@ -54,11 +52,11 @@ namespace Kiss.Bff
             var key = Encoding.UTF8.GetBytes(secretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                IssuedAt = issuedAt.DateTime, 
-                NotBefore = issuedAt.DateTime, 
+                IssuedAt = issuedAt,
+                NotBefore = issuedAt,
                 Claims = claims,
                 Subject = new ClaimsIdentity(),
-                Expires = now.AddHours(1).DateTime,
+                Expires = now.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

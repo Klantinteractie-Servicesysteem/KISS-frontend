@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Yarp.ReverseProxy.Transforms;
 
@@ -42,23 +43,10 @@ namespace Kiss.Bff.Vacs
         public string Destination { get; }
         public string ObjectTypeUrl { get; }
         public string TypeVersion { get; }
+        public RequirePermissionTo[]? RequirePermissions => [RequirePermissionTo.vacsbeheer];
 
         public async ValueTask ApplyRequestTransform(RequestTransformContext context)
         {
-            var policy = await _policyProvider.GetPolicyAsync(Policies.RedactiePolicy);
-            if (policy == null)
-            {
-                context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return;
-            }
-            
-            var authResult = await _authorizationService.AuthorizeAsync(context.HttpContext.User, null, policy);
-            if (!authResult.Succeeded)
-            {
-                context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return;
-            }
-
             ApplyHeaders(context.ProxyRequest.Headers);
 
             var request = context.HttpContext.Request;

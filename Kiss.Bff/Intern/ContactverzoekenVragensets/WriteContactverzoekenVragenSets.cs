@@ -1,12 +1,12 @@
 ﻿using Kiss.Bff.Beheer.Data;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kiss.Bff.Intern.ContactverzoekenVragensets
 {
     [ApiController]
-    [Authorize(Policy = Policies.RedactiePolicy)]
+    [RequirePermission(RequirePermissionTo.contactformulierenbeheer)]
     public class WriteContactverzoekenVragenSets : ControllerBase
     {
         private readonly BeheerDbContext _db;

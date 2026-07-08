@@ -14,6 +14,28 @@
       "name": "localhost (Edge)",
       "url": "https://localhost:3000",
       "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "Debug Playwright Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "dotnet",
+      "args": [
+        "test",
+        "--filter",
+        "VragenAnonymousContactMoment"
+      ],
+      "cwd": "${workspaceFolder}/Kiss.Bff.EndToEndTest",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "HEADED": "1"
+      }
     }
   ]
 }

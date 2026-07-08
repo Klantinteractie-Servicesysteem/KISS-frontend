@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Links.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +9,6 @@ namespace Kiss.Bff.Intern.Links.Features
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policies.KcmOrRedactiePolicy)]
     public class LinksController : ControllerBase
     {
         private readonly BeheerDbContext _context;
@@ -21,6 +20,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // GET: api/Links
         [HttpGet]
+        [RequirePermission(RequirePermissionTo.linksread)]
         public IActionResult GetLinks()
         {
             if (_context.Links == null)
@@ -46,6 +46,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // GET: api/Links/5
         [HttpGet("{id}")]
+        [RequirePermission(RequirePermissionTo.linksbeheer)]
         public async Task<ActionResult<Link>> GetLink(int id)
         {
             if (_context.Links == null)
@@ -64,7 +65,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // PUT: api/Links/5       
         [HttpPut("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.linksbeheer)]
         public async Task<IActionResult> PutLink(int id, LinkPutModel link, CancellationToken token)
         {
             var current = await _context.Links.FirstOrDefaultAsync(x => x.Id == id, token);
@@ -87,7 +88,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // POST: api/Links
         [HttpPost]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.linksbeheer)]
         public async Task<ActionResult<Link>> PostLink(LinkPostModel link)
         {
             if (_context.Links == null)
@@ -111,7 +112,7 @@ namespace Kiss.Bff.Intern.Links.Features
 
         // DELETE: api/Links/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.linksbeheer)]
         public async Task<IActionResult> DeleteLink(int id)
         {
             if (_context.Links == null)

@@ -64,7 +64,7 @@ const { data: buildInfo } = useLoader(() =>
 
 <style lang="scss">
 /* Design Tokens */
-@use "@utrecht/component-library-css";
+@use "@utrecht/component-library-css/dist/index.css";
 @use "@/assets/design-tokens";
 @use "@/assets/fonts/fonts.css";
 @use "@/assets/reset.css";

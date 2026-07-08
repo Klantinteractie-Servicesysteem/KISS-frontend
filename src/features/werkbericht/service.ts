@@ -5,11 +5,11 @@ import {
   type LookupList,
   type Paginated,
   type ServiceData,
-  throwIfNotOk,
-  parseJson,
 } from "@/services";
-import type { Ref } from "vue";
+import { ref, type Ref } from "vue";
 import { fetchLoggedIn } from "@/services";
+
+export const featuredWerkberichtenCount = ref<number | undefined>(undefined);
 
 export type UseWerkberichtenParams = {
   type?: Berichttype;
@@ -142,6 +142,7 @@ export async function fetchFeaturedWerkberichten(): Promise<number> {
 
   const json = await r.json();
 
+  featuredWerkberichtenCount.value = json.count;
   return json.count;
 }
 
@@ -158,4 +159,6 @@ export async function putBerichtRead(id: string, isGelezen: boolean) {
 
   if (!res.ok)
     throw new Error(`Expected to read bericht: ${res.status.toString()}`);
+
+  fetchFeaturedWerkberichten();
 }

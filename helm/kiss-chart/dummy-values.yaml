@@ -25,12 +25,6 @@ settings:
     port: 2525
     enableSsl: true
 
-  enterpriseSearch:
-    baseUrl: "dummy"
-    engine: "dummy"
-    publicApiKey: "dummy"
-    privateApiKey: "dummy"
-
   feedback:
     emailFrom: "dummy"
     emailTo: "dummy"

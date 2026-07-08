@@ -41,11 +41,67 @@ jobs:
         continue-on-error: true
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
-          dotnet test --no-build --logger "console;verbosity=detailed" 2>&1 | tee test-output.log
-          EXIT_CODE=$?
+          # Run tests and capture output, with TRX logger for reliable failed test extraction
+          dotnet test --no-build \
+            --logger "console;verbosity=normal" \
+            --logger "trx;LogFileName=first-run.trx" \
+            --results-directory ./TestResults 2>&1 | tee first-run.log
+          
+          EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
           echo "First run exit code: $EXIT_CODE"
-          exit $EXIT_CODE
+          
+          # Save failed tests to a simple list file
+          if [ $EXIT_CODE -ne 0 ]; then
+            # Find the TRX file
+            TRX_FILE=$(find ./TestResults -name "first-run.trx" -o -name "*.trx" | head -1)
+            
+            if [ -n "$TRX_FILE" ] && [ -f "$TRX_FILE" ]; then
+              echo "📄 Parsing failed tests from TRX: $TRX_FILE"
+              
+              # Use python3 (available on all GitHub runners) to reliably parse TRX XML
+              python3 -c "
+          import xml.etree.ElementTree as ET
+          ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+          tree = ET.parse('$TRX_FILE')
+          root = tree.getroot()
+
+          # Get failed test IDs from Results
+          failed_ids = set()
+          for r in root.findall('.//t:UnitTestResult[@outcome=\"Failed\"]', ns):
+              failed_ids.add(r.get('testId'))
+
+          # Map test IDs to fully qualified names via TestDefinitions
+          for ut in root.findall('.//t:UnitTest', ns):
+              if ut.get('id') in failed_ids:
+                  tm = ut.find('t:TestMethod', ns)
+                  if tm is not None:
+                      print(f'{tm.get(\"className\")}.{tm.get(\"name\")}')
+          " | sort -u > failed-tests.txt
+            else
+              echo "⚠️ No TRX file found, falling back to console log parsing"
+              grep "Test method.*threw exception" first-run.log | \
+                grep -oE "Kiss\.Bff\.EndToEndTest\.[A-Za-z0-9_\.]+" | \
+                sort -u > failed-tests.txt || echo "" > failed-tests.txt
+            fi
+            
+            FAILED_COUNT=$(wc -l < failed-tests.txt | tr -d ' ')
+            
+            echo "failed_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
+            echo "Extracted $FAILED_COUNT failed test names to failed-tests.txt"
+            
+            if [ -s failed-tests.txt ]; then
+              echo "Failed tests:"
+              cat failed-tests.txt
+            else
+              echo "⚠️  Warning: Could not extract any fully qualified test names"
+            fi
+          else
+            echo "failed_count=0" >> $GITHUB_OUTPUT
+          fi
+          
+          # Always exit 0 here to continue to retry step
+          exit 0
         env:
           TestSettings__TEST_USERNAME: ${{ secrets.PLAYWRIGHT_USERNAME }}
           TestSettings__TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_PASSWORD }}
@@ -57,35 +113,42 @@ jobs:
       - name: Extract and retry only failed tests
         if: steps.first-run.outputs.exit_code != '0'
         id: retry-run
+        continue-on-error: true
         working-directory: ./Kiss.Bff.EndToEndTest
         run: |
           echo "════════════════════════════════════════════════════"
-          echo "⚠️  FIRST RUN FAILED - Extracting failed tests..."
+          echo "⚠️  FIRST RUN FAILED - Retrying failed tests..."
           echo "════════════════════════════════════════════════════"
           echo ""
           
-          # Extract failed test names from MSTest output
-          # MSTest format: "  Failed TestMethodName [duration]"
-          FAILED_TESTS=$(grep "^\s*Failed " test-output.log | sed 's/^\s*Failed //' | sed 's/ \[.*//' | sort -u)
-          
-          if [ -z "$FAILED_TESTS" ]; then
-            echo "❌ Could not extract failed test names"
-            echo ""
-            echo "=== Searching for test failures in output ==="
-            grep -E "(Failed|Error|Exception)" test-output.log | head -30
-            echo ""
-            echo "⚠️  Falling back to re-running ALL tests..."
-            dotnet test --no-build --logger "console;verbosity=normal"
-            exit $?
+          # Preserve first-run traces so they aren't overwritten by retry
+          TRACES_DIR="bin/Debug/net8.0/playwright-traces"
+          if [ -d "$TRACES_DIR" ]; then
+            echo "📁 Backing up first-run traces..."
+            cp -r "$TRACES_DIR" "${TRACES_DIR}-first-run"
           fi
           
-          FAILED_COUNT=$(echo "$FAILED_TESTS" | wc -l | tr -d ' ')
+          # Check if we have failed tests
+          if [ ! -f failed-tests.txt ] || [ ! -s failed-tests.txt ]; then
+            echo "❌ No failed tests list found or it's empty"
+            echo ""
+            echo "=== Showing last 50 lines of first run log ==="
+            tail -50 first-run.log
+            echo ""
+            # Don't set outputs when we can't extract - let the workflow fail properly
+            exit 1
+          fi
+          
+          FAILED_COUNT=$(wc -l < failed-tests.txt | tr -d ' ')
           echo "📊 Found $FAILED_COUNT failed test(s):"
-          echo "$FAILED_TESTS"
+          cat failed-tests.txt
           echo ""
           
           RETRY_PASSED=0
           RETRY_FAILED=0
+          
+          # Save failed test names for retry results
+          > retry-results.log
           
           # Retry each failed test individually
           while IFS= read -r test_name; do
@@ -96,23 +159,42 @@ jobs:
               echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               
               # Try to run the specific test
+              SAFE_NAME=$(echo "$test_name" | sed 's/[^a-zA-Z0-9]/_/g')
               set +e
               dotnet test \
                 --no-build \
                 --filter "FullyQualifiedName~${test_name}" \
-                --logger "console;verbosity=normal"
-              TEST_RESULT=$?
+                --logger "console;verbosity=normal" \
+                --logger "trx;LogFileName=retry-${SAFE_NAME}.trx" \
+                --results-directory ./TestResults 2>&1 | tee -a retry-results.log
+              TEST_RESULT=${PIPESTATUS[0]}
               set -e
+              
+              # Check if test was actually found and run
+              if grep -q "No test matches the given testcase filter" retry-results.log; then
+                echo "   ⚠️  Test not found with filter - trying exact match"
+                set +e
+                dotnet test \
+                  --no-build \
+                  --filter "FullyQualifiedName=${test_name}" \
+                  --logger "console;verbosity=normal" \
+                  --logger "trx;LogFileName=retry-${SAFE_NAME}.trx" \
+                  --results-directory ./TestResults 2>&1 | tee -a retry-results.log
+                TEST_RESULT=${PIPESTATUS[0]}
+                set -e
+              fi
               
               if [ $TEST_RESULT -eq 0 ]; then
                 echo "   ✅ PASSED on retry"
-                ((RETRY_PASSED++))
+                echo "$test_name: PASSED" >> retry-summary.txt
+                RETRY_PASSED=$((RETRY_PASSED + 1))
               else
                 echo "   ❌ FAILED again"
-                ((RETRY_FAILED++))
+                echo "$test_name: FAILED" >> retry-summary.txt
+                RETRY_FAILED=$((RETRY_FAILED + 1))
               fi
             fi
-          done <<< "$FAILED_TESTS"
+          done < failed-tests.txt
           
           echo ""
           echo "═══════════════════════════════════════════"
@@ -132,6 +214,9 @@ jobs:
           if [ $RETRY_FAILED -gt 0 ]; then
             echo ""
             echo "❌ $RETRY_FAILED test(s) still failing after retry"
+            echo ""
+            echo "Tests still failing:"
+            grep "FAILED" retry-summary.txt || true
             exit 1
           else
             echo ""
@@ -145,49 +230,164 @@ jobs:
           TestSettings__TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_BASE_URL: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_BASE_URL }}
           TestSettings__TEST_OPEN_KLANT_SECRET: ${{ secrets.PLAYWRIGHT_OPEN_KLANT_SECRET }}
+          SKIP_HTML_REPORT_GENERATION: "true"
+
+      - name: Merge traces from first run and retry
+        if: always()
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          TRACES_DIR="bin/Debug/net8.0/playwright-traces"
+          FIRST_RUN_DIR="${TRACES_DIR}-first-run"
+          if [ -d "$FIRST_RUN_DIR" ]; then
+            echo "📁 Merging first-run traces with retry traces..."
+            # Copy all first-run traces into the main directory (won't overwrite retry traces)
+            cp -rn "$FIRST_RUN_DIR"/* "$TRACES_DIR"/ 2>/dev/null || true
+            rm -rf "$FIRST_RUN_DIR"
+            echo "✅ Traces merged. Total trace files: $(ls "$TRACES_DIR" | wc -l)"
+          fi
+
+      - name: Generate consolidated HTML report
+        if: always()
+        working-directory: ./Kiss.Bff.EndToEndTest
+        run: |
+          echo "📊 Generating consolidated test report from TRX files..."
+          python3 generate-consolidated-report.py \
+            ./TestResults \
+            ./bin/Debug/net8.0/playwright-traces \
+            https://klantinteractie-servicesysteem.github.io/KISS-frontend
 
       - name: Generate Summary
         if: always()
+        working-directory: ./Kiss.Bff.EndToEndTest
         run: |
           echo "## 🧪 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           FIRST_EXIT="${{ steps.first-run.outputs.exit_code }}"
+          FIRST_FAILED="${{ steps.first-run.outputs.failed_count }}"
+          RETRY_TOTAL="${{ steps.retry-run.outputs.total_failed }}"
+          RETRY_PASSED="${{ steps.retry-run.outputs.retry_passed }}"
+          RETRY_FAILED="${{ steps.retry-run.outputs.retry_failed }}"
           
+          # Extract test counts from first run log
+          TOTAL_TESTS="N/A"
+          PASSED_TESTS="N/A"
+          FAILED_TESTS="N/A"
+          if [ -f first-run.log ]; then
+            TOTAL_TESTS=$(grep -oP "Total tests: \K\d+" first-run.log | tail -1 || echo "N/A")
+            PASSED_TESTS=$(grep -oP "Passed: \K\d+" first-run.log | tail -1 || echo "N/A")
+            FAILED_TESTS=$(grep -oP "Failed: \K\d+" first-run.log | tail -1 || echo "N/A")
+          fi
+          
+          # Determine final verdict
           if [ "$FIRST_EXIT" == "0" ]; then
-            echo "✅ **All tests passed on first run!**" >> $GITHUB_STEP_SUMMARY
+            FINAL_STATUS="✅ ALL PASSED"
+          elif [ "$RETRY_FAILED" == "0" ]; then
+            FINAL_STATUS="✅ ALL PASSED (after retry)"
+          elif [ -z "$RETRY_FAILED" ] && [ "${{ steps.retry-run.outcome }}" == "success" ]; then
+            FINAL_STATUS="✅ ALL PASSED (after retry)"
           else
-            echo "⚠️ **First run had failures**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            TOTAL="${{ steps.retry-run.outputs.total_failed }}"
-            PASSED="${{ steps.retry-run.outputs.retry_passed }}"
-            FAILED="${{ steps.retry-run.outputs.retry_failed }}"
-            
-            if [ -n "$TOTAL" ] && [ "$TOTAL" != "0" ]; then
-              echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
-              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-              echo "| Failed on first run | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-              echo "| Passed on retry | $PASSED |" >> $GITHUB_STEP_SUMMARY
-              echo "| Still failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              
-              if [ "$FAILED" == "0" ]; then
-                echo "✅ **All failed tests passed on retry!**" >> $GITHUB_STEP_SUMMARY
+            FINAL_STATUS="❌ FAILED"
+          fi
+          
+          echo "### Final Result: $FINAL_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Full test report table ---
+          echo "### 📋 Full Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| # | Test Name | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Build list of retried tests
+          declare -A RETRIED_TESTS
+          if [ -f retry-summary.txt ]; then
+            while IFS=': ' read -r tname tstatus; do
+              RETRIED_TESTS["$tname"]="$tstatus"
+            done < retry-summary.txt
+          fi
+          
+          # Parse all test results from first-run.log
+          ROW=0
+          if [ -f first-run.log ]; then
+            # Extract Passed and Failed lines
+            grep -E "^\s+(Passed|Failed)\s+" first-run.log | while IFS= read -r line; do
+              ROW=$((ROW + 1))
+              # Determine status from the line
+              if echo "$line" | grep -q "^[[:space:]]*Passed"; then
+                STATUS="✅ Passed"
+                # Extract display name: everything between "Passed " and " ["
+                DISPLAY_NAME=$(echo "$line" | sed -E 's/^\s*Passed\s+//' | sed -E 's/\s*\[[^\]]*\]\s*$//')
               else
-                echo "❌ **Some tests still failing after retry**" >> $GITHUB_STEP_SUMMARY
+                STATUS="❌ Failed"
+                DISPLAY_NAME=$(echo "$line" | sed -E 's/^\s*Failed\s+//' | sed -E 's/\s*\[[^\]]*\]\s*$//')
               fi
-            fi
+              echo "| $ROW | $DISPLAY_NAME | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            done
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Aggregated counts ---
+          echo "### 📊 Aggregate Counts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total tests | $TOTAL_TESTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed (first run) | $PASSED_TESTS |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed (first run) | $FAILED_TESTS |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$RETRY_TOTAL" ] && [ "$RETRY_TOTAL" != "0" ]; then
+            echo "| 🔄 Retried | $RETRY_TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed on retry | $RETRY_PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Still failed after retry | $RETRY_FAILED |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # --- Retry details ---
+          if [ -n "$RETRY_TOTAL" ] && [ "$RETRY_TOTAL" != "0" ]; then
+            echo "### 🔄 Retry Details" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Test | Retry Result |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|--------------|" >> $GITHUB_STEP_SUMMARY
+            if [ -f retry-summary.txt ]; then
+              while IFS= read -r rline; do
+                TNAME=$(echo "$rline" | cut -d: -f1)
+                TRESULT=$(echo "$rline" | cut -d: -f2 | xargs)
+                if [ "$TRESULT" == "PASSED" ]; then
+                  echo "| $TNAME | ✅ Passed on retry |" >> $GITHUB_STEP_SUMMARY
+                else
+                  echo "| $TNAME | ❌ Still failed |" >> $GITHUB_STEP_SUMMARY
+                fi
+              done < retry-summary.txt
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
           echo "📊 [View Playwright Traces](https://klantinteractie-servicesysteem.github.io/KISS-frontend/)" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail job if tests failed
-        if: steps.first-run.outcome == 'failure' && steps.retry-run.outcome == 'failure'
+        if: |
+          steps.first-run.outputs.exit_code != '0' && (
+            steps.retry-run.outcome == 'skipped' ||
+            steps.retry-run.outcome == 'failure' ||
+            (steps.retry-run.outputs.retry_failed != '0' && steps.retry-run.outputs.retry_failed != '')
+          )
         run: |
-          echo "❌ Tests failed and retry step also failed"
+          echo "❌ Tests failed after retry or retry was skipped"
+          echo "Failed on first run: ${{ steps.first-run.outputs.failed_count }}"
+          echo "Still failed after retry: ${{ steps.retry-run.outputs.retry_failed }}"
+          echo "Retry step outcome: ${{ steps.retry-run.outcome }}"
           exit 1
+      
+      - name: Success message for tests that passed on retry
+        if: |
+          steps.first-run.outputs.exit_code != '0' && 
+          steps.retry-run.outcome == 'success' && 
+          steps.retry-run.outputs.retry_failed == '0'
+        run: |
+          echo "✅ All tests passed! Some failed initially but all passed on retry."
+          echo "Failed on first run: ${{ steps.first-run.outputs.failed_count }}"
+          echo "Passed on retry: ${{ steps.retry-run.outputs.retry_passed }}"
 
       - name: Upload Playwright Report
         if: always()
@@ -204,7 +404,7 @@ jobs:
           retention-days: 30
 
   deploy:
-    if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    if: ${{ always() && needs.test.result != 'cancelled' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test
     environment:
       name: github-pages

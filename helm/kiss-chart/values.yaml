@@ -220,6 +220,9 @@ settings:
     # -- (int) The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.
     bulkHttpTimeoutMinutes: 10
 
+    # -- (bool) Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.
+    sslVerify: false
+
   # @schema
   # required: true
   # @schema
@@ -238,35 +241,6 @@ settings:
     port: 25
     # -- (string) Username for the mail server
     username: ""
-
-  # @schema
-  # required: true
-  # @schema
-  enterpriseSearch:
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) URL of the API through which KISS can query enterprise search
-    baseUrl: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) The name of the `meta-engine` engine used by KISS.
-    engine: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) Public API key for Elastic API
-    publicApiKey: ""
-    # @schema
-    # required: true
-    # minLength: 1
-    # @schema
-    # -- (string) Private API key for Elastic API
-    privateApiKey: ""
 
   # @schema
   # required: true
@@ -448,6 +422,8 @@ settings:
       truncate:
     # -- (string) Name of the role for a Redacteur.
     redacteurRole: ""
+    # -- (string) Name of the role for a Beheerder.
+    beheerderRole: ""
 
   # @schema
   # type: array
@@ -551,7 +527,19 @@ settings:
       repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"
       pullPolicy: IfNotPresent
       # -- (string) The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart.
-      tag: "0.3.2"
+      tag: ""
+    crawlerImage:
+      # -- (string) The image repository for the Elastic Open Crawler
+      repository: "docker.elastic.co/integrations/crawler"
+      # -- (string) The tag for the Open Crawler image
+      tag: "1.0.0"
+      pullPolicy: IfNotPresent
+    indexTemplateImage:
+      # -- (string) Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl).
+      repository: "curlimages/curl"
+      # -- (string) The tag for the index-template hook image
+      tag: "8.20.0"
+      pullPolicy: IfNotPresent
     # @schema
     # type: [object, null]
     # @schema
@@ -706,6 +694,29 @@ settings:
     #       type: string
     #     resources:
     #       type: object
+    #     outputIndex:
+    #       type: string
+    #     maxCrawlDepth:
+    #       type: integer
+    #     maxExtractedLinksCount:
+    #       type: integer
+    #     maxUniqueUrlCount:
+    #       type: integer
+    #     purgeCrawlEnabled:
+    #       type: boolean
+    #     fullHtmlExtractionEnabled:
+    #       type: boolean
+    #     binaryContentExtractionEnabled:
+    #       type: boolean
+    #     excludeTags:
+    #       type: array
+    #       items:
+    #         type: string
+    #     crawlRules:
+    #       type: array
+    #       items:
+    #         type: object
+    #   required: [domain, sourceName]
     # @schema
     # -- (list) website sync jobs configuration
     website: []

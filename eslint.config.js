@@ -50,7 +50,6 @@ export default defineConfigWithVueTs(
       "@typescript-eslint/no-explicit-any": ["warn"],
 
       // TODO: treat these rules as errors and fix all affected code
-      "vue/no-setup-props-destructure": ["warn"],
       "vue/prefer-import-from-vue": ["warn"],
       "@typescript-eslint/no-unused-vars": ["warn"],
       "@typescript-eslint/no-unused-expressions": ["warn"],

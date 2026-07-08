@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Nodes;
+using Kiss.Bff.Config.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +16,7 @@ namespace Kiss.Bff.Vacs
         }
 
         [HttpPost]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.vacsbeheer)]
         [Route("api/vacs/api/{version}/objects")]
         public IActionResult Post([FromRoute] string version, [FromBody] JsonObject node)
         {

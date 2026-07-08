@@ -74,16 +74,13 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.elastic.bulkHttpTimeoutMinutes | int | `10` | The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs. |
 | settings.elastic.excludedFieldsKennisbank | list | `[]` | Fields that a Kennisbank user is not allowed to search and view. |
 | settings.elastic.password | string | `""` | Password to log in to Elasticsearch |
+| settings.elastic.sslVerify | bool | `false` | Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates. |
 | settings.elastic.username | string | `""` | Username to log in to Elasticsearch |
 | settings.email.enableSsl | bool | `true` | Use SSL (true/false) |
 | settings.email.host | string | `""` | Address of the mail server |
 | settings.email.password | string | `""` | Password for the mail server |
 | settings.email.port | int | `25` | Port number of the mail connection |
 | settings.email.username | string | `""` | Username for the mail server |
-| settings.enterpriseSearch.baseUrl | string | `""` | URL of the API through which KISS can query enterprise search |
-| settings.enterpriseSearch.engine | string | `""` | The name of the `meta-engine` engine used by KISS. |
-| settings.enterpriseSearch.privateApiKey | string | `""` | Private API key for Elastic API |
-| settings.enterpriseSearch.publicApiKey | string | `""` | Public API key for Elastic API |
 | settings.feedback.emailFrom | string | `""` | From address of the feedback email |
 | settings.feedback.emailTo | string | `""` | Address where the feedback email should be sent |
 | settings.groepen.baseUrl | string | `""` | URL of the Objects API for groepen. |
@@ -103,6 +100,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.logboek.token | string | `""` | Token for the Objects API for Logbooks |
 | settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contact moment details |
 | settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider |
+| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. |
 | settings.oidc.clientId | string | `""` | For access to the OpenID Connect Identity Provider |
 | settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider |
 | settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. |
@@ -112,9 +110,15 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. |
 | settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
+| settings.syncJobs.crawlerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| settings.syncJobs.crawlerImage.repository | string | `"docker.elastic.co/integrations/crawler"` | The image repository for the Elastic Open Crawler |
+| settings.syncJobs.crawlerImage.tag | string | `"1.0.0"` | The tag for the Open Crawler image |
 | settings.syncJobs.image.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.image.repository | string | `"ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"` |  |
-| settings.syncJobs.image.tag | string | `"0.3.2"` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
+| settings.syncJobs.image.tag | string | `""` | The tag for the `kiss-elastic-sync` image to use for sync jobs. Consider leaving this empty because it will default to the recommended version to use with the chart. |
+| settings.syncJobs.indexTemplateImage.pullPolicy | string | `"IfNotPresent"` |  |
+| settings.syncJobs.indexTemplateImage.repository | string | `"curlimages/curl"` | Image used by the pre-install/pre-upgrade hook that registers the `search-website*` index template in Elasticsearch (needs curl). |
+| settings.syncJobs.indexTemplateImage.tag | string | `"8.20.0"` | The tag for the index-template hook image |
 | settings.syncJobs.kennisbank.baseUrl | string | `""` | URL of the API for Kennisartikelen |
 | settings.syncJobs.kennisbank.historyLimit | int | `1` |  |
 | settings.syncJobs.kennisbank.objectTypeUrl | string | `""` | URL of the Kennisartikel Object Type |

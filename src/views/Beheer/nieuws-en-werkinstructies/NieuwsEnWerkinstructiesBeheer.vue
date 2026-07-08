@@ -74,6 +74,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { toast } from "@/stores/toast";
 import { fetchLoggedIn } from "@/services";
 import { formatDateAndTime } from "@/helpers/date";
+import { fetchFeaturedWerkberichten } from "@/features/werkbericht";
 
 type berichtType = {
   id: number;
@@ -130,6 +131,7 @@ const verwijder = async (id: number) => {
       showError();
       return;
     }
+    fetchFeaturedWerkberichten();
     toast({ text: "Bericht verwijderd" });
     await load();
   } catch {

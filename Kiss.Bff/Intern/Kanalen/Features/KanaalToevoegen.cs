@@ -1,5 +1,6 @@
 ﻿using Kiss.Bff.Beheer.Data;
 using Kiss.Bff.Beheer.Gespreksresultaten.Data.Entities;
+using Kiss.Bff.Config.Permissions;
 using Kiss.Bff.Intern.Kanalen.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ namespace Kiss.Bff.Intern.Kanalen
 
 
         [HttpPost]
-        [Authorize(Policy = Policies.RedactiePolicy)]
+        [RequirePermission(RequirePermissionTo.kanalenbeheer)]
         public async Task<ActionResult<KanaalToevoegenModel>> Post(KanaalToevoegenModel model, CancellationToken token)
         {
             var entity = new Kanaal
@@ -32,7 +33,7 @@ namespace Kiss.Bff.Intern.Kanalen
             //de foutmelding bij een savechanges poging varieert afhanelijk van de gebruikte database technologie
             //derhalve een custom check om een zinvolle melding te kunnen retourneren
             //ook al is er geen 100% garantie dat de naam na deze check bij het opslaan nog steeds uniek is
-            if(await _context.Kanalen.AnyAsync(x=>x.Naam == model.Naam, token))
+            if (await _context.Kanalen.AnyAsync(x => x.Naam == model.Naam, token))
             {
                 return Conflict("De naam van het kanaal moet uniek zijn");
             }
@@ -41,9 +42,9 @@ namespace Kiss.Bff.Intern.Kanalen
             await _context.SaveChangesAsync(token);
 
             return NoContent();
-            
+
         }
-                
+
     }
 
     public record KanaalToevoegenModel(string Naam);

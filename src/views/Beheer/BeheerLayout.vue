@@ -1,23 +1,48 @@
 <template>
   <nav>
     <router-link to="/">Home</router-link>
-    <router-link to="/Beheer/NieuwsEnWerkinstructies">
+    <router-link
+      v-if="userStore.requirePermission('berichtenbeheer')"
+      to="/Beheer/NieuwsEnWerkinstructies"
+    >
       Nieuws en werkinstructies
     </router-link>
-    <router-link to="/Beheer/Skills">Skills</router-link>
-    <router-link to="/Beheer/Links">Links</router-link>
-    <router-link to="/Beheer/gespreksresultaten"
+    <router-link
+      v-if="userStore.requirePermission('skillsbeheer')"
+      to="/Beheer/Skills"
+      >Skills</router-link
+    >
+    <router-link
+      v-if="userStore.requirePermission('linksbeheer')"
+      to="/Beheer/Links"
+      >Links</router-link
+    >
+    <router-link
+      to="/Beheer/gespreksresultaten"
+      v-if="userStore.requirePermission('gespreksresultatenbeheer')"
       >Gespreksresultaten</router-link
     >
-    <router-link to="/Beheer/Kanalen">Kanalen</router-link>
-    <router-link to="/Beheer/formulieren-contactverzoek-afdeling">
-      Contactverzoekformulieren afdelingen
-    </router-link>
-    <router-link to="/Beheer/formulieren-contactverzoek-groep">
-      Contactverzoekformulieren groepen
-    </router-link>
+    <router-link
+      v-if="userStore.requirePermission('kanalenbeheer')"
+      to="/Beheer/Kanalen"
+      >Kanalen</router-link
+    >
+    <router-link
+      v-if="userStore.requirePermission('contactformulierenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-afdeling"
+      >Contactverzoekformulieren afdelingen</router-link
+    >
+    <router-link
+      v-if="userStore.requirePermission('contactformulierenbeheer')"
+      to="/Beheer/formulieren-contactverzoek-groep"
+      >Contactverzoekformulieren groepen</router-link
+    >
 
-    <router-link v-if="useVacs" to="/Beheer/vacs">VACs</router-link>
+    <router-link
+      v-if="useVacs && userStore.requirePermission('vacsbeheer')"
+      to="/Beheer/vacs"
+      >VACs</router-link
+    >
   </nav>
 
   <main>
@@ -26,23 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { watchEffect } from "vue";
-import { useRouter } from "vue-router";
 import { useLoader } from "@/services/use-loader";
 import { fetchLoggedIn } from "@/services";
 import { useUserStore } from "@/stores/user";
-import { storeToRefs } from "pinia";
 
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
-
-const router = useRouter();
-
-watchEffect(() => {
-  if (user.value.isLoggedIn && !user.value.isRedacteur) {
-    router.push("/");
-  }
-});
 
 const { data: useVacs } = useLoader(() =>
   fetchLoggedIn("/api/environment/use-vacs")

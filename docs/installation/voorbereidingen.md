@@ -8,9 +8,9 @@ De authenticatie van gebruikers binnen KISS gebeurt m.b.v. een OIDC koppeling me
 
 KISS heeft een postgresql database nodig voor het bijhouden van verschillende interne gegevens. De helm chart installeert geen postgresql database mee. Voor het hosten van een postgresql in Kubernetes raden wij [CloudNativePG](https://github.com/cloudnative-pg/cloudnative-pg) aan.
 
-## Elasticsearch, Kibana en Enterprise Search
+## Elasticsearch en Kibana
 
-KISS gebruikt Elasticsearch om verschillende gegevens doorzoekbaar te maken, zoals bijvoorbeeld medewerkers, afdelingen en groepen. Enterprise Search wordt gebruikt om gemeentelijke websites te crawlen. Kibana kan gebruikt worden om de weging van zoekresultaten te finetunen. Om historische redenen hebben we in het verleden [een eigen helm chart](https://github.com/Klantinteractie-Servicesysteem/.github/tree/main/docs/scripts/elastic) aangeboden om deze applicaties in een kubernetes cluster te installeren. Deze wordt echter niet langer onderhouden en we raden aan om gebruik te maken van [de officiele helm charts van Elasticsearch](https://github.com/elastic/cloud-on-k8s).
+KISS gebruikt Elasticsearch om verschillende gegevens doorzoekbaar te maken, zoals bijvoorbeeld medewerkers, afdelingen en groepen. Kibana kan gebruikt worden om index-instellingen en zoekresultaten te bekijken. Om historische redenen hebben we in het verleden [een eigen helm chart](https://github.com/Klantinteractie-Servicesysteem/.github/tree/main/docs/scripts/elastic) aangeboden om deze applicaties in een kubernetes cluster te installeren. Deze wordt echter niet langer onderhouden en we raden aan om gebruik te maken van [de officiele helm charts van Elasticsearch](https://github.com/elastic/cloud-on-k8s).
 
 ## Registers
 
