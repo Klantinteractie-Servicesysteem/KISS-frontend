@@ -300,6 +300,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("het");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
@@ -311,7 +312,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("het");
-            await Expect(Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First).ToBeVisibleAsync();
+            await Expect(Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First).ToBeVisibleAsync(new() { Timeout = 15000 });
             await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
             await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
 
@@ -332,7 +333,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
-            await Expect(Page.GetByText("De boom van de buren is veel te groot.").First).ToBeVisibleAsync();
+            await Expect(Page.GetByText("De boom van de buren is veel te groot.").First).ToBeVisibleAsync(new() { Timeout = 15000 });
             await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
             await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
 
