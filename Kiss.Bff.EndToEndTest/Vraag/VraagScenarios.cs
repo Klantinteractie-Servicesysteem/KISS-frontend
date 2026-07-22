@@ -303,6 +303,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
+            await Expect(Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First).ToBeVisibleAsync();
             await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
             await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
 
@@ -310,6 +311,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("het");
+            await Expect(Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First).ToBeVisibleAsync();
             await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
             await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
 
@@ -330,6 +332,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
 
+            await Expect(Page.GetByText("De boom van de buren is veel te groot.").First).ToBeVisibleAsync();
             await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
             await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
 
