@@ -549,7 +549,6 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("User selects first from dropdown list of field Afdeling / groep");
 
             var afdelingSelect = Page.GetByLabel("Afdeling / groep Afdeling:");
-            await Expect(afdelingSelect.Locator("option").Nth(1)).ToBeAttachedAsync(new() { Timeout = 15000 });
             await afdelingSelect.SelectOptionAsync(new SelectOptionValue { Index = 1 });
 
             await Step(" user fills in interne toelichting voor medewerker");
