@@ -54,6 +54,17 @@ Hieronder staan de benodigde environment variabelen per onderdeel van KISS.
 | `EMAIL_PASSWORD`      | Wachtwoord voor de mailserver           |
 |                       |                                         |
 
+## PABC (Platform Autorisatie Beheer Component)
+
+De PABC-koppeling is optioneel. De aanwezigheid van `PABC_BASE_URL` én `PABC_API_KEY` fungeert als feature flag: als beide aanwezig zijn wordt de koppeling geactiveerd. Zie [PABC documentatie](pabc.md) voor inrichtingsinstructies.
+
+| Variabele                | Uitleg                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `PABC_BASE_URL`          | Base URL van de PABC API (bijv. `https://pabc.mijngemeente.nl`). Aanwezigheid activeert de PABC-koppeling.      |
+| `PABC_API_KEY`           | API key voor authenticatie bij PABC (`X-API-KEY` header).                                                       |
+| `PABC_APPLICATION_NAME`  | Naam van KISS in PABC. Standaard: `kiss`                                                                        |
+| `PABC_APPLICATION_ROLE`  | Applicatierol waarmee KISS zaaktype-toegang controleert. Standaard: `klantcontactmedewerker`                    |
+
 ## Gekoppelde Bronnen
 
 Er zijn diverse API's die vanuit KISS bevraagd worden. Hieronder staan de environment variabelen per gekoppelde bron.
