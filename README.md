@@ -138,3 +138,9 @@ To generate a new client secret on Azure AD:
 1. Select **Client secrets**, and then Select **New client secret**.
 1. Provide a description and a duration. When finished select **Add**.
 1. Copy the value of the new client secret to the **OIDC_CLIENT_SECRET** environment variable in your env.local (OIDC_CLIENT_ID is not affected).
+
+## PABC (Platform Autorisatie Beheer Component)
+
+KISS can optionally be connected to [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) for zaaktype-level authorization. When configured, KISS will only show zaken of zaaktypes that the logged-in user is authorized to see based on their functional roles.
+
+See the [PABC documentation](docs/installation/pabc.md) for configuration and setup instructions.
