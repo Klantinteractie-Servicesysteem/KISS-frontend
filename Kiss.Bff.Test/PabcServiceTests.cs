@@ -2,7 +2,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using Kiss.Bff.Extern.Pabc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
@@ -14,7 +13,6 @@ namespace Kiss.Bff.Test
     {
         private PabcConfig _config = null!;
         private Mock<ILogger<PabcService>> _loggerMock = null!;
-        private IMemoryCache _cache = null!;
 
         [TestInitialize]
         public void Initialize()
@@ -27,13 +25,6 @@ namespace Kiss.Bff.Test
                 ApplicationRole = "klantcontactmedewerker"
             };
             _loggerMock = new Mock<ILogger<PabcService>>();
-            _cache = new MemoryCache(new MemoryCacheOptions());
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _cache.Dispose();
         }
 
         [TestMethod]
@@ -63,7 +54,7 @@ namespace Kiss.Bff.Test
             };
 
             var httpClient = CreateMockHttpClient(HttpStatusCode.OK, JsonSerializer.Serialize(pabcResponse));
-            var service = new PabcService(httpClient, _config, _cache, _loggerMock.Object);
+            var service = new PabcService(httpClient, _config, _loggerMock.Object);
             var user = CreateUser("Medewerker");
 
             // Act
@@ -82,7 +73,7 @@ namespace Kiss.Bff.Test
         {
             // Arrange
             var httpClient = CreateMockHttpClient(HttpStatusCode.OK, "{}");
-            var service = new PabcService(httpClient, _config, _cache, _loggerMock.Object);
+            var service = new PabcService(httpClient, _config, _loggerMock.Object);
             var user = new ClaimsPrincipal(new ClaimsIdentity());
 
             // Act
@@ -98,7 +89,7 @@ namespace Kiss.Bff.Test
         {
             // Arrange
             var httpClient = CreateMockHttpClient(HttpStatusCode.InternalServerError, "");
-            var service = new PabcService(httpClient, _config, _cache, _loggerMock.Object);
+            var service = new PabcService(httpClient, _config, _loggerMock.Object);
             var user = CreateUser("Medewerker");
 
             // Act
@@ -107,39 +98,6 @@ namespace Kiss.Bff.Test
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count);
-        }
-
-        [TestMethod]
-        public async Task GetAllowedZaaktypenAsync_UsesCachedResult_OnSecondCall()
-        {
-            // Arrange
-            var pabcResponse = new
-            {
-                results = new[]
-                {
-                    new
-                    {
-                        entityType = new { id = "zaaktype-1", name = "Melding", type = "zaaktype" },
-                        applicationRoles = new[] { new { name = "klantcontactmedewerker", application = "kiss" } }
-                    }
-                }
-            };
-
-            var handler = CreateMockHandler(HttpStatusCode.OK, JsonSerializer.Serialize(pabcResponse));
-            var httpClient = new HttpClient(handler.Object) { BaseAddress = new Uri(_config.BaseUrl + "/") };
-            var service = new PabcService(httpClient, _config, _cache, _loggerMock.Object);
-            var user = CreateUser("Medewerker");
-
-            // Act
-            await service.GetAllowedZaaktypenAsync(user);
-            await service.GetAllowedZaaktypenAsync(user);
-
-            // Assert - HTTP should only be called once due to caching
-            handler.Protected().Verify(
-                "SendAsync",
-                Times.Once(),
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>());
         }
 
         [TestMethod]
@@ -159,7 +117,7 @@ namespace Kiss.Bff.Test
             };
 
             var httpClient = CreateMockHttpClient(HttpStatusCode.OK, JsonSerializer.Serialize(pabcResponse));
-            var service = new PabcService(httpClient, _config, _cache, _loggerMock.Object);
+            var service = new PabcService(httpClient, _config, _loggerMock.Object);
             var user = CreateUser("Medewerker");
 
             // Act

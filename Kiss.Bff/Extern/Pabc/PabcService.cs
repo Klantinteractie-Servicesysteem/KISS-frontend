@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Kiss.Bff.Extern.Pabc
 {
@@ -11,21 +10,19 @@ namespace Kiss.Bff.Extern.Pabc
     {
         private readonly HttpClient _httpClient;
         private readonly PabcConfig _config;
-        private readonly IMemoryCache _cache;
         private readonly ILogger<PabcService> _logger;
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
-        public PabcService(HttpClient httpClient, PabcConfig config, IMemoryCache cache, ILogger<PabcService> logger)
+        public PabcService(HttpClient httpClient, PabcConfig config, ILogger<PabcService> logger)
         {
             _httpClient = httpClient;
             _config = config;
-            _cache = cache;
             _logger = logger;
         }
 
         /// <summary>
         /// Gets the allowed zaaktype IDs for the given user based on their functional roles.
         /// Returns null if PABC returns no matching application role (meaning: no access to any zaaktype).
+        /// Note: caching per user/roles would be a performance improvement for future consideration.
         /// </summary>
         public async Task<IReadOnlySet<string>?> GetAllowedZaaktypenAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {
@@ -37,18 +34,7 @@ namespace Kiss.Bff.Extern.Pabc
                 return new HashSet<string>();
             }
 
-            var cacheKey = $"pabc:zaaktypen:{string.Join(",", functionalRoles.OrderBy(r => r))}";
-
-            if (_cache.TryGetValue<IReadOnlySet<string>>(cacheKey, out var cached))
-            {
-                return cached;
-            }
-
-            var allowedZaaktypen = await FetchAllowedZaaktypenFromPabc(functionalRoles, cancellationToken);
-
-            _cache.Set(cacheKey, allowedZaaktypen, CacheDuration);
-
-            return allowedZaaktypen;
+            return await FetchAllowedZaaktypenFromPabc(functionalRoles, cancellationToken);
         }
 
         private async Task<IReadOnlySet<string>> FetchAllowedZaaktypenFromPabc(IReadOnlyList<string> functionalRoles, CancellationToken cancellationToken)
