@@ -77,5 +77,14 @@ namespace Kiss.Bff.Intern.Environment
                 : Ok(new { useLogboek = false });
 
         }
+
+        [HttpGet("use-pabc")]
+        public IActionResult GetUsePabc()
+        {
+            return !string.IsNullOrWhiteSpace(_configuration["PABC_BASE_URL"]) &&
+                    !string.IsNullOrWhiteSpace(_configuration["PABC_API_KEY"])
+                ? (IActionResult)Ok(new { usePabc = true })
+                : Ok(new { usePabc = false });
+        }
     }
 }
