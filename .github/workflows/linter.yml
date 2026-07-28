@@ -11,7 +11,7 @@ name: Code quality checks
 #############################
 on:
   pull_request:
-    branches: [main, "*.*.*", OudNaastNieuw]
+    branches: [main, test, "*.*.*", OudNaastNieuw]
 
 ###############
 # Set the Job #
