@@ -2,10 +2,30 @@
 
 ## Latest version
 
+## v3.0.0
+
+### Breaking change
+
+**Elastic Enterprise Search / App Search is vervangen door rechtstreekse Elasticsearch-queries en de Elastic Open Crawler.** ([PC-2385](https://dimpact.atlassian.net/browse/PC-2385), [PC-2386](https://dimpact.atlassian.net/browse/PC-2386))
+
+- KISS doorzoekt niet langer een Enterprise Search meta-engine, maar query't rechtstreeks de Elasticsearch-indices (patroon `search-*`).
+- Websites worden niet meer gecrawld via de Enterprise Search web crawler, maar via de [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html), die als Kubernetes CronJob draait en rechtstreeks naar Elasticsearch schrijft.
+- De helm-chart-waarden `settings.enterpriseSearch.baseUrl`, `settings.enterpriseSearch.engine`, `settings.enterpriseSearch.publicApiKey` en `settings.enterpriseSearch.privateApiKey` zijn verwijderd. Deze waren verplicht in de vorige versie van de chart; verwijder ze uit je values-bestand, anders geeft `helm template`/`helm upgrade` een fout over onbekende of overbodige sleutels afhankelijk van je schema-validatie.
+- **Migratiepad:** richt Elasticsearch rechtstreeks in (zonder Enterprise Search/App Search ervoor), en configureer de Elastic Open Crawler via `settings.syncJobs` in de helm chart. Zie de bijgewerkte documentatie: [Configuratie van Elasticsearch voor KISS](../configuration/elastic.md).
+- Instanties die nog op de oude Enterprise Search-opzet draaien, werken pas weer na deze migratie. Neem bij twijfel contact op met het ontwikkelteam voordat je upgrade naar v3.0.0.
+
+### New features
+
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
 - Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
-- [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350)
+- [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
+
+### Maintenance
+
+- Beheerronde kwetsbaarheden juli 2026: `Microsoft.Kiota.Http.HttpClientLibrary` gepind op 1.22.2 in `Kiss.Elastic.Sync` (fix voor [GHSA-7j59-v9qr-6fq9](https://github.com/advisories/GHSA-7j59-v9qr-6fq9), credential-lek naar andere host bij redirects, CVSS 7.0).
+- Beheerronde kwetsbaarheden juli 2026: `System.Security.Cryptography.Xml` gepind op 8.0.4 in `Kiss.Bff` (fix voor CVE-2026-47304 critical/signature bypass, CVE-2026-33116 high/infinite loop en CVE-2026-26171 high/XXE injection).
+- Overige kwetsbare npm-afhankelijkheden bijgewerkt via `npm audit fix`.
 
 ## v2.2.4
 
