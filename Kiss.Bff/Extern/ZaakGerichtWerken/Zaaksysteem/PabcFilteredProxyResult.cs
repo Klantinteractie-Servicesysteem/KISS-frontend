@@ -61,7 +61,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 return;
             }
 
-            // Filter results array
+            // Filter results array (paginated list response)
             var results = document["results"]?.AsArray();
             if (results != null)
             {
@@ -85,6 +85,24 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
                 document["results"] = filtered;
                 document["count"] = filtered.Count;
+            }
+            else
+            {
+                // Single zaak detail response — check if this zaak's type is allowed
+                var zaaktypeUrl = document["zaaktype"]?.GetValue<string>();
+                if (zaaktypeUrl != null)
+                {
+                    var zaaktypeId = zaaktypeUrl.Split('/').LastOrDefault();
+                    if (zaaktypeId == null || !allowedZaaktypen.Contains(zaaktypeId))
+                    {
+                        context.HttpContext.Response.StatusCode = 403;
+                        context.HttpContext.Response.ContentType = "application/json";
+                        await context.HttpContext.Response.WriteAsync(
+                            JsonSerializer.Serialize(new { detail = "U heeft geen toegang tot dit zaaktype." }),
+                            token);
+                        return;
+                    }
+                }
             }
 
             context.HttpContext.Response.StatusCode = 200;
