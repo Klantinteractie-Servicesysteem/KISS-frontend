@@ -1,23 +1,15 @@
-using System.Net.Http.Headers;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Kiss.Bff.Extern.Pabc
 {
-    public class PabcService
+    public class PabcService(HttpClient httpClient, PabcConfig config, ILogger<PabcService> logger)
     {
-        private readonly HttpClient _httpClient;
-        private readonly PabcConfig _config;
-        private readonly ILogger<PabcService> _logger;
-
-        public PabcService(HttpClient httpClient, PabcConfig config, ILogger<PabcService> logger)
-        {
-            _httpClient = httpClient;
-            _config = config;
-            _logger = logger;
-        }
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly PabcConfig _config = config;
+        private readonly ILogger<PabcService> _logger = logger;
 
         /// <summary>
         /// Gets the allowed zaaktype IDs for the given user based on their functional roles.

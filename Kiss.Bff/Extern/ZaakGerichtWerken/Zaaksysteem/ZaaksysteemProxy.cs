@@ -1,16 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Kiss.Bff.Extern.Pabc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 {
     [ApiController]
-    public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger) : ControllerBase
+    public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger, PabcService? pabcService = null) : ControllerBase
     {
         /// <summary>
-        /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint
+        /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint.
+        /// Wanneer PABC geconfigureerd is, worden zaken gefilterd op basis van toegestane zaaktypes.
         /// </summary>
         [HttpGet("api/zaken/{**path}")]
         public IActionResult GetZaken(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
-            => ProxyToEndpoint(path, systemIdentifier, "zaken");
+        {
+            return pabcService != null && path.StartsWith("zaken")
+                ? ProxyToEndpointWithPabcFilter(path, systemIdentifier)
+                : ProxyToEndpoint(path, systemIdentifier, "zaken");
+        }
 
         /// <summary>
         /// Proxyt catalogi API calls naar het juiste zaaksysteem endpoint
@@ -26,28 +32,42 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         public IActionResult GetDocumenten(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
             => ProxyToEndpoint(path, systemIdentifier, "documenten");
 
+        private IActionResult ProxyToEndpointWithPabcFilter(string path, string systemIdentifier)
+        {
+            var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
+
+            if (config == null)
+            {
+                return LogAndReturnConfigError(systemIdentifier);
+            }
+
+            var baseUrl = config.ZakenBaseUrl;
+
+            return new PabcFilteredProxyResult(
+                () =>
+                {
+                    var url = $"{baseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
+                    var message = new HttpRequestMessage(HttpMethod.Get, url);
+                    config.ApplyHeaders(message.Headers, User);
+                    return message;
+                },
+                pabcService!,
+                User,
+                config.CatalogiBaseUrl,
+                config);
+        }
+
         /// <summary>
         /// Generieke proxy methode die routeert naar het juiste zaaksysteem endpoint gebaseerd op API type
         /// Ondersteunt zowel OpenZaak formaat (enkele BaseUrl) als Rx.Mission formaat (aparte endpoints)
         /// </summary>
-        /// <param name="path">Het API pad om te proxyen</param>
-        /// <param name="systemIdentifier">De systeem identifier uit de header</param>
-        /// <param name="apiType">Het type API (zaken, catalogi, documenten)</param>
-        /// <returns></returns>
         private IActionResult ProxyToEndpoint(string path, string systemIdentifier, string apiType)
         {
             var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
 
             if (config == null)
             {
-                var sanitizedSystemIdentifier = systemIdentifier.Replace("\n", "").Replace("\r", "").Replace("\t", "");
-                logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}",
-                    sanitizedSystemIdentifier[..(sanitizedSystemIdentifier.Length < 15 ? sanitizedSystemIdentifier.Length - 1 : 15)] + "...");
-                return Problem(
-                    title: "Configuratieprobleem",
-                    detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
-                    statusCode: 500
-                );
+                return LogAndReturnConfigError(systemIdentifier);
             }
 
             var baseUrl = GetBaseUrlForApiType(config, apiType);
@@ -61,13 +81,21 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             });
         }
 
+        private IActionResult LogAndReturnConfigError(string systemIdentifier)
+        {
+            var sanitizedSystemIdentifier = systemIdentifier.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+            logger.LogError("Geen zaaksysteem gevonden voor ZaaksysteemId {ZaaksysteemId}",
+                sanitizedSystemIdentifier[..(sanitizedSystemIdentifier.Length < 15 ? sanitizedSystemIdentifier.Length - 1 : 15)] + "...");
+            return Problem(
+                title: "Configuratieprobleem",
+                detail: "Geen zaaksysteem gevonden voor ZaaksysteemId " + systemIdentifier,
+                statusCode: 500
+            );
+        }
+
         /// <summary>
         /// Bepaalt de base URL voor het opgegeven API type.
-        /// Valt terug naar OpenZaak formaat als specifieke URLs niet zijn geconfigureerd.
         /// </summary>
-        /// <param name="config">De zaaksysteem registry configuratie</param>
-        /// <param name="apiType">Het API type (zaken, catalogi, documenten)</param>
-        /// <returns>De base URL voor het API type</returns>
         private static string GetBaseUrlForApiType(ZaaksysteemRegistry config, string apiType)
         {
             return apiType switch
