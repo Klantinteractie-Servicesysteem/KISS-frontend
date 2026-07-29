@@ -34,6 +34,13 @@ namespace Kiss.Bff.Intern.Environment
                 (IActionResult)Ok(new { useMedewerkeremail }) : Ok(new { useMedewerkeremail = false });
         }
 
+        [HttpGet("use-groepsmailbox-verplichting")]
+        public IActionResult GetUseGroepsmailboxVerplichting()
+        {
+            return bool.TryParse(_configuration["USE_GROEPSMAILBOX_VERPLICHTING"] ?? "false", out var useGroepsmailboxVerplichting) ?
+                (IActionResult)Ok(new { useGroepsmailboxVerplichting }) : Ok(new { useGroepsmailboxVerplichting = false });
+        }
+
         [HttpGet("build-info")]
         [Authorize(Policy = Policies.KcmOrRedactieOrKennisbankPolicy)]
         public IActionResult GetBuildInfo()

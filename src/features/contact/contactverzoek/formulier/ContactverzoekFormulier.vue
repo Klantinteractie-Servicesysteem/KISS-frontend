@@ -70,14 +70,36 @@
       />
     </div>
 
+    <p
+      v-if="useGroepsmailboxVerplichting && geselecteerdeOrganisatorischeEenheid"
+      class="groepsmailbox-status"
+    >
+      Groepsmailbox:
+      {{
+        geselecteerdeOrganisatorischeEenheid.heeftGroepsmailbox
+          ? "aanwezig"
+          : "niet aanwezig"
+      }}
+    </p>
+
     <label v-if="useMedewerkeremail" class="utrecht-form-label">
-      <span class="">E-mailadres medewerker</span>
+      <span>
+        E-mailadres medewerker
+        <span v-if="isMedewerkerRequired" class="required"> </span>
+        <span
+          v-if="medewerkerRequiredReason"
+          class="medewerker-required-reason"
+        >
+          (verplicht: {{ medewerkerRequiredReason }})
+        </span>
+      </span>
 
       <input
         v-model="form.medewerkeremail"
         v-validity-handler="validateEmailInput"
         name="E-mailadres medewerker"
         class="utrecht-textbox utrecht-textbox--html-input"
+        :required="isMedewerkerRequired"
         @input="setActive"
       />
     </label>
@@ -95,7 +117,9 @@
     >
       <label for="medewerker-search">
         Medewerker
-        <span v-if="form.typeActor === ActorType.medewerker" class="required">
+        <span v-if="isMedewerkerRequired" class="required"> </span>
+        <span v-if="medewerkerRequiredReason" class="medewerker-required-reason">
+          (verplicht: {{ medewerkerRequiredReason }})
         </span>
       </label>
       <medewerker-search
@@ -115,7 +139,7 @@
             ? form.afdeling?.naam
             : form.groep?.naam
         "
-        :required="form.typeActor === ActorType.medewerker"
+        :required="isMedewerkerRequired"
         :isDisabled="
           (form.typeActor == ActorType.afdeling && !form.afdeling?.id) ||
           (form.typeActor == ActorType.groep && !form.groep?.id)
@@ -403,10 +427,52 @@ const onUpdateActorAfdelingOrGroep = () => {
   setActive();
 };
 
-const { data: useMedewerkeremail, loading } = useLoader(() =>
-  fetchLoggedIn("/api/environment/use-medewerkeremail")
+const {
+  data: useGroepsmailboxVerplichting,
+  loading: loadingGroepsmailboxVerplichting,
+} = useLoader(() =>
+  fetchLoggedIn("/api/environment/use-groepsmailbox-verplichting")
     .then((r) => r.json())
-    .then(({ useMedewerkeremail }) => useMedewerkeremail),
+    .then(
+      ({ useGroepsmailboxVerplichting }) => useGroepsmailboxVerplichting,
+    ),
+);
+
+const geselecteerdeOrganisatorischeEenheid = computed(() => {
+  if (form.value.typeActor === ActorType.afdeling) return form.value.afdeling;
+  if (form.value.typeActor === ActorType.groep) return form.value.groep;
+  return undefined;
+});
+
+// an afdeling/groep without a groepsmailbox always needs a linked medewerker,
+// otherwise the contact request has no valid recipient
+const medewerkerRequiredReason = computed(() => {
+  if (
+    !useGroepsmailboxVerplichting.value ||
+    geselecteerdeOrganisatorischeEenheid.value?.heeftGroepsmailbox !== false
+  )
+    return undefined;
+
+  return form.value.typeActor === ActorType.afdeling
+    ? "deze afdeling heeft geen groepsmailbox"
+    : "deze groep heeft geen groepsmailbox";
+});
+
+const isMedewerkerRequired = computed(
+  () =>
+    form.value.typeActor === ActorType.medewerker ||
+    !!medewerkerRequiredReason.value,
+);
+
+const { data: useMedewerkeremail, loading: loadingMedewerkeremail } =
+  useLoader(() =>
+    fetchLoggedIn("/api/environment/use-medewerkeremail")
+      .then((r) => r.json())
+      .then(({ useMedewerkeremail }) => useMedewerkeremail),
+  );
+
+const loading = computed(
+  () => loadingMedewerkeremail.value || loadingGroepsmailboxVerplichting.value,
 );
 
 const telEl = ref<HTMLInputElement>();
@@ -598,5 +664,18 @@ fieldset {
 
 .utrecht-checkbox-button {
   display: flex !important;
+}
+
+.groepsmailbox-status {
+  margin: 0;
+  color: var(--color-grey);
+  font-size: var(--utrecht-form-field-description-font-size);
+}
+
+.medewerker-required-reason {
+  display: inline;
+  color: var(--color-grey);
+  font-size: var(--utrecht-form-field-description-font-size);
+  font-weight: normal;
 }
 </style>

@@ -6,6 +6,7 @@
 - Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350)
+- Contactverzoek in KISS altijd met geldige ontvanger aanmaken: medewerkerveld wordt verplicht (met zichtbare reden) wanneer de gekozen afdeling/groep geen groepsmailbox heeft. Nieuwe Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING` (default `false`). #1491
 
 ## v2.2.4
 

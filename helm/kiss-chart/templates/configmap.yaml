@@ -221,6 +221,9 @@ data:
   {{- if .Values.settings.syncJobs.medewerkers.useEmail }}
   USE_MEDEWERKEREMAIL: {{ .Values.settings.syncJobs.medewerkers.useEmail | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.groepsmailboxVerplichting }}
+  USE_GROEPSMAILBOX_VERPLICHTING: {{ .Values.settings.groepsmailboxVerplichting | toString | quote }}
+  {{- end }}
   {{- if ((.Values.settings.syncJobs.vac).manageFromKiss) }}
   USE_VACS: {{ .Values.settings.syncJobs.vac.manageFromKiss | toString | quote }}
   {{- end }}
