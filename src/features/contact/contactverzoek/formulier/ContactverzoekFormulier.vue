@@ -72,7 +72,10 @@
 
     <p
       v-if="useGroepsmailboxVerplichting && geselecteerdeOrganisatorischeEenheid"
-      class="groepsmailbox-status"
+      :class="[
+        'groepsmailbox-status',
+        { warning: !geselecteerdeOrganisatorischeEenheid.heeftGroepsmailbox },
+      ]"
     >
       Groepsmailbox:
       {{
@@ -668,13 +671,17 @@ fieldset {
 
 .groepsmailbox-status {
   margin: 0;
-  color: var(--color-grey);
+  color: var(--color-tertiary);
   font-size: var(--utrecht-form-field-description-font-size);
+
+  &.warning {
+    color: var(--color-warning);
+  }
 }
 
 .medewerker-required-reason {
   display: inline;
-  color: var(--color-grey);
+  color: var(--color-warning);
   font-size: var(--utrecht-form-field-description-font-size);
   font-weight: normal;
 }
