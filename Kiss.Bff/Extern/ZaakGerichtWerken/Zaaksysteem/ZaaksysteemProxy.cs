@@ -20,9 +20,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 return ProxyToEndpoint(path, systemIdentifier, "zaken");
             }
 
-            return pabcService != null
-                ? ProxyToEndpointWithPabcFilter(path, systemIdentifier)
-                : ProxyToEndpointWithEnrichment(path, systemIdentifier);
+            return ProxyToEndpointWithEnrichment(path, systemIdentifier);
         }
 
         /// <summary>
@@ -38,31 +36,6 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         [HttpGet("api/documenten/{**path}")]
         public IActionResult GetDocumenten(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
             => ProxyToEndpoint(path, systemIdentifier, "documenten");
-
-        private IActionResult ProxyToEndpointWithPabcFilter(string path, string systemIdentifier)
-        {
-            var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
-
-            if (config == null)
-            {
-                return LogAndReturnConfigError(systemIdentifier);
-            }
-
-            var baseUrl = config.ZakenBaseUrl;
-
-            return new PabcFilteredProxyResult(
-                () =>
-                {
-                    var url = $"{baseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
-                    var message = new HttpRequestMessage(HttpMethod.Get, url);
-                    config.ApplyHeaders(message.Headers, User);
-                    return message;
-                },
-                pabcService!,
-                User,
-                config.CatalogiBaseUrl,
-                config);
-        }
 
         private IActionResult ProxyToEndpointWithEnrichment(string path, string systemIdentifier)
         {
@@ -85,7 +58,8 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 },
                 User,
                 config.CatalogiBaseUrl,
-                config);
+                config,
+                pabcService);
         }
 
         /// <summary>

@@ -1,31 +1,51 @@
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kiss.Bff.Extern.Pabc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 {
     /// <summary>
-    /// A proxy result that enriches zaken responses with zaaktype details.
-    /// For each unique zaaktype URL, fetches the full zaaktype from the catalogi API
-    /// and injects it as a "_zaaktype" property on each zaak.
+    /// A proxy result that enriches zaken responses with zaaktype details from the catalogi API.
+    /// When a PabcService is provided, also filters zaken based on allowed zaaktypes.
     /// </summary>
-    public class ZaaktypeEnrichedProxyResult(
+    public sealed class ZaaktypeEnrichedProxyResult(
         Func<HttpRequestMessage> requestFactory,
         ClaimsPrincipal user,
         string catalogiBaseUrl,
-        ZaaksysteemRegistry config) : IActionResult
+        ZaaksysteemRegistry config,
+        PabcService? pabcService = null) : IActionResult
     {
         private readonly Func<HttpRequestMessage> _requestFactory = requestFactory;
-        protected readonly ClaimsPrincipal _user = user;
+        private readonly ClaimsPrincipal _user = user;
         private readonly string _catalogiBaseUrl = catalogiBaseUrl.TrimEnd('/');
         private readonly ZaaksysteemRegistry _config = config;
+        private readonly PabcService? _pabcService = pabcService;
 
         public async Task ExecuteResultAsync(ActionContext context)
         {
             var factory = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
             var token = context.HttpContext.RequestAborted;
 
+            // Optionally fetch PABC allowed zaaktypen
+            IReadOnlySet<string>? allowedZaaktypen = null;
+            if (_pabcService != null)
+            {
+                allowedZaaktypen = await _pabcService.GetAllowedZaaktypenAsync(_user, token);
+                if (allowedZaaktypen == null)
+                {
+                    // No access at all — return empty results
+                    context.HttpContext.Response.StatusCode = 200;
+                    context.HttpContext.Response.ContentType = "application/json";
+                    await context.HttpContext.Response.WriteAsync(
+                        JsonSerializer.Serialize(new { count = 0, next = (string?)null, previous = (string?)null, results = Array.Empty<object>() }),
+                        token);
+                    return;
+                }
+            }
+
+            // Fetch zaken from zaaksysteem
             using var client = factory.CreateClient("default");
             using var request = _requestFactory();
             using var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
@@ -50,10 +70,10 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 return;
             }
 
-            // Resolve zaaktype details for all zaken
             var results = document["results"]?.AsArray();
             if (results != null)
             {
+                // Resolve unique zaaktype details
                 var zaaktypeUrls = results
                     .Where(z => z != null)
                     .Select(z => z!["zaaktype"]?.GetValue<string>())
@@ -64,35 +84,59 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
                 var zaaktypeByUrl = await ResolveZaaktypenAsync(client, zaaktypeUrls, token);
 
-                // Enrich each zaak with its zaaktype details
+                // Enrich and optionally filter
+                var filtered = new JsonArray();
                 foreach (var zaak in results)
                 {
                     if (zaak == null) continue;
                     var zaaktypeUrl = zaak["zaaktype"]?.GetValue<string>();
-                    if (zaaktypeUrl != null && zaaktypeByUrl.TryGetValue(zaaktypeUrl, out var zaaktype))
+                    if (zaaktypeUrl == null) continue;
+
+                    if (!zaaktypeByUrl.TryGetValue(zaaktypeUrl, out var zaaktype)) continue;
+
+                    // PABC filtering
+                    if (allowedZaaktypen != null)
                     {
-                        zaak["_zaaktype"] = zaaktype.DeepClone();
+                        var omschrijving = zaaktype["omschrijving"]?.GetValue<string>();
+                        if (omschrijving == null || !allowedZaaktypen.Contains(omschrijving))
+                            continue;
                     }
+
+                    zaak["_zaaktype"] = zaaktype.DeepClone();
+                    filtered.Add(zaak.DeepClone());
                 }
 
-                // Apply optional filtering (overridden by PabcFilteredProxyResult)
-                await FilterResultsAsync(document, results, zaaktypeByUrl, context, token);
+                document["results"] = filtered;
+                // Note: count reflects filtered items on this page only.
+                // The frontend currently only fetches the first page and discards pagination metadata.
+                document["count"] = filtered.Count;
             }
             else
             {
-                // Single zaak detail — enrich with zaaktype
+                // Single zaak detail
                 var zaaktypeUrl = document["zaaktype"]?.GetValue<string>();
                 if (zaaktypeUrl != null)
                 {
                     var zaaktypeByUrl = await ResolveZaaktypenAsync(client, [zaaktypeUrl], token);
+
                     if (zaaktypeByUrl.TryGetValue(zaaktypeUrl, out var zaaktype))
                     {
-                        document["_zaaktype"] = zaaktype.DeepClone();
-                    }
+                        // PABC access check
+                        if (allowedZaaktypen != null)
+                        {
+                            var omschrijving = zaaktype["omschrijving"]?.GetValue<string>();
+                            if (omschrijving == null || !allowedZaaktypen.Contains(omschrijving))
+                            {
+                                context.HttpContext.Response.StatusCode = 403;
+                                context.HttpContext.Response.ContentType = "application/json";
+                                await context.HttpContext.Response.WriteAsync(
+                                    JsonSerializer.Serialize(new { detail = "U heeft geen toegang tot dit zaaktype." }),
+                                    token);
+                                return;
+                            }
+                        }
 
-                    if (!await CheckSingleZaakAccessAsync(document, zaaktypeByUrl, context, token))
-                    {
-                        return;
+                        document["_zaaktype"] = zaaktype.DeepClone();
                     }
                 }
             }
@@ -103,32 +147,9 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         }
 
         /// <summary>
-        /// Override to apply filtering on the results. Base implementation does nothing.
+        /// Fetches zaaktype details from the catalogi API for each unique URL concurrently.
         /// </summary>
-        protected virtual Task FilterResultsAsync(
-            JsonNode document, JsonArray results,
-            Dictionary<string, JsonNode> zaaktypeByUrl,
-            ActionContext context, CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Override to check access for a single zaak detail. Return false to block the response.
-        /// Base implementation always allows access.
-        /// </summary>
-        protected virtual Task<bool> CheckSingleZaakAccessAsync(
-            JsonNode document, Dictionary<string, JsonNode> zaaktypeByUrl,
-            ActionContext context, CancellationToken token)
-        {
-            return Task.FromResult(true);
-        }
-
-        /// <summary>
-        /// Fetches zaaktype details from the catalogi API for each unique URL.
-        /// Returns the full zaaktype JsonNode keyed by URL.
-        /// </summary>
-        protected async Task<Dictionary<string, JsonNode>> ResolveZaaktypenAsync(
+        private async Task<Dictionary<string, JsonNode>> ResolveZaaktypenAsync(
             HttpClient client, IList<string> zaaktypeUrls, CancellationToken cancellationToken)
         {
             var result = new Dictionary<string, JsonNode>();
