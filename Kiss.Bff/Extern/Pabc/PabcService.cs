@@ -13,7 +13,7 @@ namespace Kiss.Bff.Extern.Pabc
 
         /// <summary>
         /// Gets the allowed zaaktype IDs for the given user based on their functional roles.
-        /// Returns null if PABC returns no matching application role (meaning: no access to any zaaktype).
+        /// Returns an empty set when no zaaktypes are allowed (including when PABC returns no matching application role).
         /// Note: caching per user/roles would be a performance improvement for future consideration.
         /// </summary>
         public async Task<IReadOnlySet<string>?> GetAllowedZaaktypenAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
