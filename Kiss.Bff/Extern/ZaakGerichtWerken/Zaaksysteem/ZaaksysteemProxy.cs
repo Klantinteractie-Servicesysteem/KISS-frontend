@@ -8,14 +8,21 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
     {
         /// <summary>
         /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint.
-        /// Wanneer PABC geconfigureerd is, worden zaken gefilterd op basis van toegestane zaaktypes.
+        /// Verrijkt altijd met zaaktype details. Wanneer PABC geconfigureerd is,
+        /// worden zaken ook gefilterd op basis van toegestane zaaktypes.
         /// </summary>
         [HttpGet("api/zaken/{**path}")]
         public IActionResult GetZaken(string path, [FromHeader(Name = "systemIdentifier")] string systemIdentifier)
         {
-            return pabcService != null && path.StartsWith("zaken")
+            if (!path.StartsWith("zaken"))
+            {
+                // Non-zaak paths (rollen, statussen, etc.) — proxy without enrichment
+                return ProxyToEndpoint(path, systemIdentifier, "zaken");
+            }
+
+            return pabcService != null
                 ? ProxyToEndpointWithPabcFilter(path, systemIdentifier)
-                : ProxyToEndpoint(path, systemIdentifier, "zaken");
+                : ProxyToEndpointWithEnrichment(path, systemIdentifier);
         }
 
         /// <summary>
@@ -52,6 +59,30 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                     return message;
                 },
                 pabcService!,
+                User,
+                config.CatalogiBaseUrl,
+                config);
+        }
+
+        private IActionResult ProxyToEndpointWithEnrichment(string path, string systemIdentifier)
+        {
+            var config = registryConfig.GetRegistrySystem(systemIdentifier)?.ZaaksysteemRegistry;
+
+            if (config == null)
+            {
+                return LogAndReturnConfigError(systemIdentifier);
+            }
+
+            var baseUrl = config.ZakenBaseUrl;
+
+            return new ZaaktypeEnrichedProxyResult(
+                () =>
+                {
+                    var url = $"{baseUrl.AsSpan().TrimEnd('/')}/{path}{Request?.QueryString}";
+                    var message = new HttpRequestMessage(HttpMethod.Get, url);
+                    config.ApplyHeaders(message.Headers, User);
+                    return message;
+                },
                 User,
                 config.CatalogiBaseUrl,
                 config);
