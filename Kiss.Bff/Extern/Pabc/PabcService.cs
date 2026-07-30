@@ -81,9 +81,7 @@ namespace Kiss.Bff.Extern.Pabc
                 }
             }
 
-            _logger.LogInformation("PABC returned {Count} allowed zaaktypen for user with roles [{Roles}]",
-                allowedZaaktypen.Count, string.Join(", ", functionalRoles));
-
+            _logger.LogInformation("PABC returned {Count} allowed zaaktypen", allowedZaaktypen.Count);
             return allowedZaaktypen;
         }
 
