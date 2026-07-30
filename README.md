@@ -144,3 +144,7 @@ To generate a new client secret on Azure AD:
 KISS can optionally be connected to [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) for zaaktype-level authorization. When configured, KISS will only show zaken of zaaktypes that the logged-in user is authorized to see based on their functional roles.
 
 See the [PABC documentation](docs/installation/pabc.md) for configuration and setup instructions.
+
+## Reference for ICATT Developers
+
+https://dev.azure.com/icattlegacy/Wiki/_wiki/wikis/Wiki.wiki/214/Ontwikkelen-aan-KISS-en-andere-Common-ground-componenten
