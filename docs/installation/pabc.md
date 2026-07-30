@@ -62,7 +62,7 @@ Maak binnen de KISS-applicatie een applicatierol aan die overeenkomt met `PABC_A
 
 ### 3. Configureer zaaktypes
 
-Voeg de zaaktypes toe die in KISS zichtbaar moeten zijn als entity types (type: `zaaktype`). Gebruik hierbij de identificatie van het zaaktype zoals die in het zaaksysteem bekend is.
+Voeg de zaaktypes toe die in KISS zichtbaar moeten zijn als entity types (type: `zaaktype`). Gebruik hierbij de **omschrijving** van het zaaktype zoals die in het zaaksysteem (catalogi API) bekend is.
 
 ### 4. Koppel functionele rollen
 
