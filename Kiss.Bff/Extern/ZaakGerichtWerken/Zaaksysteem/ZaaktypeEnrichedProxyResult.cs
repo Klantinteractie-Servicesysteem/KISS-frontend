@@ -84,6 +84,17 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
                 var zaaktypeByUrl = await ResolveZaaktypenAsync(client, zaaktypeUrls, token);
 
+                // All zaaktype details must be resolvable — otherwise data would be silently lost
+                if (zaaktypeByUrl.Count < zaaktypeUrls.Count)
+                {
+                    context.HttpContext.Response.StatusCode = 502;
+                    context.HttpContext.Response.ContentType = "application/json";
+                    await context.HttpContext.Response.WriteAsync(
+                        JsonSerializer.Serialize(new { detail = "Niet alle zaaktype details konden worden opgehaald uit de catalogi." }),
+                        token);
+                    return;
+                }
+
                 // Enrich and optionally filter
                 var filtered = new JsonArray();
                 foreach (var zaak in results)
@@ -92,7 +103,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                     var zaaktypeUrl = zaak["zaaktype"]?.GetValue<string>();
                     if (zaaktypeUrl == null) continue;
 
-                    if (!zaaktypeByUrl.TryGetValue(zaaktypeUrl, out var zaaktype)) continue;
+                    var zaaktype = zaaktypeByUrl[zaaktypeUrl];
 
                     // PABC filtering
                     if (allowedZaaktypen != null)
@@ -102,14 +113,14 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                             continue;
                     }
 
-                    zaak["_zaaktype"] = zaaktype.DeepClone();
-                    filtered.Add(zaak.DeepClone());
+                    var enrichedZaak = zaak.DeepClone();
+                    enrichedZaak["_zaaktype"] = zaaktype.DeepClone();
+                    filtered.Add(enrichedZaak);
                 }
 
                 document["results"] = filtered;
-                // Note: count reflects filtered items on this page only.
+                // Note: the original count/next/previous pagination fields are preserved as-is.
                 // The frontend currently only fetches the first page and discards pagination metadata.
-                document["count"] = filtered.Count;
             }
             else
             {
@@ -137,6 +148,16 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                         }
 
                         document["_zaaktype"] = zaaktype.DeepClone();
+                    }
+                    else
+                    {
+                        // Zaaktype could not be resolved from catalogi — frontend requires _zaaktype
+                        context.HttpContext.Response.StatusCode = 502;
+                        context.HttpContext.Response.ContentType = "application/json";
+                        await context.HttpContext.Response.WriteAsync(
+                            JsonSerializer.Serialize(new { detail = "Zaaktype kon niet worden opgehaald uit de catalogi." }),
+                            token);
+                        return;
                     }
                 }
             }
