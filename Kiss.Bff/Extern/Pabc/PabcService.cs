@@ -62,6 +62,8 @@ namespace Kiss.Bff.Extern.Pabc
                 return new HashSet<string>();
             }
 
+            // Matching against catalogi omschrijving is intentionally case-sensitive:
+            // the entityType.id in PABC must exactly match the zaaktype omschrijving from catalogi.
             var allowedZaaktypen = new HashSet<string>();
 
             foreach (var result in pabcResponse.Results)

@@ -41,6 +41,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             if (!responseMessage.IsSuccessStatusCode)
             {
                 context.HttpContext.Response.StatusCode = (int)responseMessage.StatusCode;
+                context.HttpContext.Response.ContentType = responseMessage.Content.Headers.ContentType?.ToString() ?? "application/json";
                 await using var errorStream = await responseMessage.Content.ReadAsStreamAsync(token);
                 await errorStream.CopyToAsync(context.HttpContext.Response.Body, token);
                 return;
@@ -92,9 +93,8 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 }
 
                 document["results"] = filtered;
-                // Note: count reflects filtered items on this page only, not total across all pages.
+                // Note: the upstream count/next/previous are left as-is; they no longer reflect the filtered results.
                 // The frontend currently only fetches the first page and discards pagination metadata.
-                document["count"] = filtered.Count;
             }
             else
             {
