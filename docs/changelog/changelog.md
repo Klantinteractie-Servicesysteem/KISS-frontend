@@ -1,5 +1,17 @@
 # Changelog
 
+## Next minor release (version TBD)
+
+### New features
+
+- **PABC integration**: Optional connection with the Platform Autorisatie Beheer Component for zaaktype-level authorization. When configured, KISS filters zaken based on the user's functional roles. #1482
+- **Zaaktype enrichment**: The BFF now resolves zaaktype details from the catalogi API and includes them in zaken responses, reducing frontend HTTP calls.
+
+### Warnings and deployment notes
+
+- New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`, `PABC_APPLICATION_NAME`, `PABC_APPLICATION_ROLE`. Their presence activates PABC filtering. See [PABC documentation](../installation/pabc.md).
+- If the PABC feature flag is active but PABC is not configured with zaaktypes, no user will see any zaken. Configure PABC first, then deploy KISS with the PABC environment variables.
+
 ## Latest version
 
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
