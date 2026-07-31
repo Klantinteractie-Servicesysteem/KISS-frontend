@@ -2,10 +2,33 @@
 
 ## Latest version
 
+## v3.0.0
+
+### Warnings and deployment notes
+
+Let op, deze release bevat breaking changes!
+
+**Elastic Enterprise Search / App Search is vervangen door rechtstreekse Elasticsearch-queries en de Elastic Open Crawler.** ([PC-2385](https://dimpact.atlassian.net/browse/PC-2385), [PC-2386](https://dimpact.atlassian.net/browse/PC-2386))
+
+- KISS doorzoekt niet langer een Enterprise Search meta-engine, maar query't rechtstreeks de Elasticsearch-indices (patroon `search-*`).
+- Websites worden niet meer gecrawld via de Enterprise Search web crawler, maar via de [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html), die als Kubernetes CronJob draait en rechtstreeks naar Elasticsearch schrijft.
+- De helm-chart-waarden `settings.enterpriseSearch.baseUrl`, `settings.enterpriseSearch.engine`, `settings.enterpriseSearch.publicApiKey` en `settings.enterpriseSearch.privateApiKey` zijn verwijderd. Deze waren verplicht in de vorige versie van de chart; verwijder ze uit je values-bestand, anders geeft `helm template`/`helm upgrade` een fout over onbekende of overbodige sleutels afhankelijk van je schema-validatie.
+- **Migratiepad:** richt Elasticsearch rechtstreeks in (zonder Enterprise Search/App Search ervoor), en configureer de Elastic Open Crawler via `settings.syncJobs` in de helm chart. Zie de bijgewerkte documentatie: [Configuratie van Elasticsearch voor KISS](../configuration/elastic.md).
+- Instanties die nog op de oude Enterprise Search-opzet draaien, werken pas weer na deze migratie. Neem bij twijfel contact op met het ontwikkelteam voordat je upgrade naar v3.0.0.
+
+**Gewijzigde rol indeling**
+- De redacteur rol is gesplitst in een REDACTEUR rol en een BEHEERDER rol. Zie de installatie configuratie documentatie voor meer informatie.
+
+ 
+### New features
+
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
 - Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
-- [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350)
+- [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
+- [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
+- [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385) 
+
 
 ## v2.2.4
 
