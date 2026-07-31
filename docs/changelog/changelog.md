@@ -4,7 +4,9 @@
 
 ## v3.0.0
 
-### Breaking change
+### Warnings and deployment notes
+
+Let op, deze release bevat breaking changes!
 
 **Elastic Enterprise Search / App Search is vervangen door rechtstreekse Elasticsearch-queries en de Elastic Open Crawler.** ([PC-2385](https://dimpact.atlassian.net/browse/PC-2385), [PC-2386](https://dimpact.atlassian.net/browse/PC-2386))
 
@@ -14,18 +16,19 @@
 - **Migratiepad:** richt Elasticsearch rechtstreeks in (zonder Enterprise Search/App Search ervoor), en configureer de Elastic Open Crawler via `settings.syncJobs` in de helm chart. Zie de bijgewerkte documentatie: [Configuratie van Elasticsearch voor KISS](../configuration/elastic.md).
 - Instanties die nog op de oude Enterprise Search-opzet draaien, werken pas weer na deze migratie. Neem bij twijfel contact op met het ontwikkelteam voordat je upgrade naar v3.0.0.
 
+**Gewijzigde rol indeling**
+- De redacteur rol is gesplitst in een REDACTEUR rol en een BEHEERDER rol. Zie de installatie configuratie documentatie voor meer informatie.
+
+ 
 ### New features
 
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
 - Supporting `Beheerder` role. #1335
 - Twee actoren tonen bij inzien Contactverzoeken #882
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
+- [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
+- [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385) 
 
-### Maintenance
-
-- Beheerronde kwetsbaarheden juli 2026: `Microsoft.Kiota.Http.HttpClientLibrary` gepind op 1.22.2 in `Kiss.Elastic.Sync` (fix voor [GHSA-7j59-v9qr-6fq9](https://github.com/advisories/GHSA-7j59-v9qr-6fq9), credential-lek naar andere host bij redirects, CVSS 7.0).
-- Beheerronde kwetsbaarheden juli 2026: `System.Security.Cryptography.Xml` gepind op 8.0.4 in `Kiss.Bff` (fix voor CVE-2026-47304 critical/signature bypass, CVE-2026-33116 high/infinite loop en CVE-2026-26171 high/XXE injection).
-- Overige kwetsbare npm-afhankelijkheden bijgewerkt via `npm audit fix`.
 
 ## v2.2.4
 
