@@ -27,8 +27,8 @@ De PABC-koppeling werkt als volgt:
 | Concept | Uitleg |
 |---------|--------|
 | **Functionele rol** | Een rol die door de Identity Provider wordt toegekend aan een gebruiker (bijv. "Klantcontactmedewerker", "Behandelaar"). Dit zijn de rollen die de gemeente zelf beheert. |
-| **Applicatierol** | Een rol die specifiek is voor een applicatie (bijv. "klantcontactmedewerker" binnen KISS). In PABC wordt geconfigureerd welke functionele rollen toegang geven tot welke applicatierol. |
-| **Applicatienaam** | De naam waaronder KISS geregistreerd staat in PABC (bijv. "kiss"). |
+| **Applicatierol** | Een rol die specifiek is voor een applicatie. In KISS is dit `klantcontactmedewerker`. In PABC wordt geconfigureerd welke functionele rollen toegang geven tot deze applicatierol. |
+| **Applicatienaam** | De naam waaronder KISS geregistreerd staat in PABC: `kiss`. |
 | **Entity type** | Een type object waartoe de autorisatie betrekking heeft. In het geval van KISS zijn dit zaaktypes. |
 
 ## Feature Flag
@@ -41,12 +41,12 @@ De PABC-koppeling wordt geactiveerd door de **aanwezigheid** van de environment 
 
 | Variabele | Verplicht | Uitleg |
 |-----------|-----------|--------|
-| `PABC_BASE_URL` | Ja* | De base URL van de PABC API. Bijvoorbeeld: `https://pabc.mijngemeente.nl` |
+| `PABC_BASE_URL` | Ja* | De base URL van de PABC API, zonder trailing slash. Bijvoorbeeld: `https://pabc.mijngemeente.nl` |
 | `PABC_API_KEY` | Ja* | De API key voor authenticatie bij PABC (wordt meegestuurd als `X-API-KEY` header) |
-| `PABC_APPLICATION_NAME` | Nee | De naam van de applicatie zoals geregistreerd in PABC. Standaard: `kiss` |
-| `PABC_APPLICATION_ROLE` | Nee | De applicatierol die KISS gebruikt om te bepalen of een gebruiker een zaaktype mag inzien. Standaard: `klantcontactmedewerker` |
 
 \* Verplicht als je de PABC-koppeling wilt activeren. Afwezigheid van deze variabelen schakelt de feature uit.
+
+De applicatienaam (`kiss`) en applicatierol (`klantcontactmedewerker`) zijn hardcoded in KISS.
 
 ## PABC Inrichting
 
@@ -54,11 +54,11 @@ Volg deze stappen om PABC in te richten voor gebruik met KISS:
 
 ### 1. Registreer KISS als applicatie in PABC
 
-Maak een applicatie aan in PABC met de naam die overeenkomt met `PABC_APPLICATION_NAME` (standaard: `kiss`).
+Maak een applicatie aan in PABC met de naam `kiss`.
 
 ### 2. Maak een applicatierol aan
 
-Maak binnen de KISS-applicatie een applicatierol aan die overeenkomt met `PABC_APPLICATION_ROLE` (standaard: `klantcontactmedewerker`).
+Maak binnen de KISS-applicatie een applicatierol aan met de naam `klantcontactmedewerker`.
 
 ### 3. Configureer zaaktypes
 
