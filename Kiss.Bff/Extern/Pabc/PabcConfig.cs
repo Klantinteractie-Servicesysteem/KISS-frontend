@@ -1,10 +1,11 @@
 namespace Kiss.Bff.Extern.Pabc
 {
-    public class PabcConfig
+    /// <summary>
+    /// Hardcoded PABC application constants.
+    /// </summary>
+    public static class PabcConfig
     {
-        public required string BaseUrl { get; init; }
-        public required string ApiKey { get; init; }
-        public string ApplicationName => "kiss";
-        public string ApplicationRole => "klantcontactmedewerker";
+        public const string ApplicationName = "kiss";
+        public const string ApplicationRole = "klantcontactmedewerker";
     }
 }
