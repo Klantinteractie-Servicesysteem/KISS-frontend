@@ -20,9 +20,7 @@ namespace Kiss.Bff.Test
             _config = new PabcConfig
             {
                 BaseUrl = "https://pabc.example.com",
-                ApiKey = "test-api-key",
-                ApplicationName = "kiss",
-                ApplicationRole = "klantcontactmedewerker"
+                ApiKey = "test-api-key"
             };
             _loggerMock = new Mock<ILogger<PabcService>>();
         }

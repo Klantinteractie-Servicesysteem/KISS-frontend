@@ -16,15 +16,10 @@ namespace Kiss.Bff.Extern.Pabc
                 return false;
             }
 
-            var applicationName = configuration["PABC_APPLICATION_NAME"] ?? "kiss";
-            var applicationRole = configuration["PABC_APPLICATION_ROLE"] ?? "klantcontactmedewerker";
-
             var config = new PabcConfig
             {
                 BaseUrl = baseUrl.TrimEnd('/'),
-                ApiKey = apiKey,
-                ApplicationName = applicationName,
-                ApplicationRole = applicationRole
+                ApiKey = apiKey
             };
 
             services.AddSingleton(config);
@@ -32,6 +27,7 @@ namespace Kiss.Bff.Extern.Pabc
             services.AddHttpClient<PabcService>(client =>
             {
                 client.BaseAddress = new Uri(config.BaseUrl + "/");
+                client.DefaultRequestHeaders.Add("X-API-KEY", config.ApiKey);
             });
 
             return true;
