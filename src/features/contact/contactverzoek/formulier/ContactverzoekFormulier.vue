@@ -70,21 +70,6 @@
       />
     </div>
 
-    <p
-      v-if="useGroepsmailboxVerplichting && geselecteerdeOrganisatorischeEenheid"
-      :class="[
-        'groepsmailbox-status',
-        { warning: !geselecteerdeOrganisatorischeEenheid.heeftGroepsmailbox },
-      ]"
-    >
-      Groepsmailbox:
-      {{
-        geselecteerdeOrganisatorischeEenheid.heeftGroepsmailbox
-          ? "aanwezig"
-          : "niet aanwezig"
-      }}
-    </p>
-
     <label v-if="useMedewerkeremail" class="utrecht-form-label">
       <span>
         E-mailadres medewerker
@@ -121,9 +106,6 @@
       <label for="medewerker-search">
         Medewerker
         <span v-if="isMedewerkerRequired" class="required"> </span>
-        <span v-if="medewerkerRequiredReason" class="medewerker-required-reason">
-          (verplicht: {{ medewerkerRequiredReason }})
-        </span>
       </label>
       <medewerker-search
         id="medewerker-search"
@@ -153,6 +135,9 @@
             : 'Kies eerst een afdeling of groep'
         "
       />
+      <p v-if="medewerkerRequiredReason" class="medewerker-required-reason">
+        {{ medewerkerRequiredReason }}
+      </p>
     </div>
 
     <label
@@ -669,20 +654,11 @@ fieldset {
   display: flex !important;
 }
 
-.groepsmailbox-status {
-  margin: 0;
-  color: var(--color-tertiary);
-  font-size: var(--utrecht-form-field-description-font-size);
-
-  &.warning {
-    color: var(--color-warning);
-  }
-}
-
 .medewerker-required-reason {
-  display: inline;
-  color: var(--color-warning);
+  margin: var(--spacing-small) 0 0;
+  color: var(--color-grey);
   font-size: var(--utrecht-form-field-description-font-size);
   font-weight: normal;
+  line-height: var(--line-height-default);
 }
 </style>
