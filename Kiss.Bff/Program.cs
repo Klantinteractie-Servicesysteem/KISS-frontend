@@ -116,7 +116,7 @@ try
     builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
     builder.Services.AddLogboekProxy(builder.Configuration["LOGBOEK_BASE_URL"], builder.Configuration["LOGBOEK_TOKEN"], builder.Configuration["LOGBOEK_OBJECT_TYPE_URL"], builder.Configuration["LOGBOEK_OBJECT_TYPE_VERSION"]);
 
-    builder.Services.AddPabcService(builder.Configuration);
+    builder.Services.AddPabcClient(builder.Configuration);
 
     builder.Host.UseSerilog((ctx, services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)

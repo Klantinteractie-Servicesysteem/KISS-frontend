@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 {
     [ApiController]
-    public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger, PabcService? pabcService = null) : ControllerBase
+    public class ZaaksysteemProxy(RegistryConfig registryConfig, ILogger<ZaaksysteemProxy> logger, PabcClient? pabcClient = null) : ControllerBase
     {
         /// <summary>
         /// Proxyt zaken API calls naar het juiste zaaksysteem endpoint.
@@ -59,7 +59,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 User,
                 config.CatalogiBaseUrl,
                 config,
-                pabcService);
+                pabcClient);
         }
 
         /// <summary>

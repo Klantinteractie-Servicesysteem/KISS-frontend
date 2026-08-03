@@ -6,7 +6,7 @@ namespace Kiss.Bff.Extern.Pabc
         /// Registers the PABC service if the required configuration is present.
         /// Returns true if PABC is configured, false otherwise.
         /// </summary>
-        public static bool AddPabcService(this IServiceCollection services, IConfiguration configuration)
+        public static bool AddPabcClient(this IServiceCollection services, IConfiguration configuration)
         {
             var baseUrl = configuration["PABC_BASE_URL"];
             var apiKey = configuration["PABC_API_KEY"];
@@ -16,18 +16,12 @@ namespace Kiss.Bff.Extern.Pabc
                 return false;
             }
 
-            var config = new PabcConfig
-            {
-                BaseUrl = baseUrl.TrimEnd('/'),
-                ApiKey = apiKey
-            };
+            var trimmedBaseUrl = baseUrl.TrimEnd('/');
 
-            services.AddSingleton(config);
-
-            services.AddHttpClient<PabcService>(client =>
+            services.AddHttpClient<PabcClient>(client =>
             {
-                client.BaseAddress = new Uri(config.BaseUrl + "/");
-                client.DefaultRequestHeaders.Add("X-API-KEY", config.ApiKey);
+                client.BaseAddress = new Uri(trimmedBaseUrl + "/");
+                client.DefaultRequestHeaders.Add("X-API-KEY", apiKey);
             });
 
             return true;

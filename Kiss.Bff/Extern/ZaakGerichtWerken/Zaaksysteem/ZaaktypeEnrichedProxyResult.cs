@@ -8,20 +8,20 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 {
     /// <summary>
     /// A proxy result that enriches zaken responses with zaaktype details from the catalogi API.
-    /// When a PabcService is provided, also filters zaken based on allowed zaaktypes.
+    /// When a PabcClient is provided, also filters zaken based on allowed zaaktypes.
     /// </summary>
     public sealed class ZaaktypeEnrichedProxyResult(
         Func<HttpRequestMessage> requestFactory,
         ClaimsPrincipal user,
         string catalogiBaseUrl,
         ZaaksysteemRegistry config,
-        PabcService? pabcService = null) : IActionResult
+        PabcClient? pabcClient = null) : IActionResult
     {
         private readonly Func<HttpRequestMessage> _requestFactory = requestFactory;
         private readonly ClaimsPrincipal _user = user;
         private readonly string _catalogiBaseUrl = catalogiBaseUrl.TrimEnd('/');
         private readonly ZaaksysteemRegistry _config = config;
-        private readonly PabcService? _pabcService = pabcService;
+        private readonly PabcClient? _pabcClient = pabcClient;
 
         public async Task ExecuteResultAsync(ActionContext context)
         {
@@ -30,9 +30,9 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             // Optionally fetch PABC allowed zaaktypen
             IReadOnlySet<string>? allowedZaaktypen = null;
-            if (_pabcService != null)
+            if (_pabcClient != null)
             {
-                allowedZaaktypen = await _pabcService.GetAllowedZaaktypenAsync(_user, token);
+                allowedZaaktypen = await GetAllowedZaaktypenAsync(token);
                 if (allowedZaaktypen == null)
                 {
                     // No access at all — return empty results
@@ -217,6 +217,40 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Interprets the PABC response to extract allowed zaaktype identifiers.
+        /// Matching against catalogi omschrijving is intentionally case-sensitive:
+        /// the entityType.id in PABC must exactly match the zaaktype omschrijving from catalogi.
+        /// </summary>
+        private async Task<IReadOnlySet<string>?> GetAllowedZaaktypenAsync(CancellationToken cancellationToken)
+        {
+            var response = await _pabcClient!.GetApplicationRolesPerEntityTypeAsync(_user, cancellationToken);
+
+            if (response?.Results == null)
+            {
+                return new HashSet<string>();
+            }
+
+            var allowedZaaktypen = new HashSet<string>();
+
+            foreach (var result in response.Results)
+            {
+                if (result.EntityType?.Type?.Equals("zaaktype", StringComparison.OrdinalIgnoreCase) != true)
+                    continue;
+
+                var hasMatchingRole = result.ApplicationRoles.Any(role =>
+                    role.Name.Equals(PabcConfig.ApplicationRole, StringComparison.OrdinalIgnoreCase) &&
+                    role.Application.Equals(PabcConfig.ApplicationName, StringComparison.OrdinalIgnoreCase));
+
+                if (hasMatchingRole && result.EntityType.Id is not null)
+                {
+                    allowedZaaktypen.Add(result.EntityType.Id);
+                }
+            }
+
+            return allowedZaaktypen;
         }
     }
 }
