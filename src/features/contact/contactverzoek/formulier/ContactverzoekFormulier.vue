@@ -457,8 +457,8 @@ const medewerkerRequiredReason = computed(() => {
     return undefined;
 
   return form.value.typeActor === ActorType.afdeling
-    ? "deze afdeling heeft geen groepsmailbox"
-    : "deze groep heeft geen groepsmailbox";
+    ? "De geselecteerde afdeling heeft geen eigen emailadres, daarom is het selecteren van een medewerker verplicht"
+    : "De geselecteerde groep heeft geen eigen emailadres, daarom is het selecteren van een medewerker verplicht";
 });
 
 const isMedewerkerRequired = computed(
