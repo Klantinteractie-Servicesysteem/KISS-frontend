@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -36,16 +36,7 @@ namespace Kiss.Bff.Extern.Pabc
                 FunctionalRoleNames = functionalRoles
             };
 
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/v1/application-roles-per-entity-type")
-            {
-                Content = content
-            };
-            requestMessage.Headers.Add("X-API-KEY", _config.ApiKey);
-
-            var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
+            var response = await _httpClient.PostAsJsonAsync("api/v1/application-roles-per-entity-type", request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
