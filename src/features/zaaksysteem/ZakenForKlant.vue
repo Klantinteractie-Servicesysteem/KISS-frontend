@@ -1,4 +1,9 @@
 <template>
+  <application-message
+    v-if="pabcActive"
+    messageType="warning"
+    message="Let op: u ziet mogelijk niet alle zaken vanwege autorisatie-instellingen."
+  ></application-message>
   <zaken-overzicht
     v-if="zaken"
     :zaken="zaken"
@@ -14,6 +19,8 @@ import type { ZaakDetails } from "./types";
 import { fetchZakenByBsn, fetchZakenByKlantBedrijfIdentifier } from "./service";
 import { useContactmomentStore } from "@/stores/contactmoment";
 import ZakenOverzicht from "./ZakenOverzicht.vue";
+import ApplicationMessage from "@/components/ApplicationMessage.vue";
+import { usePabcStatus } from "@/services/pabc";
 import type { Persoon } from "@/services/brp";
 import type { Bedrijf } from "@/services/kvk";
 
@@ -28,6 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const contactmomentStore = useContactmomentStore();
+const { data: pabcActive } = usePabcStatus();
 
 const { systemen } = useSystemen();
 

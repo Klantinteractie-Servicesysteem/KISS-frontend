@@ -1,5 +1,15 @@
 # Changelog
 
+## Next minor release (version TBD)
+
+### New features
+
+- Koppeling KISS/PABC #1482
+
+### Warnings and deployment notes
+
+- New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`. See [PABC documentation](../installation/pabc.md)
+
 ## Latest version
 
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
