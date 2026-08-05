@@ -28,7 +28,9 @@ Let op, deze release bevat breaking changes!
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
 - [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
 - [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385)
-- Contactverzoek in KISS altijd met geldige ontvanger aanmaken: medewerkerveld wordt verplicht (met zichtbare reden) wanneer de gekozen afdeling/groep geen groepsmailbox heeft. Nieuwe Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING` (default `false`). #1491
+- [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
+
+
 
 ## v2.2.4
 

@@ -655,8 +655,6 @@ fieldset {
 }
 
 .medewerker-required-reason {
-  margin: var(--spacing-small) 0 0;
-  color: var(--color-grey);
   font-size: var(--utrecht-form-field-description-font-size);
   font-weight: normal;
   line-height: var(--line-height-default);
