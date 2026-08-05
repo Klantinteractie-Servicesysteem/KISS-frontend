@@ -619,6 +619,12 @@
           ],
           "title": "groepen"
         },
+        "groepsmailboxVerplichting": {
+          "default": false,
+          "description": "This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox.",
+          "title": "groepsmailboxVerplichting",
+          "type": "boolean"
+        },
         "haalCentraal": {
           "description": " required: true @schema",
           "properties": {

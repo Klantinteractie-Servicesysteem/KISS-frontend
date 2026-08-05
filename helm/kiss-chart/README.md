@@ -86,6 +86,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.groepen.baseUrl | string | `""` | URL of the Objects API for groepen. |
 | settings.groepen.objectTypeUrl | string | `""` | URL of the groepen Object Type |
 | settings.groepen.token | string | `""` | Token of the Objects API for groepen. |
+| settings.groepsmailboxVerplichting | bool | `false` | This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox. |
 | settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API |
 | settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal API |
 | settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy |

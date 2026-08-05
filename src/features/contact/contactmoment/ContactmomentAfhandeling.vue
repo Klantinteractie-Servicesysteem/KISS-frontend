@@ -433,6 +433,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import {
   useContactmomentStore,
+  ActorType,
   type ContactmomentKlant,
   type ContactmomentState,
   type Vraag,
@@ -492,6 +493,7 @@ import {
 } from "@/services/openklant/service";
 import MaxLengthTextArea from "../components//MaxLengthTextArea.vue";
 import ContactmomentCanceller from "./ContactmomentCanceller.vue";
+import { fetchLoggedIn, useLoader } from "@/services";
 
 const router = useRouter();
 const contactmomentStore = useContactmomentStore();
@@ -499,6 +501,12 @@ const saving = ref(false);
 const errorMessage = ref("");
 const gespreksresultaten = useGespreksResultaten();
 const kanalenKeuzelijst = useKanalenKeuzeLijst();
+
+const { data: useGroepsmailboxVerplichting } = useLoader(() =>
+  fetchLoggedIn("/api/environment/use-groepsmailbox-verplichting")
+    .then((r) => r.json())
+    .then(({ useGroepsmailboxVerplichting }) => useGroepsmailboxVerplichting),
+);
 
 onMounted(async () => {
   if (!contactmomentStore.huidigContactmoment) return;
@@ -1191,7 +1199,33 @@ const validateContactmomentState = (cm: ContactmomentState) => {
     }
   };
 
-  return validateContactverzoekToelichtingLength();
+  const validateContactverzoekHeeftGeldigeOntvanger = () => {
+    if (!useGroepsmailboxVerplichting.value) return;
+
+    for (const [index, vraag] of cm.vragen.entries()) {
+      if (vraag.gespreksresultaat !== CONTACTVERZOEK_GEMAAKT) continue;
+
+      const { typeActor, afdeling, groep, medewerker, medewerkeremail } =
+        vraag.contactverzoek;
+      const zonderGroepsmailbox =
+        (typeActor === ActorType.afdeling &&
+          afdeling &&
+          !afdeling.heeftGroepsmailbox) ||
+        (typeActor === ActorType.groep && groep && !groep.heeftGroepsmailbox);
+
+      if (zonderGroepsmailbox && !medewerker && !medewerkeremail) {
+        return (
+          `Contactverzoek ${index + 1}: koppel een medewerker, want de ` +
+          `gekozen afdeling/groep heeft geen groepsmailbox.`
+        );
+      }
+    }
+  };
+
+  return (
+    validateContactverzoekToelichtingLength() ||
+    validateContactverzoekHeeftGeldigeOntvanger()
+  );
 };
 </script>
 

@@ -522,6 +522,9 @@ settings:
   # -- (list) Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.
   registers: []
 
+  # -- (bool) This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox.
+  groepsmailboxVerplichting: false
+
   syncJobs:
     image:
       repository: "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync"

@@ -11,6 +11,7 @@ export interface Afdeling {
   id: string;
   identificatie: string;
   naam: string;
+  heeftGroepsmailbox: boolean;
 }
 const getAfdelingenSearchUrl = (
   search: string | undefined,
@@ -31,6 +32,7 @@ const mapOrganisatie = (x: any) =>
   ({
     ...x.record.data,
     id: x.uuid,
+    heeftGroepsmailbox: !!x.record.data.email?.trim(),
   }) as Afdeling;
 
 const afdelingenFetcher = (url: string): Promise<PaginatedResult<Afdeling>> =>

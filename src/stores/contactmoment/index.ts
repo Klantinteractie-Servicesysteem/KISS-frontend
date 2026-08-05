@@ -33,6 +33,7 @@ export interface Afdeling {
   id: string;
   identificatie: string;
   naam: string;
+  heeftGroepsmailbox: boolean;
 }
 
 export interface Groep {
@@ -40,6 +41,7 @@ export interface Groep {
   afdelingId?: string;
   identificatie: string;
   naam: string;
+  heeftGroepsmailbox: boolean;
 }
 
 export interface MederwerkerGroepAfdeling {

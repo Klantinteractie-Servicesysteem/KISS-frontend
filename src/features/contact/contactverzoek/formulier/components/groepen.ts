@@ -12,6 +12,7 @@ export interface Groep {
   afdelingId?: string;
   identificatie: string;
   naam: string;
+  heeftGroepsmailbox: boolean;
 }
 
 export const getGroepenSearchUrl = (
@@ -34,6 +35,7 @@ const mapGroep = (x: any): Groep => ({
   afdelingId: x.afdelingId,
   naam: x.record.data.naam,
   identificatie: x.record.data.identificatie,
+  heeftGroepsmailbox: !!x.record.data.email?.trim(),
 });
 
 export const groepenFetcher = (url: string): Promise<PaginatedResult<Groep>> =>
