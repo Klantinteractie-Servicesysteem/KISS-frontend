@@ -521,13 +521,12 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await Step("And selects group radiobutton");
             await Page.GetMedewerkerRadioButton().ClickAsync();
-
-            await Step("And user selects 'Sytske' from dropdown list of medewerker group");
+        
+            await Step("And user selects first option from the dropdown list of medewerker group");
 
             await Page.GetByRole(AriaRole.Combobox, new() { Name = "Medewerker" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Medewerker" }).FillAsync("sytsk");
-            await Page.GetByText("Sytske de eSuiteBeheerder").ClickAsync();
-
+            await Page.GetByRole(AriaRole.Listbox).Locator("li").First.ClickAsync();
+            
             await Step("And click on afronden");
             await Page.GetAfrondenButton().ClickAsync();
 
@@ -537,8 +536,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And user fills in 'automation test' in the specific vraag field");
             await Page.GetSpecifiekeVraagTextbox().FillAsync("automation test");
 
-            await Step("select channel from the list");
-            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Label = "Live Chat" } });
+            await Step("select first channel from the list");
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { new SelectOptionValue { Index = 0 } });
 
             await Step("And user clicks on Opslaan button");
             await Page.GetOpslaanButton().ClickAsync();
@@ -547,10 +546,10 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("error message as 'Please select an item in the list.' is displayed for the field Afdeling / groep.");
             await Expect(Page.GetAfdelingTextbox()).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
 
-            await Step("User selects 'Afdeling: Advies, support en kennis (ASK)' from dropdown list of field Afdeling / groep");
+            await Step("User selects first from dropdown list of field Afdeling / groep");
 
-            await Page.GetByLabel("Afdeling / groep Afdeling:")
-            .SelectOptionAsync(new SelectOptionValue { Label = "Afdeling: Advies, support en kennis (ASK)" });
+            var afdelingSelect = Page.GetByLabel("Afdeling / groep Afdeling:");
+            await afdelingSelect.SelectOptionAsync(new SelectOptionValue { Index = 1 });
 
             await Step(" user fills in interne toelichting voor medewerker");
             await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting voor" }).FillAsync("test interne toelichting");

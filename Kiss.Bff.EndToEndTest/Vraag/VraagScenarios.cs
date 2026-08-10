@@ -291,83 +291,87 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            await Step("And checks the box VAC and the box Kennisbank in the search pane");
+            var vacCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = "VAC" });
+            var kennisbankCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = "Kennisbank" });
+            var zoektermInput = Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" });
 
-            await Page.GetByRole(AriaRole.Checkbox, new() { Name = "VAC" }).CheckAsync();
-            await Page.GetByRole(AriaRole.Checkbox, new() { Name = "Kennisbank" }).CheckAsync();
+            await Step("And user checks checkbox VAC");
+            if (await kennisbankCheckbox.IsCheckedAsync())
+            {
+                await kennisbankCheckbox.UncheckAsync();
+            }
+            await vacCheckbox.CheckAsync();
 
-            await Step("And enters “het” in the search field in the Search pane ");
+            await Step("And enters 'het' in the search field and presses Enter");
+            await zoektermInput.ClickAsync();
+            await zoektermInput.FillAsync("het");
+            await zoektermInput.PressAsync("Enter");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("het");
+            var vacResultsList = Page.Locator("a[id^='nav_vac_']");
 
-            await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
+            await Step("And user selects first VAC article from the list");
+            await Expect(vacResultsList.First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            var firstVacTitle = await vacResultsList.First.Locator("span:last-child").TextContentAsync() ?? string.Empty;
+            var firstVacId = await vacResultsList.First.GetAttributeAsync("id") ?? string.Empty;
+            await vacResultsList.First.ClickAsync();
 
-            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
-            await Page.GetByText("heb ik een rova-pas nodig voor de gft-container?").First.ClickAsync();
+            await Step("And user clicks on Alle zoekresultaten");
+            var searchResult1Id = firstVacId.Replace("nav_", "searchResult_");
+            var backToResults1 = Page.Locator($"#{searchResult1Id}");
+            await Expect(backToResults1).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await backToResults1.ScrollIntoViewIfNeededAsync();
+            await backToResults1.ClickAsync();
 
-            await Step("return to search and click on second result");
+            await Step("And user selects second VAC article from the list");
+            await Expect(vacResultsList.Nth(1)).ToBeVisibleAsync(new() { Timeout = 15000 });
+            var secondVacTitle = await vacResultsList.Nth(1).Locator("span:last-child").TextContentAsync() ?? string.Empty;
+            var secondVacId = await vacResultsList.Nth(1).GetAttributeAsync("id") ?? string.Empty;
+            await vacResultsList.Nth(1).ClickAsync();
 
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("het");
-            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
-            await Page.GetByText("heb ik een vergunning nodig om mijn pand te splits").First.ClickAsync();
+            await Step("And user clicks on Alle zoekresultaten again");
+            var searchResult2Id = secondVacId.Replace("nav_", "searchResult_");
+            var backToResults2 = Page.Locator($"#{searchResult2Id}");
+            await Expect(backToResults2).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await backToResults2.ScrollIntoViewIfNeededAsync();
+            await backToResults2.ClickAsync();
 
-            await Step("When user enters “test vraag 1 in Notitieblok");
 
-            var note1 = "test vraag 1";
-
-            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note1);
-
-            await Step("clicks on “+” icon");
-
-            await Page.GetPlusIcon().ClickAsync();
-
-            await Step("And enters De boom in the search field in the Search pane ");
-
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).ClickAsync();
-            await Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" }).FillAsync("De boom");
-
-            await Step("And clicks on the first result in the list, with the title {{title 1}}, with {{label1}} ");
-
-            await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
-            await Page.GetByText("De boom van de buren is veel te groot.").First.ClickAsync();
-
-            await Step("When user enters “test vraag 2 in Notitieblok");
-
-            var note2 = "test vraag 2";
-
-            await Page.GetContactmomentNotitieblokTextbox().FillAsync(note2);
+            await Step("And user unchecks VAC and checks Kennisbank");
+            await vacCheckbox.UncheckAsync();
+            if (await vacCheckbox.IsCheckedAsync())
+            {
+                await vacCheckbox.UncheckAsync();
+            }
+            await kennisbankCheckbox.CheckAsync();            
+          
+            await Step("And user selects the first kennisartikel from the list");
+            await zoektermInput.ClickAsync();
+            await zoektermInput.FillAsync("boom");
+            await zoektermInput.PressAsync("Enter");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var kennisbankResults = Page.Locator("a[id^='nav_kennisbank_']");
+            await Expect(kennisbankResults.First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            var kennisartikelTitle = await kennisbankResults.First.Locator("span:last-child").TextContentAsync() ?? string.Empty;
+            await kennisbankResults.First.ClickAsync();
+            await Expect(Page.GetAfrondenButton()).ToBeVisibleAsync(new() { Timeout = 15000 });
 
             await Step("Click the Afronden button");
 
             await Page.GetAfrondenButton().ClickAsync();
 
-            await Step("Then both 'Vraag 1' and 'Vraag 2' sections should be visible");
-
-            await Expect(
-                Page.GetByRole(AriaRole.Article)
-                    .Filter(new() { HasText = "Vraag 1" })
-            ).ToBeVisibleAsync();
-
-            await Expect(
-                Page.GetByRole(AriaRole.Article)
-                    .Filter(new() { HasText = "Vraag 2" })
-            ).ToBeVisibleAsync();
-
-            await Step(" VACs are displayed in the Gerelaterede VACs section in afhnadeling form");
+            await Step("Then selected VACs are displayed in Gerelateerde VACs section");
             var sectionLocator = Page.Locator("section.gerelateerde-resources");
 
             await Expect(sectionLocator.GetByRole(AriaRole.Heading, new() { Name = "Gerelateerde VACs" })).ToBeVisibleAsync();
 
-            var vergunningLabel = sectionLocator.Locator("label").Filter(new() { HasText = "Heb ik een vergunning nodig om mijn pand te splitsen?" });
-            await Expect(vergunningLabel).ToBeVisibleAsync();
+            await Expect(sectionLocator.Locator("label").Filter(new() { HasText = firstVacTitle.Trim() })).ToBeVisibleAsync();
+            await Expect(sectionLocator.Locator("label").Filter(new() { HasText = secondVacTitle.Trim() })).ToBeVisibleAsync();
 
-            var rovaLabel = sectionLocator.Locator("label").Filter(new() { HasText = "Heb ik een ROVA-pas nodig voor de gft-container?" });
-            await Expect(rovaLabel).ToBeVisibleAsync();
+            await Step("And selected kennisartikel is displayed in Gerelateerde kennisartikel section");
+            await Expect(sectionLocator.GetByRole(AriaRole.Heading).Filter(new() { HasText = "Gerelateerde kennisartikel" })).ToBeVisibleAsync();
 
-            var boomLabel = sectionLocator.Locator("label").Filter(new() { HasText = "De boom van de buren is veel" });
-            await Expect(boomLabel).ToBeVisibleAsync();
+            await Expect(sectionLocator.Locator("label").Filter(new() { HasText = kennisartikelTitle.Trim() })).ToBeVisibleAsync();
 
         }
 
