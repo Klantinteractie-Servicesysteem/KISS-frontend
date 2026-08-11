@@ -99,6 +99,9 @@ export async function search(
         ],
       )
         .then(filterOutContactmomenten)
+        // the partij fallback never triggers here: these betrokkenen were found via
+        // a digitaal adres that matched the search query, so they always have their
+        // own digitale adres
         .then((page) =>
           enrichBetrokkeneWithDigitaleAdressenViaBetrokkeneOrPartij(systeem.identifier, page),
         )
