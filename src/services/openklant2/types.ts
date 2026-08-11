@@ -209,6 +209,7 @@ export type Partij = {
     naam?: string;
   };
   partijIdentificatoren: { uuid: string }[];
+  voorkeursDigitaalAdres?: { uuid: string; url: string } | null;
   _expand?: {
     digitaleAdressen?: {
       adres?: string;

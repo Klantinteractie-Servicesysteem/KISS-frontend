@@ -1,7 +1,7 @@
 import { throwIfNotOk, parseJson } from "@/services";
 import {
   DigitaleAdressenExpand,
-  enrichBetrokkeneWithDigitaleAdressen,
+  enrichBetrokkeneWithDigitaleAdressenViaBetrokkeneOrPartij,
   enrichBetrokkeneWithKlantContact,
   enrichInterneTakenWithActoren,
   fetchBetrokkenen,
@@ -100,7 +100,7 @@ export async function search(
       )
         .then(filterOutContactmomenten)
         .then((page) =>
-          enrichBetrokkeneWithDigitaleAdressen(systeem.identifier, page),
+          enrichBetrokkeneWithDigitaleAdressenViaBetrokkeneOrPartij(systeem.identifier, page),
         )
         .then((page) => enrichInterneTakenWithActoren(systeem.identifier, page))
         .then(async (page) => {
@@ -319,7 +319,7 @@ export async function fetchContactverzoekenByKlantIdentificator(
             ])
               .then(filterOutContactmomenten)
               .then((page) =>
-                enrichBetrokkeneWithDigitaleAdressen(systeem.identifier, page),
+                enrichBetrokkeneWithDigitaleAdressenViaBetrokkeneOrPartij(systeem.identifier, page),
               )
               .then((page) =>
                 enrichInterneTakenWithActoren(systeem.identifier, page),

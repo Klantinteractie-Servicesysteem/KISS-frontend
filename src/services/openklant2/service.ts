@@ -118,19 +118,85 @@ export function fetchActor(systeemId: string, id: string) {
     .then((d) => d as ActorApiViewModel);
 }
 
-export async function enrichBetrokkeneWithDigitaleAdressen(
+export function fetchDigitaalAdres(systeemId: string, uuid: string) {
+  return fetchWithSysteemId(systeemId, `${klantinteractiesDigitaleadressen}/${uuid}?`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((d) => d as DigitaalAdresApiViewModel);
+}
+
+export function fetchPartij(systeemId: string, uuid: string) {
+  return fetchWithSysteemId(systeemId, `${klantinteractiesBaseUrl}/partijen/${uuid}`)
+    .then(throwIfNotOk)
+    .then(parseJson)
+    .then((d) => d as Partij);
+}
+
+async function fetchBetrokkeneEigenDigitaleAdressen(
+  systeemId: string,
+  betrokkene: BetrokkeneMetKlantContact,
+): Promise<DigitaalAdresApiViewModel[]> {
+  const adressen: DigitaalAdresApiViewModel[] = [];
+  for (const digitaalAdres of betrokkene.digitaleAdressen) {
+    adressen.push(await fetchDigitaalAdres(systeemId, digitaalAdres.uuid));
+  }
+  return adressen;
+}
+
+async function fetchPartijVoorkeursDigitaalAdres(
+  systeemId: string,
+  partijUuid: string,
+): Promise<DigitaalAdresApiViewModel[]> {
+  const partij = await fetchPartij(systeemId, partijUuid);
+  const voorkeursAdresUuid = partij.voorkeursDigitaalAdres?.uuid;
+  return voorkeursAdresUuid
+    ? [await fetchDigitaalAdres(systeemId, voorkeursAdresUuid)]
+    : [];
+}
+
+async function getPartijVoorkeursDigitaalAdres(
+  systeemId: string,
+  partijUuid: string,
+  partijVoorkeursAdresMap: Map<string, DigitaalAdresApiViewModel[]>,
+): Promise<DigitaalAdresApiViewModel[]> {
+  if (!partijVoorkeursAdresMap.has(partijUuid)) {
+    partijVoorkeursAdresMap.set(
+      partijUuid,
+      await fetchPartijVoorkeursDigitaalAdres(systeemId, partijUuid),
+    );
+  }
+  return partijVoorkeursAdresMap.get(partijUuid)!;
+}
+
+export async function enrichBetrokkeneWithDigitaleAdressenViaBetrokkeneOrPartij(
   systeemId: string,
   value: BetrokkeneMetKlantContact[],
 ): Promise<BetrokkeneMetKlantContact[]> {
+  
+  // to avoid duplicate partij fetches when multiple betrokkenen share the same partij
+  const partijVoorkeursAdresMap = new Map<
+    string,
+    DigitaalAdresApiViewModel[]
+  >();
+
   for (const betrokkeneWithKlantcontact of value) {
-    betrokkeneWithKlantcontact.expandedDigitaleAdressen ??= [];
-    for (const digitaalAdres of betrokkeneWithKlantcontact.digitaleAdressen) {
-      const url = `${klantinteractiesDigitaleadressen}/${digitaalAdres.uuid}?`;
-      const expanded = await fetchWithSysteemId(systeemId, url)
-        .then(throwIfNotOk)
-        .then(parseJson)
-        .then((d) => d as DigitaalAdresApiViewModel);
-      betrokkeneWithKlantcontact.expandedDigitaleAdressen.push(expanded);
+    betrokkeneWithKlantcontact.expandedDigitaleAdressen =
+      await fetchBetrokkeneEigenDigitaleAdressen(
+        systeemId,
+        betrokkeneWithKlantcontact,
+      );
+
+    const partijUuid = betrokkeneWithKlantcontact.wasPartij?.uuid;
+    if (
+      !betrokkeneWithKlantcontact.expandedDigitaleAdressen.length &&
+      partijUuid
+    ) {
+      betrokkeneWithKlantcontact.expandedDigitaleAdressen =
+        await getPartijVoorkeursDigitaalAdres(
+          systeemId,
+          partijUuid,
+          partijVoorkeursAdresMap,
+        );
     }
   }
 
