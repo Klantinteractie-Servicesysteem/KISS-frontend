@@ -47,7 +47,7 @@ const sectionId = feedbackModel.currentSection.id? ` (${feedbackModel.currentSec
   ];
 
   return {
-    topic: feedbackModel.url,
+    topic: feedbackModel.url || null,
     name: feedbackModel.naam,
     sections,
   };
