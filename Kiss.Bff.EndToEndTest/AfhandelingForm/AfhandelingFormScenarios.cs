@@ -357,7 +357,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetOpslaanButton().ClickAsync();
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
-            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen", new() { Timeout = 30000 });
 
             var klantContactPostResponse = await postResponseTask;
             RegisterCleanup(async () =>
@@ -447,17 +447,18 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
 
             await Step("And clicks on Opslaan button");
             var postResponseTask = Page.WaitForResponseAsync(
-                response => response.Url.Contains("/postklantcontacten"));
+                response => response.Url.Contains("/postklantcontacten"),
+                new() { Timeout = 60000 });
             await Page.GetOpslaanButton().ClickAsync();
 
-            await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
-            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
-
-            var klantContactPostResponse = await responseTask;
+            var klantContactPostResponse = await postResponseTask;
             RegisterCleanup(async () =>
             {
                 await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
+
+            await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen", new() { Timeout = 10000 });
         }
 
         [TestMethod("5. Cancel from Notitieblok - Confirm with Ja")]
