@@ -59,8 +59,6 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 var zaak = await FetchSingleZaakAsync(config, uuid, cancellationToken);
                 if (zaak == null) return NotFound();
 
-                if (zaak.Zaaktype == null) return Ok(zaak);
-
                 var zaaktype = await FetchSingleZaaktypeByUrlAsync(config, zaak.Zaaktype, cancellationToken);
                 if (zaaktype == null)
                 {
@@ -138,8 +136,6 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
         {
             var zaaktypeUrls = zaken
                 .Select(z => z.Zaaktype)
-                .Where(url => url != null)
-                .Cast<string>()
                 .Distinct()
                 .ToList();
 
@@ -195,7 +191,6 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             foreach (var zaak in zaken)
             {
-                if (zaak.Zaaktype == null) continue;
                 if (!zaaktypeByUrl.TryGetValue(zaak.Zaaktype, out var zaaktype)) continue;
 
                 // PABC toegangscontrole/filtering: skip zaken waarvan het zaaktype niet is toegestaan
