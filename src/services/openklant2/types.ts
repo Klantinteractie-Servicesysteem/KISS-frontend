@@ -74,6 +74,9 @@ export type Betrokkene = {
   };
   organisatienaam?: string;
   hadKlantcontact?: { uuid: string; url: string };
+  _expand?: {
+    digitaleAdressen?: DigitaalAdresApiViewModel[];
+  };
 };
 
 export type BetrokkeneMetKlantContact = Betrokkene & {
@@ -209,9 +212,11 @@ export type Partij = {
     naam?: string;
   };
   partijIdentificatoren: { uuid: string }[];
+  voorkeursDigitaalAdres?: { uuid: string; url: string } | null;
   _expand?: {
     digitaleAdressen?: {
-      adres?: string;
+      uuid: string;
+      adres: string;
       soortDigitaalAdres?: DigitaalAdresTypes;
     }[];
   };
