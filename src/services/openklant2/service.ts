@@ -687,7 +687,7 @@ export function fetchKlantByKlantIdentificatorOk2(
         const partij = x as Partij;
         const klant = await mapPartijToKlant(systeemId, partij);
         const voorkeursDigitaalAdres = partij._expand?.digitaleAdressen?.find(
-          ({ uuid }) => uuid == partij.voorkeursDigitaalAdres?.uuid,
+          ({ uuid }) => uuid === partij.voorkeursDigitaalAdres?.uuid,
         );
         return {
           ...klant,
