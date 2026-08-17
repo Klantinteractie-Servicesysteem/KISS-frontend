@@ -31,7 +31,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
     public class ZaakResource
     {
         [JsonPropertyName("zaaktype")]
-        public string? Zaaktype { get; set; }
+        public required string Zaaktype { get; set; }
 
         [JsonPropertyName("_zaaktype")]
         public ZaaktypeResource? ZaaktypeDetails { get; set; }
