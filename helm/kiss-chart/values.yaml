@@ -378,6 +378,12 @@ settings:
     # -- (string) Secret that KISS uses to validate the JWT Token when requesting contact moment details
     apiKey: ""
 
+  pabc:
+    # -- (string) Base URL van de PABC API, zonder trailing slash. Aanwezigheid van baseUrl én apiKey activeert de PABC-koppeling.
+    baseUrl: ""
+    # -- (string) API key voor authenticatie bij PABC (X-API-KEY header).
+    apiKey: ""
+
   # @schema
   # required: true
   # @schema
