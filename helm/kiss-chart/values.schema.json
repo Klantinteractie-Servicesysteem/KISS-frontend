@@ -781,6 +781,24 @@
           "title": "managementInformatie",
           "type": "object"
         },
+        "pabc": {
+          "properties": {
+            "baseUrl": {
+              "default": "",
+              "description": "Base URL van de PABC API, zonder trailing slash. Aanwezigheid van baseUrl én apiKey activeert de PABC-koppeling.",
+              "title": "baseUrl",
+              "type": "string"
+            },
+            "apiKey": {
+              "default": "",
+              "description": "API key voor authenticatie bij PABC (X-API-KEY header).",
+              "title": "apiKey",
+              "type": "string"
+            }
+          },
+          "title": "pabc",
+          "type": "object"
+        },
         "oidc": {
           "description": " required: true @schema",
           "properties": {
