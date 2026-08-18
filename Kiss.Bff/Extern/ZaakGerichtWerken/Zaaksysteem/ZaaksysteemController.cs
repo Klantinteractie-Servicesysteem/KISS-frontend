@@ -7,10 +7,9 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
     public class ZaaksysteemController(
         RegistryConfig registryConfig,
         ILogger<ZaaksysteemController> logger,
-        IHttpClientFactory httpClientFactory,
+        ZaaksysteemClient zaaksysteemClient,
         PabcClient? pabcClient = null) : ControllerBase
     {
-        private HttpClient HttpClient => httpClientFactory.CreateClient("default");
 
         /// <summary>
         /// Haalt zakenlijst op, verrijkt met zaaktype details.
@@ -24,8 +23,8 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             try
             {
-                var zakenResponse = await FetchZakenAsync(config, "zaken" + (Request.QueryString.Value ?? ""), cancellationToken);
-                if (zakenResponse == null) return Ok(new ZakenPaginatedResponse());
+                var zakenUrl = $"{config.ZakenBaseUrl.TrimEnd('/')}/zaken{Request.QueryString.Value ?? ""}";
+                var zakenResponse = await zaaksysteemClient.GetAsync<ZakenPaginatedResponse>(zakenUrl, User, config, cancellationToken);
 
                 var zaaktypeByUrl = await FetchZaaktypenAsync(config, zakenResponse.Results, cancellationToken);
 
@@ -38,10 +37,15 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
                 return Ok(zakenResponse);
             }
-            catch (HttpRequestException ex)
+            catch (ZaaksysteemException ex)
             {
                 logger.LogError(ex, "Fout bij ophalen van zaken");
-                return Problem(title: "Fout bij ophalen van zaken", detail: ex.Message, statusCode: 502);
+                return new ContentResult
+                {
+                    StatusCode = (int?)ex.StatusCode ?? 502,
+                    Content = ex.ResponseBody,
+                    ContentType = ex.ContentType
+                };
             }
         }
 
@@ -56,14 +60,11 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
             try
             {
-                var zaak = await FetchSingleZaakAsync(config, uuid, cancellationToken);
-                if (zaak == null) return NotFound();
+                var zaakUrl = $"{config.ZakenBaseUrl.TrimEnd('/')}/zaken/{uuid}";
+                var zaak = await zaaksysteemClient.GetAsync<ZaakResource>(zaakUrl, User, config, cancellationToken);
 
-                var zaaktype = await FetchSingleZaaktypeByUrlAsync(config, zaak.Zaaktype, cancellationToken);
-                if (zaaktype == null)
-                {
-                    return Problem(title: "Zaaktype niet gevonden", detail: "Zaaktype kon niet worden opgehaald uit de catalogi.", statusCode: 502);
-                }
+                var zaaktypeUrl = $"{config.CatalogiBaseUrl.TrimEnd('/')}/zaaktypen/{zaak.Zaaktype.TrimEnd('/').Split('/').Last()}";
+                var zaaktype = await zaaksysteemClient.GetAsync<ZaaktypeResource>(zaaktypeUrl, User, config, cancellationToken);
 
                 if (pabcClient != null)
                 {
@@ -77,10 +78,15 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 zaak.ZaaktypeDetails = zaaktype;
                 return Ok(zaak);
             }
-            catch (HttpRequestException ex)
+            catch (ZaaksysteemException ex)
             {
                 logger.LogError(ex, "Fout bij ophalen van zaak");
-                return Problem(title: "Fout bij ophalen van zaak", detail: ex.Message, statusCode: 502);
+                return new ContentResult
+                {
+                    StatusCode = (int?)ex.StatusCode ?? 502,
+                    Content = ex.ResponseBody,
+                    ContentType = ex.ContentType
+                };
             }
         }
 
@@ -109,28 +115,10 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
         #region Zaken ophalen en verrijken
 
-        private async Task<ZakenPaginatedResponse?> FetchZakenAsync(
-            ZaaksysteemRegistry config, string path, CancellationToken cancellationToken)
-        {
-            var url = $"{config.ZakenBaseUrl.TrimEnd('/')}/{path}";
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            config.ApplyHeaders(request.Headers, User);
-
-            using var response = await HttpClient.SendAsync(request, cancellationToken);
-            return !response.IsSuccessStatusCode ? null : await response.Content.ReadFromJsonAsync<ZakenPaginatedResponse>(cancellationToken);
-        }
-
-        private async Task<ZaakResource?> FetchSingleZaakAsync(
-            ZaaksysteemRegistry config, string uuid, CancellationToken cancellationToken)
-        {
-            var url = $"{config.ZakenBaseUrl.TrimEnd('/')}/zaken/{uuid}";
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            config.ApplyHeaders(request.Headers, User);
-
-            using var response = await HttpClient.SendAsync(request, cancellationToken);
-            return !response.IsSuccessStatusCode ? null : await response.Content.ReadFromJsonAsync<ZaakResource>(cancellationToken);
-        }
-
+        /// <summary>
+        /// Haalt zaaktype details op uit catalogi voor alle unieke zaaktype URLs in de zakenlijst.
+        /// Gebruikt GetOrDefaultAsync: als een zaaktype niet opgehaald kan worden, wordt het overgeslagen.
+        /// </summary>
         private async Task<Dictionary<string, ZaaktypeResource>> FetchZaaktypenAsync(
             ZaaksysteemRegistry config, List<ZaakResource> zaken, CancellationToken cancellationToken)
         {
@@ -140,47 +128,27 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 .ToList();
 
             var result = new Dictionary<string, ZaaktypeResource>();
-            if (zaaktypeUrls.Count == 0) return result;
+            var catalogiBaseUrl = config.CatalogiBaseUrl.TrimEnd('/');
 
-            var tasks = zaaktypeUrls.Select(async url =>
+            var tasks = zaaktypeUrls.Select(async zaaktypeUrl =>
             {
-                var zaaktype = await FetchSingleZaaktypeByUrlAsync(config, url, cancellationToken);
-                return (url, zaaktype);
+                var uuid = zaaktypeUrl.TrimEnd('/').Split('/').Last();
+                var url = $"{catalogiBaseUrl}/zaaktypen/{uuid}";
+                var zaaktype = await zaaksysteemClient.GetOrDefaultAsync<ZaaktypeResource>(url, User, config, cancellationToken);
+                return (zaaktypeUrl, zaaktype);
             });
 
             var resolved = await Task.WhenAll(tasks);
 
-            foreach (var (url, zaaktype) in resolved)
+            foreach (var (zaaktypeUrl, zaaktype) in resolved)
             {
                 if (zaaktype != null)
                 {
-                    result[url] = zaaktype;
+                    result[zaaktypeUrl] = zaaktype;
                 }
             }
 
             return result;
-        }
-
-        private async Task<ZaaktypeResource?> FetchSingleZaaktypeByUrlAsync(
-            ZaaksysteemRegistry config, string zaaktypeUrl, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var uuid = zaaktypeUrl.TrimEnd('/').Split('/').LastOrDefault();
-                if (string.IsNullOrEmpty(uuid)) return null;
-
-                var url = $"{config.CatalogiBaseUrl.TrimEnd('/')}/zaaktypen/{uuid}";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                config.ApplyHeaders(request.Headers, User);
-
-                using var response = await HttpClient.SendAsync(request, cancellationToken);
-                return !response.IsSuccessStatusCode ? null : await response.Content.ReadFromJsonAsync<ZaaktypeResource>(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Zaaktype ophalen mislukt voor {ZaaktypeUrl}", zaaktypeUrl);
-                return null;
-            }
         }
 
         private static List<ZaakResource> EnrichAndFilterZaken(
