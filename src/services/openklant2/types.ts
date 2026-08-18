@@ -211,7 +211,7 @@ export type Partij = {
     contactnaam?: Contactnaam;
     naam?: string;
   };
-  partijIdentificatoren: { uuid: string }[];
+  partijIdentificatoren: PartijIdentificator[];
   voorkeursDigitaalAdres?: { uuid: string; url: string } | null;
   _expand?: {
     digitaleAdressen?: {

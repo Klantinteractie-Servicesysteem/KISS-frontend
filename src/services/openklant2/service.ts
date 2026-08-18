@@ -1046,10 +1046,7 @@ async function mapPartijToKlant(
   identificatoren?: PartijIdentificator[],
 ): Promise<Klant> {
   if (!identificatoren?.length) {
-    const promises = partij.partijIdentificatoren.map(({ uuid }) =>
-      getPartijIdentificator(systeemId, uuid),
-    );
-    identificatoren = await Promise.all(promises);
+    identificatoren = partij.partijIdentificatoren;
   }
 
   const getDigitaalAdressen = (type: DigitaalAdresTypes) =>
