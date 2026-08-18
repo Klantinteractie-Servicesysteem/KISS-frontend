@@ -9,6 +9,7 @@ using Kiss.Bff.Extern;
 using Kiss.Bff.Extern.Elasticsearch;
 using Kiss.Bff.Extern.Logboek;
 using Kiss.Bff.Extern.Pabc;
+using Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem;
 using Kiss.Bff.Groepen;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
@@ -126,6 +127,7 @@ try
     builder.Services.AddScoped<SkillsService>();
     builder.Services.AddScoped<LinksService>();
     builder.Services.AddScoped<GespreksresultatenService>();
+    builder.Services.AddScoped<ZaaksysteemClient>();
 
     var app = builder.Build();
 
