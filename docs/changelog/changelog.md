@@ -1,5 +1,15 @@
 # Changelog
 
+## Next minor release (version TBD)
+
+### New features
+
+- Koppeling KISS/PABC #1482
+
+### Warnings and deployment notes
+
+- New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`. See [PABC documentation](../installation/pabc.md)
+
 ## Latest version
 
 ## v3.0.0
