@@ -37,8 +37,6 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             {
                 var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
                 var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
-                logger.LogError("Zaaksysteem returned {StatusCode} voor {Url}: {ErrorBody}",
-                    (int)response.StatusCode, url, errorBody);
                 throw new ZaaksysteemException(
                     $"Zaaksysteem returned {(int)response.StatusCode}: {errorBody}",
                     response.StatusCode,
@@ -61,7 +59,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Ophalen mislukt voor {Url}", url);
+                logger.LogWarning(ex, "Ophalen van zaaksysteem resource mislukt");
                 return null;
             }
         }
