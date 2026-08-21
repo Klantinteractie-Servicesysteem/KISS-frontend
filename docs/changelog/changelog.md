@@ -4,7 +4,7 @@
 
 ## v3.0.1
 
-- Update op de changelog voor 3.0.0
+- Update aan de changelog voor v3.0.0
 
 ## v3.0.0
 
