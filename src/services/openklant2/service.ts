@@ -26,6 +26,7 @@ import {
   CodeSoortObjectId,
   type PartijIdentificator,
   type KlantBedrijfIdentifier,
+  type InternetaakApiViewModel,
 } from "./types";
 
 import type { ContactverzoekData } from "../../features/contact/components/types";
@@ -88,27 +89,34 @@ export async function enrichInterneTakenWithActoren(
       continue;
     }
 
-    const actoren = internetaak.toegewezenAanActoren || [];
-
-    //we halen alle actoren op en kiezen dan de eerste medewerker. als er geen medewerkers bij staan de eerste organisatie
-    //wordt naar verwachting tzt aangepast, dan gaan we gewoon alle actoren bij de internetak tonen
-
-    const actorenDetails = [] as ActorApiViewModel[];
-
-    for (const actor of actoren) {
-      const actorDetails = await fetchActor(systeemId, actor.uuid);
-      actorenDetails.push(actorDetails);
-    }
-
-    internetaak.actorMedewerker = actorenDetails.find(
-      (x) => x.soortActor === "medewerker",
-    );
-    internetaak.actorOrganisatie = actorenDetails.find(
-      (x) => x.soortActor === "organisatorische_eenheid",
-    );
+    await enrichInterneTaakWithActoren(systeemId, internetaak);
   }
 
   return value;
+}
+
+export async function enrichInterneTaakWithActoren(
+  systeemId: string,
+  internetaak: InternetaakApiViewModel,
+) {
+  const actoren = internetaak.toegewezenAanActoren || [];
+
+  //we halen alle actoren op en kiezen dan de eerste medewerker. als er geen medewerkers bij staan de eerste organisatie
+  //wordt naar verwachting tzt aangepast, dan gaan we gewoon alle actoren bij de internetak tonen
+
+  const actorenDetails = [] as ActorApiViewModel[];
+
+  for (const actor of actoren) {
+    const actorDetails = await fetchActor(systeemId, actor.uuid);
+    actorenDetails.push(actorDetails);
+  }
+
+  internetaak.actorMedewerker = actorenDetails.find(
+    (x) => x.soortActor === "medewerker",
+  );
+  internetaak.actorOrganisatie = actorenDetails.find(
+    (x) => x.soortActor === "organisatorische_eenheid",
+  );
 }
 
 export function fetchActor(systeemId: string, id: string) {
@@ -632,7 +640,9 @@ export const ensureOk2Klant = async (
 export function fetchKlantByKlantIdentificatorOk2(
   systeemId: string,
   klantIdentificator: KlantIdentificator,
-): Promise<Klant | null> {
+): Promise<
+  (Klant & { voorkeursDigitaalAdres?: DigitaalAdresApiViewModel }) | null
+> {
   const expand = "digitaleAdressen";
   let soortPartij: string;
   let partijIdentificator__codeSoortObjectId: string;
@@ -673,7 +683,17 @@ export function fetchKlantByKlantIdentificatorOk2(
     .then(throwIfNotOk)
     .then(parseJson)
     .then((r) =>
-      parsePagination(r, (x) => mapPartijToKlant(systeemId, x as Partij)),
+      parsePagination(r, async (x) => {
+        const partij = x as Partij;
+        const klant = await mapPartijToKlant(systeemId, partij);
+        const voorkeursDigitaalAdres = partij._expand?.digitaleAdressen?.find(
+          ({ uuid }) => uuid === partij.voorkeursDigitaalAdres?.uuid,
+        );
+        return {
+          ...klant,
+          voorkeursDigitaalAdres,
+        };
+      }),
     )
     .then((x) => {
       //als er op kvk en vestiging gezocht is, moet de gevonden partij wel matchen
@@ -1026,10 +1046,7 @@ async function mapPartijToKlant(
   identificatoren?: PartijIdentificator[],
 ): Promise<Klant> {
   if (!identificatoren?.length) {
-    const promises = partij.partijIdentificatoren.map(({ uuid }) =>
-      getPartijIdentificator(systeemId, uuid),
-    );
-    identificatoren = await Promise.all(promises);
+    identificatoren = partij.partijIdentificatoren;
   }
 
   const getDigitaalAdressen = (type: DigitaalAdresTypes) =>
@@ -1138,6 +1155,8 @@ export function fetchKlantcontacten({
 }: {
   onderwerpobject__onderwerpobjectidentificatorObjectId?: string;
   hadBetrokkene__uuid?: string;
+  hadBetrokkene__wasPartij__url?: string;
+  pageSize?: string;
   systeemIdentifier: string;
   expand?: KlantContactExpand[];
 }) {
