@@ -77,7 +77,6 @@
 
   <content-feedback
     :name="title"
-    :url="medewerkerRaw.url"
     :current-section="currentFeedbackSection"
   />
 </template>
@@ -111,12 +110,11 @@ const availabilities = computed(() => {
   return Object.fromEntries(days.map((x) => [x, rawAvailabilities[x] || {}]));
 });
 
-const telefoonnummers = computed(
-  () =>
-    (props.medewerkerRaw?.contact ?? props.medewerkerRaw)?.telefoonnummers
-      ?.map(({ telefoonnummer }: any) => telefoonnummer)
-      ?.filter(Boolean)
-      ?.join(", "),
+const telefoonnummers = computed(() =>
+  (props.medewerkerRaw?.contact ?? props.medewerkerRaw)?.telefoonnummers
+    ?.map(({ telefoonnummer }: any) => telefoonnummer)
+    ?.filter(Boolean)
+    ?.join(", "),
 );
 
 const emails = computed(
