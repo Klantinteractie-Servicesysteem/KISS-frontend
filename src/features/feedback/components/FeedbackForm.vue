@@ -101,7 +101,7 @@ import { useUserStore } from "@/stores/user";
 import { Button as UtrechtButton } from "@utrecht/component-library-vue";
 
 const props = defineProps<{
-  url: unknown | URL;
+  url?: unknown | URL;
   name: string;
   currentSection: CurrentFeedbackSection;
 }>();

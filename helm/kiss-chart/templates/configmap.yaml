@@ -93,6 +93,9 @@ data:
   {{- if .Values.settings.logboek.baseUrl }}
   LOGBOEK_BASE_URL: {{ .Values.settings.logboek.baseUrl | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.pabc.baseUrl }}
+  PABC_BASE_URL: {{ .Values.settings.pabc.baseUrl | toString | quote }}
+  {{- end }}
   {{- if .Values.settings.logboek.objectTypeUrl }}
   LOGBOEK_OBJECT_TYPE_URL: {{ .Values.settings.logboek.objectTypeUrl | toString | quote }}
   {{- end }}
@@ -220,6 +223,9 @@ data:
 
   {{- if .Values.settings.syncJobs.medewerkers.useEmail }}
   USE_MEDEWERKEREMAIL: {{ .Values.settings.syncJobs.medewerkers.useEmail | toString | quote }}
+  {{- end }}
+  {{- if .Values.settings.groepsmailboxVerplichting }}
+  USE_GROEPSMAILBOX_VERPLICHTING: {{ .Values.settings.groepsmailboxVerplichting | toString | quote }}
   {{- end }}
   {{- if ((.Values.settings.syncJobs.vac).manageFromKiss) }}
   USE_VACS: {{ .Values.settings.syncJobs.vac.manageFromKiss | toString | quote }}

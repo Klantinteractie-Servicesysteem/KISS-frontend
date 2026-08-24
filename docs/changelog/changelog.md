@@ -1,5 +1,15 @@
 # Changelog
 
+## Next minor release (version TBD)
+
+### New features
+
+- Koppeling KISS/PABC #1482
+
+### Warnings and deployment notes
+
+- New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`. See [PABC documentation](../installation/pabc.md)
+
 ## Latest version
 
 ## v3.0.0
@@ -17,9 +27,9 @@ Let op, deze release bevat breaking changes!
 - Instanties die nog op de oude Enterprise Search-opzet draaien, werken pas weer na deze migratie. Neem bij twijfel contact op met het ontwikkelteam voordat je upgrade naar v3.0.0.
 
 **Gewijzigde rol indeling**
+
 - De redacteur rol is gesplitst in een REDACTEUR rol en een BEHEERDER rol. Zie de installatie configuratie documentatie voor meer informatie.
 
- 
 ### New features
 
 - ['Belangrijke berichten counter' updates when new berichten with 'important' tag are added or deleted.](https://dimpact.atlassian.net/browse/PC-2306)
@@ -27,7 +37,9 @@ Let op, deze release bevat breaking changes!
 - Twee actoren tonen bij inzien Contactverzoeken #882
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
 - [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
-- [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385) 
+- [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385)
+- [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
+
 
 
 ## v2.2.4

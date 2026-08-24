@@ -86,6 +86,7 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.groepen.baseUrl | string | `""` | URL of the Objects API for groepen. |
 | settings.groepen.objectTypeUrl | string | `""` | URL of the groepen Object Type |
 | settings.groepen.token | string | `""` | Token of the Objects API for groepen. |
+| settings.groepsmailboxVerplichting | bool | `false` | This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox. |
 | settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API |
 | settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal API |
 | settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy |
@@ -109,6 +110,8 @@ A helm chart for Klantinteractie Service Systeem.
 | settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | max number of characters before truncation |
 | settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. |
 | settings.organisatieIds | list | `[]` | RSIN of the organization that registers the Contactmomenten |
+| settings.pabc.apiKey | string | `""` | API key voor authenticatie bij PABC (X-API-KEY header). |
+| settings.pabc.baseUrl | string | `""` | Base URL van de PABC API, zonder trailing slash. Aanwezigheid van baseUrl én apiKey activeert de PABC-koppeling. |
 | settings.registers | list | `[]` | Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations. |
 | settings.syncJobs.crawlerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | settings.syncJobs.crawlerImage.repository | string | `"docker.elastic.co/integrations/crawler"` | The image repository for the Elastic Open Crawler |

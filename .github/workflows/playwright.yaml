@@ -3,7 +3,7 @@ on:
   schedule:
     - cron: "0 16 * * *"
   pull_request:
-    branches: [main, master]
+    branches: [test]
     paths: ["Kiss.Bff.EndToEndTest/**"]
   workflow_dispatch:
 

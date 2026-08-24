@@ -34,6 +34,13 @@ namespace Kiss.Bff.Intern.Environment
                 (IActionResult)Ok(new { useMedewerkeremail }) : Ok(new { useMedewerkeremail = false });
         }
 
+        [HttpGet("use-groepsmailbox-verplichting")]
+        public IActionResult GetUseGroepsmailboxVerplichting()
+        {
+            return bool.TryParse(_configuration["USE_GROEPSMAILBOX_VERPLICHTING"] ?? "false", out var useGroepsmailboxVerplichting) ?
+                (IActionResult)Ok(new { useGroepsmailboxVerplichting }) : Ok(new { useGroepsmailboxVerplichting = false });
+        }
+
         [HttpGet("build-info")]
         [Authorize(Policy = Policies.KcmOrRedactieOrKennisbankPolicy)]
         public IActionResult GetBuildInfo()
@@ -76,6 +83,15 @@ namespace Kiss.Bff.Intern.Environment
                 ? (IActionResult)Ok(new { useLogboek = true })
                 : Ok(new { useLogboek = false });
 
+        }
+
+        [HttpGet("use-pabc")]
+        public IActionResult GetUsePabc()
+        {
+            return !string.IsNullOrWhiteSpace(_configuration["PABC_BASE_URL"]) &&
+                    !string.IsNullOrWhiteSpace(_configuration["PABC_API_KEY"])
+                ? (IActionResult)Ok(new { usePabc = true })
+                : Ok(new { usePabc = false });
         }
     }
 }

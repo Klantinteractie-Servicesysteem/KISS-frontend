@@ -378,6 +378,12 @@ settings:
     # -- (string) Secret that KISS uses to validate the JWT Token when requesting contact moment details
     apiKey: ""
 
+  pabc:
+    # -- (string) Base URL van de PABC API, zonder trailing slash. Aanwezigheid van baseUrl én apiKey activeert de PABC-koppeling.
+    baseUrl: ""
+    # -- (string) API key voor authenticatie bij PABC (X-API-KEY header).
+    apiKey: ""
+
   # @schema
   # required: true
   # @schema
@@ -521,6 +527,9 @@ settings:
   # @schema
   # -- (list) Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.
   registers: []
+
+  # -- (bool) This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox.
+  groepsmailboxVerplichting: false
 
   syncJobs:
     image:
