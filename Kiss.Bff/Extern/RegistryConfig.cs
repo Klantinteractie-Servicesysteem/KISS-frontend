@@ -90,6 +90,7 @@ namespace Kiss.Bff.Extern
         public required string ZakenBaseUrl { get; init; }
         public required string CatalogiBaseUrl { get; init; }
         public required string DocumentenBaseUrl { get; init; }
+        public bool UsePabc { get; init; } = true;
     }
 
     public static class CrsHeaderConstants
