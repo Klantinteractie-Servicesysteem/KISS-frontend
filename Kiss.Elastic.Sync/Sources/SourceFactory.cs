@@ -1,4 +1,6 @@
-﻿namespace Kiss.Elastic.Sync.Sources
+﻿using Kiss.Elastic.Sync.KennisApi;
+
+namespace Kiss.Elastic.Sync.Sources
 {
     public static class SourceFactory
     {
@@ -7,6 +9,8 @@
             "vac" => GetVacClient(),
             "smoelenboek" => GetMedewerkerClient(),
             "sharepoint" => GetSharePointClient(),
+            "kennis-api-artikel" => GetKennisApiKennisartikelClient(),
+            "kennis-api-vac" => GetKennisApiVacClient(),
             _ => GetProductClient(),
         };
 
@@ -75,6 +79,28 @@
             var sharePointClient = new SharePoint.SharePointClient(tenantId, clientId, clientSecret, siteUrl);
 
             return new SharePointPageSourceClient(sharePointClient, sourceName);
+        }
+
+        private static KennisApiClient CreateKennisApiClient()
+        {
+            var baseUrl = Helpers.GetRequiredEnvironmentVariable("KENNISAPI_BASE_URL");
+            var clientId = Helpers.GetRequiredEnvironmentVariable("KENNISAPI_CLIENT_ID");
+            var clientSecret = Helpers.GetRequiredEnvironmentVariable("KENNISAPI_CLIENT_SECRET");
+            var publicationId = Helpers.GetOptionalEnvironmentVariable("KENNISAPI_PUBLICATION_ID");
+
+            return !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
+                ? throw new Exception("Kennis API base url is niet valide: " + baseUrl)
+                : new KennisApiClient(baseUri, clientId, clientSecret, publicationId);
+        }
+
+        private static KennisApiKennisartikelClient GetKennisApiKennisartikelClient()
+        {
+            return new KennisApiKennisartikelClient(CreateKennisApiClient());
+        }
+
+        private static KennisApiVacClient GetKennisApiVacClient()
+        {
+            return new KennisApiVacClient(CreateKennisApiClient());
         }
     }
 }
