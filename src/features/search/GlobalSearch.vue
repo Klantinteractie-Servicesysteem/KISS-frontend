@@ -160,6 +160,18 @@
                   :heading-level="2"
                   @kennisartikel-selected="handleKennisartikelSelected"
                 />
+                <kennis-api-artikel-detail
+                  v-else-if="source === 'kennis-api-artikel'"
+                  :kennisartikel="jsonObject"
+                  :title="title"
+                  :heading-level="2"
+                />
+                <kennis-api-vac-detail
+                  v-else-if="source === 'kennis-api-vac'"
+                  :vac="jsonObject"
+                  :title="title"
+                  :heading-level="2"
+                />
                 <vac-detail
                   v-else-if="source === 'VAC'"
                   :raw="jsonObject"
@@ -215,6 +227,8 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import type { Source } from "./types";
 import MedewerkerDetail from "./MedewerkerDetail.vue";
 import KennisartikelDetail from "./KennisartikelDetail.vue";
+import KennisApiArtikelDetail from "./KennisApiArtikelDetail.vue";
+import KennisApiVacDetail from "./KennisApiVacDetail.vue";
 import VacDetail from "./VacDetail.vue";
 import type {
   Medewerker,
