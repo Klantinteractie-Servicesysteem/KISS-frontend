@@ -477,6 +477,8 @@ settings:
   #                   type: string
   #             useExperimentalQueries:
   #               type: boolean
+  #             usePabc:
+  #               type: boolean
   #           required: [clientId, clientSecret, catalogiBaseUrl, documentenBaseUrl, zakenBaseUrl]
   #       required: ["zaaksysteem"]
   #     - oneOf:

@@ -209,6 +209,9 @@ data:
   {{- if (($register.zaaksysteem).useExperimentalQueries) }}
   REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ $register.zaaksysteem.useExperimentalQueries | toString | quote }}
   {{- end }}
+  {{- if hasKey ($register.zaaksysteem) "usePabc" }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_PABC: {{ $register.zaaksysteem.usePabc | toString | quote }}
+  {{- end }}
   {{- if (($register.zaaksysteem).zakenBaseUrl) }}
   REGISTERS__{{ $index }}__ZAAKSYSTEEM_ZAKEN_BASE_URL: {{ $register.zaaksysteem.zakenBaseUrl | toString | quote }}
   {{- end }}
