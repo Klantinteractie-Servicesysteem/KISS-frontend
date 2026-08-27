@@ -2,7 +2,7 @@
 
 ## Latest version
 
-## v3.0.1
+## v3.1.1
 
 - Update aan de changelog voor v3.0.0
 
