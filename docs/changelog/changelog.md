@@ -2,13 +2,16 @@
 
 ## Latest version
 
+## v3.1.1
+
+- Update aan de changelog voor v3.0.0
+
 ## v3.1.0
 
 ### New features
 
 - [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
 - [Bugfix: Feedback versturen op smoelenboek item geeft fout #1502](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1502)
-
 
 
 
@@ -20,11 +23,12 @@ Let op, deze release bevat breaking changes!
 
 **Elastic Enterprise Search / App Search is vervangen door rechtstreekse Elasticsearch-queries en de Elastic Open Crawler.** ([PC-2385](https://dimpact.atlassian.net/browse/PC-2385), [PC-2386](https://dimpact.atlassian.net/browse/PC-2386))
 
-- KISS doorzoekt niet langer een Enterprise Search meta-engine, maar query't rechtstreeks de Elasticsearch-indices (patroon `search-*`).
-- Websites worden niet meer gecrawld via de Enterprise Search web crawler, maar via de [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html), die als Kubernetes CronJob draait en rechtstreeks naar Elasticsearch schrijft.
-- De helm-chart-waarden `settings.enterpriseSearch.baseUrl`, `settings.enterpriseSearch.engine`, `settings.enterpriseSearch.publicApiKey` en `settings.enterpriseSearch.privateApiKey` zijn verwijderd. Deze waren verplicht in de vorige versie van de chart; verwijder ze uit je values-bestand, anders geeft `helm template`/`helm upgrade` een fout over onbekende of overbodige sleutels afhankelijk van je schema-validatie.
-- **Migratiepad:** richt Elasticsearch rechtstreeks in (zonder Enterprise Search/App Search ervoor), en configureer de Elastic Open Crawler via `settings.syncJobs` in de helm chart. Zie de bijgewerkte documentatie: [Configuratie van Elasticsearch voor KISS](../configuration/elastic.md).
-- Instanties die nog op de oude Enterprise Search-opzet draaien, werken pas weer na deze migratie. Neem bij twijfel contact op met het ontwikkelteam voordat je upgrade naar v3.0.0.
+- KISS doorzoekt niet langer een Enterprise Search meta-engine, maar bevraagt de Elasticsearch-indices rechtstreeks (patroon `search-*`).
+- Websites worden niet meer gecrawld via de Enterprise Search web crawler, maar via de [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html), die als Kubernetes CronJob draait en rechtstreeks naar Elasticsearch schrijft. Het bijbehorende image voor deze crawler is geconfigureerd onder `settings.syncJobs.crawlerImage` in de helm values. Daarnaast maakt KISS gebruik van cURL om de indices voor de websites aan te maken in Elasticsearch.
+- De helm-chart-waarden `settings.enterpriseSearch.baseUrl`, `settings.enterpriseSearch.engine`, `settings.enterpriseSearch.publicApiKey` en `settings.enterpriseSearch.privateApiKey` zijn verwijderd. Deze waren verplicht in de vorige versie van de chart; verwijder ze uit je values-bestand, om de overbodige secrets te verwijderen uit het cluster.
+- Het instellen van specifieke relevance en precision tuning gebeurde in Kibana, en werd opgeslagen in Enterprise Search. Omdat Enterprise Search niet meer wordt gebruikt, hebben deze instellingen dus geen effect meer. KISS v3.0.0 gebruikt standaard de precision tuning waarde 6. 
+- **Migratiepad:** Er is geen apart migratiepad nodig. KISS 3.0.0 maakt geen gebruik meer van Enterprise Search. Men kan ervoor kiezen om Enterprise Search te verwijderen bij het uitrollen van v3.0.0, maar het hoeft niet. Als Enterprise Search verwijderd wordt, zijn de bijbehorende opties ook niet meer toegankelijk in Kibana.
+
 
 **Gewijzigde rol indeling**
 
