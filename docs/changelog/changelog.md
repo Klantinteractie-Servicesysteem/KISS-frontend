@@ -2,6 +2,16 @@
 
 ## Latest version
 
+## v3.1.0
+
+### New features
+
+- [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
+- [Bugfix: Feedback versturen op smoelenboek item geeft fout #1502](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1502)
+
+
+
+
 ## v3.0.0
 
 ### Warnings and deployment notes
@@ -28,8 +38,6 @@ Let op, deze release bevat breaking changes!
 - [Verhuizen synctool repo](https://dimpact.atlassian.net/browse/PC-2350): de `Kiss.Elastic.Sync` tool (voorheen los `KISS-Elastic-Sync` repository) is verhuisd naar deze repository en bouwt/versioneert nu mee met KISS.
 - [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
 - [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385)
-- [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
-- [Bugfix: Feedback versturen op smoelenboek item geeft fout #1502](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1502)
 
 
 ## v2.2.4
