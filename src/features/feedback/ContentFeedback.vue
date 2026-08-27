@@ -37,7 +37,7 @@ import ApplicationMessage from "@/components/ApplicationMessage.vue";
 import type { CurrentFeedbackSection } from "./types";
 
 defineProps<{
-  url: unknown | URL;
+  url?: unknown | URL;
   name: string;
   currentSection: CurrentFeedbackSection;
 }>();

@@ -64,11 +64,23 @@ namespace Kiss.Bff.Feedback
 
             stringBuilder
                 .Append(s_sanitizer.Sanitize(userName))
-                .Append(" heeft feedback gegeven op: <a href=\"")
-                .Append(s_sanitizer.Sanitize(model.Topic))
-                .Append("\">")
-                .Append(s_sanitizer.Sanitize(model.Name))
-                .Append("</a></p>");
+                .Append(" heeft feedback gegeven op: ");
+
+            if (string.IsNullOrWhiteSpace(model.Topic))
+            {
+                stringBuilder.Append(s_sanitizer.Sanitize(model.Name));
+            }
+            else
+            {
+                stringBuilder
+                    .Append("<a href=\"")
+                    .Append(s_sanitizer.Sanitize(model.Topic))
+                    .Append("\">")
+                    .Append(s_sanitizer.Sanitize(model.Name))
+                    .Append("</a>");
+            }
+
+            stringBuilder.Append("</p>");
 
             var sectionCount = 0;
             foreach (var section in model.Sections)
@@ -93,5 +105,5 @@ namespace Kiss.Bff.Feedback
         }
     }
 
-    public record FeedbackModel([Required] string Topic, [Required] string Name, [Required] string[][] Sections);
+    public record FeedbackModel(string? Topic, [Required] string Name, [Required] string[][] Sections);
 }

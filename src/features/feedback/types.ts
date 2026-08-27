@@ -1,5 +1,5 @@
 export interface Feedback {
-  url: unknown | URL;
+  url: unknown | URL | undefined;
   naam: string; //naam artikel. automatisch vullen
   content: string; //tekst waar de feedback betrekking op heeft
   opmerking: string; //de feedback: wat is er mis
