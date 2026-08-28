@@ -43,6 +43,8 @@
                 var useExperimentalQueries = bool.TryParse(GetValue("ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES"), out var useExperimental)
                     && useExperimental;
 
+                var usePabc = !bool.TryParse(GetValue("ZAAKSYSTEEM_USE_PABC"), out var usePabcValue) || usePabcValue; // default true
+
                 ZaaksysteemRegistry? zaaksysteem = null;
 
                 // Er zijn twee mogelijke configuraties voor zaaksystemen.
@@ -83,7 +85,8 @@
                         ZakenBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/zaken/api/v1",
                         CatalogiBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/catalogi/api/v1",
                         DocumentenBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/documenten/api/v1",
-                        UseExperimentalQueries = useExperimentalQueries
+                        UseExperimentalQueries = useExperimentalQueries,
+                        UsePabc = usePabc
                     };
                 }
 
@@ -99,7 +102,8 @@
                         ZakenBaseUrl = zakenBaseUrl,
                         CatalogiBaseUrl = catalogiBaseUrl,
                         DocumentenBaseUrl = documentenBaseUrl,
-                        UseExperimentalQueries = useExperimentalQueries
+                        UseExperimentalQueries = useExperimentalQueries,
+                        UsePabc = usePabc
                     };
                 }
 

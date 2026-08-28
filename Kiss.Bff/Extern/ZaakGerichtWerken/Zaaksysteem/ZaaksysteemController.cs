@@ -28,7 +28,8 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
 
                 var zaaktypeByUrl = await FetchZaaktypenAsync(config, zakenResponse.Results, cancellationToken);
 
-                var allowedZaaktypenIds = pabcClient != null
+                // PABC filtering alleen als PABC geconfigureerd is én dit zaaksysteem PABC gebruikt
+                var allowedZaaktypenIds = pabcClient != null && config.UsePabc
                     ? await GetAllowedZaaktypenIdsAsync(cancellationToken)
                     : null;
 
@@ -66,7 +67,8 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                 var zaaktypeUrl = $"{config.CatalogiBaseUrl.TrimEnd('/')}/zaaktypen/{zaak.Zaaktype.TrimEnd('/').Split('/').Last()}";
                 var zaaktype = await zaaksysteemClient.GetAsync<ZaaktypeResource>(zaaktypeUrl, User, config, cancellationToken);
 
-                if (pabcClient != null)
+                // PABC toegangscontrole alleen als PABC geconfigureerd is én dit zaaksysteem PABC gebruikt
+                if (pabcClient != null && config.UsePabc)
                 {
                     var allowedZaaktypenIds = await GetAllowedZaaktypenIdsAsync(cancellationToken);
                     if (zaaktype.Omschrijving == null || !allowedZaaktypenIds.Contains(zaaktype.Omschrijving))

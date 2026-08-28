@@ -43,6 +43,7 @@ De PABC-koppeling wordt geactiveerd door de **aanwezigheid** van de environment 
 |-----------|-----------|--------|
 | `PABC_BASE_URL` | Ja* | De base URL van de PABC API, zonder trailing slash. Bijvoorbeeld: `https://pabc.mijngemeente.nl` |
 | `PABC_API_KEY` | Ja* | De API key voor authenticatie bij PABC (wordt meegestuurd als `X-API-KEY` header) |
+| `REGISTERS__X__ZAAKSYSTEEM_USE_PABC` | Nee | Per zaaksysteem instellen of PABC-filtering wordt toegepast. Default: `true`. Zet op `false` voor zaaksystemen met eigen autorisatie (bijv. e-Suite). |
 
 \* Verplicht als je de PABC-koppeling wilt activeren. Afwezigheid van deze variabelen schakelt de feature uit.
 
@@ -78,6 +79,19 @@ Wanneer de PABC-koppeling actief is:
 - **Klantbeeld (Zaken tab):** Alleen zaken van toegestane zaaktypes worden getoond bij een klant.
 - **Melding:** De gebruiker ziet een melding dat mogelijk niet alle zaken zichtbaar zijn vanwege autorisatie-instellingen.
 - **Geen toegang:** Als een gebruiker geen functionele rol heeft die in PABC is gekoppeld aan de KISS-applicatierol, dan ziet deze gebruiker geen enkele zaak.
+
+## Meerdere zaaksystemen (e-Suite)
+
+Wanneer KISS is gekoppeld met meerdere zaaksystemen (bijv. OpenZaak én e-Suite), kan het wenselijk zijn om PABC-filtering alleen toe te passen op specifieke zaaksystemen. De e-Suite heeft een eigen autorisatiemechanisme, waardoor PABC-filtering daar niet nodig is en dubbel beheer zou opleveren.
+
+Gebruik hiervoor de `REGISTERS__X__ZAAKSYSTEEM_USE_PABC` variabele:
+
+```
+REGISTERS__0__ZAAKSYSTEEM_USE_PABC=false  # e-Suite: eigen autorisatie
+REGISTERS__1__ZAAKSYSTEEM_USE_PABC=true   # OpenZaak: PABC autorisatie
+```
+
+Als deze variabele niet is ingesteld, wordt standaard `true` aangenomen (PABC-filtering is actief).
 
 ## Meer informatie
 

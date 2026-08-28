@@ -934,6 +934,9 @@
                       "useExperimentalQueries": {
                         "type": "boolean"
                       },
+                      "usePabc": {
+                        "type": "boolean"
+                      },
                       "zakenBaseUrl": {
                         "minLength": 1,
                         "type": "string"
