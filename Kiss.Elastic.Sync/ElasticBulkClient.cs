@@ -67,6 +67,8 @@ namespace Kiss.Elastic.Sync
 
 
 
+        // Full sync: upserts every source item into the index,
+        // then deletes any index documents whose IDs were not seen in the source.
         public async Task IndexBulk(IAsyncEnumerable<KissEnvelope> envelopes, string bron, string indexName, IReadOnlyList<string> completionFields, CancellationToken token)
         {
             if (!await EnsureIndex(bron, indexName, completionFields, token)) return;
