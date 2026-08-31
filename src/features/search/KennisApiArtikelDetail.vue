@@ -102,7 +102,7 @@ const mappedSections = computed(() =>
 article {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-large);
+  row-gap: var(--spacing-large);
 
   [class^="utrecht-heading"] {
     inline-size: 100%;
@@ -133,6 +133,9 @@ article {
 
   > section {
     flex: 1;
+    border: 1px solid var(--color-tertiary);
+    border-radius: 0 var(--radius-default) var(--radius-default) 0;
+    padding: var(--spacing-large);
 
     &[hidden] {
       display: none;
@@ -140,23 +143,37 @@ article {
   }
 }
 
-nav ul {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-extrasmall);
+nav {
+  position: relative;
+  z-index: 1;
+  min-inline-size: 10%;
+  max-inline-size: 20%;
+  margin-inline-end: -1px;
 
-  li {
-    border: 1px solid var(--color-tertiary);
-  }
+  ul {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--spacing-small);
 
-  button {
-    cursor: pointer;
-    padding: var(--spacing-small);
-
-    &[aria-current] {
+    button {
+      cursor: pointer;
       color: var(--color-white);
-      text-decoration: underline;
+      inline-size: 100%;
+      padding-block: var(--spacing-default);
+      padding-inline: var(--spacing-small);
+      border: 1px solid var(--color-tertiary);
+      border-radius: var(--radius-default) 0 0 var(--radius-default);
       background-color: var(--color-tertiary);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      &[aria-current] {
+        color: inherit;
+        text-decoration: underline;
+        border-inline-end-color: transparent;
+        background-color: var(--color-secondary);
+      }
     }
   }
 }
