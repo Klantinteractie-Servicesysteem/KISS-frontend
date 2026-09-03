@@ -58,5 +58,10 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.9",
     "vue-tsc": "^3.3.5"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.0": true,
+    "msw@2.7.0": true,
+    "vue-demi@0.14.10": true
   }
 }
