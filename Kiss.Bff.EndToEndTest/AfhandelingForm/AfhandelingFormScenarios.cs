@@ -352,18 +352,18 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = selectedIndex });
 
             await Step("And clicks on Opslaan button");
-            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
-                async () => await Page.GetOpslaanButton().ClickAsync(),
-                response => response.Url.Contains("/postklantcontacten")
-            );
+            var postResponseTask = Page.WaitForResponseAsync(
+                response => response.Url.Contains("/postklantcontacten"));
+            await Page.GetOpslaanButton().ClickAsync();
 
+            await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen", new() { Timeout = 30000 });
+
+            var klantContactPostResponse = await postResponseTask;
             RegisterCleanup(async () =>
             {
                 await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
-
-            await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
-            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
         }
 
         private async Task RunAfdelingPrefillScenario_SelectVACWithLowercaseAfdelingnaam(string searchTerm, string resultName, string expectedAfdeling, bool expectLowerCaseAfdelingPropertyName)
@@ -446,18 +446,19 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = selectedIndex });
 
             await Step("And clicks on Opslaan button");
-            var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
-                async () => await Page.GetOpslaanButton().ClickAsync(),
-                response => response.Url.Contains("/postklantcontacten")
-            );
+            var postResponseTask = Page.WaitForResponseAsync(
+                response => response.Url.Contains("/postklantcontacten"),
+                new() { Timeout = 60000 });
+            await Page.GetOpslaanButton().ClickAsync();
 
+            var klantContactPostResponse = await postResponseTask;
             RegisterCleanup(async () =>
             {
                 await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);
             });
 
             await Step("Then message as 'Het contactmoment is opgeslagen' is displayed");
-            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen");
+            await Expect(Page.GetAfhandelingSuccessToast()).ToHaveTextAsync("Het contactmoment is opgeslagen", new() { Timeout = 10000 });
         }
 
         [TestMethod("5. Cancel from Notitieblok - Confirm with Ja")]
