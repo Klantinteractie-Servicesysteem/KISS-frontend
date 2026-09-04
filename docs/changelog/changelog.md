@@ -4,7 +4,8 @@
 
 ### New features
 
-- Koppeling KISS/PABC #1482
+- [Koppeling KISS/PABC #1482](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1482)
+- [Digitaal adres bij partij ophalen bij contactverzoeken aangemaakt vanuit OIP (PC-2406) #1493](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1493) 
 
 ### Warnings and deployment notes
 
