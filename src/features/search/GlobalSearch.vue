@@ -161,13 +161,13 @@
                   @kennisartikel-selected="handleKennisartikelSelected"
                 />
                 <kennis-api-artikel-detail
-                  v-else-if="source === 'kennis-api-artikel'"
+                  v-else-if="source === 'kennisbank-polly'"
                   :kennisartikel="jsonObject"
                   :title="title"
                   :heading-level="2"
                 />
                 <kennis-api-vac-detail
-                  v-else-if="source === 'kennis-api-vac'"
+                  v-else-if="source === 'vac-polly'"
                   :vac="jsonObject"
                   :title="title"
                   :heading-level="2"
