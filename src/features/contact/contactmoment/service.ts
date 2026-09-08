@@ -17,6 +17,7 @@ import {
   type NewContactverzoek,
 } from "../components/types";
 import {
+  getTypeOrganisatorischeEenheidFromNaam,
   isCheckboxVraag,
   isDropdownVraag,
   isInputVraag,
@@ -261,12 +262,9 @@ export function mapContactverzoekData({
       naam: data.medewerker?.achternaam || "",
       soortActor: "medewerker",
       identificatie: data.medewerker?.identificatie || "",
-      typeOrganisatorischeEenheid:
-        data.organisatorischeEenheidVanMedewerker?.naam
-          ?.split(": ")[0]
-          ?.toLowerCase() === "afdeling"
-          ? TypeOrganisatorischeEenheid.Afdeling
-          : TypeOrganisatorischeEenheid.Groep,
+      typeOrganisatorischeEenheid: getTypeOrganisatorischeEenheidFromNaam(
+        data.organisatorischeEenheidVanMedewerker?.naam,
+      ),
       naamOrganisatorischeEenheid:
         data.organisatorischeEenheidVanMedewerker?.naam.split(": ")[1] || "",
       identificatieOrganisatorischeEenheid:
