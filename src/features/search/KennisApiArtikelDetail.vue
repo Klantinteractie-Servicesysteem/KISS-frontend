@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useId } from "vue";
+import { computed, ref, useId, watch } from "vue";
 import { Heading as UtrechtHeading } from "@utrecht/component-library-vue";
 import { unescapedSanatizedWithIncreadesHeadingsHtml } from "@/helpers/html";
 
@@ -77,9 +77,17 @@ const processedSections = computed(() => {
   const secties = props.kennisartikel?.secties ?? [];
 
   return secties
+    .map((s, originalIndex: number) => ({ ...s, originalIndex }))
+    .sort(
+      (a, b) =>
+        (a.sortIndex ?? a.originalIndex) - (b.sortIndex ?? b.originalIndex),
+    )
     .filter((s) => s?.inhoud)
-    .map((s, index: number) => ({
-      label: s.type && s.type !== "generiek" ? s.type : `Sectie ${index + 1}`,
+    .map((s) => ({
+      label:
+        s.type && s.type !== "generiek"
+          ? s.type
+          : `Sectie ${s.originalIndex + 1}`,
       html: unescapedSanatizedWithIncreadesHeadingsHtml(
         s.inhoud,
         props.headingLevel,
@@ -96,6 +104,13 @@ const mappedSections = computed(() =>
       currentSectionIndex.value = index;
     },
   })),
+);
+
+watch(
+  () => props.kennisartikel?.id,
+  () => {
+    currentSectionIndex.value = 0;
+  },
 );
 </script>
 
