@@ -1,3 +1,4 @@
+<!-- TIJDELIJK: onderdeel van de Kennis API (Polly) PoC, zie feature/1479-kennis-api-polly-sync. De bijbehorende sync draait hier niet automatisch en wordt handmatig getriggerd. -->
 <template>
   <article>
     <utrecht-heading :level="headingLevel" class="heading">
