@@ -12,7 +12,7 @@ namespace Kiss.Elastic.Sync.Sources
     {
         private readonly KennisApiClient _client = client;
 
-        public string Source => "kennis-api-vac";
+        public string Source => "vac-polly";
 
         public IReadOnlyList<string> CompletionFields { get; } =
         [
@@ -46,7 +46,7 @@ namespace Kiss.Elastic.Sync.Sources
                     ? antwoordProp.GetString()
                     : null;
 
-                yield return new KissEnvelope(item, title, objectMeta, $"kennis-api-vac_{id}");
+                yield return new KissEnvelope(item, title, objectMeta, $"vac-polly_{id}");
             }
         }
 

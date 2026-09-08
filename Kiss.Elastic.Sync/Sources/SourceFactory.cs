@@ -9,8 +9,8 @@ namespace Kiss.Elastic.Sync.Sources
             "vac" => GetVacClient(),
             "smoelenboek" => GetMedewerkerClient(),
             "sharepoint" => GetSharePointClient(),
-            "kennis-api-artikel" => GetKennisApiKennisartikelClient(),
-            "kennis-api-vac" => GetKennisApiVacClient(),
+            "kennisbank-polly" => GetKennisApiKennisartikelClient(),
+            "vac-polly" => GetKennisApiVacClient(),
             _ => GetProductClient(),
         };
 
