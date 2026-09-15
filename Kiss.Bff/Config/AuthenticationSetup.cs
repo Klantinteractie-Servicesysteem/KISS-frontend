@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Duende.IdentityModel;
 using Kiss;
 using Kiss.Bff.Config.Permissions;
+using Kiss.Bff.Extern.Pabc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -228,6 +229,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     options.Events.OnRemoteFailure = RedirectToRoot;
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
+                    options.Events.OnTokenValidated = async ctx =>
+                        await ApplyPabcRolesAsync(ctx, redacteurRole, beheerderRole, klantcontactmedewerkerRole, kennisBankRole);
                     options.Events.OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Request.Headers.ContainsKey("is-api"))
@@ -346,6 +349,42 @@ namespace Microsoft.Extensions.DependencyInjection
             context.HandleResponse();
 
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Wanneer PABC geconfigureerd is, worden de applicatierollen van de gebruiker bepaald
+        /// aan de hand van PABC in plaats van de rol-claims van de identity provider. De bestaande
+        /// rol-claims worden hiertoe vervangen door claims voor de PABC-applicatierollen.
+        /// </summary>
+        private static async Task ApplyPabcRolesAsync(
+            Microsoft.AspNetCore.Authentication.OpenIdConnect.TokenValidatedContext context,
+            string redacteurRole,
+            string beheerderRole,
+            string klantcontactmedewerkerRole,
+            string kennisBankRole)
+        {
+            var pabcClient = context.HttpContext.RequestServices.GetService<PabcClient>();
+            if (pabcClient == null || context.Principal == null)
+            {
+                return;
+            }
+
+            var kissRoles = await pabcClient.GetKissApplicationRolesAsync(context.Principal);
+
+            var identity = (ClaimsIdentity)context.Principal.Identity!;
+
+            foreach (var roleClaim in identity.Claims.Where(c => c.Type == identity.RoleClaimType).ToList())
+            {
+                identity.RemoveClaim(roleClaim);
+            }
+
+            foreach (var role in new[] { redacteurRole, beheerderRole, klantcontactmedewerkerRole, kennisBankRole })
+            {
+                if (kissRoles.Contains(role))
+                {
+                    identity.AddClaim(new Claim(identity.RoleClaimType, role));
+                }
+            }
         }
 
         public static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx)

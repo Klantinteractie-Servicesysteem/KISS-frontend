@@ -43,6 +43,25 @@ namespace Kiss.Bff.Extern.Pabc
             return await response.Content.ReadFromJsonAsync<GetApplicationRolesResponse>(cancellationToken);
         }
 
+        /// <summary>
+        /// Calls PABC to determine the KISS application roles (not scoped to any entity type)
+        /// that the given user's functional roles map to. Returns an empty set if the user has
+        /// no roles, PABC has no unscoped role mappings for KISS, or the PABC call fails.
+        /// </summary>
+        public async Task<IReadOnlySet<string>> GetKissApplicationRolesAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
+        {
+            var response = await GetApplicationRolesPerEntityTypeAsync(user, cancellationToken);
+
+            var roleNames = response?.Results?
+                .Where(result => result.EntityType == null)
+                .SelectMany(result => result.ApplicationRoles)
+                .Where(role => string.Equals(role.Application, PabcConfig.ApplicationName, StringComparison.OrdinalIgnoreCase))
+                .Select(role => role.Name)
+                ?? [];
+
+            return new HashSet<string>(roleNames, StringComparer.OrdinalIgnoreCase);
+        }
+
         private static IReadOnlyList<string> GetFunctionalRoles(ClaimsPrincipal user)
         {
             return user.Identities

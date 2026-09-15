@@ -31,7 +31,7 @@ namespace Kiss.Bff.Test
                     new
                     {
                         entityType = new { id = "zaaktype-1", name = "Melding", type = "zaaktype" },
-                        applicationRoles = new[] { new { name = "klantcontactmedewerker", application = "kiss" } }
+                        applicationRoles = new[] { new { name = "klantcontactmedewerker-zaaktype-filter", application = "kiss" } }
                     },
                     new
                     {
@@ -53,7 +53,7 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(result.Results);
             Assert.AreEqual(2, result.Results.Count);
             Assert.AreEqual("zaaktype-1", result.Results[0].EntityType?.Id);
-            Assert.AreEqual("klantcontactmedewerker", result.Results[0].ApplicationRoles[0].Name);
+            Assert.AreEqual("klantcontactmedewerker-zaaktype-filter", result.Results[0].ApplicationRoles[0].Name);
         }
 
         [TestMethod]
@@ -84,6 +84,71 @@ namespace Kiss.Bff.Test
 
             // Assert
             Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public async Task GetKissApplicationRolesAsync_ReturnsUnscopedKissRoles_IgnoringOtherApplicationsAndScopedRoles()
+        {
+            // Arrange
+            var pabcResponse = new
+            {
+                results = new object[]
+                {
+                    new
+                    {
+                        applicationRoles = new[]
+                        {
+                            new { name = "Redacteur", application = "kiss" },
+                            new { name = "behandelaar", application = "zac" }
+                        }
+                    },
+                    new
+                    {
+                        entityType = new { id = "zaaktype-1", name = "Melding", type = "zaaktype" },
+                        applicationRoles = new[] { new { name = "Beheerder", application = "kiss" } }
+                    }
+                }
+            };
+
+            var httpClient = CreateMockHttpClient(HttpStatusCode.OK, JsonSerializer.Serialize(pabcResponse));
+            var client = new PabcClient(httpClient, _loggerMock.Object);
+            var user = CreateUser("Medewerker");
+
+            // Act
+            var result = await client.GetKissApplicationRolesAsync(user);
+
+            // Assert
+            CollectionAssert.AreEquivalent(new[] { "Redacteur" }, result.ToArray());
+        }
+
+        [TestMethod]
+        public async Task GetKissApplicationRolesAsync_ReturnsEmptySet_WhenPabcReturnsError()
+        {
+            // Arrange
+            var httpClient = CreateMockHttpClient(HttpStatusCode.InternalServerError, "");
+            var client = new PabcClient(httpClient, _loggerMock.Object);
+            var user = CreateUser("Medewerker");
+
+            // Act
+            var result = await client.GetKissApplicationRolesAsync(user);
+
+            // Assert
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public async Task GetKissApplicationRolesAsync_ReturnsEmptySet_WhenUserHasNoRoles()
+        {
+            // Arrange
+            var httpClient = CreateMockHttpClient(HttpStatusCode.OK, "{}");
+            var client = new PabcClient(httpClient, _loggerMock.Object);
+            var user = new ClaimsPrincipal(new ClaimsIdentity());
+
+            // Act
+            var result = await client.GetKissApplicationRolesAsync(user);
+
+            // Assert
+            Assert.AreEqual(0, result.Count);
         }
 
         private static ClaimsPrincipal CreateUser(params string[] roles)
