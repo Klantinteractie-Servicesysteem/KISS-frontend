@@ -25,6 +25,7 @@ export type ContactverzoekOverzichtItem = {
       omschrijving?: string;
       soortDigitaalAdres?: DigitaalAdresTypes;
       adres: string;
+      isStandaardAdres?: boolean;
     }[];
   };
   vraag: string;
