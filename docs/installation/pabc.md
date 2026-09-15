@@ -13,7 +13,7 @@ Beide gebruiken dezelfde PABC-configuratie (`PABC_BASE_URL` / `PABC_API_KEY`) en
 
 ### Zonder PABC (standaard werking)
 
-Als PABC **niet** geconfigureerd is, worden de applicatierollen van een ingelogde gebruiker op exact dezelfde manier bepaald als voorheen: KISS leest de rol-claims die de Identity Provider meegeeft, en vergelijkt deze met de geconfigureerde rolnamen (`OIDC_REDACTEUR_ROLE`, `OIDC_BEHEERDER_ROLE`, `OIDC_KLANTCONTACTMEDEWERKER_ROLE`, `OIDC_KENNISBANK_ROLE`, zie [configuratie.md](configuratie.md)). Dit mechanisme blijft ongewijzigd werken.
+Als PABC **niet** geconfigureerd is, worden de applicatierollen van een ingelogde gebruiker op exact dezelfde manier bepaald als voorheen: KISS leest de rol-claims die de Identity Provider meegeeft, en vergelijkt deze met de geconfigureerde rolnamen (`OIDC_REDACTEUR_ROLE`, `OIDC_BEHEERDER_ROLE`, `OIDC_KLANTCONTACTMEDEWERKER_ROLE`, `OIDC_KENNISBANK_ROLE`, zie [configuratie.md](configuratie.md)).
 
 ### Met PABC
 
@@ -23,8 +23,6 @@ Als PABC **wel** geconfigureerd is, wordt de oude rol-configuratie van KISS gene
 2. PABC geeft de applicatierollen terug die bij die functionele rollen horen, voor de applicatie `kiss`.
 3. Alleen de applicatierollen die **niet gekoppeld zijn aan een specifiek zaaktype** (d.w.z. rollen zonder entity type/domein) tellen mee als KISS-applicatierol. Zaaktype-specifieke rollen zijn alleen relevant voor de zaaktype-filtering (zie hieronder), niet voor de KISS-applicatierollen.
 4. De rol-claims van de gebruiker worden vervangen door claims voor de gevonden KISS-applicatierollen. Alle bestaande autorisatiechecks in KISS (bijv. `IsRedacteur`, `IsKcm`, `IsKennisbank`, de permissie-configuratie) werken hierdoor ongewijzigd door, alleen de bron van de rol-claims verandert.
-
-**Let op — rolnamen niet hernoemen bij gebruik van PABC:** de applicatierollen die in PABC voor `kiss` zijn ingericht, moeten overeenkomen met de **standaard** KISS-rolnamen: `Redacteur`, `Beheerder`, `Klantcontactmedewerker`, `Kennisbank`. Het configureren van afwijkende rolnamen via `OIDC_REDACTEUR_ROLE` e.a. moet **niet** gebruikt worden in combinatie met PABC — dit voegt niets toe (de mapping van functionele rol naar applicatierol gebeurt immers al in PABC) en maakt de configuratie onnodig ingewikkeld en foutgevoelig. Alleen als een afwijkende naam exact overeenkomt met de inrichting in PABC blijft dit technisch werken, maar dit wordt afgeraden.
 
 ## Zaaktype-filtering
 
@@ -48,12 +46,12 @@ De PABC-koppeling maakt het ook mogelijk om op basis van de rollen van een ingel
 
 ### Concepten
 
-| Concept | Uitleg |
-|---------|--------|
-| **Functionele rol** | Een rol die door de Identity Provider wordt toegekend aan een gebruiker (bijv. "Klantcontactmedewerker", "Behandelaar"). Dit zijn de rollen die de gemeente zelf beheert. |
-| **Applicatierol** | Een rol die specifiek is voor een applicatie. In KISS zijn dit de rollen `Redacteur`, `Beheerder`, `Klantcontactmedewerker` en `Kennisbank` (zie hierboven), en voor zaaktype-filtering specifiek `klantcontactmedewerker-zaaktype-filter`. In PABC wordt geconfigureerd welke functionele rollen toegang geven tot een applicatierol. |
-| **Applicatienaam** | De naam waaronder KISS geregistreerd staat in PABC: `kiss`. |
-| **Entity type** | Een type object waartoe de autorisatie betrekking heeft. In het geval van zaaktype-filtering zijn dit zaaktypes. Applicatierollen zonder entity type gelden juist voor de KISS-applicatierollen (zie hierboven). |
+| Concept             | Uitleg                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Functionele rol** | Een rol die door de Identity Provider wordt toegekend aan een gebruiker (bijv. "Klantcontactmedewerker", "Behandelaar"). Dit zijn de rollen die de gemeente zelf beheert.                                                                                                                                                              |
+| **Applicatierol**   | Een rol die specifiek is voor een applicatie. In KISS zijn dit de rollen `Redacteur`, `Beheerder`, `Klantcontactmedewerker` en `Kennisbank` (zie hierboven), en voor zaaktype-filtering specifiek `klantcontactmedewerker-zaaktype-filter`. In PABC wordt geconfigureerd welke functionele rollen toegang geven tot een applicatierol. |
+| **Applicatienaam**  | De naam waaronder KISS geregistreerd staat in PABC: `kiss`.                                                                                                                                                                                                                                                                            |
+| **Entity type**     | Een type object waartoe de autorisatie betrekking heeft. In het geval van zaaktype-filtering zijn dit zaaktypes. Applicatierollen zonder entity type gelden juist voor de KISS-applicatierollen (zie hierboven).                                                                                                                       |
 
 ## Feature Flag
 
@@ -63,11 +61,11 @@ De PABC-koppeling (voor zowel applicatierollen bij inloggen als zaaktype-filteri
 
 ## Environment Variabelen
 
-| Variabele | Verplicht | Uitleg |
-|-----------|-----------|--------|
-| `PABC_BASE_URL` | Ja* | De base URL van de PABC API, zonder trailing slash. Bijvoorbeeld: `https://pabc.mijngemeente.nl` |
-| `PABC_API_KEY` | Ja* | De API key voor authenticatie bij PABC (wordt meegestuurd als `X-API-KEY` header) |
-| `REGISTERS__X__ZAAKSYSTEEM_USE_PABC` | Nee | Per zaaksysteem instellen of PABC-filtering wordt toegepast. Default: `true`. Zet op `false` voor zaaksystemen met eigen autorisatie (bijv. e-Suite). |
+| Variabele                            | Verplicht | Uitleg                                                                                                                                                |
+| ------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PABC_BASE_URL`                      | Ja\*      | De base URL van de PABC API, zonder trailing slash. Bijvoorbeeld: `https://pabc.mijngemeente.nl`                                                      |
+| `PABC_API_KEY`                       | Ja\*      | De API key voor authenticatie bij PABC (wordt meegestuurd als `X-API-KEY` header)                                                                     |
+| `REGISTERS__X__ZAAKSYSTEEM_USE_PABC` | Nee       | Per zaaksysteem instellen of PABC-filtering wordt toegepast. Default: `true`. Zet op `false` voor zaaksystemen met eigen autorisatie (bijv. e-Suite). |
 
 \* Verplicht als je de PABC-koppeling wilt activeren. Afwezigheid van deze variabelen schakelt de feature uit.
 
