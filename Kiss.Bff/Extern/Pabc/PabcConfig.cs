@@ -6,6 +6,6 @@ namespace Kiss.Bff.Extern.Pabc
     public static class PabcConfig
     {
         public const string ApplicationName = "kiss";
-        public const string ApplicationRole = "klantcontactmedewerker";
+        public const string ApplicationRole = "klantcontactmedewerker-zaaktype-filter";
     }
 }
