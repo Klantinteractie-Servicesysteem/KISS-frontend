@@ -1,20 +1,27 @@
 # Vereisten
 
-KISS is getest in combinatie met deze registers:
+KISS ondersteunt twee situaties voor de koppeling met registers voor klantinteracties en zaken: de oude situatie (e-Suite) en de nieuwe situatie (OpenKlant/OpenZaak). KISS is getest in combinatie met onderstaande versies.
 
-enerzijds
+## Oude situatie: e-Suite
 
-- e-Suite
-- OpenObjecten 3.0.0
-- OpenObjectTypes 3.0.0
+| Component       | Geteste versie |
+| ---------------- | -------------- |
+| e-Suite          | 4.40.0.4       |
+| OpenObjecten     | 3.0.0          |
+| OpenObjectTypes  | 3.0.0          |
 
-anderzijds
+## Nieuwe situatie: OpenKlant / OpenZaak
 
-- OpenKlant 2.7.0
-- OpenZaak 1.21.1
-- OpenObjecten 3.0.0
-- OpenObjectTypes 3.0.0
+| Component       | Geteste versie |
+| ---------------- | -------------- |
+| OpenKlant        | 2.13.0         |
+| OpenZaak         | 1.26.0         |
+| OpenObjecten     | 3.0.0          |
+| OpenObjectTypes  | 3.0.0          |
 
-Overige software
+## Overige software
 
-- Postgres 15.2.0
+| Component      | Geteste versie |
+| --------------- | -------------- |
+| Postgres        | 15.2.0         |
+| Elasticsearch   | 8.9.0          |
