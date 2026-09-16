@@ -18,22 +18,22 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
 
         public static ILocator GetSmoelenboekCheckbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Checkbox, new() { Name = "Smoelenboek" });
+            return page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^smoelenboek$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
         }
 
         public static ILocator GetVACCheckbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Checkbox, new() { Name = "VAC" });
+            return page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^vac$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
         }
 
         public static ILocator GetKennisbankCheckbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Checkbox, new() { Name = "Kennisbank" });
+            return page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^kennisbank$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
         }
 
         public static ILocator GetInfoNlCheckbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Checkbox, new() { Name = "info.nl" });
+            return page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^info\\.nl$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
         }
         public static ILocator GetBijzonderhedenTab(this IPage page)
         {
