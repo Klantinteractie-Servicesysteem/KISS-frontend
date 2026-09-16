@@ -2,6 +2,11 @@
 
 ## Latest version
 
+## v3.1.2
+
+- [Telefoonnummer en e-mailadres: geen rekening met isStandaardAdres van OpenKlat #1549](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1549)
+
+
 ## v3.1.1
 
 - Update aan de changelog voor v3.0.0
