@@ -291,8 +291,8 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Page.GetNieuwContactmomentButton().ClickAsync();
 
-            var vacCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = "VAC" });
-            var kennisbankCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { Name = "Kennisbank" });
+            var vacCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^vac$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
+            var kennisbankCheckbox = Page.GetByRole(AriaRole.Checkbox, new() { NameRegex = new System.Text.RegularExpressions.Regex("^kennisbank$", System.Text.RegularExpressions.RegexOptions.IgnoreCase) });
             var zoektermInput = Page.GetByRole(AriaRole.Combobox, new() { Name = "Zoekterm" });
 
             await Step("And user checks checkbox VAC");
