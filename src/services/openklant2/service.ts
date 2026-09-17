@@ -1032,10 +1032,19 @@ async function mapPartijToKlant(
     identificatoren = await Promise.all(promises);
   }
 
-  const getDigitaalAdressen = (type: DigitaalAdresTypes) =>
-    partij._expand?.digitaleAdressen
-      ?.filter((x) => x.adres && x.soortDigitaalAdres === type)
-      .map((x) => x.adres || "") || [];
+  const getDigitaalAdressen = (type: DigitaalAdresTypes) => {
+    const adressen =
+      partij._expand?.digitaleAdressen?.filter(
+        (x) => x.adres && x.soortDigitaalAdres === type,
+      ) || [];
+
+    const standaardAdressen = adressen.filter((x) => x.isStandaardAdres);
+    const overigeAdressen = adressen.filter((x) => !x.isStandaardAdres);
+
+    return [...standaardAdressen, ...overigeAdressen].map(
+      (x) => x.adres || "",
+    );
+  };
 
   const getIdentificator = (type: { codeSoortObjectId: CodeSoortObjectId }) =>
     identificatoren?.find(

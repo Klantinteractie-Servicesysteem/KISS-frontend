@@ -4,6 +4,7 @@ export type DigitaalAdresApiViewModel = {
   adres: string;
   soortDigitaalAdres?: DigitaalAdresTypes;
   omschrijving?: string;
+  isStandaardAdres?: boolean;
 };
 
 export type DigitaalAdresExpandedApiViewModel = DigitaalAdresApiViewModel & {
@@ -213,6 +214,7 @@ export type Partij = {
     digitaleAdressen?: {
       adres?: string;
       soortDigitaalAdres?: DigitaalAdresTypes;
+      isStandaardAdres?: boolean;
     }[];
   };
 };
