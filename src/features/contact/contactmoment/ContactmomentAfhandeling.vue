@@ -558,8 +558,8 @@ const saveBetrokkeneBijContactverzoek = async (
   klanten: Array<ContactmomentKlant & Klant>,
   klantcontactId: string,
   contactverzoekData?: Partial<ContactverzoekData>,
-): Promise<string[]> => {
-  const betrokkenenUuids: string[] = [];
+): Promise<Array<{ uuid: string; partijId?: string }>> => {
+  const betrokkenen: Array<{ uuid: string; partijId?: string }> = [];
 
   if (!klanten.length) {
     // voor een contactverzoek zonder klant moet OOK een betrokkene aangemaakt worden
@@ -576,7 +576,7 @@ const saveBetrokkeneBijContactverzoek = async (
       voorvoegselAchternaam: voorvoegselAchternaam,
       achternaam: achternaam,
     });
-    betrokkenenUuids.push(result.uuid);
+    betrokkenen.push({ uuid: result.uuid });
   }
 
   for (const klant of klanten) {
@@ -601,11 +601,11 @@ const saveBetrokkeneBijContactverzoek = async (
         voorvoegselAchternaam: voorvoegselAchternaam,
         achternaam: achternaam,
       });
-      betrokkenenUuids.push(result.uuid);
+      betrokkenen.push({ uuid: result.uuid, partijId: klant.id });
     }
   }
 
-  return betrokkenenUuids;
+  return betrokkenen;
 };
 
 const saveBetrokkeneBijContactmoment = async (
@@ -739,7 +739,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
     // 6. internetaak opslaan bij een contactverzoek (dit is in wezen het cotnactverzoek)
     // 7. zaken toevoegen
 
-    let betrokkenenUuids: string[] = [];
+    let betrokkenen: Array<{ uuid: string; partijId?: string }> = [];
 
     // 1 //////////////////////
     const savedKlantContactResult = await saveKlantContact(
@@ -765,7 +765,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
 
     // 3 //////////////////////
     if (isContactverzoek) {
-      betrokkenenUuids = await saveBetrokkeneBijContactverzoek(
+      betrokkenen = await saveBetrokkeneBijContactverzoek(
         systemIdentifier,
         klanten,
         savedKlantContactId,
@@ -783,9 +783,9 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
 
     // 4 ///////////////////////
     if (isContactverzoek) {
-      if (betrokkenenUuids.length > 0) {
-        const saveAdressenPromises = betrokkenenUuids.map(
-          async (betrokkeneUuid) => {
+      if (betrokkenen.length > 0) {
+        const saveAdressenPromises = betrokkenen.map(
+          async ({ uuid: betrokkeneUuid, partijId }) => {
             if (
               betrokkeneUuid &&
               contactverzoekData?.betrokkene?.digitaleAdressen?.length
@@ -794,6 +794,7 @@ const saveVraag = async (vraag: Vraag, gespreksId?: string) => {
                 systemIdentifier,
                 contactverzoekData.betrokkene.digitaleAdressen,
                 betrokkeneUuid,
+                partijId,
               );
             }
           },

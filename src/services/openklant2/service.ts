@@ -560,13 +560,16 @@ export const saveDigitaleAdressen = async (
   systemIdentifier: string,
   digitaleAdressen: DigitaalAdresApiViewModel[],
   verstrektDoorBetrokkeneUuid: string,
+  verstrektDoorPartijUuid?: string,
 ): Promise<Array<{ uuid: string; url: string }>> => {
   const savedAdressen: Array<{ uuid: string; url: string }> = [];
 
   for (const adres of digitaleAdressen) {
     const postBody = {
       verstrektDoorBetrokkene: { uuid: verstrektDoorBetrokkeneUuid },
-      verstrektDoorPartij: null,
+      verstrektDoorPartij: verstrektDoorPartijUuid
+        ? { uuid: verstrektDoorPartijUuid }
+        : null,
       adres: adres.adres,
       soortDigitaalAdres: adres.soortDigitaalAdres,
       omschrijving: adres.omschrijving || "onbekend",
@@ -582,7 +585,7 @@ export const saveDigitaleAdressen = async (
 const postDigitaalAdres = async (
   systemIdentifier: string,
   data: {
-    verstrektDoorBetrokkene: { uuid: string };
+    verstrektDoorBetrokkene?: { uuid: string } | null;
     verstrektDoorPartij?: { uuid: string } | null;
     adres: string;
     soortDigitaalAdres: DigitaalAdresTypes | undefined;
