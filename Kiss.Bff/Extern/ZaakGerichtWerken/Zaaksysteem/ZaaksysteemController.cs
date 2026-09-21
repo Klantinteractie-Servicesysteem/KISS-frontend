@@ -199,7 +199,7 @@ namespace Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem
                     continue;
 
                 var hasMatchingRole = result.ApplicationRoles.Any(role =>
-                    role.Name.Equals(PabcConfig.ApplicationRole, StringComparison.OrdinalIgnoreCase) &&
+                    role.Name.Equals(PabcConfig.KlantContactMedewerkerZaaktypeFilterRole, StringComparison.OrdinalIgnoreCase) &&
                     role.Application.Equals(PabcConfig.ApplicationName, StringComparison.OrdinalIgnoreCase));
 
                 if (hasMatchingRole && result.EntityType.Id is not null)
