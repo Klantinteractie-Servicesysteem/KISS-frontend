@@ -147,16 +147,16 @@ namespace Microsoft.Extensions.DependencyInjection
             setOptions(authOptions);
 
             var klantcontactmedewerkerRole = string.IsNullOrWhiteSpace(authOptions.KlantcontactmedewerkerRole)
-                ? "Klantcontactmedewerker"
+                ? PabcConfig.KlantcontactmedewerkerRole
                 : authOptions.KlantcontactmedewerkerRole;
             var redacteurRole = string.IsNullOrWhiteSpace(authOptions.RedacteurRole)
-                ? "Redacteur"
+                ? PabcConfig.RedacteurRole
                 : authOptions.RedacteurRole;
             var beheerderRole = string.IsNullOrWhiteSpace(authOptions.BeheerderRole)
-                ? "Beheerder"
+                ? PabcConfig.BeheerderRole
                 : authOptions.BeheerderRole;
             var kennisBankRole = string.IsNullOrWhiteSpace(authOptions.KennisbankRole)
-                ? "Kennisbank"
+                ? PabcConfig.KennisbankRole
                 : authOptions.KennisbankRole;
             var userNameClaimType = string.IsNullOrWhiteSpace(authOptions.MedewerkerIdentificatieClaimType)
                 ? "email"
