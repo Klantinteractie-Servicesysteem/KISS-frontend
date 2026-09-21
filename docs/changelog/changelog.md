@@ -1,5 +1,10 @@
 # Changelog
 
+## Latest version
+
+### New features
+
+- [Only a single Klant can be added to a Contactmoment/-verzoek i.s.o. multiple.](https://dimpact.atlassian.net/browse/PC-2160)
 
 ## v3.1.3
 
