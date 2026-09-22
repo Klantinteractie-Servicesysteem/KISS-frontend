@@ -6,6 +6,7 @@
 
 - [Koppeling KISS/PABC #1482](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1482)
 - [Digitaal adres bij partij ophalen bij contactverzoeken aangemaakt vanuit OIP (PC-2406) #1493](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1493) 
+- [PABC gebruiken voor het toewijzen van rollen aan de ingelogde gebruiker #1529](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1529)
 - [Add inleiding to the Vraag #1376](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1376)
 
 ### Warnings and deployment notes
@@ -41,8 +42,6 @@ Let op, deze release bevat breaking changes!
 - [KISS: Replace Enterprise Search Crawler with Elastic Open Crawler](https://dimpact.atlassian.net/browse/PC-2386)
 - [Remove Enterprise Search from KISS Search Logic](https://dimpact.atlassian.net/browse/PC-2385)
 - [Contactverzoek in KISS altijd met geldige ontvanger aanmaken #1491](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1491) (bevat een nieuwe optionele Environment Variabele `USE_GROEPSMAILBOX_VERPLICHTING`)
-
-
 
 ## v2.2.4
 
