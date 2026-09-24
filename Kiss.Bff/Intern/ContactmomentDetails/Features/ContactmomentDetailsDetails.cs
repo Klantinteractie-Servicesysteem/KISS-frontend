@@ -28,7 +28,8 @@ namespace Kiss.Bff.Intern.ContactmomentDetails.Features
                     SpecifiekeVraag = x.SpecifiekeVraag,
                     Startdatum = x.Startdatum,
                     VerantwoordelijkeAfdeling = x.VerantwoordelijkeAfdeling,
-                    Vraag = x.Vraag
+                    Vraag = x.Vraag,
+                    GespreksId = x.GespreksId
                 })
                 .FirstOrDefaultAsync(token);
 

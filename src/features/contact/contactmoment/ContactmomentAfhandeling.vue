@@ -940,17 +940,13 @@ async function submit() {
     }
 
     const { vragen } = contactmomentStore.huidigContactmoment;
-    const saveVraagResult = await saveVraag(vragen[0]);
+    // gegenereerd voor het hele gesprek (alle vragen van dit contactmoment)
+    const gespreksId = nanoid();
+    const saveVraagResult = await saveVraag(vragen[0], gespreksId);
 
     if (saveVraagResult.errorMessage) {
       handleSaveVraagError(saveVraagResult.errorMessage);
     } else {
-      // Gespreksid zit niet in savevraagresult als we de klantcontacten flow volgen
-      const gespreksId =
-        saveVraagResult.data && "gespreksId" in saveVraagResult.data
-          ? saveVraagResult.data.gespreksId
-          : undefined;
-
       await handleSaveVraagSuccess(gespreksId, vragen.slice(1));
     }
   } catch {
@@ -1056,13 +1052,9 @@ const handleSaveVraagError = (msg: string) => {
 };
 
 const handleSaveVraagSuccess = async (
-  gespreksId: string | undefined,
+  gespreksId: string,
   otherVragen: Vraag[],
 ) => {
-  if (!gespreksId) {
-    gespreksId = nanoid();
-  }
-
   const otherVragenSaveResults = [];
   for (const vraag of otherVragen) {
     otherVragenSaveResults.push(await saveVraag(vraag, gespreksId));
