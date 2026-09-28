@@ -76,6 +76,7 @@ namespace Kiss.Bff.Intern.ContactmomentDetails.Features
                           Startdatum = x.Startdatum,
                           VerantwoordelijkeAfdeling = x.VerantwoordelijkeAfdeling,
                           Vraag = x.Vraag,
+                          GespreksId = x.GespreksId,
                           Bronnen = x.Bronnen.Select(b => new ContactmomentDetailsBronModel
                           {
                               Soort = b.Soort,

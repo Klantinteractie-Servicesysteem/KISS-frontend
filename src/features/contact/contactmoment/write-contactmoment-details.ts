@@ -10,6 +10,7 @@ export type ContactmomentDetails = Pick<
   | "vraag"
   | "specifiekevraag"
   | "verantwoordelijkeAfdeling"
+  | "gespreksId"
 > & {
   bronnen: {
     url: string;

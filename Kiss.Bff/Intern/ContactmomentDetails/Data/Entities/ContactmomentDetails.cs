@@ -12,6 +12,7 @@ namespace Kiss.Bff.Intern.ContactmomentDetails.Data.Entities
         public string? SpecifiekeVraag { get; set; }
         public string? EmailadresKcm { get; set; }
         public string? VerantwoordelijkeAfdeling { get; set; }
+        public string? GespreksId { get; set; }
 
         public List<ContactmomentDetailsBron> Bronnen { get; set; } = new();
     }

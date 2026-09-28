@@ -14,6 +14,7 @@ export interface ContactmomentDetails {
   specifiekeVraag?: string;
   emailadresKcm?: string;
   verantwoordelijkeAfdeling?: string;
+  gespreksId?: string;
 }
 
 export interface Gespreksresultaat {

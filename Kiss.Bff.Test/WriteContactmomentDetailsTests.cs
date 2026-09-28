@@ -38,6 +38,7 @@ namespace Kiss.Bff.Test
                 Gespreksresultaat = "Result 1",
                 Vraag = "Question 1",
                 EmailadresKcm = "test@example.com", // User.GetEmail()
+                GespreksId = "gesprek-1",
                 Bronnen = new[] {new ContactmomentDetailsBronModel { Soort = "Soort", Titel = "Titel", Url = "Url" } }
             };
 
@@ -55,6 +56,7 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(addedBron);
             Assert.AreEqual(validModel.Id, addedEntity.Id);
             Assert.AreEqual(validModel.Bronnen.First().Titel, addedBron.Titel);
+            Assert.AreEqual(validModel.GespreksId, addedEntity.GespreksId);
         }
 
 
@@ -71,6 +73,7 @@ namespace Kiss.Bff.Test
                 Gespreksresultaat = "Result 1",
                 Vraag = "Question 1",
                 EmailadresKcm = "test@example.com",
+                GespreksId = "gesprek-1",
                 Bronnen = new List<ContactmomentDetailsBron> { new ContactmomentDetailsBron
                 {
                     Titel = "Titel1",
@@ -90,6 +93,7 @@ namespace Kiss.Bff.Test
                 Gespreksresultaat = "Result 2",
                 Vraag = "Question 2",
                 EmailadresKcm = "test@example.com",
+                GespreksId = "gesprek-2",
                 Bronnen = new[] {new ContactmomentDetailsBronModel { Soort = "Soort2", Url = "Url2", Titel = "Titel2" } }
             };
 
@@ -107,6 +111,7 @@ namespace Kiss.Bff.Test
             Assert.IsNotNull(updatedBron);
             Assert.AreEqual(model.Gespreksresultaat, updatedEntity.Gespreksresultaat);
             Assert.AreEqual(model.Bronnen.First().Titel, updatedBron.Titel);
+            Assert.AreEqual(model.GespreksId, updatedEntity.GespreksId);
         }
     }
 }
