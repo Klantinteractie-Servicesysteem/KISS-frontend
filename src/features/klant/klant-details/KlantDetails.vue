@@ -1,7 +1,9 @@
 <template>
   <article
     class="details-block"
-    v-if="klant && klant.emailadressen?.length && klant.telefoonnummers?.length"
+    v-if="
+      klant && (klant.emailadressen?.length || klant.telefoonnummers?.length)
+    "
   >
     <header class="heading-container">
       <utrecht-heading :level="level">
@@ -9,32 +11,26 @@
       </utrecht-heading>
     </header>
     <dl>
-      <dt>E-mailadressen</dt>
-      <dd>
-        <ul v-if="klant.emailadressen && klant.emailadressen.length">
-          <li v-for="(email, idx) in klant.emailadressen" :key="idx">
-            {{ email }}
-          </li>
-        </ul>
-        <ul v-else-if="klant.emailadressen">
-          <li>
-            {{ klant.emailadressen[0] }}
-          </li>
-        </ul>
-      </dd>
-      <dt>Telefoonnummers</dt>
-      <dd>
-        <ul v-if="klant.telefoonnummers && klant.telefoonnummers.length">
-          <li v-for="(telefoon, idx) in klant.telefoonnummers" :key="idx">
-            {{ telefoon }}
-          </li>
-        </ul>
-        <ul v-else-if="klant.telefoonnummers">
-          <li>
-            {{ klant.telefoonnummers[0] }}
-          </li>
-        </ul>
-      </dd>
+      <template v-if="klant.emailadressen?.length">
+        <dt>E-mailadressen</dt>
+        <dd>
+          <ul>
+            <li v-for="(email, idx) in klant.emailadressen" :key="idx">
+              {{ email }}
+            </li>
+          </ul>
+        </dd>
+      </template>
+      <template v-if="klant.telefoonnummers?.length">
+        <dt>Telefoonnummers</dt>
+        <dd>
+          <ul>
+            <li v-for="(telefoon, idx) in klant.telefoonnummers" :key="idx">
+              {{ telefoon }}
+            </li>
+          </ul>
+        </dd>
+      </template>
     </dl>
   </article>
 </template>
@@ -65,7 +61,6 @@ const error = ref<boolean>(false);
 const emit = defineEmits<{
   error: [data: boolean];
   load: [];
-  noData: [];
 }>();
 
 watchEffect(() => {
