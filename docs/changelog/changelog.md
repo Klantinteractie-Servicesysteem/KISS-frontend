@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v3.1.4
+
+- [Contactgegevens worden niet getoond in KISS als er 1 Digitaal adres bekend is bij de Partij in OpenKlant
+ #1560](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1560)
+
 ## v3.1.3
 
 - [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #1549](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1549)
