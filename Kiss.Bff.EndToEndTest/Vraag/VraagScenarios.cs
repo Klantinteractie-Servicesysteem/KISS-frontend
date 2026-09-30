@@ -1,5 +1,6 @@
 ﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 
@@ -782,9 +783,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetKennisbankCheckbox().CheckAsync();
             await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
 
-            await Step("And clicks on Contactverzoeken tab");
+            await Step("And clicks on Contactverzoek-pane");
 
-            await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoeken" }).ClickAsync();
+            await Page.CreateNewcontactVerzoekAsync();
 
             await Step("And selects an afdeling");
 
@@ -829,9 +830,9 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Page.GetKennisbankCheckbox().CheckAsync();
             await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
 
-            await Step("And clicks on Contactverzoeken tab");
+            await Step("And clicks on Contactverzoek-pane");
 
-            await Page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoeken" }).ClickAsync();
+            await Page.CreateNewcontactVerzoekAsync();
 
             await Step("And selects an afdeling");
 
