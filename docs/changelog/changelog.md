@@ -1,9 +1,8 @@
 # Changelog
 
 
-## v3.1.3
+## v3.2.0
 
-- [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #1549](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1549)
 - [Koppeling KISS/PABC #1482](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1482)
 - [Digitaal adres bij partij ophalen bij contactverzoeken aangemaakt vanuit OIP (PC-2406) #1493](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1493)
 - [PABC gebruiken voor het toewijzen van rollen aan de ingelogde gebruiker #1529](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1529)
@@ -14,6 +13,11 @@
 
 - New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`. See [PABC documentation](../installation/pabc.md)
 
+
+
+## v3.1.3
+
+- [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #1549](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1549)
 
 ## v3.1.2
 
