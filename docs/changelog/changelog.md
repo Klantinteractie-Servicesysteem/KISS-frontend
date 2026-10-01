@@ -8,6 +8,7 @@
 - [PABC gebruiken voor het toewijzen van rollen aan de ingelogde gebruiker #1529](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1529)
 - [Add inleiding to the Vraag #1376](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1376)
 - [Add GespreksID to management information #1374](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1374)
+- [Bug bij tonen aanvullende vragen #1527](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1527)
 
 ### Warnings and deployment notes
 
