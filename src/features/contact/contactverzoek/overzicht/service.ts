@@ -4,7 +4,7 @@ import {
   enrichBetrokkeneWithDigitaleAdressen,
   enrichBetrokkeneWithKlantContact,
   enrichInterneTakenWithActoren,
-  fetchBetrokkenen,
+  fetchKlantcontacten,
   fetchKlantByKlantIdentificatorOk2,
   filterOutContactmomenten,
   KlantContactExpand,
@@ -12,6 +12,7 @@ import {
   type Betrokkene,
   type BetrokkeneMetKlantContact,
   type DigitaalAdresExpandedApiViewModel,
+  enrichInterneTaakWithActoren,
 } from "@/services/openklant2";
 import {
   enrichContactverzoekObjectWithContactmoment,
@@ -308,40 +309,65 @@ export async function fetchContactverzoekenByKlantIdentificator(
     ).then((klant) =>
       !klant?.url
         ? []
-        : fetchBetrokkenen({
-            systeemId: systeem.identifier,
+        : fetchKlantcontacten({
+            systeemIdentifier: systeem.identifier,
             pageSize: "100",
-            wasPartij__url: klant.url,
-          }).then(({ page }) =>
-            enrichBetrokkeneWithKlantContact(systeem.identifier, page, [
+            hadBetrokkene__wasPartij__url: klant.url,
+            expand: [
               KlantContactExpand.leiddeTotInterneTaken,
               KlantContactExpand.gingOverOnderwerpobjecten,
-            ])
-              .then(filterOutContactmomenten)
-              .then((page) =>
-                enrichBetrokkeneWithDigitaleAdressen(systeem.identifier, page),
-              )
-              .then((page) =>
-                enrichInterneTakenWithActoren(systeem.identifier, page),
-              )
-              .then((page) =>
-                Promise.all(
-                  page.map(async (item) => ({
-                    ...item,
-                    zaaknummers: await enrichOnderwerpObjectenWithZaaknummers(
-                      systeem.identifier,
-                      item.klantContact._expand.gingOverOnderwerpobjecten || [],
-                    ),
-                  })),
-                ),
-              )
-              .then((x) =>
-                mapKlantcontactToContactverzoekOverzichtItem(
-                  x,
-                  systeem.identifier,
-                ),
-              ),
-          ),
+              KlantContactExpand.hadBetrokkenen,
+              KlantContactExpand.hadBetrokkenen_digitaleAdressen,
+            ],
+          }).then(async ({ page }) => {
+            const result: (BetrokkeneMetKlantContact & {
+              zaaknummers: string[];
+            })[] = [];
+            for (const klantContact of page) {
+              const interneTaak =
+                klantContact._expand?.leiddeTotInterneTaken?.[0];
+              // if it doesn't have an interne taak, it's not a contactverzoek
+              if (!interneTaak) continue;
+
+              const betrokkene = klantContact._expand?.hadBetrokkenen?.find(
+                (x) => x.wasPartij?.url === klant.url,
+              );
+              // we're already querying by partij, so there should always be one
+              if (!betrokkene) continue;
+
+              await enrichInterneTaakWithActoren(
+                systeem.identifier,
+                interneTaak,
+              );
+
+              const zaaknummers = await enrichOnderwerpObjectenWithZaaknummers(
+                systeem.identifier,
+                klantContact._expand?.gingOverOnderwerpobjecten ?? [],
+              );
+
+              const expandedDigitaleAdressen =
+                betrokkene._expand?.digitaleAdressen ?? [];
+
+              if (
+                !expandedDigitaleAdressen.length &&
+                klant.voorkeursDigitaalAdres
+              ) {
+                // fall back to the preferred digital address of the partij / klant
+                expandedDigitaleAdressen.push(klant.voorkeursDigitaalAdres);
+              }
+
+              result.push({
+                ...betrokkene,
+                expandedDigitaleAdressen,
+                klantContact,
+                zaaknummers,
+              });
+            }
+            return mapKlantcontactToContactverzoekOverzichtItem(
+              result,
+              systeem.identifier,
+            );
+          }),
     );
   });
   return Promise.all(promises).then((all) =>

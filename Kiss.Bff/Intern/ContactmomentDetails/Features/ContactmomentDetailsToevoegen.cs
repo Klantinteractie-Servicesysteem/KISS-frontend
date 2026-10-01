@@ -38,6 +38,7 @@ namespace Kiss.Bff.Intern.ContactmomentDetails.Features
             entity.Startdatum = model.Startdatum;
             entity.VerantwoordelijkeAfdeling = model.VerantwoordelijkeAfdeling;
             entity.Vraag = model.Vraag;
+            entity.GespreksId = model.GespreksId;
 
             foreach (var b in model.Bronnen)
             {

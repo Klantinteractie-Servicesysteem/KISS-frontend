@@ -15,7 +15,8 @@ namespace Kiss.Bff.Intern.ContactmomentDetails.Features
         public string? SpecifiekeVraag { get; set; }
         public string? EmailadresKcm { get; set; }
         public string? VerantwoordelijkeAfdeling { get; set; }
-        
+        public string? GespreksId { get; set; }
+
         public IEnumerable<ContactmomentDetailsBronModel> Bronnen { get; set; } = Enumerable.Empty<ContactmomentDetailsBronModel>();
     }
 }

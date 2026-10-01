@@ -1,9 +1,10 @@
-import type {
-  CheckboxVraag,
-  DropdownVraag,
-  InputVraag,
-  TextareaVraag,
-  Vraag,
+import {
+  TypeOrganisatorischeEenheid,
+  type CheckboxVraag,
+  type DropdownVraag,
+  type InputVraag,
+  type TextareaVraag,
+  type Vraag,
 } from "./types";
 
 export function isInputVraag(question: Vraag): question is InputVraag {
@@ -46,4 +47,17 @@ export function isCheckboxVraag(question: Vraag): question is CheckboxVraag {
     question.options.length > 0 &&
     !question.options.includes("")
   );
+}
+
+// the distinction between department and group lies in the "Department: " / "Group: " prefix of the name
+export function getTypeOrganisatorischeEenheidFromNaam(
+  naam?: string,
+): TypeOrganisatorischeEenheid | undefined {
+  if (!naam) {
+    return undefined;
+  }
+
+  return naam.split(": ")[0]?.toLowerCase() === "afdeling"
+    ? TypeOrganisatorischeEenheid.Afdeling
+    : TypeOrganisatorischeEenheid.Groep;
 }

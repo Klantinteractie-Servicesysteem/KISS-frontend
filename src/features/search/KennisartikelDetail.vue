@@ -3,7 +3,7 @@
     <utrecht-heading :level="headingLevel" class="heading">
       {{ title }}
     </utrecht-heading>
-    <nav>
+    <nav v-if="mappedSections.length > 1">
       <ul>
         <li
           v-for="{ isActive, label, id, setActive } in mappedSections"
@@ -132,9 +132,11 @@ watch(
   [processedSections, currentSectionIndex],
   ([s, sectionIndex]) => {
     if (!s.length) return;
-    const sections = s
-      .map(({ label }) => label)
-      .filter((x) => x !== knownSections.tekst);
+    // A single-section article (i.e. just "Inleiding", but could in
+    // theory be any one section) keeps the plain title, with no tab navigation and
+    // no postfix. 
+    // An article with multiple sections postfixes Vraag with whichever one is selected
+    const sections = s.length > 1 ? s.map(({ label }) => label) : [];
 
     emit(KENNISARTIKEL_SELECTED, {
       title: props.title,

@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 import { type Bron, type Vraag } from "@/stores/contactmoment";
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref } from "vue";
 import type { Kennisartikel } from "@/features/search/types";
 const vraagOptions = ref<Bron[]>([]);
 const props = defineProps<{
@@ -43,37 +43,37 @@ onMounted(() => {
   if (!props.vraag) return;
   const vraag = ref(props.vraag as Vraag);
 
-  const sectionIndex = vraag.value.vraag?.sectionIndex;
+  // display only title if it has one section, else one postfixed option per section.
+  const kennisartikelBlocks = vraag.value.kennisartikelen.map((item) => {
+    const sections = (item.kennisartikel as Kennisartikel).sections;
+    return sections.length > 0
+      ? sections.map((section) => ({
+          ...item.kennisartikel,
+          title: [item.kennisartikel.title, section].join(" - "),
+        }))
+      : [item.kennisartikel];
+  });
 
-  vraagOptions.value = computed(() => [
+  vraagOptions.value = [
     ...vraag.value.websites.map((item) => item.website),
-    ...vraag.value.kennisartikelen.flatMap((item) => [
-      item.kennisartikel,
-      ...(item.kennisartikel as Kennisartikel).sections.map((section) => ({
-        ...item.kennisartikel,
-        title: [item.kennisartikel.title, section].join(" - "),
-      })),
-    ]),
+    ...kennisartikelBlocks.flat(),
     ...vraag.value.nieuwsberichten.map((item) => item.nieuwsbericht),
     ...vraag.value.werkinstructies.map((item) => item.werkinstructie),
     ...vraag.value.vacs.map((item) => item.vac),
-  ]).value;
+  ];
 
   if (vraag.value.vraag) {
     selectedVraag.value = vraag.value.vraag;
-  }
 
-  if (sectionIndex !== undefined) {
-    const vraagIndex = vraagOptions.value.indexOf(
-      vraag.value.vraag as {
-        title: string;
-        url: string;
-        sectionIndex?: number | undefined;
-      },
+    const articleIdx = vraag.value.kennisartikelen.findIndex(
+      (item) => item.kennisartikel === vraag.value.vraag,
     );
 
-    if (vraagIndex !== -1) {
-      const newVraag = vraagOptions.value[sectionIndex + vraagIndex];
+    if (articleIdx !== -1) {
+      const sectionIndex =
+        (vraag.value.vraag as Kennisartikel).sectionIndex ?? 0;
+      const newVraag = kennisartikelBlocks[articleIdx]?.[sectionIndex];
+
       if (newVraag !== undefined) {
         selectedVraag.value = newVraag;
 
