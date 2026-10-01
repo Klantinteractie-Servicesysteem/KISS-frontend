@@ -108,13 +108,21 @@ const getKlantNaam = (betrokkene: ContactverzoekOverzichtItem["betrokkene"]) =>
     .filter((x) => !!x)
     .join(" - ");
 
+const metStandaardEerst = <T extends { isStandaardAdres?: boolean }>(
+  adressen: T[],
+) => [
+  ...adressen.filter((x) => x.isStandaardAdres),
+  ...adressen.filter((x) => !x.isStandaardAdres),
+];
+
 const mappedCvs = computed(() =>
   contactverzoeken.map((cv) => {
-    const telefoonnummers =
+    const telefoonnummers = metStandaardEerst(
       cv.betrokkene?.digitaleAdressen.filter(
         ({ soortDigitaalAdres }) =>
           soortDigitaalAdres == DigitaalAdresTypes.telefoonnummer,
-      ) ?? [];
+      ) ?? [],
+    );
 
     return {
       ...cv,
@@ -122,11 +130,12 @@ const mappedCvs = computed(() =>
       klantnaam: getKlantNaam(cv.betrokkene),
       zaaknummers: cv.zaaknummers.join(", "),
 
-      emails: cv.betrokkene?.digitaleAdressen
-        .filter(
+      emails: metStandaardEerst(
+        cv.betrokkene?.digitaleAdressen.filter(
           ({ soortDigitaalAdres }) =>
             soortDigitaalAdres == DigitaalAdresTypes.email,
-        )
+        ) ?? [],
+      )
         .map(({ adres }) => adres)
         .join(", "),
 
