@@ -489,38 +489,19 @@ const getRollen = async ({
   return rollen;
 };
 
-const getZaakType = ({
-  zaaktype,
-  zaaksysteemId,
-}: {
-  zaaktype: string;
-  zaaksysteemId: string;
-}): Promise<ZaakType> => {
-  const zaaktypeid = zaaktype.split("/").pop();
-
-  return fetchWithSysteemId(
-    zaaksysteemId,
-    `${catalogiApiPrefix}/zaaktypen/${zaaktypeid}`,
-  )
-    .then(throwIfNotOk)
-    .then((x) => x.json())
-    .then((json) => {
-      return json;
-    });
-};
-
 const mapZaakDetails = async (zaak: {
   uuid: string;
   identificatie: string;
   zaaksysteemId: string;
   zaaktype: string;
+  _zaaktype: ZaakType;
   toelichting: string;
   startdatum: string | undefined;
   url: string;
   omschrijving: string;
   status: string;
 }) => {
-  const zaakzaaktype = await getZaakType(zaak);
+  const zaakzaaktype = zaak._zaaktype;
 
   const startdatum = zaak.startdatum ? new Date(zaak.startdatum) : undefined;
 

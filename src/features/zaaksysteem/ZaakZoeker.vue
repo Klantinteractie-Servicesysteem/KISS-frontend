@@ -14,6 +14,12 @@
       </button>
     </form>
 
+    <application-message
+      v-if="pabcActive"
+      messageType="warning"
+      message="Let op: u ziet mogelijk niet alle zaken vanwege autorisatie-instellingen."
+    ></application-message>
+
     <template v-if="store.currentSearch">
       <application-message
         v-if="error"
@@ -47,10 +53,12 @@ import { useRouter } from "vue-router";
 import SearchResultsCaption from "../../components/SearchResultsCaption.vue";
 import { useLoader } from "@/services";
 import { useSystemen } from "@/services/environment/fetch-systemen";
+import { usePabcStatus } from "@/services/pabc";
 
 const submitted = ref(false);
 
 const contactmomentStore = useContactmomentStore();
+const { data: pabcActive } = usePabcStatus();
 
 const store = ensureState({
   stateId: "zaak-zoeker",

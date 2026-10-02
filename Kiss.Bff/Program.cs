@@ -8,6 +8,8 @@ using Kiss.Bff.Config;
 using Kiss.Bff.Extern;
 using Kiss.Bff.Extern.Elasticsearch;
 using Kiss.Bff.Extern.Logboek;
+using Kiss.Bff.Extern.Pabc;
+using Kiss.Bff.Extern.ZaakGerichtWerken.Zaaksysteem;
 using Kiss.Bff.Groepen;
 using Kiss.Bff.Intern.Seed.Features;
 using Kiss.Bff.Vacs;
@@ -115,6 +117,8 @@ try
     builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
     builder.Services.AddLogboekProxy(builder.Configuration["LOGBOEK_BASE_URL"], builder.Configuration["LOGBOEK_TOKEN"], builder.Configuration["LOGBOEK_OBJECT_TYPE_URL"], builder.Configuration["LOGBOEK_OBJECT_TYPE_VERSION"]);
 
+    builder.Services.AddPabcClient(builder.Configuration);
+
     builder.Host.UseSerilog((ctx, services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext());
@@ -123,6 +127,7 @@ try
     builder.Services.AddScoped<SkillsService>();
     builder.Services.AddScoped<LinksService>();
     builder.Services.AddScoped<GespreksresultatenService>();
+    builder.Services.AddScoped<ZaaksysteemClient>();
 
     var app = builder.Build();
 

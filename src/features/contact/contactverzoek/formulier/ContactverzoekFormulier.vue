@@ -174,7 +174,7 @@
       <div class="container">
         <!-- Dropdown for selecting Onderwerp -->
         <contactverzoek-onderwerpen
-          :organisatorischeEenheidId="soort && form[soort]?.id"
+          :organisatorischeEenheidId="organisatorischeEenheidId"
           :organisatorischeEenheidSoort="soort"
           v-model:vragenSets="vragenSets"
           v-model:vragenSetIdMap="vragenSetIdMap"
@@ -341,6 +341,7 @@ import {
   isTextareaVraag,
   isDropdownVraag,
   isCheckboxVraag,
+  getTypeOrganisatorischeEenheidFromNaam,
 } from "@/features/contact/components/service";
 import ContactverzoekOnderwerpen from "./components/ContactverzoekOnderwerpen.vue";
 import AfdelingenSearch from "../../components/AfdelingenSearch.vue";
@@ -373,11 +374,28 @@ const vragenSetIdMap = useModelProperty("vragenSetIdMap");
 const form = ref<Partial<ContactmomentContactVerzoek>>({});
 
 // cast to TypeOrganisatorischeEenheid
-const soort = computed(() =>
-  form.value.typeActor === ActorType.afdeling ||
-  form.value.typeActor === ActorType.groep
-    ? Object.values(TypeOrganisatorischeEenheid)[form.value.typeActor]
-    : undefined,
+const soort = computed(() => {
+  if (
+    form.value.typeActor === ActorType.afdeling ||
+    form.value.typeActor === ActorType.groep
+  ) {
+    return Object.values(TypeOrganisatorischeEenheid)[form.value.typeActor];
+  }
+
+  if (form.value.typeActor === ActorType.medewerker) {
+    // medewerker's afdeling/groep does not have its own type field, so derive from the name.
+    return getTypeOrganisatorischeEenheidFromNaam(
+      form.value.organisatorischeEenheidVanMedewerker?.naam,
+    );
+  }
+
+  return undefined;
+});
+
+const organisatorischeEenheidId = computed(() =>
+  form.value.typeActor === ActorType.medewerker
+    ? form.value.organisatorischeEenheidVanMedewerker?.id
+    : soort.value && form.value[soort.value]?.id,
 );
 
 // update het formulier als er tussen vragen/contactmomenten/afhandelscherm geswitched wordt

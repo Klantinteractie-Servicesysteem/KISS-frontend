@@ -93,6 +93,9 @@ data:
   {{- if .Values.settings.logboek.baseUrl }}
   LOGBOEK_BASE_URL: {{ .Values.settings.logboek.baseUrl | toString | quote }}
   {{- end }}
+  {{- if .Values.settings.pabc.baseUrl }}
+  PABC_BASE_URL: {{ .Values.settings.pabc.baseUrl | toString | quote }}
+  {{- end }}
   {{- if .Values.settings.logboek.objectTypeUrl }}
   LOGBOEK_OBJECT_TYPE_URL: {{ .Values.settings.logboek.objectTypeUrl | toString | quote }}
   {{- end }}
@@ -205,6 +208,9 @@ data:
   {{- end }}
   {{- if (($register.zaaksysteem).useExperimentalQueries) }}
   REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES: {{ $register.zaaksysteem.useExperimentalQueries | toString | quote }}
+  {{- end }}
+  {{- if hasKey ($register.zaaksysteem) "usePabc" }}
+  REGISTERS__{{ $index }}__ZAAKSYSTEEM_USE_PABC: {{ $register.zaaksysteem.usePabc | toString | quote }}
   {{- end }}
   {{- if (($register.zaaksysteem).zakenBaseUrl) }}
   REGISTERS__{{ $index }}__ZAAKSYSTEEM_ZAKEN_BASE_URL: {{ $register.zaaksysteem.zakenBaseUrl | toString | quote }}

@@ -1,10 +1,21 @@
 # Changelog
 
 
-## v3.1.4
+## v3.2.0
 
-- [Contactgegevens worden niet getoond in KISS als er 1 Digitaal adres bekend is bij de Partij in OpenKlant
- #1560](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1560)
+- [Contactgegevens worden niet getoond in KISS als er 1 Digitaal adres bekend is bij de Partij in OpenKlant #1560](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1560)
+- [Koppeling KISS/PABC #1482](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1482)
+- [Digitaal adres bij partij ophalen bij contactverzoeken aangemaakt vanuit OIP (PC-2406) #1493](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1493)
+- [PABC gebruiken voor het toewijzen van rollen aan de ingelogde gebruiker #1529](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1529)
+- [Add inleiding to the Vraag #1376](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1376)
+- [Add GespreksID to management information #1374](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1374)
+- [Bug bij tonen aanvullende vragen #1527](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/issues/1527)
+
+### Warnings and deployment notes
+
+- New optional environment variables: `PABC_BASE_URL`, `PABC_API_KEY`. See [PABC documentation](../installation/pabc.md)
+
+
 
 ## v3.1.3
 
