@@ -29,23 +29,21 @@ const activeKlantInCurrentVraag = (contactmoment: ContactmomentState) => {
   // this will have to be replaced by a proper mechanism
   // to keep track of the active contactmoment/vraag/klant
   const activeKlant = contactmoment?.huidigeVraag?.klanten
-    ? contactmoment?.huidigeVraag?.klanten
-        .filter(({ shouldStore }) => shouldStore === true)
-        .find(Boolean)
+    ? contactmoment?.huidigeVraag?.klantToStore
     : null;
 
   if (activeKlant) {
     const name =
       [
-        activeKlant.klant.voornaam,
-        activeKlant.klant.voorvoegselAchternaam,
-        activeKlant.klant.achternaam,
+        activeKlant.voornaam,
+        activeKlant.voorvoegselAchternaam,
+        activeKlant.achternaam,
       ]
         .filter(Boolean)
-        .join(" ") || activeKlant.klant.bedrijfsnaam;
+        .join(" ") || activeKlant.bedrijfsnaam;
 
-    const email = activeKlant.klant.emailadressen.find(Boolean);
-    const phone = activeKlant.klant.telefoonnummers.find(Boolean);
+    const email = activeKlant.emailadressen.find(Boolean);
+    const phone = activeKlant.telefoonnummers.find(Boolean);
 
     const contact = email || phone;
 
