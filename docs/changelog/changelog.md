@@ -1,5 +1,8 @@
 # Changelog
 
+> Release notes for new versions are published on
+> [GitHub Releases](https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/releases).
+> This page contains the release notes of earlier versions and is no longer updated.
 
 ## v3.2.0
 

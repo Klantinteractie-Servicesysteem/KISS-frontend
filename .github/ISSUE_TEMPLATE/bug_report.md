@@ -36,3 +36,10 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
+
+### Release title
+<!-- A short sentence describing the change for users, e.g. "Contactgegevens worden getoond als er één digitaal adres bekend is". Leave empty to use the issue title. -->
+
+
+### Exclude from release notes
+- [ ] Leave this issue out of the release notes
