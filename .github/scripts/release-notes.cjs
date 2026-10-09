@@ -1,3 +1,4 @@
+/* global module, process */ // runs in Node.js (actions/github-script), not in the browser
 // Builds the release notes for the next release and writes them to a draft GitHub Release.
 //
 // PRs merged into main since the last release -> the issue behind each PR -> its "Release title"
@@ -54,7 +55,7 @@ module.exports = async ({ github, context, core }) => {
   for (const number of issueNumbers) {
     const issue = await getIssue(number);
     if (!issue || issue.skip) continue; // not an issue (e.g. "#123" pointed to a PR), or marked "geen release note"
-    items.push(`- ${issue.releaseTitle ?? issue.title} ([#${issue.number}](${issue.url}))`);
+    items.push(`- ${escapeHtml(issue.releaseTitle ?? issue.title)} ([#${issue.number}](${issue.url}))`);
   }
   if (hasDependencyUpdates) items.push("- Dependency updates");
 
@@ -177,8 +178,20 @@ function hasNoReleaseNoteTicked(body) {
   return /^\s*[-*]\s*\[[xX]\]\s*(?:leave this issue out of the release notes|geen[- ]release[- ]note)\b/im.test(body ?? "");
 }
 
+// repeated until nothing changes, so nested input like "<!<!-- -->-- ..." can't leave a "<!--" behind
 function stripComments(text) {
-  return (text ?? "").replace(/<!--[\s\S]*?-->/g, "");
+  let result = text ?? "";
+  let previous;
+  do {
+    previous = result;
+    result = result.replace(/<!--[\s\S]*?-->/g, "");
+  } while (result !== previous);
+  return result;
+}
+
+// titles come from issues anyone can edit; "<" or ">" in a title must not break the release body
+function escapeHtml(text) {
+  return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // The issue form renders the field as "### Release title"; a markdown template may use "## Release title".
