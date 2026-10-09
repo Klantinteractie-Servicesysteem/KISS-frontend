@@ -1,0 +1,46 @@
+name: Release notes
+
+# Keeps the draft GitHub Release "Next release" up to date with everything merged into main
+# since the latest published release. See .github/scripts/release-notes.cjs.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Start of the range, e.g. v3.1.3 (default: the latest published release)"
+        required: false
+      to:
+        description: "End of the range, e.g. v3.2.0 (default: the current commit)"
+        required: false
+      dry-run:
+        description: "Only show the result in the job summary, don't update the draft release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: release-notes
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/github-script@v7
+        env:
+          FROM_REF: ${{ inputs.from }}
+          TO_REF: ${{ inputs.to }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        with:
+          script: |
+            const run = require("./.github/scripts/release-notes.cjs");
+            await run({ github, context, core });

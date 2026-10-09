@@ -1,0 +1,51 @@
+name: PR linked to issue
+
+# Every PR to main must say in its description which issue it closes ("Closes #123"),
+# or that it needs no release note ("geen-release-note"). The release notes are built from this.
+# Dependabot PRs are skipped
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+  issues: read # read the issues GitHub has linked to the PR
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+            // instructions from the PR template are in <!-- comments --> and don't count
+            const description = (pr.body ?? "").replace(/<!--[\s\S]*?-->/g, "");
+
+            if (description.toLowerCase().includes("geen-release-note")) return;
+            if (/(?:^|[^\w/])#\d+\b/.test(description)) return;
+
+            // an issue linked through GitHub itself (e.g. the Development sidebar) counts too,
+            // but only one in this repository: the release notes ignore issues elsewhere
+            const { repository } = await github.graphql(
+              `query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 20) { nodes { repository { nameWithOwner } } }
+                  }
+                }
+              }`,
+              { owner, repo, number: pr.number },
+            );
+            const linkedHere = repository.pullRequest.closingIssuesReferences.nodes.some(
+              (n) => n.repository.nameWithOwner.toLowerCase() === `${owner}/${repo}`.toLowerCase(),
+            );
+            if (linkedHere) return;
+
+            core.setFailed(
+              'Add "Closes #<issue number>" to the PR description, ' +
+                'or "geen-release-note" if this change needs no release note.',
+            );
