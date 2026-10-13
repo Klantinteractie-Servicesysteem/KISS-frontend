@@ -1,10 +1,14 @@
 name: Release notes
 
 # Keeps the draft GitHub Release "Next release" up to date with everything merged into main
-# since the latest published release. See .github/scripts/release-notes.cjs.
+# since the latest published release, and checks every PR to main so it can be placed in those notes.
+# See .github/scripts/release-notes.cjs.
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
   workflow_dispatch:
     inputs:
       from:
@@ -18,18 +22,42 @@ on:
         type: boolean
         default: true
 
-permissions:
-  contents: write
-  pull-requests: read
-  issues: read
-
-concurrency:
-  group: release-notes
-  cancel-in-progress: true
+permissions: {}
 
 jobs:
-  draft:
+  # Every PR to main must say which issue it closes ("Closes #123"), or "geen-release-note".
+  # Make this job a required status check on main. Dependabot PRs are skipped.
+  check-pr:
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read # read the issues GitHub has linked to the PR
+    concurrency:
+      group: release-notes-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { checkPr } = require("./.github/scripts/release-notes.cjs");
+            await checkPr({ github, context, core });
+
+  draft:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    concurrency:
+      group: release-notes-draft
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,5 +70,5 @@ jobs:
           DRY_RUN: ${{ inputs.dry-run }}
         with:
           script: |
-            const run = require("./.github/scripts/release-notes.cjs");
-            await run({ github, context, core });
+            const { draft } = require("./.github/scripts/release-notes.cjs");
+            await draft({ github, context, core });
