@@ -21,3 +21,5 @@ assignees: ''
 
 ### Delivery notes
 
+### Exclude from release notes
+- [ ] Leave this issue out of the release notes
