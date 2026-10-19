@@ -1,5 +1,6 @@
 ﻿using Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers;
 using Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers;
+using Kiss.Bff.EndToEndTest.AnonymousContactverzoek.Helpers;
 using Kiss.Bff.EndToEndTest.Common.Helpers;
 using Kiss.Bff.EndToEndTest.ContactMomentSearch.Helpers;
 
@@ -755,6 +756,100 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
             await Step("Then user sees a validation message: “Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.”");
 
             await Expect(Page.GetAfhandelingNotitieTextBox()).ToHaveJSPropertyAsync("validationMessage", "Dit veld bevat 1048 tekens (maximaal 1000 toegestaan). Verwijder 48 tekens.");
+        }
+
+        [TestMethod("9. Vraag field displays searched text when no article is selected")]
+        public async Task VragenFieldDisplaysSearchedText()
+        {
+            await Step("Given the user is on KISS home page ");
+
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And enters “test2” as the text and clicks on Enter in the search field");
+
+            var searchInput = Page.Locator("#global-search-input");
+
+            await searchInput.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await searchInput.FillAsync("test2");
+            await searchInput.PressAsync("Enter");
+
+            await Step("And selects the Kennisbank checkbox displayed in the search results");
+
+            await Page.GetKennisbankCheckbox().CheckAsync();
+            await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
+
+            await Step("And clicks on Contactverzoek-pane");
+
+            await Page.CreateNewcontactVerzoekAsync();
+
+            await Step("And selects an afdeling");
+
+            await Page.GetAfdelingVoorField().ClickAsync();
+            await Page.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+
+            await Step("And clicks on Afronden");
+
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("Then value of vraag field is displayed as “Test2”");
+
+            var select = Page.GetByLabel("Vraag", new() { Exact = true });
+
+            var selectedText = await select.EvaluateAsync<string>("el => el.options[el.selectedIndex].text");
+
+            Assert.AreEqual("Test2", selectedText);
+        }
+
+        [TestMethod("10. Vraag field displays matched Kennisartikel title with Inleiding section by default")]
+        public async Task VragenFieldDisplaysInleidingSection()
+        {
+            await Step("Given the user is on KISS home page ");
+
+            await Page.GotoAsync("/");
+
+            await Step("And user clicks on Nieuw contactmoment button");
+
+            await Page.GetNieuwContactmomentButton().ClickAsync();
+
+            await Step("And enters “Marktstandplaats aanvragen” as the text and clicks on Enter in the search field");
+
+            var searchInput = Page.Locator("#global-search-input");
+
+            await searchInput.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await searchInput.FillAsync("Marktstandplaats aanvragen");
+            await searchInput.PressAsync("Enter");
+
+            await Step("And selects the Kennisbank checkbox displayed in the search results");
+
+            await Page.GetKennisbankCheckbox().CheckAsync();
+            await Expect(Page.GetKennisbankCheckbox()).ToBeCheckedAsync();
+
+            await Step("And clicks on Contactverzoek-pane");
+
+            await Page.CreateNewcontactVerzoekAsync();
+
+            await Step("And selects an afdeling");
+
+            await Page.GetAfdelingVoorField().ClickAsync();
+            await Page.GetByText("Parkeren", new() { Exact = true }).ClickAsync();
+
+            await Step("And clicks on Afronden");
+
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("Then value of vraag field is displayed as “Marktstandplaats aanvragen - Inleiding”");
+
+            var select = Page.GetByLabel("Vraag", new() { Exact = true });
+
+            var selectedText = await select.EvaluateAsync<string>("el => el.options[el.selectedIndex].text");
+
+            Assert.AreEqual("Marktstandplaats aanvragen - Inleiding", selectedText);
         }
 
     }

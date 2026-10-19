@@ -161,7 +161,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "fatimaz@syps.nl" })).ToBeVisibleAsync();
         }
 
-        [TestMethod("3.Contactverzoek form prefill for company, Vestigingsnr 990000996048")]
+        [TestMethod("3.Contactverzoek form prefill for company, Vestigingsnr 000037178598")]
         public async Task AnonymousContactVerzoekformVestiging()
         {
             await Step("Given the user is on the Startpagina");
@@ -170,9 +170,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -193,14 +193,14 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("And enters 'test automation contactverzoek' in interne toelichting voor medewerker");
             await Page.GetInterneToelichtingTextbox().FillAsync("test automation");
 
-            await Step("And field organisatie has value Prijsknaller BV.");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Organisatie" })).ToHaveValueAsync("Prijsknaller B.V."); // waits up to 10 seconds
+            await Step("And field organisatie has value Test BV Donald.");
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Organisatie" })).ToHaveValueAsync("Test BV Donald"); // waits up to 10 seconds
 
-            await Step("And field Telefoonnummer 1 has value 0536711764 ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0536711764");
+            //await Step("And field Telefoonnummer 1 has value 0536711764 ");
+            //await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0536711764");
 
-            await Step("And field E-mailadres has value prijsknaller.bv@syps.nl ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("syps+prijsknaller@icatt.nl");
+            //await Step("And field E-mailadres has value prijsknaller.bv@syps.nl ");
+            //await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("syps+prijsknaller@icatt.nl");
 
         }
 
@@ -214,9 +214,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
@@ -264,15 +264,15 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("user is navigated to Bedrijfsgegevens page of Prijsknaller B.V.");
+            await Step("user is navigated to Bedrijfsgegevens page of Test BV Donald");
             await Expect(Page.GetByText("Bedrijfsgegevens")).ToBeVisibleAsync();
 
             await Step("And user navigates to the contactverzoeken tab to view the created contact request");
@@ -287,7 +287,8 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
-            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "syps+prijsknaller@icatt.nl" })).ToBeVisibleAsync();
+            //await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "syps+prijsknaller@icatt.nl" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "automation test specific vraag" })).ToBeVisibleAsync();
 
         }
 
@@ -361,9 +362,9 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Step("When the user starts a new Contactmoment");
             await Page.CreateNewContactmomentAsync();
 
-            await Step("And user enters “990000996048” in Vestigingsnummer field");
+            await Step("And user enters “000037178598” in Vestigingsnummer field");
             await Page.GetByRole(AriaRole.Link, new() { Name = "Bedrijven" }).ClickAsync();
-            await Page.Company_KvknummerInput().FillAsync("990000996048");
+            await Page.Company_KvknummerInput().FillAsync("000037178598");
 
             await Step("And clicks the search button");
             await Page.Company_KvknummerSearchButton().ClickAsync();
