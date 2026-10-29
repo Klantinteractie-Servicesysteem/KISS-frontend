@@ -278,7 +278,7 @@ def generate_test_item(test, traces_dir, base_url, was_retried):
 
 def main():
     test_results_dir = sys.argv[1] if len(sys.argv) > 1 else './TestResults'
-    traces_dir = sys.argv[2] if len(sys.argv) > 2 else './bin/Debug/net8.0/playwright-traces'
+    traces_dir = sys.argv[2] if len(sys.argv) > 2 else './bin/Debug/net10.0/playwright-traces'
     base_url = sys.argv[3] if len(sys.argv) > 3 else 'https://klantinteractie-servicesysteem.github.io/KISS-frontend'
     
     # Find all TRX files

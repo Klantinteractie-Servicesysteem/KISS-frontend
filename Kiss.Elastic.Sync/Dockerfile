@@ -1,8 +1,8 @@
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS base
 USER app
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS publish
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS publish
 ARG BUILD_CONFIGURATION=Release
 ARG VERSION=0.0.0
 ARG REVISION=dev
