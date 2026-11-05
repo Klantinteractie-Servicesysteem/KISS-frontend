@@ -46,6 +46,28 @@ extensions = [
     "myst_parser",
 ]
 
+# -- Link naar de README van de helm chart ------------------------------------
+# De configuratie van KISS staat in helm/kiss-chart/README.md. Read the Docs zet
+# READTHEDOCS_GIT_IDENTIFIER op de branch of tag van de versie die gebouwd wordt
+# (bijv. "main" voor latest en "v3.2.2" voor stable/tags). Zo linkt elke versie
+# van deze documentatie naar de README die bij dezelfde versie van KISS hoort.
+# Lokaal (zonder Read the Docs) en bij PR-previews ("external" versies, waar de
+# identifier geen branch of tag is) wordt naar main gelinkt.
+if os.environ.get("READTHEDOCS_VERSION_TYPE") == "external":
+    _git_ref = "main"
+else:
+    _git_ref = os.environ.get("READTHEDOCS_GIT_IDENTIFIER") or "main"
+_helm_readme_url = (
+    "https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/blob/"
+    f"{_git_ref}/helm/kiss-chart/README.md"
+)
+
+myst_enable_extensions = ["substitution"]
+myst_substitutions = {
+    "helm_readme_version": _git_ref,
+    "helm_readme_url": _helm_readme_url,
+    "helm_readme_link": f"[README van de helm chart]({_helm_readme_url})",
+}
 
 
 # Add any paths that contain templates here, relative to this directory.

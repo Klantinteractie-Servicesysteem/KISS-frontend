@@ -1,0 +1,197 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+This README is the single source of documentation for the configuration of KISS. It is generated with [helm-docs](https://github.com/norwoodj/helm-docs) from the comments in [values.yaml](./values.yaml) and the template [README.md.gotmpl](./README.md.gotmpl). To change this documentation, edit those files, not this README.
+
+- Every KISS setting lists the **environment variable** it is passed to KISS as (`Env: …`). Use these names if you install KISS without this helm chart, or run it locally.
+- Functional background, such as which sources KISS queries and what the roles can do, is described in the [KISS documentation](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html).
+
+## General rules
+
+- Some API keys and secrets that KISS uses to query external registers must be **at least 32 characters** long. This is mentioned with the setting.
+- Lists become environment variables with an index: the first item gets `__0__` as infix, the second `__1__`, and so on. For example `settings.registers[0].klantinteractie.baseUrl` becomes `REGISTERS__0__KLANTINTERACTIE_BASE_URL`.
+
+{{ template "chart.valuesSection" . }}
+
+## Configuration details
+
+### Registers configuration
+
+`settings.registers` is a list of **sets of registers**. Each set consists of a klantregister, contactmomentregister, contactverzoekregister (interne taak) and a zaaksysteem that belong together.
+
+- There must be **exactly one** set with `isDefault: true`. Klanten, contactmomenten and contactverzoeken are created in the default set, unless the context shows that the data belongs in a specific register. For example: if a contactmoment is about a zaak from a certain zaaksysteem, the contactmoment is stored in the contactmomentregister of the same set as that zaaksysteem.
+- A set uses either **Open Klant 2** (`klantinteractie`) or the **e-Suite / Open Klant 1** (`contactmomenten`, `klanten` and `interneTaak`). Use Open Klant 1 only to integrate with the e-Suite. The chart derives `REGISTERS__<n>__REGISTRY_VERSION` (`OpenKlant2` or `OpenKlant1`) from this automatically.
+
+Example:
+
+```yaml
+settings:
+  registers:
+    - isDefault: true
+      klantinteractie:
+        baseUrl: "https://klantinteractieregister.mijngemeente.nl/klantinteracties/api/v1"
+        token: "..."
+      zaaksysteem:
+        zakenBaseUrl: "https://openzaak.mijngemeente.nl/zaken/api/v1"
+        catalogiBaseUrl: "https://openzaak.mijngemeente.nl/catalogi/api/v1"
+        documentenBaseUrl: "https://openzaak.mijngemeente.nl/documenten/api/v1"
+        clientId: "..."
+        clientSecret: "..."
+```
+
+Fields of each item in `settings.registers`:
+
+| Key | Env | Description |
+|-----|-----|-------------|
+| isDefault | `REGISTERS__<n>__IS_DEFAULT` | `true` for exactly one set. See above. |
+| zaaksysteem.zakenBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_ZAKEN_BASE_URL` | Full base URL of the Zaken API, including the version.<br/>Example: `https://zaken.somezaaksysteem.nl/api/v1` |
+| zaaksysteem.catalogiBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_CATALOGI_BASE_URL` | Full base URL of the Catalogi API, including the version.<br/>Example: `https://catalogi.somezaaksysteem.nl/api/v1` |
+| zaaksysteem.documentenBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_DOCUMENTEN_BASE_URL` | Full base URL of the Documenten API, including the version.<br/>Example: `https://documenten.somezaaksysteem.nl/api/v1` |
+| zaaksysteem.clientId | `REGISTERS__<n>__ZAAKSYSTEEM_API_CLIENT_ID` | Client ID for the ZGW APIs. |
+| zaaksysteem.clientSecret | `REGISTERS__<n>__ZAAKSYSTEEM_API_KEY` | Secret for the ZGW APIs. **(min. 32 characters)** |
+| zaaksysteem.deeplink.url | `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_URL` | Optional. Base URL to deeplink to a zaak in the zaaksysteem, for example `https://zaaksysteem.mijngemeente.nl/mp/zaak/`. Always use this **in combination with** `deeplink.property`. When both are set, the zaak details screen in KISS shows a link that opens the zaak in the zaaksysteem. This only works for zaaksystemen with a fixed URL for zaak details, where only one property of the zaak (e.g. the zaaknummer) has to be appended to that URL. |
+| zaaksysteem.deeplink.property | `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_PROPERTY` | Optional. The property of the zaak whose value is appended to `deeplink.url`, for example `identificatie`. Always use this **in combination with** `deeplink.url`. |
+| zaaksysteem.useExperimentalQueries | `REGISTERS__<n>__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES` | Optional, `true` or `false`. Feature switch for the experimental features introduced in [Open Zaak 1.20.0](https://open-zaak.readthedocs.io/en/stable/development/changelog.html#id9). |
+| zaaksysteem.usePabc | `REGISTERS__<n>__ZAAKSYSTEEM_USE_PABC` | Optional, default `true`. Whether [PABC](#pabc-platform-autorisatie-beheer-component) zaaktype filtering is applied to this zaaksysteem. Set to `false` for zaaksystemen with their own authorization (e.g. the e-Suite). |
+| **Open Klant 2** | | |
+| klantinteractie.baseUrl | `REGISTERS__<n>__KLANTINTERACTIE_BASE_URL` | URL of the Klantinteracties API of the Open Klant 2 register.<br/>Example: `https://klantinteractieregister.mijngemeente.nl/klantinteracties` |
+| klantinteractie.token | `REGISTERS__<n>__KLANTINTERACTIE_TOKEN` | Token for the Klantinteracties API. |
+| **e-Suite / Open Klant 1** | | |
+| contactmomenten.baseUrl | `REGISTERS__<n>__CONTACTMOMENTEN_BASE_URL` | URL of the Contactmomenten API.<br/>Example: `https://contactmomentenregister.mijngemeente.nl` |
+| contactmomenten.clientId | `REGISTERS__<n>__CONTACTMOMENTEN_API_CLIENT_ID` | Client ID for the Contactmomenten API. |
+| contactmomenten.clientSecret | `REGISTERS__<n>__CONTACTMOMENTEN_API_KEY` | Key for the Contactmomenten API. **(min. 32 characters)** |
+| klanten.baseUrl | `REGISTERS__<n>__KLANTEN_BASE_URL` | URL of the Klanten API.<br/>Example: `https://klantenregister.mijngemeente.nl/klanten` |
+| klanten.clientId | `REGISTERS__<n>__KLANTEN_CLIENT_ID` | Client ID for the Klanten API. |
+| klanten.clientSecret | `REGISTERS__<n>__KLANTEN_CLIENT_SECRET` | Secret for the Klanten API. **(min. 32 characters)** |
+| interneTaak.baseUrl | `REGISTERS__<n>__INTERNE_TAAK_BASE_URL` | URL of the Objects API for Interne Taken.<br/>Example: `https://objectenregister.mijngemeente.nl` |
+| interneTaak.clientId | `REGISTERS__<n>__INTERNE_TAAK_CLIENT_ID` | Client ID for the Objects API for Interne Taken. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+| interneTaak.clientSecret | `REGISTERS__<n>__INTERNE_TAAK_CLIENT_SECRET` | Client secret for the Objects API for Interne Taken. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+| interneTaak.objectTypeUrl | `REGISTERS__<n>__INTERNE_TAAK_OBJECT_TYPE_URL` | URL of the Interne Taak Object Type.<br/>Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399` |
+| interneTaak.objectTypeVersion | `REGISTERS__<n>__INTERNE_TAAK_TYPE_VERSION` | Version number of the Interne Taak Object Type, for example `2`. KISS writes Interne Taken to the Objects API and must send the version of the object type. Which version is the most recent can differ per municipality. |
+
+<details>
+<summary>Migrating from the deprecated <code>ZAAKSYSTEEM_BASE_URL</code></summary>
+
+Older versions of KISS used one variable, `REGISTERS__<n>__ZAAKSYSTEEM_BASE_URL`, for all ZGW APIs. This chart only supports the three separate URLs above. KISS itself still accepts the old variable, but don't use the old and new format together.
+
+To migrate, replace the single URL by the three base URLs, **including the version number**:
+
+- If every API runs on its own subdomain, e.g. `https://zaken.mijnzaaksysteem.nl/api/v1`, `https://catalogi.mijnzaaksysteem.nl/api/v1` and `https://documenten.mijnzaaksysteem.nl/api/v1`.
+- If all APIs run on the same URL, e.g. `https://openzaak.mijngemeente.nl/zaken/api/v1`, `https://openzaak.mijngemeente.nl/catalogi/api/v1` and `https://openzaak.mijngemeente.nl/documenten/api/v1`.
+
+</details>
+
+### Token or client ID and secret
+
+In most cases, KISS authenticates with an Objects API using a **token**. In some cases, for example when KISS is used with the e-Suite (podiumd-adapter), authentication must use a **client ID and client secret** instead. This applies to the Objects APIs for Interne Taken and medewerkers (and, through [environment variables only](#settings-without-a-chart-value), afdelingen and groepen).
+
+Configure either a token, or a client ID and secret. **Never both.**
+
+### SharePoint sync jobs
+
+Fields of each item in `settings.syncJobs.sharepoint`. One sync job is created per item.
+
+| Key | Env | Description |
+|-----|-----|-------------|
+| sourceName | `SHAREPOINT_SOURCE_NAME` | **Required.** A human friendly name for the source, as shown in the search bar in KISS. Example: _ICATT SharePoint Test Site_. See [reserved source names](#reserved-source-names). |
+| siteUrl | `SHAREPOINT_SITE_URL` | **Required.** Full URL of the SharePoint site to crawl, for example `https://my-tenant.sharepoint.com/sites/my-site`. If this is a hub site, or the site has subsites, all underlying / related sites are indexed as well. Both 'modern' site pages and traditional wiki pages are supported. |
+| clientId | `SHAREPOINT_CLIENT_ID` | **Required.** Client ID (application ID) of the SharePoint app registration. The app registration needs the API permission `Sites.Read.All`. Example: `0166786a-df05-4e1c-a75c-7c3317002ad8` |
+| clientSecret | `SHAREPOINT_CLIENT_SECRET` | **Required.** Client secret of the SharePoint app registration. |
+| tenantId | `SHAREPOINT_TENANT_ID` | **Required.** Azure AD tenant ID (GUID) of the SharePoint app registration. Example: `bd7f67dd-fc8c-4a9d-a1aa-c2e4d687b18f` |
+| schedule | | Cron schedule of the sync job. Default `*/59 * * * *` |
+| historyLimit | | Number of finished jobs to keep. Default `1` |
+| resources | | Resources of the sync job container. |
+
+### Website crawler jobs
+
+Websites are crawled by the [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html). One crawler job is created per item in `settings.syncJobs.website`. These settings are written to the crawler configuration; there are no KISS environment variables for them.
+
+| Key | Description |
+|-----|-------------|
+| domain | **Required.** Full URL of the website to crawl. |
+| sourceName | **Required.** A human friendly name for the source, as shown in the search bar in KISS. Example: _ICATT Test Site_. See [reserved source names](#reserved-source-names). |
+| outputIndex | Elasticsearch index to write to. Default: `search-` followed by the `sourceName` in lower case, with spaces replaced by `-`. |
+| excludeTags | HTML tags whose content is not indexed. Default `["header", "footer", "nav"]` |
+| crawlRules | [Crawl rules](https://www.elastic.co/guide/en/enterprise-search/current/crawler-extraction-rules.html) of the Open Crawler, to include or exclude parts of the website. |
+| maxCrawlDepth | Maximum crawl depth. |
+| maxExtractedLinksCount | Maximum number of links extracted per page. |
+| maxUniqueUrlCount | Maximum number of unique URLs crawled. |
+| purgeCrawlEnabled | Remove pages from the index that were not found in the last crawl. |
+| fullHtmlExtractionEnabled | Store the full HTML of each page. |
+| binaryContentExtractionEnabled | Extract and index the content of PDF and Word documents. |
+| userAgent | User agent of the crawler. Default `Kiss-Elastic-Crawler` |
+| threadsPerCrawl | Number of threads per crawl. Default `1` |
+| schedule | Cron schedule of the crawler job. Default `*/59 * * * *` |
+| historyLimit | Number of finished jobs to keep. Default `1` |
+| resources | Resources of the crawler container. |
+
+It is advisable to consult your website administrator about fine-tuning the crawler, for example about the robots.txt, a KISS specific sitemap.xml or additional filters.
+
+### Reserved source names
+
+The source names `Smoelenboek`, `VAC` and `Kennisbank` are reserved. Don't use them as `sourceName` for a SharePoint or website source, unless you don't use the corresponding source. A source is not used when no configuration is provided for it. `Smoelenboek` belongs to `settings.syncJobs.medewerkers`, `VAC` to `settings.syncJobs.vac` and `Kennisbank` to `settings.syncJobs.kennisbank`.
+
+### Using KISS with a proxy for BRP / KvK (for example iConnect)
+
+Proxies for the BRP and KvK, such as iConnect, often require certain headers. KISS supports this as follows:
+
+- If the identification of the logged in user must be passed in a header, use `settings.haalCentraal.userHeaderName` and `settings.kvk.userHeaderName`. The value sent is the claim configured in `settings.oidc.medewerkerIdentificatie.claim`.
+- If static information must be passed in headers, use `settings.haalCentraal.customHeaders` and `settings.kvk.customHeaders`.
+- If static information must be passed in the headers for the BRP **specific for a certain type of search**, use an object with a value per search type in `settings.haalCentraal.customHeaders`. The search types are `RaadpleegMetBurgerservicenummer`, `ZoekMetGeslachtsnaamEnGeboortedatum` and `ZoekMetPostcodeEnHuisnummer`.
+
+An example for iConnect:
+
+```yaml
+settings:
+  haalCentraal:
+    userHeaderName: x-gebruiker
+    customHeaders:
+      x-verwerking: Burgerzaken
+      x-doelbinding:
+        RaadpleegMetBurgerservicenummer: BRPACT-Totaal
+        ZoekMetGeslachtsnaamEnGeboortedatum: BRPACT-ZoekenAlgemeen
+        ZoekMetPostcodeEnHuisnummer: BRPACT-ZoekenAlgemeen
+  kvk:
+    customHeaders:
+      x-origin-oin: "00000000000000000000"
+```
+
+The same example as environment variables:
+
+```bash
+HAAL_CENTRAAL_USER_HEADER_NAME=x-gebruiker
+HAAL_CENTRAAL_CUSTOM_HEADERS__x-verwerking=Burgerzaken
+HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__RaadpleegMetBurgerservicenummer=BRPACT-Totaal
+HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetGeslachtsnaamEnGeboortedatum=BRPACT-ZoekenAlgemeen
+HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetPostcodeEnHuisnummer=BRPACT-ZoekenAlgemeen
+KVK_CUSTOM_HEADERS__x-origin-oin=00000000000000000000
+```
+
+Without helm, a header without search type (`HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding=BRPACT-ZoekenAlgemeen`) can be combined with a value for one specific search type; the specific value takes precedence for that search type.
+
+### PABC (Platform Autorisatie Beheer Component)
+
+The integration with [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) is optional. Setting **both** `settings.pabc.baseUrl` and `settings.pabc.apiKey` acts as a feature flag: when both are present, the integration is activated. The application name (`kiss`) and application roles are hardcoded in KISS.
+
+When PABC is active, the role settings in `settings.oidc` (`klantcontactmedewerkerRole`, `redacteurRole`, `beheerderRole`, `kennisbankRole`) are ignored. Set up PABC first, and only then deploy KISS with the PABC configuration. Otherwise no user gets a KISS application role.
+
+See the [PABC documentation](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/pabc.html) for setup instructions.
+
+### When to configure the Logboek
+
+The logboek contains information about the handling of a contactverzoek in ITA (Interne Taak Afhandeling). KISS shows this information with the contactverzoeken of a klant. The `settings.logboek` settings are only needed if you use ITA. If you use it, fill in all four settings.
+
+### Settings without a chart value
+
+KISS supports a few environment variables that this chart doesn't expose as a value. If you need them, set them with `extraEnvVars`.
+
+| Env | Description |
+|-----|-------------|
+| `AFDELINGEN_CLIENT_ID`, `AFDELINGEN_CLIENT_SECRET` | Client ID and secret for the Objects API for afdelingen, instead of `settings.afdelingen.token`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+| `GROEPEN_CLIENT_ID`, `GROEPEN_CLIENT_SECRET` | Client ID and secret for the Objects API for groepen, instead of `settings.groepen.token`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+| `REGISTERS__<n>__INTERNE_TAAK_TOKEN` | Token for the Objects API for Interne Taken, instead of `interneTaak.clientId` and `interneTaak.clientSecret`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+
+{{ template "helm-docs.versionFooter" . }}

@@ -375,21 +375,21 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": "URL of the Objects API for afdelingen.",
+              "description": "URL of the Objects API for afdelingen.\u003cbr/\u003eExample: `https://objectenregister.mijngemeente.nl`\u003cbr/\u003eEnv: `AFDELINGEN_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
             },
             "objectTypeUrl": {
               "default": "",
-              "description": "URL of the afdelingen Object Type",
+              "description": "URL of the afdelingen Object Type.\u003cbr/\u003eExample: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`\u003cbr/\u003eEnv: `AFDELINGEN_OBJECT_TYPE_URL`",
               "minLength": 1,
               "title": "objectTypeUrl",
               "type": "string"
             },
             "token": {
               "default": "",
-              "description": "Token of the Objects API for afdelingen.",
+              "description": "Token of the Objects API for afdelingen.\u003cbr/\u003eEnv: `AFDELINGEN_TOKEN`",
               "minLength": 1,
               "title": "token",
               "type": "string"
@@ -406,16 +406,19 @@
           "properties": {
             "environment": {
               "default": "Production",
+              "description": "ASP.NET Core environment name.\u003cbr/\u003eEnv: `ASPNETCORE_ENVIRONMENT`",
               "title": "environment",
               "type": "string"
             },
             "forwardedHeadersEnabled": {
               "default": true,
+              "description": "Process `X-Forwarded-*` headers set by the ingress / reverse proxy. Keep this `true` when KISS runs behind an ingress.\u003cbr/\u003eEnv: `ASPNETCORE_FORWARDEDHEADERS_ENABLED`",
               "title": "forwardedHeadersEnabled",
               "type": "boolean"
             },
             "httpPorts": {
               "default": "",
+              "description": "Port(s) the KISS container listens on. Leave empty to use the default of the image.\u003cbr/\u003eEnv: `ASPNETCORE_HTTP_PORTS`",
               "title": "httpPorts",
               "type": "string"
             }
@@ -429,34 +432,34 @@
           "properties": {
             "host": {
               "default": "",
-              "description": "Host of the database used by KISS",
+              "description": "Host of the database used by KISS.\u003cbr/\u003eEnv: `POSTGRES_HOST`",
               "minLength": 1,
               "title": "host",
               "type": "string"
             },
             "name": {
               "default": "",
-              "description": "Name of the database used by KISS",
+              "description": "Name of the PostgreSQL database used by KISS.\u003cbr/\u003eEnv: `POSTGRES_DB`",
               "minLength": 1,
               "title": "name",
               "type": "string"
             },
             "password": {
               "default": "",
-              "description": "Password of the postgres user",
+              "description": "Password of the database user.\u003cbr/\u003eEnv: `POSTGRES_PASSWORD`",
               "minLength": 1,
               "title": "password",
               "type": "string"
             },
             "port": {
               "default": 5432,
-              "description": "Port of the database used by KISS",
+              "description": "Port of the database used by KISS.\u003cbr/\u003eEnv: `POSTGRES_PORT`",
               "title": "port",
               "type": "integer"
             },
             "username": {
               "default": "",
-              "description": "Username for KISS to access the database",
+              "description": "Username for KISS to access the database.\u003cbr/\u003eEnv: `POSTGRES_USER`",
               "minLength": 1,
               "title": "username",
               "type": "string"
@@ -475,19 +478,19 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": "The URL for Elasticsearch",
+              "description": "The URL for Elasticsearch. Used by KISS and by the sync jobs.\u003cbr/\u003eExample: `https://kiss-es-http:9200`\u003cbr/\u003eEnv: `ELASTIC_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
             },
             "bulkHttpTimeoutMinutes": {
               "default": 10,
-              "description": "The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.",
+              "description": "The timeout in minutes for bulk indexing operations to Elasticsearch. Adjust this if you have a very large source and you experience timeouts during sync jobs.\u003cbr/\u003eEnv: `ELASTIC_BULK_HTTP_TIMEOUT_MINUTES` (only used by the sync jobs)",
               "title": "bulkHttpTimeoutMinutes",
               "type": "integer"
             },
             "excludedFieldsKennisbank": {
-              "description": "Fields that a Kennisbank user is not allowed to search and view.",
+              "description": "Fields that a Kennisbank user is not allowed to search and view. Specify the field names as they are configured in Elasticsearch.\u003cbr/\u003eExample: `[\"VAC.toelichting\", \"Kennisbank.vertalingen.deskMemo\"]`\u003cbr/\u003eEnv: `ELASTIC_EXCLUDED_FIELDS_KENNISBANK` (comma separated)",
               "items": {
                 "minLength": 1,
                 "type": "string"
@@ -497,20 +500,20 @@
             },
             "password": {
               "default": "",
-              "description": "Password to log in to Elasticsearch",
+              "description": "Password to log in to Elasticsearch.\u003cbr/\u003eEnv: `ELASTIC_PASSWORD` \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eIf you use [ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-overview.html), you can find the password of the default user with `kubectl get secret kiss-es-elastic-user -o go-template='{{.data.elastic \\| base64decode}}'`\u003c/details\u003e",
               "minLength": 1,
               "title": "password",
               "type": "string"
             },
             "sslVerify": {
               "default": false,
-              "description": "Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.",
+              "description": "Controls whether SSL certificate verification is enabled. Defaults to false because elasticsearch clusters are often internal and use self-signed certificates.\u003cbr/\u003eOnly used by the website crawler and the index template hook, there is no environment variable for this setting.",
               "title": "sslVerify",
               "type": "boolean"
             },
             "username": {
               "default": "",
-              "description": "Username to log in to Elasticsearch",
+              "description": "Username to log in to Elasticsearch. This can be the default root user `elastic`, or a user you created yourself.\u003cbr/\u003eEnv: `ELASTIC_USERNAME`",
               "minLength": 1,
               "title": "username",
               "type": "string"
@@ -528,32 +531,32 @@
           "properties": {
             "enableSsl": {
               "default": true,
-              "description": "Use SSL (true/false)",
+              "description": "Use SSL for the connection with the mail server.\u003cbr/\u003eEnv: `EMAIL_ENABLE_SSL`",
               "title": "enableSsl",
               "type": "boolean"
             },
             "host": {
               "default": "",
-              "description": "Address of the mail server",
+              "description": "Address of the mail server.\u003cbr/\u003eEnv: `EMAIL_HOST`",
               "minLength": 1,
               "title": "host",
               "type": "string"
             },
             "password": {
               "default": "",
-              "description": "Password for the mail server",
+              "description": "Password for the mail server.\u003cbr/\u003eEnv: `EMAIL_PASSWORD`",
               "title": "password",
               "type": "string"
             },
             "port": {
               "default": 25,
-              "description": "Port number of the mail connection",
+              "description": "Port number of the mail connection.\u003cbr/\u003eEnv: `EMAIL_PORT`",
               "title": "port",
               "type": "integer"
             },
             "username": {
               "default": "",
-              "description": "Username for the mail server",
+              "description": "Username for the mail server.\u003cbr/\u003eEnv: `EMAIL_USERNAME`",
               "title": "username",
               "type": "string"
             }
@@ -568,14 +571,14 @@
           "properties": {
             "emailFrom": {
               "default": "",
-              "description": "From address of the feedback email",
+              "description": "From address of the feedback email. A KCM can give feedback on a kennisartikel from KISS; this feedback is emailed to one central address.\u003cbr/\u003eEnv: `FEEDBACK_EMAIL_FROM`",
               "minLength": 1,
               "title": "emailFrom",
               "type": "string"
             },
             "emailTo": {
               "default": "",
-              "description": "Address where the feedback email should be sent",
+              "description": "Address where the feedback email should be sent.\u003cbr/\u003eEnv: `FEEDBACK_EMAIL_TO`",
               "minLength": 1,
               "title": "emailTo",
               "type": "string"
@@ -592,21 +595,21 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": "URL of the Objects API for groepen.",
+              "description": "URL of the Objects API for groepen.\u003cbr/\u003eExample: `https://objectenregister.mijngemeente.nl`\u003cbr/\u003eEnv: `GROEPEN_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
             },
             "objectTypeUrl": {
               "default": "",
-              "description": "URL of the groepen Object Type",
+              "description": "URL of the groepen Object Type.\u003cbr/\u003eExample: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`\u003cbr/\u003eEnv: `GROEPEN_OBJECT_TYPE_URL`",
               "minLength": 1,
               "title": "objectTypeUrl",
               "type": "string"
             },
             "token": {
               "default": "",
-              "description": "Token of the Objects API for groepen.",
+              "description": "Token of the Objects API for groepen.\u003cbr/\u003eEnv: `GROEPEN_TOKEN`",
               "minLength": 1,
               "title": "token",
               "type": "string"
@@ -621,7 +624,7 @@
         },
         "groepsmailboxVerplichting": {
           "default": false,
-          "description": "This variable determines whether a medewerker must be linked to a contact request when the selected afdeling/groep has no groepsmailbox.",
+          "description": "Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox. \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eWhen `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.\u003c/details\u003e Env: `USE_GROEPSMAILBOX_VERPLICHTING`",
           "title": "groepsmailboxVerplichting",
           "type": "boolean"
         },
@@ -630,14 +633,14 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": "Key for the Haal Centraal API",
+              "description": "Key for the Haal Centraal API.\u003cbr/\u003eEnv: `HAAL_CENTRAAL_API_KEY`",
               "minLength": 1,
               "title": "apiKey",
               "type": "string"
             },
             "baseUrl": {
               "default": "",
-              "description": "URL of the Haal Centraal API",
+              "description": "URL of the Haal Centraal BRP Personen API.\u003cbr/\u003eExample: `https://proefomgeving.haalcentraal.nl/haalcentraal/api`\u003cbr/\u003eEnv: `HAAL_CENTRAAL_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
@@ -669,14 +672,14 @@
                   }
                 ]
               },
-              "description": "Custom headers to send to the Haal Centraal API, for instance when using a proxy",
+              "description": "Custom headers to send to the Haal Centraal API, for instance when using a proxy. A value can be a string (sent with every search) or an object with a value per search type. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).\u003cbr/\u003eEnv: `HAAL_CENTRAAL_CUSTOM_HEADERS__\u003cheadername\u003e` and `HAAL_CENTRAAL_CUSTOM_HEADERS__\u003cheadername\u003e__\u003czoektype\u003e`",
               "required": [],
               "title": "customHeaders",
               "type": "object"
             },
             "userHeaderName": {
               "default": "",
-              "description": "Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy",
+              "description": "Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy. The value of the claim configured in `settings.oidc.medewerkerIdentificatie.claim` is sent. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).\u003cbr/\u003eEnv: `HAAL_CENTRAAL_USER_HEADER_NAME`",
               "title": "userHeaderName",
               "type": "string"
             }
@@ -692,14 +695,14 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": "Key for the KvK API",
+              "description": "Key for the KvK API.\u003cbr/\u003eEnv: `KVK_API_KEY`",
               "minLength": 1,
               "title": "apiKey",
               "type": "string"
             },
             "baseUrl": {
               "default": "",
-              "description": "URL of the KvK API",
+              "description": "URL of the KvK API to query the Handelsregister. This is the path before the version number.\u003cbr/\u003eExample: `https://api.kvk.nl/test/api`\u003cbr/\u003eEnv: `KVK_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
@@ -708,14 +711,14 @@
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "Custom headers to send to the KvK API, for instance when using a proxy",
+              "description": "Custom headers to send to the KvK API, for instance when using a proxy. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).\u003cbr/\u003eEnv: `KVK_CUSTOM_HEADERS__\u003cheadername\u003e`",
               "required": [],
               "title": "customHeaders",
               "type": "object"
             },
             "userHeaderName": {
               "default": "",
-              "description": "Header name to include the user id to send to the KvK API, for instance when using a proxy",
+              "description": "Header name to include the user id to send to the KvK API, for instance when using a proxy. The value of the claim configured in `settings.oidc.medewerkerIdentificatie.claim` is sent.\u003cbr/\u003eEnv: `KVK_USER_HEADER_NAME`",
               "title": "userHeaderName",
               "type": "string"
             }
@@ -731,27 +734,27 @@
           "properties": {
             "baseUrl": {
               "default": "",
-              "description": "URL of the Objects API where the logbook is stored",
+              "description": "URL of the Objects API where the logbook is stored. See [Logboek](#when-to-configure-the-logboek).\u003cbr/\u003eEnv: `LOGBOEK_BASE_URL`",
               "minLength": 1,
               "title": "baseUrl",
               "type": "string"
             },
             "objectTypeUrl": {
               "default": "",
-              "description": "URL of the Logbook Object Type.",
+              "description": "URL of the Logboek Object Type.\u003cbr/\u003eExample: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/12345678-5ddb-4b1a-a347-e20092031399`\u003cbr/\u003eEnv: `LOGBOEK_OBJECT_TYPE_URL`",
               "minLength": 1,
               "title": "objectTypeUrl",
               "type": "string"
             },
             "objectTypeVersion": {
               "default": 1,
-              "description": "Version number of the Logbook Object Type.",
+              "description": "Version number of the Logboek Object Type.\u003cbr/\u003eEnv: `LOGBOEK_OBJECT_TYPE_VERSION`",
               "title": "objectTypeVersion",
               "type": "integer"
             },
             "token": {
               "default": "",
-              "description": "Token for the Objects API for Logbooks",
+              "description": "Token for the Objects API for the Logboek.\u003cbr/\u003eEnv: `LOGBOEK_TOKEN`",
               "minLength": 1,
               "title": "token",
               "type": "string"
@@ -769,7 +772,7 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": "Secret that KISS uses to validate the JWT Token when requesting contact moment details",
+              "description": "Secret that KISS uses to validate the JWT Token when requesting contactmoment details. See the [managementinformatie chapter of the KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/managementinformatie.html) on how to use this API.\u003cbr/\u003eEnv: `MANAGEMENTINFORMATIE_API_KEY`",
               "minLength": 1,
               "title": "apiKey",
               "type": "string"
@@ -786,40 +789,40 @@
           "properties": {
             "authority": {
               "default": "",
-              "description": "URL of the OpenID Connect Identity Provider",
+              "description": "URL of the OpenID Connect Identity Provider.\u003cbr/\u003eEnv: `OIDC_AUTHORITY`",
               "minLength": 1,
               "title": "authority",
               "type": "string"
             },
             "beheerderRole": {
               "default": "",
-              "description": "Name of the role for a Beheerder.",
+              "description": "Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_BEHEERDER_ROLE`",
               "title": "beheerderRole",
               "type": "string"
             },
             "clientId": {
               "default": "",
-              "description": "For access to the OpenID Connect Identity Provider",
+              "description": "Client ID for access to the OpenID Connect Identity Provider.\u003cbr/\u003eEnv: `OIDC_CLIENT_ID`",
               "minLength": 1,
               "title": "clientId",
               "type": "string"
             },
             "clientSecret": {
               "default": "",
-              "description": "Secret for the OpenID Connect Identity Provider",
+              "description": "Secret for the OpenID Connect Identity Provider.\u003cbr/\u003eEnv: `OIDC_CLIENT_SECRET`",
               "minLength": 1,
               "title": "clientSecret",
               "type": "string"
             },
             "kennisbankRole": {
               "default": "",
-              "description": "Name of the role for a Kennisbank employee.",
+              "description": "Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_KENNISBANK_ROLE`",
               "title": "kennisbankRole",
               "type": "string"
             },
             "klantcontactmedewerkerRole": {
               "default": "",
-              "description": "Name of the role for a Klant Contact Employee.",
+              "description": "Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_KLANTCONTACTMEDEWERKER_ROLE`",
               "title": "klantcontactmedewerkerRole",
               "type": "string"
             },
@@ -828,14 +831,14 @@
               "properties": {
                 "claim": {
                   "default": "",
-                  "description": "the claim to use for identifying the medewerker",
+                  "description": "The claim used to identify the medewerker in the registers. Default: `email`.\u003cbr/\u003eEnv: `OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM` \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eWhen writing data to e.g. Open Klant or Open Zaak, a `medewerkerIdentificatie.identificatie` is required. Municipalities use different values for this. When integrating with e.g. the e-Suite, this must contain the e-Suite username of the logged in KCM.\u003c/details\u003e",
                   "minLength": 1,
                   "title": "claim",
                   "type": "string"
                 },
                 "truncate": {
                   "default": "",
-                  "description": "max number of characters before truncation",
+                  "description": "Optional maximum number of characters of the claim, after which it is truncated. Example: `24`. Default: no truncation.\u003cbr/\u003eEnv: `OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE` \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eWithin ZGW, a `medewerkerIdentificatie.identificatie` may not be longer than 24 characters. Use this setting to truncate the value after 24 characters.\u003c/details\u003e",
                   "required": [],
                   "title": "truncate",
                   "type": [
@@ -851,7 +854,7 @@
             },
             "redacteurRole": {
               "default": "",
-              "description": "Name of the role for a Redacteur.",
+              "description": "Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_REDACTEUR_ROLE`",
               "title": "redacteurRole",
               "type": "string"
             }
@@ -865,7 +868,7 @@
           "title": "oidc"
         },
         "organisatieIds": {
-          "description": "RSIN of the organization that registers the Contactmomenten",
+          "description": "RSIN of the organisation that registers the contactmomenten. Several ZGW APIs, including the Klanten and Contactmomenten APIs, require the RSIN of the own organisation when registering specific objects.\u003cbr/\u003eEnv: `ORGANISATIE_IDS` (separated by `/`)",
           "items": {
             "type": "string"
           },
@@ -877,13 +880,13 @@
           "properties": {
             "apiKey": {
               "default": "",
-              "description": "API key voor authenticatie bij PABC (X-API-KEY header).",
+              "description": "API key for authentication with PABC (sent as `X-API-KEY` header).\u003cbr/\u003eEnv: `PABC_API_KEY`",
               "title": "apiKey",
               "type": "string"
             },
             "baseUrl": {
               "default": "",
-              "description": "Base URL van de PABC API, zonder trailing slash. Aanwezigheid van baseUrl én apiKey activeert de PABC-koppeling.",
+              "description": "Base URL of the PABC API, without trailing slash. Example: `https://pabc.mijngemeente.nl`.\u003cbr/\u003eSetting both `baseUrl` and `apiKey` activates the PABC integration. See [PABC](#pabc-platform-autorisatie-beheer-component).\u003cbr/\u003eEnv: `PABC_BASE_URL`",
               "title": "baseUrl",
               "type": "string"
             }
@@ -893,7 +896,7 @@
           "type": "object"
         },
         "registers": {
-          "description": "Configuration for the different registers for e.g. zaken and klantcontacten. Check [the json schema](./values.schema.json) for the different possible configurations.",
+          "description": "Configuration for the different sets of registers for e.g. zaken and klantcontacten. See [Registers](#registers-configuration) for the fields of each item, and [the json schema](./values.schema.json) for the possible configurations.\u003cbr/\u003eEnv: `REGISTERS__\u003cn\u003e__…`",
           "items": {
             "allOf": [
               {
@@ -1067,6 +1070,7 @@
               "properties": {
                 "pullPolicy": {
                   "default": "IfNotPresent",
+                  "description": "Pull policy for the Open Crawler image",
                   "title": "pullPolicy",
                   "type": "string"
                 },
@@ -1091,11 +1095,13 @@
               "properties": {
                 "pullPolicy": {
                   "default": "IfNotPresent",
+                  "description": "Pull policy for the `kiss-elastic-sync` image",
                   "title": "pullPolicy",
                   "type": "string"
                 },
                 "repository": {
                   "default": "ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync",
+                  "description": "The image repository for the `kiss-elastic-sync` sync jobs",
                   "title": "repository",
                   "type": "string"
                 },
@@ -1114,6 +1120,7 @@
               "properties": {
                 "pullPolicy": {
                   "default": "IfNotPresent",
+                  "description": "Pull policy for the index-template hook image",
                   "title": "pullPolicy",
                   "type": "string"
                 },
@@ -1139,36 +1146,39 @@
               "properties": {
                 "baseUrl": {
                   "default": "",
-                  "description": "URL of the API for Kennisartikelen",
+                  "description": "URL of the Objects API for Kennisartikelen (PDC producten).\u003cbr/\u003eExample: `https://objectenregister.mijngemeente.nl`\u003cbr/\u003eEnv: `SDG_OBJECTEN_BASE_URL`",
                   "minLength": 1,
                   "title": "baseUrl",
                   "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
+                  "description": "Number of finished jobs to keep.",
                   "title": "historyLimit",
                   "type": "integer"
                 },
                 "objectTypeUrl": {
                   "default": "",
-                  "description": "URL of the Kennisartikel Object Type",
+                  "description": "URL of the Kennisartikel Object Type.\u003cbr/\u003eExample: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`\u003cbr/\u003eEnv: `SDG_OBJECT_TYPE_URL`",
                   "minLength": 1,
                   "title": "objectTypeUrl",
                   "type": "string"
                 },
                 "resources": {
+                  "description": "Resources of the sync job container.",
                   "required": [],
                   "title": "resources",
                   "type": "object"
                 },
                 "schedule": {
                   "default": "*/59 * * * *",
+                  "description": "Cron schedule of the sync job.",
                   "title": "schedule",
                   "type": "string"
                 },
                 "token": {
                   "default": "",
-                  "description": "Token for the API for Kennisartikelen",
+                  "description": "Token for the Objects API for Kennisartikelen.\u003cbr/\u003eEnv: `SDG_OBJECTEN_TOKEN`",
                   "minLength": 1,
                   "title": "token",
                   "type": "string"
@@ -1271,7 +1281,7 @@
               "title": "medewerkers"
             },
             "sharepoint": {
-              "description": "sharepoint sync jobs configuration",
+              "description": "SharePoint sync jobs configuration. One sync job is created per item. See [SharePoint sync jobs](#sharepoint-sync-jobs) for the fields of each item.",
               "items": {
                 "properties": {
                   "clientId": {
@@ -1317,48 +1327,51 @@
               "properties": {
                 "baseUrl": {
                   "default": "",
-                  "description": "URL of the Objects API for VACs",
+                  "description": "URL of the Objects API for VACs.\u003cbr/\u003eExample: `https://objectenregister.mijngemeente.nl`\u003cbr/\u003eEnv: `VAC_OBJECTEN_BASE_URL`",
                   "minLength": 1,
                   "title": "baseUrl",
                   "type": "string"
                 },
                 "historyLimit": {
                   "default": 1,
+                  "description": "Number of finished jobs to keep.",
                   "title": "historyLimit",
                   "type": "integer"
                 },
                 "manageFromKiss": {
                   "default": false,
-                  "description": "This variable determines whether the navigation item for managing VACs is present in the management navigation.",
+                  "description": "Determines whether the navigation item for managing VACs is present in the management navigation.\u003cbr/\u003e**Note**: when `true`, the `token` for VACs also needs write permissions, and `objectTypeVersion` must be set to the correct value.\u003cbr/\u003eEnv: `USE_VACS`",
                   "title": "manageFromKiss",
                   "type": "boolean"
                 },
                 "objectTypeUrl": {
                   "default": "",
-                  "description": "URL of the VAC Object Type",
+                  "description": "URL of the VAC Object Type.\u003cbr/\u003eExample: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`\u003cbr/\u003eEnv: `VAC_OBJECT_TYPE_URL`",
                   "minLength": 1,
                   "title": "objectTypeUrl",
                   "type": "string"
                 },
                 "objectTypeVersion": {
                   "default": 1,
-                  "description": "Version number of the VAC Object Type",
+                  "description": "Version number of the VAC Object Type. When `manageFromKiss` is `true`, KISS writes VACs to the Objects API and must send the version of the object type. Which version is the most recent can differ per municipality.\u003cbr/\u003eEnv: `VAC_OBJECT_TYPE_VERSION`",
                   "title": "objectTypeVersion",
                   "type": "integer"
                 },
                 "resources": {
+                  "description": "Resources of the sync job container.",
                   "required": [],
                   "title": "resources",
                   "type": "object"
                 },
                 "schedule": {
                   "default": "*/59 * * * *",
+                  "description": "Cron schedule of the sync job.",
                   "title": "schedule",
                   "type": "string"
                 },
                 "token": {
                   "default": "",
-                  "description": "Token for the Objects API for VACs",
+                  "description": "Token for the Objects API for VACs. When `manageFromKiss` is `true`, this token needs read and write permissions.\u003cbr/\u003eEnv: `VAC_OBJECTEN_TOKEN`",
                   "minLength": 1,
                   "title": "token",
                   "type": "string"
@@ -1376,7 +1389,7 @@
               ]
             },
             "website": {
-              "description": "website sync jobs configuration",
+              "description": "Website crawler jobs configuration. One crawler job (Elastic Open Crawler) is created per item. See [Website crawler jobs](#website-crawler-jobs) for the fields of each item.",
               "items": {
                 "properties": {
                   "binaryContentExtractionEnabled": {

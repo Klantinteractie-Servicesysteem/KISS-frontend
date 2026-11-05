@@ -4,6 +4,7 @@ on:
     paths:
       - "helm/kiss-chart/values.yaml"
       - "helm/kiss-chart/Chart.yaml"
+      - "helm/kiss-chart/README.md.gotmpl"
 permissions:
   contents: write
   pull-requests: write
