@@ -72,8 +72,8 @@ This README is the single source of documentation for the configuration of KISS.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| settings.groepsmailboxVerplichting | bool | `false` | Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox. <details><summary>More information</summary>When `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.</details> Env: `USE_GROEPSMAILBOX_VERPLICHTING` |
-| settings.syncJobs.medewerkers.useEmail | bool | `false` | Determines whether a contactverzoek for a medewerker can only be made by email address. <details><summary>More information</summary>When `true`, the contactverzoek form shows a field to enter the email address of a medewerker under the selected afdeling or groep. Creating a contactverzoek directly for a medewerker is then not possible. The email field is not required. When `false`, a medewerker can be picked by name from a list (the Smoelenboek).</details> Env: `USE_MEDEWERKEREMAIL` |
+| settings.groepsmailboxVerplichting | bool | `false` | Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox.<br/>Env: `USE_GROEPSMAILBOX_VERPLICHTING` <details><summary>More information</summary>When `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.</details> |
+| settings.syncJobs.medewerkers.useEmail | bool | `false` | Determines whether a contactverzoek for a medewerker can only be made by email address.<br/>Env: `USE_MEDEWERKEREMAIL` <details><summary>More information</summary>When `true`, the contactverzoek form shows a field to enter the email address of a medewerker under the selected afdeling or groep. Creating a contactverzoek directly for a medewerker is then not possible. The email field is not required. When `false`, a medewerker can be picked by name from a list (the Smoelenboek).</details> |
 | settings.syncJobs.vac.manageFromKiss | bool | `false` | Determines whether the navigation item for managing VACs is present in the management navigation.<br/>**Note**: when `true`, the `token` for VACs also needs write permissions, and `objectTypeVersion` must be set to the correct value.<br/>Env: `USE_VACS` |
 
 ### BRP (Haal Centraal) and KvK
@@ -104,14 +104,14 @@ This README is the single source of documentation for the configuration of KISS.
 |-----|------|---------|-------------|
 | settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contactmoment details. See the [managementinformatie chapter of the KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/managementinformatie.html) on how to use this API.<br/>Env: `MANAGEMENTINFORMATIE_API_KEY` |
 | settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider.<br/>Env: `OIDC_AUTHORITY` |
-| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_BEHEERDER_ROLE` |
+| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_BEHEERDER_ROLE` |
 | settings.oidc.clientId | string | `""` | Client ID for access to the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_ID` |
 | settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_SECRET` |
-| settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_KENNISBANK_ROLE` |
-| settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE` |
+| settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KENNISBANK_ROLE` |
+| settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE` |
 | settings.oidc.medewerkerIdentificatie.claim | string | `""` | The claim used to identify the medewerker in the registers. Default: `email`.<br/>Env: `OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM` <details><summary>More information</summary>When writing data to e.g. Open Klant or Open Zaak, a `medewerkerIdentificatie.identificatie` is required. Municipalities use different values for this. When integrating with e.g. the e-Suite, this must contain the e-Suite username of the logged in KCM.</details> |
 | settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | Optional maximum number of characters of the claim, after which it is truncated. Example: `24`. Default: no truncation.<br/>Env: `OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE` <details><summary>More information</summary>Within ZGW, a `medewerkerIdentificatie.identificatie` may not be longer than 24 characters. Use this setting to truncate the value after 24 characters.</details> |
-| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_REDACTEUR_ROLE` |
+| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_REDACTEUR_ROLE` |
 
 ### Organisation
 
@@ -233,7 +233,7 @@ This README is the single source of documentation for the configuration of KISS.
 `settings.registers` is a list of **sets of registers**. Each set consists of a klantregister, contactmomentregister, contactverzoekregister (interne taak) and a zaaksysteem that belong together.
 
 - There must be **exactly one** set with `isDefault: true`. Klanten, contactmomenten and contactverzoeken are created in the default set, unless the context shows that the data belongs in a specific register. For example: if a contactmoment is about a zaak from a certain zaaksysteem, the contactmoment is stored in the contactmomentregister of the same set as that zaaksysteem.
-- A set uses either **Open Klant 2** (`klantinteractie`) or the **e-Suite / Open Klant 1** (`contactmomenten`, `klanten` and `interneTaak`). Use Open Klant 1 only to integrate with the e-Suite. The chart derives `REGISTERS__<n>__REGISTRY_VERSION` (`OpenKlant2` or `OpenKlant1`) from this automatically.
+- A set uses either **Open Klant 2** (`klantinteractie`) or the **e-Suite / Open Klant 1** (`contactmomenten`, `klanten` and `interneTaak`). Use Open Klant 1 only to integrate with the e-Suite. The chart derives `REGISTERS__<n>__REGISTRY_VERSION` (`OpenKlant2` or `OpenKlant1`) from this automatically. Without helm, set `REGISTERS__<n>__REGISTRY_VERSION` yourself: when it is not set, KISS assumes `OpenKlant2`.
 
 Example:
 
@@ -242,7 +242,7 @@ settings:
   registers:
     - isDefault: true
       klantinteractie:
-        baseUrl: "https://klantinteractieregister.mijngemeente.nl/klantinteracties/api/v1"
+        baseUrl: "https://klantinteractieregister.mijngemeente.nl/klantinteracties"
         token: "..."
       zaaksysteem:
         zakenBaseUrl: "https://openzaak.mijngemeente.nl/zaken/api/v1"
@@ -267,7 +267,7 @@ Fields of each item in `settings.registers`:
 | zaaksysteem.useExperimentalQueries | `REGISTERS__<n>__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES` | Optional, `true` or `false`. Feature switch for the experimental features introduced in [Open Zaak 1.20.0](https://open-zaak.readthedocs.io/en/stable/development/changelog.html#id9). |
 | zaaksysteem.usePabc | `REGISTERS__<n>__ZAAKSYSTEEM_USE_PABC` | Optional, default `true`. Whether [PABC](#pabc-platform-autorisatie-beheer-component) zaaktype filtering is applied to this zaaksysteem. Set to `false` for zaaksystemen with their own authorization (e.g. the e-Suite). |
 | **Open Klant 2** | | |
-| klantinteractie.baseUrl | `REGISTERS__<n>__KLANTINTERACTIE_BASE_URL` | URL of the Klantinteracties API of the Open Klant 2 register.<br/>Example: `https://klantinteractieregister.mijngemeente.nl/klantinteracties` |
+| klantinteractie.baseUrl | `REGISTERS__<n>__KLANTINTERACTIE_BASE_URL` | URL of the Klantinteracties API of the Open Klant 2 register, **without** `/api/v1` (KISS adds that itself).<br/>Example: `https://klantinteractieregister.mijngemeente.nl/klantinteracties` |
 | klantinteractie.token | `REGISTERS__<n>__KLANTINTERACTIE_TOKEN` | Token for the Klantinteracties API. |
 | **e-Suite / Open Klant 1** | | |
 | contactmomenten.baseUrl | `REGISTERS__<n>__CONTACTMOMENTEN_BASE_URL` | URL of the Contactmomenten API.<br/>Example: `https://contactmomentenregister.mijngemeente.nl` |
@@ -298,7 +298,7 @@ To migrate, replace the single URL by the three base URLs, **including the versi
 
 In most cases, KISS authenticates with an Objects API using a **token**. In some cases, for example when KISS is used with the e-Suite (podiumd-adapter), authentication must use a **client ID and client secret** instead. This applies to the Objects APIs for Interne Taken and medewerkers (and, through [environment variables only](#settings-without-a-chart-value), afdelingen and groepen).
 
-Configure either a token, or a client ID and secret. **Never both.**
+Configure either a token, or a client ID and secret, not both. If both are set anyway, KISS uses the client ID and secret.
 
 ### SharePoint sync jobs
 
@@ -325,7 +325,7 @@ Websites are crawled by the [Elastic Open Crawler](https://www.elastic.co/guide/
 | sourceName | **Required.** A human friendly name for the source, as shown in the search bar in KISS. Example: _ICATT Test Site_. See [reserved source names](#reserved-source-names). |
 | outputIndex | Elasticsearch index to write to. Default: `search-` followed by the `sourceName` in lower case, with spaces replaced by `-`. |
 | excludeTags | HTML tags whose content is not indexed. Default `["header", "footer", "nav"]` |
-| crawlRules | [Crawl rules](https://www.elastic.co/guide/en/enterprise-search/current/crawler-extraction-rules.html) of the Open Crawler, to include or exclude parts of the website. |
+| crawlRules | [Crawl rules](https://github.com/elastic/crawler/blob/main/docs/features/CRAWL_RULES.md) of the Open Crawler, to include or exclude parts of the website. |
 | maxCrawlDepth | Maximum crawl depth. |
 | maxExtractedLinksCount | Maximum number of links extracted per page. |
 | maxUniqueUrlCount | Maximum number of unique URLs crawled. |
@@ -384,25 +384,31 @@ Without helm, a header without search type (`HAAL_CENTRAAL_CUSTOM_HEADERS__x-doe
 
 ### PABC (Platform Autorisatie Beheer Component)
 
-The integration with [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) is optional. Setting **both** `settings.pabc.baseUrl` and `settings.pabc.apiKey` acts as a feature flag: when both are present, the integration is activated. The application name (`kiss`) and application roles are hardcoded in KISS.
+The integration with [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) is optional. Setting **both** `settings.pabc.baseUrl` and `settings.pabc.apiKey` acts as a feature flag: when both are present, the integration is activated. The application name `kiss` is hardcoded in KISS.
 
-When PABC is active, the role settings in `settings.oidc` (`klantcontactmedewerkerRole`, `redacteurRole`, `beheerderRole`, `kennisbankRole`) are ignored. Set up PABC first, and only then deploy KISS with the PABC configuration. Otherwise no user gets a KISS application role.
+When PABC is active, the roles of a user come from PABC instead of the role claims of the Identity Provider. KISS only accepts PABC application roles whose names match the role names in `settings.oidc` (`klantcontactmedewerkerRole`, `redacteurRole`, `beheerderRole`, `kennisbankRole`). Leave those settings empty (KISS then uses the default names `Klantcontactmedewerker`, `Redacteur`, `Beheerder` and `Kennisbank`), or make sure the application roles in PABC have exactly the configured names.
+
+Set up PABC first, and only then deploy KISS with the PABC configuration. Otherwise no user gets a KISS application role.
 
 See the [PABC documentation](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/pabc.html) for setup instructions.
 
 ### When to configure the Logboek
 
-The logboek contains information about the handling of a contactverzoek in ITA (Interne Taak Afhandeling). KISS shows this information with the contactverzoeken of a klant. The `settings.logboek` settings are only needed if you use ITA. If you use it, fill in all four settings.
+The logboek contains information about the handling of a contactverzoek in ITA (Interne Taak Afhandeling). KISS shows this information with the contactverzoeken of a klant. Functionally, the logboek is only used together with ITA.
+
+Note that the chart's [json schema](./values.schema.json) currently requires `settings.logboek.baseUrl`, `objectTypeUrl`, `objectTypeVersion` and `token` to be filled in. KISS itself treats the logboek as optional: only when all four `LOGBOEK_*` environment variables have a value, the logboek is shown.
 
 ### Settings without a chart value
 
-KISS supports a few environment variables that this chart doesn't expose as a value. If you need them, set them with `extraEnvVars`.
+KISS supports a few environment variables that this chart doesn't expose as a value. If you need them, set them with `extraEnvVars`. See also [Token or client ID and secret](#token-or-client-id-and-secret).
 
 | Env | Description |
 |-----|-------------|
-| `AFDELINGEN_CLIENT_ID`, `AFDELINGEN_CLIENT_SECRET` | Client ID and secret for the Objects API for afdelingen, instead of `settings.afdelingen.token`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
-| `GROEPEN_CLIENT_ID`, `GROEPEN_CLIENT_SECRET` | Client ID and secret for the Objects API for groepen, instead of `settings.groepen.token`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
-| `REGISTERS__<n>__INTERNE_TAAK_TOKEN` | Token for the Objects API for Interne Taken, instead of `interneTaak.clientId` and `interneTaak.clientSecret`. See [Token or client ID and secret](#token-or-client-id-and-secret). |
+| `AFDELINGEN_CLIENT_ID`, `AFDELINGEN_CLIENT_SECRET` | Client ID and secret for the Objects API for afdelingen. The chart requires `settings.afdelingen.token` to be filled in; when the client ID and secret are also set, KISS uses those. |
+| `GROEPEN_CLIENT_ID`, `GROEPEN_CLIENT_SECRET` | Client ID and secret for the Objects API for groepen. The chart requires `settings.groepen.token` to be filled in; when the client ID and secret are also set, KISS uses those. |
+| `SDG_OBJECTEN_CLIENT_ID`, `SDG_OBJECTEN_CLIENT_SECRET` | Client ID and secret for the Objects API for Kennisartikelen (used by the sync job). When set, these are used instead of `settings.syncJobs.kennisbank.token`. |
+| `VAC_OBJECTEN_CLIENT_ID`, `VAC_OBJECTEN_CLIENT_SECRET` | Client ID and secret for the Objects API for VACs (used by the sync job only). When set, these are used instead of `settings.syncJobs.vac.token`. |
+| `REGISTERS__<n>__INTERNE_TAAK_TOKEN` | Token for the Objects API for Interne Taken, instead of `interneTaak.clientId` and `interneTaak.clientSecret`. Leave those two empty when you use the token. |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

@@ -624,7 +624,7 @@
         },
         "groepsmailboxVerplichting": {
           "default": false,
-          "description": "Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox. \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eWhen `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.\u003c/details\u003e Env: `USE_GROEPSMAILBOX_VERPLICHTING`",
+          "description": "Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox.\u003cbr/\u003eEnv: `USE_GROEPSMAILBOX_VERPLICHTING` \u003cdetails\u003e\u003csummary\u003eMore information\u003c/summary\u003eWhen `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.\u003c/details\u003e",
           "title": "groepsmailboxVerplichting",
           "type": "boolean"
         },
@@ -796,7 +796,7 @@
             },
             "beheerderRole": {
               "default": "",
-              "description": "Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_BEHEERDER_ROLE`",
+              "description": "Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eWhen [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.\u003cbr/\u003eEnv: `OIDC_BEHEERDER_ROLE`",
               "title": "beheerderRole",
               "type": "string"
             },
@@ -816,13 +816,13 @@
             },
             "kennisbankRole": {
               "default": "",
-              "description": "Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_KENNISBANK_ROLE`",
+              "description": "Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).\u003cbr/\u003eWhen [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.\u003cbr/\u003eEnv: `OIDC_KENNISBANK_ROLE`",
               "title": "kennisbankRole",
               "type": "string"
             },
             "klantcontactmedewerkerRole": {
               "default": "",
-              "description": "Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_KLANTCONTACTMEDEWERKER_ROLE`",
+              "description": "Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.\u003cbr/\u003eWhen [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.\u003cbr/\u003eEnv: `OIDC_KLANTCONTACTMEDEWERKER_ROLE`",
               "title": "klantcontactmedewerkerRole",
               "type": "string"
             },
@@ -854,7 +854,7 @@
             },
             "redacteurRole": {
               "default": "",
-              "description": "Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eIgnored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.\u003cbr/\u003eEnv: `OIDC_REDACTEUR_ROLE`",
+              "description": "Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).\u003cbr/\u003eWhen [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.\u003cbr/\u003eEnv: `OIDC_REDACTEUR_ROLE`",
               "title": "redacteurRole",
               "type": "string"
             }

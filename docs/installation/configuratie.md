@@ -1,4 +1,4 @@
-# Configuratie: Environment Variabelen
+# Configuratie
 
 De configuratie van KISS is beschreven in de {{ helm_readme_link }}. Die README is de enige plek waar alle instellingen staan, met per instelling:
 

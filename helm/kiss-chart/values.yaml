@@ -455,10 +455,10 @@ settings:
     # -- (string) Secret for the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_SECRET`
     # @section -- Authentication and authorization
     clientSecret: ""
-    # -- (string) Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_KENNISBANK_ROLE`
+    # -- (string) Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KENNISBANK_ROLE`
     # @section -- Authentication and authorization
     kennisbankRole: ""
-    # -- (string) Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE`
+    # -- (string) Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE`
     # @section -- Authentication and authorization
     klantcontactmedewerkerRole: ""
     # @schema
@@ -481,10 +481,10 @@ settings:
       # <details><summary>More information</summary>Within ZGW, a `medewerkerIdentificatie.identificatie` may not be longer than 24 characters. Use this setting to truncate the value after 24 characters.</details>
       # @section -- Authentication and authorization
       truncate:
-    # -- (string) Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_REDACTEUR_ROLE`
+    # -- (string) Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_REDACTEUR_ROLE`
     # @section -- Authentication and authorization
     redacteurRole: ""
-    # -- (string) Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>Ignored when [PABC](#pabc-platform-autorisatie-beheer-component) is configured.<br/>Env: `OIDC_BEHEERDER_ROLE`
+    # -- (string) Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_BEHEERDER_ROLE`
     # @section -- Authentication and authorization
     beheerderRole: ""
 
@@ -589,9 +589,8 @@ settings:
   # @section -- Registers
   registers: []
 
-  # -- (bool) Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox.
+  # -- (bool) Determines whether a medewerker must be linked to a contactverzoek when the selected afdeling or groep has no groepsmailbox.<br/>Env: `USE_GROEPSMAILBOX_VERPLICHTING`
   # <details><summary>More information</summary>When `true`, the medewerker field becomes required (with a visible reason) if no email address is known for the selected afdeling or groep. A contactverzoek can then not be created without a medewerker. When `false`, the medewerker field stays optional, regardless of the groepsmailbox.</details>
-  # Env: `USE_GROEPSMAILBOX_VERPLICHTING`
   # @section -- Feature switches
   groepsmailboxVerplichting: false
 
@@ -703,9 +702,8 @@ settings:
     #           required: [clientId, clientSecret]
     # @schema
     medewerkers:
-      # -- (bool) Determines whether a contactverzoek for a medewerker can only be made by email address.
+      # -- (bool) Determines whether a contactverzoek for a medewerker can only be made by email address.<br/>Env: `USE_MEDEWERKEREMAIL`
       # <details><summary>More information</summary>When `true`, the contactverzoek form shows a field to enter the email address of a medewerker under the selected afdeling or groep. Creating a contactverzoek directly for a medewerker is then not possible. The email field is not required. When `false`, a medewerker can be picked by name from a list (the Smoelenboek).</details>
-      # Env: `USE_MEDEWERKEREMAIL`
       # @section -- Feature switches
       useEmail: false
       # -- (string) Token for the Objects API for medewerkers (Smoelenboek). Leave `clientId` and `clientSecret` empty if you use a token, never use both. Don't use this if you're connecting with the podiumd-adapter.<br/>Env: `MEDEWERKER_OBJECTEN_TOKEN`
