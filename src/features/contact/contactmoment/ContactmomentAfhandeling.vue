@@ -323,6 +323,7 @@
             />
 
             <max-length-text-area
+              v-if="vraag.gespreksresultaat !== CONTACTVERZOEK_GEMAAKT"
               v-model="vraag.notitie"
               :maxlength="NOTITIE_MAXLENGTH"
               :id="'notitie' + idx"
@@ -405,7 +406,15 @@
           class="contactverzoek-container"
         >
           <utrecht-heading :level="3"> Contactverzoek</utrecht-heading>
-          <contactverzoek-formulier v-model="vraag.contactverzoek" />
+          <contactverzoek-formulier v-model="vraag.contactverzoek">
+            <template #notitie>
+              <max-length-text-area
+                v-model="vraag.notitie"
+                :maxlength="NOTITIE_MAXLENGTH"
+                :id="'notitie' + idx"
+              />
+            </template>
+          </contactverzoek-formulier>
         </section>
       </article>
       <menu>
@@ -1183,7 +1192,7 @@ const validateContactmomentState = (cm: ContactmomentState) => {
             `De interne informatie van vraag ${index + 1} bevat ${toelichtingLength} tekens, ` +
             `dit mag maximaal ${TOELICHTING_MAX_LENGTH} tekens zijn. ` +
             `Verwijder ${toelichtingLength - TOELICHTING_MAX_LENGTH} tekens ` +
-            `uit de Interne toelichting voor de medewerker, ` +
+            `uit de Interne toelichting, ` +
             `of uit de velden van een contactverzoekformulier.`
           );
         }
@@ -1299,6 +1308,13 @@ select {
 }
 
 .contactverzoek-container {
+  :deep(.veld) {
+    display: grid;
+    grid-template-columns: var(--label-width) auto;
+    gap: var(--label-gap);
+    align-items: start;
+  }
+
   :deep(.utrecht-form-label) {
     display: grid;
     grid-template-columns: var(--label-width) auto;

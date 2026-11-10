@@ -52,7 +52,18 @@
                     contactmomentStore.huidigContactmoment.huidigeVraag
                       .contactverzoek
                   "
-                />
+                >
+                  <template #notitie>
+                    <max-length-text-area
+                      v-model="
+                        contactmomentStore.huidigContactmoment.huidigeVraag
+                          .notitie
+                      "
+                      :maxlength="NOTITIE_MAXLENGTH"
+                      id="cm-sidebar-notitie"
+                    />
+                  </template>
+                </contactverzoek-formulier>
               </form>
             </tab-list-item>
           </tab-list>
@@ -68,6 +79,8 @@
 </template>
 
 <script lang="ts" setup>
+import MaxLengthTextArea from "@/features/contact/components/MaxLengthTextArea.vue";
+import { NOTITIE_MAXLENGTH } from "@/services/openklant/service";
 import ContactverzoekFormulier from "@/features/contact/contactverzoek/formulier/ContactverzoekFormulier.vue";
 import ContactmomentVragenMenu from "@/features/contact/contactmoment/ContactmomentVragenMenu.vue";
 import { useContactmomentStore } from "@/stores/contactmoment";
