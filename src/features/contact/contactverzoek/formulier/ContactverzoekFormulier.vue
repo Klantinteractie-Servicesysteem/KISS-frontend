@@ -158,17 +158,30 @@
       </select>
     </label>
 
-    <label class="utrecht-form-label notitieveld">
-      <span class="required">Interne toelichting voor medewerker</span>
-      <textarea
-        v-model="form.interneToelichting"
-        name="Interne toelichting"
-        required
-        class="utrecht-textarea utrecht-textarea--html-textarea"
-        rows="5"
-        @input="setActive"
-      ></textarea>
-    </label>
+    <div v-if="$slots.notitie" class="veld">
+      <slot name="notitie" />
+    </div>
+
+    <div class="veld">
+      <label :for="toelichtingId" class="utrecht-form-label notitieveld">
+        <span class="required">Interne toelichting</span>
+      </label>
+      <div class="veld-invoer">
+        <p :id="toelichtingHintId" class="utrecht-form-field-description">
+          Bedoeld voor collega's.
+        </p>
+        <textarea
+          :id="toelichtingId"
+          v-model="form.interneToelichting"
+          name="Interne toelichting"
+          required
+          class="utrecht-textarea utrecht-textarea--html-textarea interne-toelichting"
+          rows="4"
+          :aria-describedby="toelichtingHintId"
+          @input="setActive"
+        ></textarea>
+      </div>
+    </div>
 
     <form-fieldset>
       <div class="container">
@@ -331,7 +344,15 @@ import type {
   ContactVerzoekMedewerker,
 } from "@/stores/contactmoment";
 import { ActorType } from "@/stores/contactmoment";
-import { computed, ref, useModel, watch, type Directive, nextTick } from "vue";
+import {
+  computed,
+  ref,
+  useId,
+  useModel,
+  watch,
+  type Directive,
+  nextTick,
+} from "vue";
 import {
   FormFieldsetLegend,
   FormFieldset,
@@ -357,6 +378,9 @@ import { fetchLoggedIn, useLoader } from "@/services";
 
 const props = defineProps<{ modelValue: ContactmomentContactVerzoek }>();
 const model = useModel(props, "modelValue");
+
+const toelichtingId = useId();
+const toelichtingHintId = `${toelichtingId}-hint`;
 
 const useModelProperty = <K extends keyof ContactmomentContactVerzoek>(
   key: K,
@@ -439,9 +463,7 @@ const {
 } = useLoader(() =>
   fetchLoggedIn("/api/environment/use-groepsmailbox-verplichting")
     .then((r) => r.json())
-    .then(
-      ({ useGroepsmailboxVerplichting }) => useGroepsmailboxVerplichting,
-    ),
+    .then(({ useGroepsmailboxVerplichting }) => useGroepsmailboxVerplichting),
 );
 
 const geselecteerdeOrganisatorischeEenheid = computed(() => {
@@ -470,12 +492,12 @@ const isMedewerkerRequired = computed(
     !!medewerkerRequiredReason.value,
 );
 
-const { data: useMedewerkeremail, loading: loadingMedewerkeremail } =
-  useLoader(() =>
+const { data: useMedewerkeremail, loading: loadingMedewerkeremail } = useLoader(
+  () =>
     fetchLoggedIn("/api/environment/use-medewerkeremail")
       .then((r) => r.json())
       .then(({ useMedewerkeremail }) => useMedewerkeremail),
-  );
+);
 
 const loading = computed(
   () => loadingMedewerkeremail.value || loadingGroepsmailboxVerplichting.value,
@@ -647,8 +669,19 @@ const vValidityHandler: Directive<
   gap: var(--spacing-small);
 }
 
+.veld,
+.veld-invoer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-extrasmall);
+}
+
 textarea {
   resize: none;
+
+  &.interne-toelichting {
+    resize: vertical;
+  }
 }
 
 fieldset {

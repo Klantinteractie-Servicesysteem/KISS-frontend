@@ -34,7 +34,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentBronnen.Helpers
 
         public static ILocator GetInterneToelichtingTextbox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting voor" });
+            return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" });
         }
 
         public static ILocator GetSpecifiekeVraagTextbox(this IPage page)

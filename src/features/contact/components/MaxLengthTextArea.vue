@@ -1,29 +1,59 @@
 <template>
-  <label :for="id" class="utrecht-form-label">
-    Notitie
-    <span v-if="maxlength" class="utrecht-form-field-description">
+  <label :for="id" class="utrecht-form-label">{{ label }}</label>
+  <div>
+    <p v-if="hint" :id="hintId" class="utrecht-form-field-description">
+      {{ hint }}
+    </p>
+    <p
+      v-if="maxlength"
+      :id="maxlengthId"
+      class="utrecht-form-field-description"
+    >
       (maximaal {{ maxlength }} tekens)
-    </span>
-  </label>
-
-  <textarea
-    ref="textareaRef"
-    :id="id"
-    class="utrecht-textarea"
-    :maxlength="maxlength"
-    :required="required"
-    v-model="model"
-  />
+    </p>
+    <textarea
+      ref="textareaRef"
+      :id="id"
+      class="utrecht-textarea"
+      :rows="rows"
+      :aria-describedby="describedBy"
+      :maxlength="maxlength"
+      :required="required"
+      v-model="model"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 
-const props = defineProps<{
-  maxlength: number;
-  id: string;
-  required?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    maxlength: number;
+    id: string;
+    label?: string;
+    hint?: string;
+    rows?: number;
+    required?: boolean;
+  }>(),
+  {
+    label: "Informatie voor inwoner / bedrijf",
+    hint: "Deze tekst kan zichtbaar zijn voor de inwoner of het bedrijf, bijvoorbeeld in een Mijn-omgeving.",
+    rows: 7,
+  },
+);
+
+const hintId = computed(() => `${props.id}-hint`);
+const maxlengthId = computed(() => `${props.id}-maxlength`);
+const describedBy = computed(
+  () =>
+    [
+      props.hint ? hintId.value : undefined,
+      props.maxlength ? maxlengthId.value : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined,
+);
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 

@@ -20,7 +20,7 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm.Helpers
         }
         public static ILocator GetAfhandelingNotitieTextBox(this IPage page)
         {
-            return page.GetByRole(AriaRole.Textbox, new() { Name = "Notitie (maximaal 1000 tekens)" });
+            return page.GetByRole(AriaRole.Textbox, new() { Name = "Informatie voor inwoner / bedrijf" });
         }
 
         public static ILocator GetSpecificVraagField(this IPage page)

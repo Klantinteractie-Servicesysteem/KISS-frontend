@@ -25,7 +25,7 @@
       kanaal: 'Kanaal',
       medewerkerIdentificatie: 'Aangemaakt door',
       registratiedatum: 'Aangemaakt op',
-      tekst: 'Notitie',
+      tekst: 'Informatie voor inwoner / bedrijf',
       gespreksresultaat: 'Gespreksresultaat',
       verantwoordelijkeAfdeling: 'Afdeling',
       zaaknummers: 'Gekoppelde zaak',
