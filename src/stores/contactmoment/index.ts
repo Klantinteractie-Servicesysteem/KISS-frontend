@@ -406,6 +406,15 @@ export const useContactmomentStore = defineStore("contactmoment", {
           zaak.zaaksysteemId === contactmomentZaak.zaaksysteemId,
       }));
     },
+    selectKlant(
+      klantKoppeling: Vraag["klanten"][number] | undefined,
+      vraag: Vraag,
+    ) {
+      // maximaal 1 klant (persoon of bedrijf) per klantcontact; undefined = geen klant koppelen
+      vraag.klanten.forEach((x) => {
+        x.shouldStore = x === klantKoppeling;
+      });
+    },
     isZaakLinkedToContactmoment(id: string, vraag: Vraag) {
       return vraag.zaken.some(
         ({ zaak, shouldStore }) => shouldStore && zaak.url === id,
