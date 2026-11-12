@@ -552,7 +552,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await afdelingSelect.SelectOptionAsync(new SelectOptionValue { Index = 1 });
 
             await Step(" user fills in interne toelichting voor medewerker");
-            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting voor" }).FillAsync("test interne toelichting");
+            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" }).FillAsync("test interne toelichting");
 
             await Step("And enter '0617138555' in field telefoonnummer");
             await Page.GetTelefoonnummerTextbox().FillAsync("0617178888");
