@@ -79,11 +79,7 @@
                   type="radio"
                   :name="idx + 'klant'"
                   :checked="record.shouldStore"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectKlant(record, vraag)
-                  "
+                  @change="contactmomentStore.selectKlant(record, vraag)"
                 />
               </label>
             </li>
@@ -95,11 +91,7 @@
                   type="radio"
                   :name="idx + 'klant'"
                   :checked="!vraag.klanten.some((x) => x.shouldStore)"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectKlant(undefined, vraag)
-                  "
+                  @change="contactmomentStore.selectKlant(undefined, vraag)"
                 />
               </label>
             </li>
@@ -122,11 +114,7 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="record.shouldStore"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectZaak(record, vraag)
-                  "
+                  @change="contactmomentStore.selectZaak(record, vraag)"
                 />
               </label>
             </li>
@@ -138,11 +126,7 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="!vraag.zaken.some(({ shouldStore }) => shouldStore)"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectZaak(undefined, vraag)
-                  "
+                  @change="contactmomentStore.selectZaak(undefined, vraag)"
                 />
               </label>
             </li>
