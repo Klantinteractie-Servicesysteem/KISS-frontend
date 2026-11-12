@@ -14,7 +14,8 @@ concurrency:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    # Pinned to 24.04: Playwright 1.54.x does not yet support ubuntu-latest once it moves to 26.04.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
