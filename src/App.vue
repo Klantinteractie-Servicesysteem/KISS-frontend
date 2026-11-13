@@ -21,7 +21,10 @@
           </template>
         </router-view>
         <div v-if="buildInfo" class="versienummer">
-          Versie {{ buildInfo.version }} | Commit {{ buildInfo.commit }}
+          <template v-if="buildInfo.version !== '0.0.0'">
+            Versie {{ buildInfo.version }} |
+          </template>
+          Commit {{ buildInfo.commit }}
         </div>
       </main>
     </div>
