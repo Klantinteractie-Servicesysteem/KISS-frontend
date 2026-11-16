@@ -57,37 +57,36 @@ namespace Kiss.Bff.Test
             // serialze from json to kissconnectionsmodel
             var kissConnectionsModel = JsonConvert.DeserializeObject<KissConnectionsModel>(JsonConvert.SerializeObject(okResult.Value));
 
-            Assert.IsNotNull(kissConnectionsModel);
             var registries = kissConnectionsModel?.Registries;
 
             Assert.IsNotNull(registries);
             Assert.AreEqual(2, registries.Count);
 
-            Assert.AreEqual(registryConfig.Systemen[0].KlantinteractieRegistry!.BaseUrl.ToString(), registries[0].KlantinteractieRegistry!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].KlantinteractieRegistry!.BaseUrl.ToString(), registries[1].KlantinteractieRegistry!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].KlantinteractieRegistry.BaseUrl.ToString(), registries[0].KlantinteractieRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].KlantinteractieRegistry.BaseUrl.ToString(), registries[1].KlantinteractieRegistry.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[0].InterneTaakRegistry!.BaseUrl.ToString(), registries[0].InterneTaakRegistry!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].InterneTaakRegistry!.BaseUrl.ToString(), registries[1].InterneTaakRegistry!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].InterneTaakRegistry.BaseUrl.ToString(), registries[0].InterneTaakRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].InterneTaakRegistry.BaseUrl.ToString(), registries[1].InterneTaakRegistry.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[0].KlantRegistry!.BaseUrl.ToString(), registries[0].KlantRegistry!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].KlantRegistry!.BaseUrl.ToString(), registries[1].KlantRegistry!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].KlantRegistry.BaseUrl.ToString(), registries[0].KlantRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].KlantRegistry.BaseUrl.ToString(), registries[1].KlantRegistry.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[0].ContactmomentRegistry!.BaseUrl.ToString(), registries[0].ContactmomentRegistry!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].ContactmomentRegistry!.BaseUrl.ToString(), registries[1].ContactmomentRegistry!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ContactmomentRegistry.BaseUrl.ToString(), registries[0].ContactmomentRegistry.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ContactmomentRegistry.BaseUrl.ToString(), registries[1].ContactmomentRegistry.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry!.ZakenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry!.ZakenBaseURl!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry!.DocumentenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry!.DocumentenBaseUrl!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry!.CatalogiBaseUrl.ToString(), registries[0].ZaaksysteemRegistry!.CatalogiBaseUrl!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.ZakenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.ZakenBaseURl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.DocumentenBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.DocumentenBaseUrl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[0].ZaaksysteemRegistry.CatalogiBaseUrl.ToString(), registries[0].ZaaksysteemRegistry.CatalogiBaseUrl.ToString());
 
-            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry!.ZakenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry!.ZakenBaseURl!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry!.DocumentenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry!.DocumentenBaseUrl!.ToString());
-            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry!.CatalogiBaseUrl.ToString(), registries[1].ZaaksysteemRegistry!.CatalogiBaseUrl!.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.ZakenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.ZakenBaseURl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.DocumentenBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.DocumentenBaseUrl.ToString());
+            Assert.AreEqual(registryConfig.Systemen[1].ZaaksysteemRegistry.CatalogiBaseUrl.ToString(), registries[1].ZaaksysteemRegistry.CatalogiBaseUrl.ToString());
 
 
             Assert.AreEqual(true, (bool)registries[0].IsDefault);
             Assert.AreEqual(false, (bool)registries[1].IsDefault);
 
-            Assert.AreEqual(afdelingUrl, kissConnectionsModel!.AfdelingenBaseUrl);
+            Assert.AreEqual(afdelingUrl, kissConnectionsModel.AfdelingenBaseUrl);
             Assert.AreEqual(afdelingObjectTypeUrl, kissConnectionsModel.AfdelingObjectTypeUrl);
             Assert.AreEqual(groepenUrl, kissConnectionsModel.GroepenBaseUrl);
             Assert.AreEqual(groepenObjectTypeUrl, kissConnectionsModel.GroepenObjectTypeUrl);
