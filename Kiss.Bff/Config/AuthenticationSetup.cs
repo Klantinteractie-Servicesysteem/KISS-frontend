@@ -129,7 +129,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 if (!string.IsNullOrEmpty(requestedUrl))
                 {
-                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out Uri uri))
+                    if (Uri.TryCreate(requestedUrl, UriKind.Relative, out _))
                     {
                         if (requestedUrl.StartsWith("/") && !requestedUrl.StartsWith("//") && !requestedUrl.Contains(".."))
                         {

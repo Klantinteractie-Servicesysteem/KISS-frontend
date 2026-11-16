@@ -78,8 +78,8 @@
                 {
                     zaaksysteem = new ZaaksysteemRegistry
                     {
-                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
-                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
+                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY") ?? string.Empty,
+                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID") ?? string.Empty,
                         DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
                         DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
                         ZakenBaseUrl = $"{zaakysteemBaseUrl.TrimEnd('/')}/zaken/api/v1",
@@ -95,8 +95,8 @@
                 {
                     zaaksysteem = new ZaaksysteemRegistry
                     {
-                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY"),
-                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID"),
+                        ClientSecret = GetValue("ZAAKSYSTEEM_API_KEY") ?? string.Empty,
+                        ClientId = GetValue("ZAAKSYSTEEM_API_CLIENT_ID") ?? string.Empty,
                         DeeplinkUrl = GetValue("ZAAKSYSTEEM_DEEPLINK_URL"),
                         DeeplinkProperty = GetValue("ZAAKSYSTEEM_DEEPLINK_PROPERTY"),
                         ZakenBaseUrl = zakenBaseUrl,
@@ -132,6 +132,7 @@
                     var contactmomentenBaseUrl = GetValue("CONTACTMOMENTEN_BASE_URL") ?? throw new Exception($"Fout: REGISTERS__{index}__CONTACTMOMENTEN_BASE_URL ontbreekt voor OpenKlant1 configuratie");
                     var interneTaakBaseUrl = GetValue("INTERNE_TAAK_BASE_URL");
                     var interneTaakObjectTypeUrl = GetValue("INTERNE_TAAK_OBJECT_TYPE_URL");
+                    var klantenBaseUrl = GetValue("KLANTEN_BASE_URL");
 
                     yield return new RegistrySystem
                     {
@@ -155,12 +156,14 @@
                                 ObjectTypeUrl = interneTaakObjectTypeUrl,
                                 ObjectTypeVersion = GetValue("INTERNE_TAAK_TYPE_VERSION") ?? "1"
                             },
-                        KlantRegistry = new KlantRegistry
-                        {
-                            BaseUrl = GetValue("KLANTEN_BASE_URL"),
-                            ClientId = GetValue("KLANTEN_CLIENT_ID"),
-                            ClientSecret = GetValue("KLANTEN_CLIENT_SECRET"),
-                        },
+                        KlantRegistry = string.IsNullOrWhiteSpace(klantenBaseUrl)
+                            ? null
+                            : new KlantRegistry
+                            {
+                                BaseUrl = klantenBaseUrl,
+                                ClientId = GetValue("KLANTEN_CLIENT_ID"),
+                                ClientSecret = GetValue("KLANTEN_CLIENT_SECRET"),
+                            },
                         ZaaksysteemRegistry = zaaksysteem,
                     };
                 }
