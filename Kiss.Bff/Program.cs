@@ -41,9 +41,18 @@ try
     // Add services to the container.
     builder.Services.AddControllers();
 
+    const string AuthorityKey = "OIDC_AUTHORITY";
+
+    var authority = builder.Configuration.GetOrEmpty(AuthorityKey);
+
+    if (string.IsNullOrWhiteSpace(authority))
+    {
+        Log.Fatal("Environment variable {variableKey} is missing", AuthorityKey);
+    }
+
     builder.Services.AddKissAuth(options =>
     {
-        options.Authority = builder.Configuration.GetRequired("OIDC_AUTHORITY");
+        options.Authority = authority;
         options.ClientId = builder.Configuration.GetOrEmpty("OIDC_CLIENT_ID");
         options.ClientSecret = builder.Configuration.GetOrEmpty("OIDC_CLIENT_SECRET");
         options.KlantcontactmedewerkerRole = builder.Configuration["OIDC_KLANTCONTACTMEDEWERKER_ROLE"];
@@ -77,10 +86,10 @@ try
     if (int.TryParse(builder.Configuration["EMAIL_PORT"], out var emailPort))
     {
         builder.Services.AddSmtpClient(
-            builder.Configuration.GetRequired("EMAIL_HOST"),
+            builder.Configuration.GetOrEmpty("EMAIL_HOST"),
             emailPort,
-            builder.Configuration.GetRequired("EMAIL_USERNAME"),
-            builder.Configuration.GetRequired("EMAIL_PASSWORD"),
+            builder.Configuration.GetOrEmpty("EMAIL_USERNAME"),
+            builder.Configuration.GetOrEmpty("EMAIL_PASSWORD"),
             bool.TryParse(builder.Configuration["EMAIL_ENABLE_SSL"], out var enableSsl) && enableSsl
         );
     }
@@ -102,7 +111,7 @@ try
     builder.Services.AddHealthChecks();
 
     builder.Services.AddMemoryCache();
-    builder.Services.AddHttpClient<ElasticsearchService>(httpClient => { httpClient.BaseAddress = new Uri(builder.Configuration.GetRequired("ELASTIC_BASE_URL")); httpClient.SetBasicAuthentication(builder.Configuration.GetRequired("ELASTIC_USERNAME"), builder.Configuration.GetRequired("ELASTIC_PASSWORD")); }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
+    builder.Services.AddHttpClient<ElasticsearchService>(httpClient => { httpClient.BaseAddress = new Uri(builder.Configuration.GetRequired("ELASTIC_BASE_URL")); httpClient.SetBasicAuthentication(builder.Configuration.GetOrEmpty("ELASTIC_USERNAME"), builder.Configuration.GetOrEmpty("ELASTIC_PASSWORD")); }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
     builder.Services.AddAfdelingenProxy(builder.Configuration.GetOrEmpty("AFDELINGEN_BASE_URL"), builder.Configuration.GetOrEmpty("AFDELINGEN_TOKEN"), builder.Configuration.GetOrEmpty("AFDELINGEN_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("AFDELINGEN_CLIENT_ID"), builder.Configuration.GetOrEmpty("AFDELINGEN_CLIENT_SECRET"));
     builder.Services.AddGroepenProxy(builder.Configuration.GetOrEmpty("GROEPEN_BASE_URL"), builder.Configuration.GetOrEmpty("GROEPEN_TOKEN"), builder.Configuration.GetOrEmpty("GROEPEN_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("GROEPEN_CLIENT_ID"), builder.Configuration.GetOrEmpty("GROEPEN_CLIENT_SECRET"));
     builder.Services.AddVacsProxy(builder.Configuration.GetOrEmpty("VAC_OBJECTEN_BASE_URL"), builder.Configuration.GetOrEmpty("VAC_OBJECTEN_TOKEN"), builder.Configuration.GetOrEmpty("VAC_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("VAC_OBJECT_TYPE_VERSION"));
