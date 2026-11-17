@@ -76,22 +76,8 @@
                 }}</span>
                 <input
                   title="Deze klant opslaan bij het contactmoment"
-                  type="radio"
-                  :name="idx + 'klant'"
-                  :checked="record.shouldStore"
-                  @change="contactmomentStore.selectKlant(record, vraag)"
-                />
-              </label>
-            </li>
-            <li>
-              <label>
-                <span>Geen klant koppelen</span>
-                <input
-                  title="Geen klant opslaan bij het contactmoment"
-                  type="radio"
-                  :name="idx + 'klant'"
-                  :checked="!vraag.klanten.some((x) => x.shouldStore)"
-                  @change="contactmomentStore.selectKlant(undefined, vraag)"
+                  type="checkbox"
+                  v-model="record.shouldStore"
                 />
               </label>
             </li>
@@ -114,7 +100,11 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="record.shouldStore"
-                  @change="contactmomentStore.selectZaak(record, vraag)"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(record, vraag)
+                  "
                 />
               </label>
             </li>
@@ -126,7 +116,11 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="!vraag.zaken.some(({ shouldStore }) => shouldStore)"
-                  @change="contactmomentStore.selectZaak(undefined, vraag)"
+                  @change="
+                    (e) =>
+                      (e.target as HTMLInputElement).checked &&
+                      contactmomentStore.selectZaak(undefined, vraag)
+                  "
                 />
               </label>
             </li>
