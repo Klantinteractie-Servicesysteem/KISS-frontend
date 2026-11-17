@@ -36,6 +36,7 @@ namespace Kiss.Bff.Extern.Klantinteracties
 
             var email = User.GetEmail();
             var userRepresentation = User.Identity?.Name;
+            var safeSystemIdentifierForLog = systemIdentifier?.Replace("\r", "").Replace("\n", "");
 
             string actorUuid;
 
@@ -45,7 +46,7 @@ namespace Kiss.Bff.Extern.Klantinteracties
             }
             catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
             {
-                _logger.LogError(ex, "Failed to get or create actor for systemIdentifier '{SystemIdentifier}'", systemIdentifier);
+                _logger.LogError(ex, "Failed to get or create actor for systemIdentifier '{SystemIdentifier}'", safeSystemIdentifierForLog);
                 return BadRequest(new { errorMessage = "Failed to create actor." });
             }
 
