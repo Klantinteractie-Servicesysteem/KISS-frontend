@@ -35,8 +35,7 @@ namespace Kiss.Bff.Extern.Klantinteracties
             if (registry == null) return BadRequest($"Geen Contactmomentregister gevonden voor deze systemIdentifier: '{systemIdentifier ?? "null"}'");
 
             var email = User.GetEmail();
-            var userRepresentation = User.Identity?.Name;
-            var safeSystemIdentifierForLog = systemIdentifier?.Replace("\r", "").Replace("\n", "");
+            var safeSystemIdentifierForLog = systemIdentifier.Replace("\r", "").Replace("\n", "");
 
             string actorUuid;
 
