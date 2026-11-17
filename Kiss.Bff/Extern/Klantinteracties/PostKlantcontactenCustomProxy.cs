@@ -17,12 +17,14 @@ namespace Kiss.Bff.Extern.Klantinteracties
         private readonly GetMedewerkerIdentificatie _getMedewerkerIdentificatie;
         private readonly HttpClient _httpClient;
         private readonly RegistryConfig _registryConfig;
+        private readonly ILogger<PostKlantContactenCustomProxy> _logger;
 
-        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, RegistryConfig registryConfig)
+        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, RegistryConfig registryConfig, ILogger<PostKlantContactenCustomProxy> logger)
         {
             _getMedewerkerIdentificatie = getMedewerkerIdentificatie;
             _httpClient = httpClient;
             _registryConfig = registryConfig;
+            _logger = logger;
         }
 
         [HttpPost("postklantcontacten")]
@@ -43,6 +45,7 @@ namespace Kiss.Bff.Extern.Klantinteracties
             }
             catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
             {
+                _logger.LogError(ex, "Failed to get or create actor for systemIdentifier '{SystemIdentifier}'", systemIdentifier);
                 return BadRequest(new { errorMessage = "Failed to create actor." });
             }
 

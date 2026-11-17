@@ -32,7 +32,7 @@ namespace Kiss.Bff.Vacs
         {
             Destination = destination;
             ObjectTypeUrl = objectTypeUrl;
-            TypeVersion = typeVersion ?? "1";
+            TypeVersion = string.IsNullOrWhiteSpace(typeVersion) ? "1" : typeVersion;
             _authorizationService = authorizationService;
             _policyProvider = policyProvider;
             _token = token;
