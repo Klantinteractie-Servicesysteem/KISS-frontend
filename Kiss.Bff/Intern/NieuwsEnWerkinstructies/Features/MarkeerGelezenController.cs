@@ -23,6 +23,11 @@ namespace Kiss.Bff.NieuwsEnWerkinstructies.Features
         {
             var userId = User.GetId();
 
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
             var entity = await _context.Gelezen.Where(x => x.UserId == userId && x.BerichtId == id).FirstOrDefaultAsync(token);
 
             if (entity == null)
