@@ -5,7 +5,7 @@
         public static async Task NavigateToNieuwsWerkinstructiesBeheer(this IPage page)
         {
             var beheerlink = page.GetByRole(AriaRole.Link, new() { Name = "Beheer" });
-            var berichtenlink = page.GetByRole(AriaRole.Link, new() { Name = "Nieuws en werkinstructies" });
+            var berichtenlink = page.GetByRole(AriaRole.Link, new() { Name = "Nieuws en werkinstructies", Exact = true });
 
             await beheerlink.Or(berichtenlink).First.WaitForAsync();
 

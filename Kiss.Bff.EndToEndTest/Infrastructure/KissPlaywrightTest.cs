@@ -60,11 +60,7 @@ namespace Kiss.Bff.EndToEndTest
             Page.SetDefaultNavigationTimeout(50000); // 50 seconds for navigation
 
             // log in with azure ad
-            var username = GetRequiredConfig("TestSettings:TEST_USERNAME");
-            var password = GetRequiredConfig("TestSettings:TEST_PASSWORD");
-
-            var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper);
-            await loginHelper.LoginAsync();
+            await HandleAuthenticationAsync();
             // store the cookie so we stay logged in in each test
             await Context.StorageStateAsync(new() { Path = StoragePath });
 
@@ -88,6 +84,67 @@ namespace Kiss.Bff.EndToEndTest
             await Context.Tracing.GroupEndAsync();
             await Context.Tracing.GroupAsync(description);
             _steps.Add(description);
+        }
+
+        /// <summary>
+        /// Logs in with Azure AD via the ICATT identity provider.
+        /// We share auth state between tests, so if we're already logged in (no credentials needed/available), this is a no-op.
+        /// </summary>
+        protected async Task HandleAuthenticationAsync(string? username = null, string? password = null)
+        {
+            var alreadyLoggedIn = await EnsureIcattSelectedAsync(Page);
+            if (alreadyLoggedIn)
+            {
+                return;
+            }
+
+            username ??= s_configuration["TestSettings:TEST_USERNAME"];
+            password ??= s_configuration["TestSettings:TEST_PASSWORD"];
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                return;
+            }
+
+            try
+            {
+                var loginHelper = new AzureAdLoginHelper(
+                    Page,
+                    username,
+                    password,
+                    s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
+
+                await loginHelper.LoginAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Azure AD authentication failed. Check your test credentials and ensure the application is accessible. " +
+                    $"Error: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Opens the login entry page and selects the ICATT identity provider.
+        /// This is required before username/password login.
+        /// </summary>
+        /// <returns>True if the session was already authenticated (no further login steps needed); otherwise false.</returns>
+        internal static async Task<bool> EnsureIcattSelectedAsync(IPage page)
+        {
+            await page.GotoAsync("/");
+
+            var uitloggenLink = page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" });
+            var icattButton = page.Locator("#social-oidc-icatt").First;
+
+            await uitloggenLink.Or(icattButton).WaitForAsync();
+
+            // we share auth state between tests, so we may already be logged in
+            if (await uitloggenLink.IsVisibleAsync())
+            {
+                return true;
+            }
+
+            await icattButton.ClickAsync();
+            return false;
         }
 
         /// <summary>

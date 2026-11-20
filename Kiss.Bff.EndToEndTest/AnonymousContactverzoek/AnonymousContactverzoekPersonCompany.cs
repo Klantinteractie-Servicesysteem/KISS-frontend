@@ -200,7 +200,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
             await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer 1" })).ToHaveValueAsync("0536711764");
 
             await Step("And field E-mailadres has value prijsknaller.bv@syps.nl ");
-            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("syps+prijsknaller@icatt.nl");
+            await Expect(Page.GetByRole(AriaRole.Textbox, new() { Name = "E-mailadres" })).ToHaveValueAsync("prijsknaller.bv@syps.nl");
 
         }
 
@@ -287,7 +287,7 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             await matchingRow.First.GetByRole(AriaRole.Button).PressAsync("Enter");
 
-            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "syps+prijsknaller@icatt.nl" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Definition).Filter(new() { HasText = "prijsknaller.bv@syps.nl" })).ToBeVisibleAsync();
 
         }
 
