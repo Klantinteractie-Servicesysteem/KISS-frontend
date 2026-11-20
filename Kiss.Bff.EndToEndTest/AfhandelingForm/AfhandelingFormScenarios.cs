@@ -351,6 +351,11 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             var selectedIndex = options.Length > 0 && options[0] == "Contactverzoek gemaakt" ? 1 : 0;
             await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = selectedIndex });
 
+            // Give the app a moment to process the Kanaal/Afhandeling change events and
+            // update form/validation state before clicking Opslaan. Without this, the click
+            // can race ahead of the UI update and never actually submit the form.
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             await Step("And clicks on Opslaan button");
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
                 async () => await Page.GetOpslaanButton().ClickAsync(),
@@ -444,6 +449,11 @@ namespace Kiss.Bff.EndToEndTest.AfhandelingForm
             var options = await Page.GetAfhandelingField().EvaluateAsync<string[]>("el => Array.from(el.options).map(o => o.text)");
             var selectedIndex = options.Length > 0 && options[0] == "Contactverzoek gemaakt" ? 1 : 0;
             await Page.GetAfhandelingField().SelectOptionAsync(new SelectOptionValue { Index = selectedIndex });
+
+            // Give the app a moment to process the Kanaal/Afhandeling change events and
+            // update form/validation state before clicking Opslaan. Without this, the click
+            // can race ahead of the UI update and never actually submit the form.
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("And clicks on Opslaan button");
             var klantContactPostResponse = await Page.RunAndWaitForResponseAsync(
