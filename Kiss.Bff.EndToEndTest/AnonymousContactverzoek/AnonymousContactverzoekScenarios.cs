@@ -596,6 +596,46 @@ namespace Kiss.Bff.EndToEndTest.AnonymousContactmomentVerzoek
 
             Assert.IsTrue(await contactDetails.IsVisibleAsync(), "The contactverzoek details are not displayed.");
         }
+
+        [TestMethod("9. Informatie voor inwoner / bedrijf and Interne toelichting share the same text")]
+        public async Task AnonymousContactVerzoekInformatieVoorInwonerMatchesInterneToelichting()
+        {
+            await Step("Given the user is on the Startpagina");
+            await Page.GotoAsync("/");
+
+            await Step("When the user starts a new Contactmoment");
+            await Page.CreateNewContactmomentAsync();
+
+            await Step("And clicks on Contactverzoek-pane");
+            await Page.CreateNewcontactVerzoekAsync();
+
+            await Step("And Afdeling radiobutton is pre-selected");
+            var radio = Page.GetAfdelingRadioButton();
+            await radio.CheckAsync();
+            Assert.IsTrue(await radio.IsCheckedAsync());
+
+            await Step("And user selects 'publiekszaken' from dropdown list of field afdeling");
+            await Page.GetAfdelingCombobox().FillAsync("publiekszaken");
+            await Page.GetByText("publiekszaken", new() { Exact = false }).First.ClickAsync();
+
+            await Step("Then text as \"Deze tekst kan zichtbaar zijn voor de inwoner of het bedrijf, bijvoorbeeld in een Mijn-omgeving. (maximaal 1000 tekens)\" is displayed near label \"Informatie voor inwoner / bedrijf\"");
+            await Expect(Page.GetByText("Deze tekst kan zichtbaar zijn voor de inwoner of het bedrijf, bijvoorbeeld in een Mijn-omgeving.")).ToBeVisibleAsync();
+
+            await Step("And text as \"Bedoeld voor collega's.\" is displayed for label Interne toelichting");
+            await Expect(Page.GetByText("Bedoeld voor collega's.")).ToBeVisibleAsync();
+
+            await Step("And user enters 'gedeelde toelichting' in Informatie voor inwoner / bedrijf and Interne toelichting");
+            var gedeeldeToelichting = "gedeelde toelichting";
+            await Page.GetByLabel("Informatie voor inwoner / bedrijf").FillAsync(gedeeldeToelichting);
+            await Page.GetInterneToelichtingTextbox().FillAsync(gedeeldeToelichting);
+
+            await Step("And user click Afronden");
+            await Page.GetAfrondenButton().ClickAsync();
+
+            await Step("Then same text is displayed for \"Informatie voor inwoner / bedrijf\" and \"Interne toelichting\" labels");
+            await Expect(Page.GetByLabel("Informatie voor inwoner / bedrijf")).ToHaveValueAsync(gedeeldeToelichting);
+            await Expect(Page.GetInterneToelichtingTextbox()).ToHaveValueAsync(gedeeldeToelichting);
+        }
     }
 
 

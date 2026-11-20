@@ -448,7 +448,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And search and clicks on the VAC with more characters ");
 
-            await Page.SearchAndSelectItem("testing", "VAC This title is 210");
+            await Page.SearchAndSelectItem("This title is 210 characters long_", "VAC This title is 210");
 
             await Step("When user enters “PC-1478” in Notitieblok");
 
@@ -551,7 +551,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And search and clicks on the VAC with more characters ");
 
-            await Page.SearchAndSelectItem("testing", "VAC This title is 210");
+            await Page.SearchAndSelectItem("This title is 210 characters long_", "VAC This title is 210");
 
             await Step("Click the Afronden button");
 
@@ -650,7 +650,7 @@ namespace Kiss.Bff.EndToEndTest.VraagScenarios
 
             await Step("And search and clicks on the VAC with more characters ");
 
-            await Page.SearchAndSelectItem("testing", "VAC This title is 210");
+            await Page.SearchAndSelectItem("This title is 210 characters long_", "VAC This title is 210");
 
             await Step("Click the Afronden button");
 

@@ -50,7 +50,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
         {
             request = request with { Body = !string.IsNullOrWhiteSpace(request.Body) ? request.Body : request.Title };
             await page.NavigateToNieuwsWerkinstructiesBeheer();
-            var toevoegenLink = page.GetByRole(AriaRole.Link, new() { Name = "Toevoegen" });
+            var toevoegenLink = page.GetByRole(AriaRole.Link, new() { Name = "Toevoegen", Exact = true });
             await toevoegenLink.ClickAsync();
 
             await page.WaitForPageAndSpinnerAsync(); // Wait until the page loads completely
@@ -60,6 +60,8 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             await page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).FillAsync(request.Title);
 
             var richTextEditor = page.GetByRole(AriaRole.Textbox, new() { Name = "Rich Text Editor" });
+            await richTextEditor.ClickAsync();
+            await Microsoft.Playwright.Assertions.Expect(richTextEditor).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex("ck-read-only"), new() { Timeout = 30000 });
             await richTextEditor.FillAsync(request.Body);
 
             if (request.IsImportant)
