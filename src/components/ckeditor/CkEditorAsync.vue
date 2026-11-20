@@ -10,6 +10,7 @@
 <script setup lang="ts">
 import type { EditorConfig } from "./ckeditor-exports";
 import { computed } from "vue";
+import "ckeditor5/ckeditor5.css";
 
 const props = defineProps<{ modelValue?: string }>();
 const emit = defineEmits<{ (e: "update:modelValue", v?: string): void }>();
@@ -46,5 +47,3 @@ const config: EditorConfig = {
   licenseKey: "GPL",
 };
 </script>
-
-<style src="ckeditor5/ckeditor5.css"></style>
