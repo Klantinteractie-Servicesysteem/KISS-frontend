@@ -158,10 +158,6 @@
       </select>
     </label>
 
-    <div v-if="$slots.notitie" class="veld">
-      <slot name="notitie" />
-    </div>
-
     <div class="veld">
       <label :for="toelichtingId" class="utrecht-form-label notitieveld">
         <span class="required">Interne toelichting</span>

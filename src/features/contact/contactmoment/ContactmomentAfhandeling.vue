@@ -329,7 +329,6 @@
             />
 
             <max-length-text-area
-              v-if="vraag.gespreksresultaat !== CONTACTVERZOEK_GEMAAKT"
               v-model="vraag.notitie"
               :maxlength="NOTITIE_MAXLENGTH"
               :id="'notitie' + idx"
@@ -412,15 +411,7 @@
           class="contactverzoek-container"
         >
           <utrecht-heading :level="3"> Contactverzoek</utrecht-heading>
-          <contactverzoek-formulier v-model="vraag.contactverzoek">
-            <template #notitie>
-              <max-length-text-area
-                v-model="vraag.notitie"
-                :maxlength="NOTITIE_MAXLENGTH"
-                :id="'notitie' + idx"
-              />
-            </template>
-          </contactverzoek-formulier>
+          <contactverzoek-formulier v-model="vraag.contactverzoek" />
         </section>
       </article>
       <menu>
