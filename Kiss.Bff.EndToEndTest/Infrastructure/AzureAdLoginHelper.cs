@@ -77,7 +77,8 @@
                 .Or(_page.Locator("#idSubmit_SAOTCC_Continue"));
 
             var declineStaySignedInButton = _page.GetByRole(AriaRole.Button, new() { Name = "Nee" })
-                .Or(_page.GetByRole(AriaRole.Button, new() { Name = "No" }));
+                .Or(_page.GetByRole(AriaRole.Button, new() { Name = "No" }))
+                .Or(_page.Locator("#idBtn_Back"));
 
             var nieuwContactmomentSelector = _page.GetByRole(AriaRole.Button, new() { Name = "Nieuw contactmoment" });
 
@@ -105,14 +106,25 @@
             await totpBoxSelector.First.FillAsync(totpCode);
             await verifyButton.First.ClickAsync();
 
-            // we will now either go back to the home page, or get an option to stay signed in
-            await declineStaySignedInButton
-                .Or(nieuwContactmomentSelector)
-                .WaitForAsync();
-
-            if (await declineStaySignedInButton.IsVisibleAsync())
+            // we will now either go back to the home page, or get an option to stay signed in.
+            // The "stay signed in" prompt is optional (it depends on tenant/session state), so if neither
+            // shows up in time we continue and let the subsequent navigation decide whether login worked.
+            try
             {
-                await declineStaySignedInButton.ClickAsync();
+                await declineStaySignedInButton
+                    .Or(nieuwContactmomentSelector)
+                    .First
+                    .WaitForAsync(new() { Timeout = 15_000 });
+            }
+            catch (TimeoutException)
+            {
+                await CaptureDiagnosticsAsync("after-2fa-no-prompt");
+                return;
+            }
+
+            if (await declineStaySignedInButton.First.IsVisibleAsync())
+            {
+                await declineStaySignedInButton.First.ClickAsync();
             }
         }
 
