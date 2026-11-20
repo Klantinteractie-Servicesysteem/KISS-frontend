@@ -34,7 +34,7 @@
       kanaal: 'Kanaal',
       onderwerp: 'Onderwerp',
       registratiedatum: 'Aangemaakt op',
-      toelichtingBijContactmoment: 'Informatie voor klant',
+      toelichtingBijContactmoment: 'Informatie voor inwoner / bedrijf',
       toelichtingVoorCollega: 'Interne toelichting',
       zaaknummers: 'Gekoppelde zaak',
       status: 'Status',

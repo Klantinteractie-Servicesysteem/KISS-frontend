@@ -50,7 +50,7 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
         {
             request = request with { Body = !string.IsNullOrWhiteSpace(request.Body) ? request.Body : request.Title };
             await page.NavigateToNieuwsWerkinstructiesBeheer();
-            var toevoegenLink = page.GetByRole(AriaRole.Link, new() { Name = "Toevoegen" });
+            var toevoegenLink = page.GetByRole(AriaRole.Link, new() { Name = "Toevoegen", Exact = true });
             await toevoegenLink.ClickAsync();
 
             await page.WaitForPageAndSpinnerAsync(); // Wait until the page loads completely

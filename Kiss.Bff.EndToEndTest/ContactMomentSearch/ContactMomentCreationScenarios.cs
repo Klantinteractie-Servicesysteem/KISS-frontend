@@ -454,7 +454,14 @@ namespace Kiss.Bff.EndToEndTest.ContactMomentSearch
             await Page.PersonenThird_SearchButton().ClickAsync();
 
             await Step(" user click through first available Zaken in the Zaken tab");
-            await Page.GetByRole(AriaRole.Tab, new() { Name = "Zaken" }).ClickAsync();
+            // NOTE: The Zaken tab is currently not enabled/working correctly in this environment
+            // (clicking it times out because the tablist intercepts the click, and/or the Zaken
+            // data for this BSN isn't available). Once Zaken functionality is enabled again,
+            // this step should be re-verified/re-tested.
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var zakenTab = Page.GetByRole(AriaRole.Tab, new() { Name = "Zaken" });
+            await Expect(zakenTab).ToBeVisibleAsync();
+            await zakenTab.ClickAsync();
             await Page.GetByRole(AriaRole.Link, new() { Name = "Details ZAAK-2023-002" }).ClickAsync();
             await Expect(Page.GetByText("Algemeen").First).ToBeVisibleAsync();
 
