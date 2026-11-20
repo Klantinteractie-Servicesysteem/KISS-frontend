@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Duende.IdentityModel;
 using Ganss.Xss;
+using Kiss.Bff.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,11 +27,11 @@ namespace Kiss.Bff.Feedback
         [Authorize(Policy = Policies.KcmOrRedactieOrKennisbankPolicy)]
         public async Task<IActionResult> Post(FeedbackModel model, CancellationToken token)
         {
-            var from = _configuration["FEEDBACK_EMAIL_FROM"];
-            var to = _configuration["FEEDBACK_EMAIL_TO"];
+            var from = _configuration.GetRequired("FEEDBACK_EMAIL_FROM");
+            var to = _configuration.GetRequired("FEEDBACK_EMAIL_TO");
 
             var userEmail = User.FindFirstValue(JwtClaimTypes.Email) ?? User.FindFirstValue(JwtClaimTypes.PreferredUserName);
-            var userName = User?.Identity?.Name ?? userEmail;
+            var userName = User.Identity?.Name ?? userEmail;
             var name = s_sanitizer.Sanitize(model.Name);
             var subject = $"KISS feedback: {name}";
 
@@ -44,7 +45,7 @@ namespace Kiss.Bff.Feedback
             return Ok();
         }
 
-        public static string BuildEmailBody(string userName, FeedbackModel model)
+        public static string BuildEmailBody(string? userName, FeedbackModel model)
         {
             var stringBuilder = new StringBuilder(@"
                 <!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.0 Transitional//EN"" ""https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">
@@ -63,7 +64,7 @@ namespace Kiss.Bff.Feedback
                 ");
 
             stringBuilder
-                .Append(s_sanitizer.Sanitize(userName))
+                .Append(s_sanitizer.Sanitize(userName ?? string.Empty))
                 .Append(" heeft feedback gegeven op: ");
 
             if (string.IsNullOrWhiteSpace(model.Topic))

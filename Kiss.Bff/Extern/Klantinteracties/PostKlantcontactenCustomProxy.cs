@@ -17,12 +17,14 @@ namespace Kiss.Bff.Extern.Klantinteracties
         private readonly GetMedewerkerIdentificatie _getMedewerkerIdentificatie;
         private readonly HttpClient _httpClient;
         private readonly RegistryConfig _registryConfig;
+        private readonly ILogger<PostKlantContactenCustomProxy> _logger;
 
-        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, RegistryConfig registryConfig)
+        public PostKlantContactenCustomProxy(GetMedewerkerIdentificatie getMedewerkerIdentificatie, HttpClient httpClient, RegistryConfig registryConfig, ILogger<PostKlantContactenCustomProxy> logger)
         {
             _getMedewerkerIdentificatie = getMedewerkerIdentificatie;
             _httpClient = httpClient;
             _registryConfig = registryConfig;
+            _logger = logger;
         }
 
         [HttpPost("postklantcontacten")]
@@ -32,24 +34,31 @@ namespace Kiss.Bff.Extern.Klantinteracties
 
             if (registry == null) return BadRequest($"Geen Contactmomentregister gevonden voor deze systemIdentifier: '{systemIdentifier ?? "null"}'");
 
-            var email = User?.GetEmail();
-            var userRepresentation = User?.Identity?.Name;
+            var email = User.GetEmail();
+            var safeSystemIdentifierForLog = systemIdentifier.Replace("\r", "").Replace("\n", "");
 
-            var actorUuid = await GetActorId(registry, email);
+            string actorUuid;
 
-            if (actorUuid == null)
+            try
             {
-                actorUuid = await PostActoren(registry);
-
-                if (actorUuid == null)
-                {
-                    return BadRequest(new { errorMessage = "Failed to create actor." });
-                }
+                actorUuid = await GetActorId(registry, email) ?? await PostActoren(registry);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
+            {
+                _logger.LogError(ex, "Failed to get or create actor for systemIdentifier '{SystemIdentifier}'", safeSystemIdentifierForLog);
+                return BadRequest(new { errorMessage = "Failed to create actor." });
             }
 
             var klantcontact = await PostKlantContact(registry, parsedModel);
 
-            var linkSuccessful = await LinkActorWithKlantContact(registry, actorUuid, klantcontact["uuid"].ToString());
+            var klantcontactUuid = klantcontact?["uuid"]?.ToString();
+
+            if (klantcontact == null || klantcontactUuid == null)
+            {
+                return BadRequest(new { errorMessage = "Failed to create klantcontact." });
+            }
+
+            var linkSuccessful = await LinkActorWithKlantContact(registry, actorUuid, klantcontactUuid);
 
             if (!linkSuccessful)
             {
@@ -82,9 +91,9 @@ namespace Kiss.Bff.Extern.Klantinteracties
         [NonAction]
         public async Task<string> PostActoren(KlantinteractieRegistry registry)
         {
-            var email = User?.GetEmail();
-            var firstName = User?.GetFirstName();
-            var lastName = User?.GetLastName();
+            var email = User.GetEmail();
+            var firstName = User.GetFirstName();
+            var lastName = User.GetLastName();
             var fullName = $"{firstName} {lastName}".Trim();
 
             var parsedModel = new JsonObject
@@ -120,11 +129,12 @@ namespace Kiss.Bff.Extern.Klantinteracties
 
             var actorUuid = jsonResponse?["uuid"]?.ToString();
 
-            return actorUuid ?? throw new Exception("Failed to retrieve actor UUID.");
+            return actorUuid ?? throw new InvalidOperationException(
+                $"Klantinteracties register returned {(int)response.StatusCode} from POST {url} but the response contains no 'uuid' for the created actor.");
         }
 
         [NonAction]
-        public async Task<string?> GetActorId(KlantinteractieRegistry registry, string email)
+        public async Task<string?> GetActorId(KlantinteractieRegistry registry, string? email)
         {
             var url = $"{registry.BaseUrl.TrimEnd('/')}/api/v1/actoren?actoridentificatorObjectId={email}";
 

@@ -72,7 +72,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -106,7 +107,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -163,7 +165,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -210,7 +213,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -244,7 +248,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {
@@ -277,7 +282,8 @@ namespace Kiss.Bff.Test
             _controller = new PostKlantContactenCustomProxy(
                 _getMedewerkerIdentificatieMock.Object,
                 httpClient,
-                null!
+                null!,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PostKlantContactenCustomProxy>.Instance
             );
             _controller.ControllerContext = new ControllerContext
             {

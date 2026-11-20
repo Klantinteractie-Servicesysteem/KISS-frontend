@@ -76,8 +76,22 @@
                 }}</span>
                 <input
                   title="Deze klant opslaan bij het contactmoment"
-                  type="checkbox"
-                  v-model="record.shouldStore"
+                  type="radio"
+                  :name="idx + 'klant'"
+                  :checked="record.shouldStore"
+                  @change="contactmomentStore.selectKlant(record, vraag)"
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                <span>Geen klant koppelen</span>
+                <input
+                  title="Geen klant opslaan bij het contactmoment"
+                  type="radio"
+                  :name="idx + 'klant'"
+                  :checked="!vraag.klanten.some((x) => x.shouldStore)"
+                  @change="contactmomentStore.selectKlant(undefined, vraag)"
                 />
               </label>
             </li>
@@ -100,11 +114,7 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="record.shouldStore"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectZaak(record, vraag)
-                  "
+                  @change="contactmomentStore.selectZaak(record, vraag)"
                 />
               </label>
             </li>
@@ -116,11 +126,7 @@
                   type="radio"
                   :name="idx + 'zaak'"
                   :checked="!vraag.zaken.some(({ shouldStore }) => shouldStore)"
-                  @change="
-                    (e) =>
-                      (e.target as HTMLInputElement).checked &&
-                      contactmomentStore.selectZaak(undefined, vraag)
-                  "
+                  @change="contactmomentStore.selectZaak(undefined, vraag)"
                 />
               </label>
             </li>
@@ -1183,7 +1189,7 @@ const validateContactmomentState = (cm: ContactmomentState) => {
             `De interne informatie van vraag ${index + 1} bevat ${toelichtingLength} tekens, ` +
             `dit mag maximaal ${TOELICHTING_MAX_LENGTH} tekens zijn. ` +
             `Verwijder ${toelichtingLength - TOELICHTING_MAX_LENGTH} tekens ` +
-            `uit de Interne toelichting voor de medewerker, ` +
+            `uit de Interne toelichting, ` +
             `of uit de velden van een contactverzoekformulier.`
           );
         }
@@ -1299,6 +1305,13 @@ select {
 }
 
 .contactverzoek-container {
+  :deep(.veld) {
+    display: grid;
+    grid-template-columns: var(--label-width) auto;
+    gap: var(--label-gap);
+    align-items: start;
+  }
+
   :deep(.utrecht-form-label) {
     display: grid;
     grid-template-columns: var(--label-width) auto;

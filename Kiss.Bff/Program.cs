@@ -43,7 +43,7 @@ try
 
     const string AuthorityKey = "OIDC_AUTHORITY";
 
-    var authority = builder.Configuration[AuthorityKey];
+    var authority = builder.Configuration.GetOrEmpty(AuthorityKey);
 
     if (string.IsNullOrWhiteSpace(authority))
     {
@@ -53,8 +53,8 @@ try
     builder.Services.AddKissAuth(options =>
     {
         options.Authority = authority;
-        options.ClientId = builder.Configuration["OIDC_CLIENT_ID"];
-        options.ClientSecret = builder.Configuration["OIDC_CLIENT_SECRET"];
+        options.ClientId = builder.Configuration.GetOrEmpty("OIDC_CLIENT_ID");
+        options.ClientSecret = builder.Configuration.GetOrEmpty("OIDC_CLIENT_SECRET");
         options.KlantcontactmedewerkerRole = builder.Configuration["OIDC_KLANTCONTACTMEDEWERKER_ROLE"];
         options.RedacteurRole = builder.Configuration["OIDC_REDACTEUR_ROLE"];
         options.BeheerderRole = builder.Configuration["OIDC_BEHEERDER_ROLE"];
@@ -73,9 +73,9 @@ try
     //});
 
     builder.Services.AddKissProxy();
-    builder.Services.AddKvk(builder.Configuration["KVK_BASE_URL"], builder.Configuration["KVK_API_KEY"], builder.Configuration["KVK_USER_HEADER_NAME"], builder.Configuration.GetSection("KVK_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>());
+    builder.Services.AddKvk(builder.Configuration.GetOrEmpty("KVK_BASE_URL"), builder.Configuration["KVK_API_KEY"], builder.Configuration["KVK_USER_HEADER_NAME"], builder.Configuration.GetSection("KVK_CUSTOM_HEADERS")?.Get<Dictionary<string, string>>());
     builder.Services.AddHaalCentraal(builder.Configuration);
-    builder.Services.AddZgwTokenProvider(builder.Configuration["ZAKEN_API_KEY"], builder.Configuration["ZAKEN_API_CLIENT_ID"]);
+    builder.Services.AddZgwTokenProvider(builder.Configuration.GetOrEmpty("ZAKEN_API_KEY"), builder.Configuration.GetOrEmpty("ZAKEN_API_CLIENT_ID"));
 
     builder.Services.AddHttpClient();
 
@@ -86,10 +86,10 @@ try
     if (int.TryParse(builder.Configuration["EMAIL_PORT"], out var emailPort))
     {
         builder.Services.AddSmtpClient(
-            builder.Configuration["EMAIL_HOST"],
+            builder.Configuration.GetOrEmpty("EMAIL_HOST"),
             emailPort,
-            builder.Configuration["EMAIL_USERNAME"],
-            builder.Configuration["EMAIL_PASSWORD"],
+            builder.Configuration.GetOrEmpty("EMAIL_USERNAME"),
+            builder.Configuration.GetOrEmpty("EMAIL_PASSWORD"),
             bool.TryParse(builder.Configuration["EMAIL_ENABLE_SSL"], out var enableSsl) && enableSsl
         );
     }
@@ -111,11 +111,11 @@ try
     builder.Services.AddHealthChecks();
 
     builder.Services.AddMemoryCache();
-    builder.Services.AddHttpClient<ElasticsearchService>(httpClient => { httpClient.BaseAddress = new Uri(builder.Configuration["ELASTIC_BASE_URL"]); httpClient.SetBasicAuthentication(builder.Configuration["ELASTIC_USERNAME"], builder.Configuration["ELASTIC_PASSWORD"]); }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
-    builder.Services.AddAfdelingenProxy(builder.Configuration["AFDELINGEN_BASE_URL"], builder.Configuration["AFDELINGEN_TOKEN"], builder.Configuration["AFDELINGEN_OBJECT_TYPE_URL"], builder.Configuration["AFDELINGEN_CLIENT_ID"], builder.Configuration["AFDELINGEN_CLIENT_SECRET"]);
-    builder.Services.AddGroepenProxy(builder.Configuration["GROEPEN_BASE_URL"], builder.Configuration["GROEPEN_TOKEN"], builder.Configuration["GROEPEN_OBJECT_TYPE_URL"], builder.Configuration["GROEPEN_CLIENT_ID"], builder.Configuration["GROEPEN_CLIENT_SECRET"]);
-    builder.Services.AddVacsProxy(builder.Configuration["VAC_OBJECTEN_BASE_URL"], builder.Configuration["VAC_OBJECTEN_TOKEN"], builder.Configuration["VAC_OBJECT_TYPE_URL"], builder.Configuration["VAC_OBJECT_TYPE_VERSION"]);
-    builder.Services.AddLogboekProxy(builder.Configuration["LOGBOEK_BASE_URL"], builder.Configuration["LOGBOEK_TOKEN"], builder.Configuration["LOGBOEK_OBJECT_TYPE_URL"], builder.Configuration["LOGBOEK_OBJECT_TYPE_VERSION"]);
+    builder.Services.AddHttpClient<ElasticsearchService>(httpClient => { httpClient.BaseAddress = new Uri(builder.Configuration.GetRequired("ELASTIC_BASE_URL")); httpClient.SetBasicAuthentication(builder.Configuration.GetOrEmpty("ELASTIC_USERNAME"), builder.Configuration.GetOrEmpty("ELASTIC_PASSWORD")); }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
+    builder.Services.AddAfdelingenProxy(builder.Configuration.GetOrEmpty("AFDELINGEN_BASE_URL"), builder.Configuration.GetOrEmpty("AFDELINGEN_TOKEN"), builder.Configuration.GetOrEmpty("AFDELINGEN_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("AFDELINGEN_CLIENT_ID"), builder.Configuration.GetOrEmpty("AFDELINGEN_CLIENT_SECRET"));
+    builder.Services.AddGroepenProxy(builder.Configuration.GetOrEmpty("GROEPEN_BASE_URL"), builder.Configuration.GetOrEmpty("GROEPEN_TOKEN"), builder.Configuration.GetOrEmpty("GROEPEN_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("GROEPEN_CLIENT_ID"), builder.Configuration.GetOrEmpty("GROEPEN_CLIENT_SECRET"));
+    builder.Services.AddVacsProxy(builder.Configuration.GetOrEmpty("VAC_OBJECTEN_BASE_URL"), builder.Configuration.GetOrEmpty("VAC_OBJECTEN_TOKEN"), builder.Configuration.GetOrEmpty("VAC_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("VAC_OBJECT_TYPE_VERSION"));
+    builder.Services.AddLogboekProxy(builder.Configuration.GetOrEmpty("LOGBOEK_BASE_URL"), builder.Configuration.GetOrEmpty("LOGBOEK_TOKEN"), builder.Configuration.GetOrEmpty("LOGBOEK_OBJECT_TYPE_URL"), builder.Configuration.GetOrEmpty("LOGBOEK_OBJECT_TYPE_VERSION"));
 
     builder.Services.AddPabcClient(builder.Configuration);
 

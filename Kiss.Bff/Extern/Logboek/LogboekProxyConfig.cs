@@ -19,7 +19,7 @@ namespace Kiss.Bff.Extern.Logboek
         {
             Destination = destination;
             ObjectTypeUrl = objectTypeUrl;
-            TypeVersion = typeVersion ?? "1";
+            TypeVersion = string.IsNullOrWhiteSpace(typeVersion) ? "1" : typeVersion;
             _token = token;
         }
 
