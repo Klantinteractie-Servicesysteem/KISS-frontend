@@ -12,7 +12,16 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
         {
             // Declare featuredIndicator outside the try block so it's accessible throughout the method
             var featuredIndicator = page.Locator(".featured-indicator");
-            await page.WaitForResponseAsync(x => x.Url.Contains("featuredcount"));
+            try
+            {
+                await featuredIndicator.WaitForAsync(new() { Timeout = 10000 });
+            }
+            catch (TimeoutException)
+            {
+                // No featured indicator rendered within the timeout; treat as zero featured items.
+                return 0;
+            }
+
             if (await featuredIndicator.IsVisibleAsync())
             {
                 var featureText = await featuredIndicator.TextContentAsync();

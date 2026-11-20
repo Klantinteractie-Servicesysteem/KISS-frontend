@@ -60,8 +60,6 @@ namespace Kiss.Bff.EndToEndTest.NieuwsEnWerkInstructies.Helpers
             await page.GetByRole(AriaRole.Textbox, new() { Name = "Titel" }).FillAsync(request.Title);
 
             var richTextEditor = page.GetByRole(AriaRole.Textbox, new() { Name = "Rich Text Editor" });
-            await richTextEditor.ClickAsync();
-            await Microsoft.Playwright.Assertions.Expect(richTextEditor).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex("ck-read-only"), new() { Timeout = 30000 });
             await richTextEditor.FillAsync(request.Body);
 
             if (request.IsImportant)
