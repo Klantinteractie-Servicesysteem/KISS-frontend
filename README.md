@@ -10,7 +10,7 @@
 
 Make a copy of `.env.local.example`, rename it to: `.env.local` and fill in the required secrets.
 
-NOTE: The example file does not contain all environment variables. A complete overview of all possible variables can be found at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html
+NOTE: The example file does not contain all environment variables. A complete overview of all possible variables, with their environment variable names, can be found in the [README of the helm chart](helm/kiss-chart/README.md).
 
 Now, you can either run the application from Visual Studio or with docker-compose.
 
@@ -86,7 +86,7 @@ The `Kiss.Elastic.Sync` tool syncs structured data sources (VACs, Medewerkers, S
 
 ### Prerequisites
 
-- Make sure `.env.local` in the root of this repo contains the required Elastic Sync variables. See the full list at: https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html#kiss-elastic-sync
+- Make sure `.env.local` in the root of this repo contains the required Elastic Sync variables. See the [README of the helm chart](helm/kiss-chart/README.md), sections Elasticsearch and Sync jobs.
 - Set up a port forward for Elasticsearch (see the [Elastic search section](#elastic-search) above).
 
 ### Running the sync

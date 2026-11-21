@@ -52,7 +52,7 @@ Van de Actor die we opslaan bij een interne taak hebben we geen gegevens uit Ent
 
 **_Actoridentificator medewerker bij handmatig opgevoerd e-mailadres_**
 
-Op verzoek van de gemeente Utrecht is het mogelijk gemaakt om Contactverzoeken aan te maken voor medewerkers, zonder dat er een Smoelenboek is gekoppeld. Hiervoor is een feature-switch aanwezig (zie ook [Installatiehandleiding, onderdeel configuratie, bij Feature switches](../installation/configuratie.md#kiss-frontend-feature-switches))
+Op verzoek van de gemeente Utrecht is het mogelijk gemaakt om Contactverzoeken aan te maken voor medewerkers, zonder dat er een Smoelenboek is gekoppeld. Hiervoor is een feature-switch aanwezig (`USE_MEDEWERKEREMAIL`, zie ook de {{ helm_readme_link }}, bij Feature switches)
 
 
 
