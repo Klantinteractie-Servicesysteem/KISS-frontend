@@ -2,17 +2,7 @@
 
 ![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
-A helm chart for Klantinteractie Service Systeem.
-
-This README is the single source of documentation for the configuration of KISS. It is generated with [helm-docs](https://github.com/norwoodj/helm-docs) from the comments in [values.yaml](./values.yaml) and the template [README.md.gotmpl](./README.md.gotmpl). To change this documentation, edit those files, not this README.
-
-- Every KISS setting lists the **environment variable** it is passed to KISS as (`Env: …`). Use these names if you install KISS without this helm chart, or run it locally.
-- Functional background, such as which sources KISS queries and what the roles can do, is described in the [KISS documentation](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/configuratie.html).
-
-## General rules
-
-- Some API keys and secrets that KISS uses to query external registers must be **at least 32 characters** long. This is mentioned with the setting.
-- Lists become environment variables with an index: the first item gets `__0__` as infix, the second `__1__`, and so on. For example `settings.registers[0].klantinteractie.baseUrl` becomes `REGISTERS__0__KLANTINTERACTIE_BASE_URL`.
+A helm chart for Klantinteractie Service Systeem. The README of this chart is generated from the comments in values.yaml, so edit those instead of the README. Every KISS setting lists the environment variable it sets (Env), for installations without this chart.
 
 ## Values
 
@@ -33,7 +23,7 @@ This README is the single source of documentation for the configuration of KISS.
 |-----|------|---------|-------------|
 | settings.aspnetcore.environment | string | `"Production"` | ASP.NET Core environment name.<br/>Env: `ASPNETCORE_ENVIRONMENT` |
 | settings.aspnetcore.forwardedHeadersEnabled | bool | `true` | Process `X-Forwarded-*` headers set by the ingress / reverse proxy. Keep this `true` when KISS runs behind an ingress.<br/>Env: `ASPNETCORE_FORWARDEDHEADERS_ENABLED` |
-| settings.aspnetcore.httpPorts | string | `""` | Port(s) the KISS container listens on. Leave empty to use the default of the image.<br/>Env: `ASPNETCORE_HTTP_PORTS` |
+| settings.aspnetcore.httpPorts | string | `""` | Port(s) the KISS container listens on. Leave this empty: the chart uses container port `8080` (also for the probes and the service), which is the default of the image. If you do set it, it must include `8080`, otherwise the probes fail.<br/>Env: `ASPNETCORE_HTTP_PORTS` |
 
 ### Database
 
@@ -82,18 +72,18 @@ This README is the single source of documentation for the configuration of KISS.
 |-----|------|---------|-------------|
 | settings.haalCentraal.apiKey | string | `""` | Key for the Haal Centraal API.<br/>Env: `HAAL_CENTRAAL_API_KEY` |
 | settings.haalCentraal.baseUrl | string | `""` | URL of the Haal Centraal BRP Personen API.<br/>Example: `https://proefomgeving.haalcentraal.nl/haalcentraal/api`<br/>Env: `HAAL_CENTRAAL_BASE_URL` |
-| settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy. A value can be a string (sent with every search) or an object with a value per search type. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).<br/>Env: `HAAL_CENTRAAL_CUSTOM_HEADERS__<headername>` and `HAAL_CENTRAAL_CUSTOM_HEADERS__<headername>__<zoektype>` |
-| settings.haalCentraal.userHeaderName | string | `""` | Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy. The value of the claim configured in `settings.oidc.medewerkerIdentificatie.claim` is sent. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).<br/>Env: `HAAL_CENTRAAL_USER_HEADER_NAME` |
+| settings.haalCentraal.customHeaders | object | `{}` | Custom headers to send to the Haal Centraal API, for instance when using a proxy such as iConnect. A value can be a string (sent with every search) or an object with a value per search type: `RaadpleegMetBurgerservicenummer`, `ZoekMetGeslachtsnaamEnGeboortedatum` or `ZoekMetPostcodeEnHuisnummer`.<br/>Env: `HAAL_CENTRAAL_CUSTOM_HEADERS__<headername>` and `HAAL_CENTRAAL_CUSTOM_HEADERS__<headername>__<zoektype>` <details><summary>Using KISS with a proxy for BRP / KvK (for example iConnect)</summary>Proxies for the BRP and KvK often require certain headers. To pass the identification of the logged in user in a header, use `userHeaderName` (here and in `settings.kvk`); the value sent is the claim configured in `settings.oidc.medewerkerIdentificatie.claim`. To pass static information, use `customHeaders` (here and in `settings.kvk`). For the BRP, a header can have a different value per search type. Example for iConnect: <pre>settings:<br/>  haalCentraal:<br/>    userHeaderName: x-gebruiker<br/>    customHeaders:<br/>      x-verwerking: Burgerzaken<br/>      x-doelbinding:<br/>        RaadpleegMetBurgerservicenummer: BRPACT-Totaal<br/>        ZoekMetGeslachtsnaamEnGeboortedatum: BRPACT-ZoekenAlgemeen<br/>        ZoekMetPostcodeEnHuisnummer: BRPACT-ZoekenAlgemeen<br/>  kvk:<br/>    customHeaders:<br/>      x-origin-oin: "00000000000000000000"</pre> The same example as environment variables: <pre>HAAL_CENTRAAL_USER_HEADER_NAME=x-gebruiker<br/>HAAL_CENTRAAL_CUSTOM_HEADERS__x-verwerking=Burgerzaken<br/>HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__RaadpleegMetBurgerservicenummer=BRPACT-Totaal<br/>HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetGeslachtsnaamEnGeboortedatum=BRPACT-ZoekenAlgemeen<br/>HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetPostcodeEnHuisnummer=BRPACT-ZoekenAlgemeen<br/>KVK_CUSTOM_HEADERS__x-origin-oin=00000000000000000000</pre> Without helm, a header without search type (e.g. `HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding=BRPACT-ZoekenAlgemeen`) can be combined with a value for one specific search type; the specific value takes precedence for that search type.</details> |
+| settings.haalCentraal.userHeaderName | string | `""` | Header name to include the user id to send to the Haal Centraal API, for instance when using a proxy. The value of the claim configured in `settings.oidc.medewerkerIdentificatie.claim` is sent. See `settings.haalCentraal.customHeaders` for an example.<br/>Env: `HAAL_CENTRAAL_USER_HEADER_NAME` |
 | settings.kvk.apiKey | string | `""` | Key for the KvK API.<br/>Env: `KVK_API_KEY` |
 | settings.kvk.baseUrl | string | `""` | URL of the KvK API to query the Handelsregister. This is the path before the version number.<br/>Example: `https://api.kvk.nl/test/api`<br/>Env: `KVK_BASE_URL` |
-| settings.kvk.customHeaders | object | `{}` | Custom headers to send to the KvK API, for instance when using a proxy. See [Using KISS with a proxy for BRP / KvK](#using-kiss-with-a-proxy-for-brp--kvk-for-example-iconnect).<br/>Env: `KVK_CUSTOM_HEADERS__<headername>` |
+| settings.kvk.customHeaders | object | `{}` | Custom headers to send to the KvK API, for instance when using a proxy. See `settings.haalCentraal.customHeaders` for an example.<br/>Env: `KVK_CUSTOM_HEADERS__<headername>` |
 | settings.kvk.userHeaderName | string | `""` | Header name to include the user id to send to the KvK API, for instance when using a proxy. The value of the claim configured in `settings.oidc.medewerkerIdentificatie.claim` is sent.<br/>Env: `KVK_USER_HEADER_NAME` |
 
 ### Logboek (ITA)
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| settings.logboek.baseUrl | string | `""` | URL of the Objects API where the logbook is stored. See [Logboek](#when-to-configure-the-logboek).<br/>Env: `LOGBOEK_BASE_URL` |
+| settings.logboek.baseUrl | string | `""` | URL of the Objects API where the logboek is stored.<br/>Env: `LOGBOEK_BASE_URL` <details><summary>About the logboek</summary>The logboek contains information about the handling of a contactverzoek in ITA (Interne Taak Afhandeling). KISS shows this information with the contactverzoeken of a klant. Functionally, the logboek is only used together with ITA. The chart's json schema currently requires `baseUrl`, `objectTypeUrl`, `objectTypeVersion` and `token` to be filled in. KISS itself treats the logboek as optional: only when all four `LOGBOEK_*` environment variables have a value, the logboek is shown.</details> |
 | settings.logboek.objectTypeUrl | string | `""` | URL of the Logboek Object Type.<br/>Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/12345678-5ddb-4b1a-a347-e20092031399`<br/>Env: `LOGBOEK_OBJECT_TYPE_URL` |
 | settings.logboek.objectTypeVersion | int | `1` | Version number of the Logboek Object Type.<br/>Env: `LOGBOEK_OBJECT_TYPE_VERSION` |
 | settings.logboek.token | string | `""` | Token for the Objects API for the Logboek.<br/>Env: `LOGBOEK_TOKEN` |
@@ -104,14 +94,14 @@ This README is the single source of documentation for the configuration of KISS.
 |-----|------|---------|-------------|
 | settings.managementInformatie.apiKey | string | `""` | Secret that KISS uses to validate the JWT Token when requesting contactmoment details. See the [managementinformatie chapter of the KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/managementinformatie.html) on how to use this API.<br/>Env: `MANAGEMENTINFORMATIE_API_KEY` |
 | settings.oidc.authority | string | `""` | URL of the OpenID Connect Identity Provider.<br/>Env: `OIDC_AUTHORITY` |
-| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_BEHEERDER_ROLE` |
+| settings.oidc.beheerderRole | string | `""` | Name of the role for a Beheerder. Must match the name of the role in the Identity Provider. Default: `Beheerder`. A user with this role can edit Skills, Kanalen, Gespreksresultaten and Contactverzoek formulieren. See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When PABC (`settings.pabc`) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_BEHEERDER_ROLE` |
 | settings.oidc.clientId | string | `""` | Client ID for access to the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_ID` |
 | settings.oidc.clientSecret | string | `""` | Secret for the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_SECRET` |
-| settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KENNISBANK_ROLE` |
-| settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE` |
+| settings.oidc.kennisbankRole | string | `""` | Name of the role for a Kennisbank employee. Must match the name of the role in the Identity Provider. Default: `Kennisbank`. A user with this role can only search the configured sources (Kennisbank, VAC, Smoelenboek, websites).<br/>When PABC (`settings.pabc`) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KENNISBANK_ROLE` |
+| settings.oidc.klantcontactmedewerkerRole | string | `""` | Name of the role for a Klantcontactmedewerker (KCM). Must match the name of the role in the Identity Provider. Default: `Klantcontactmedewerker`. A user with this role can register contactmomenten and contactverzoeken, and search the sources.<br/>When PABC (`settings.pabc`) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_KLANTCONTACTMEDEWERKER_ROLE` |
 | settings.oidc.medewerkerIdentificatie.claim | string | `""` | The claim used to identify the medewerker in the registers. Default: `email`.<br/>Env: `OIDC_MEDEWERKER_IDENTIFICATIE_CLAIM` <details><summary>More information</summary>When writing data to e.g. Open Klant or Open Zaak, a `medewerkerIdentificatie.identificatie` is required. Municipalities use different values for this. When integrating with e.g. the e-Suite, this must contain the e-Suite username of the logged in KCM.</details> |
-| settings.oidc.medewerkerIdentificatie.truncate | string | `nil` | Optional maximum number of characters of the claim, after which it is truncated. Example: `24`. Default: no truncation.<br/>Env: `OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE` <details><summary>More information</summary>Within ZGW, a `medewerkerIdentificatie.identificatie` may not be longer than 24 characters. Use this setting to truncate the value after 24 characters.</details> |
-| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When [PABC](#pabc-platform-autorisatie-beheer-component) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_REDACTEUR_ROLE` |
+| settings.oidc.medewerkerIdentificatie.truncate | int,null | `nil` | Optional maximum number of characters of the claim, after which it is truncated. Must be a number (not quoted), for example `24`. Default: no truncation.<br/>Env: `OIDC_MEDEWERKER_IDENTIFICATIE_TRUNCATE` <details><summary>More information</summary>Within ZGW, a `medewerkerIdentificatie.identificatie` may not be longer than 24 characters. Use this setting to truncate the value after 24 characters.</details> |
+| settings.oidc.redacteurRole | string | `""` | Name of the role for a Redacteur. Must match the name of the role in the Identity Provider. Default: `Redacteur`. A user with this role can edit Nieuws- en Werkberichten, Links and VACs (if configured). See the [KISS manual](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/manual/manual.html).<br/>When PABC (`settings.pabc`) is configured, the role comes from PABC, but KISS only accepts a PABC role with this name. Leave this empty (or use the default) when using PABC.<br/>Env: `OIDC_REDACTEUR_ROLE` |
 
 ### Organisation
 
@@ -124,13 +114,13 @@ This README is the single source of documentation for the configuration of KISS.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | settings.pabc.apiKey | string | `""` | API key for authentication with PABC (sent as `X-API-KEY` header).<br/>Env: `PABC_API_KEY` |
-| settings.pabc.baseUrl | string | `""` | Base URL of the PABC API, without trailing slash. Example: `https://pabc.mijngemeente.nl`.<br/>Setting both `baseUrl` and `apiKey` activates the PABC integration. See [PABC](#pabc-platform-autorisatie-beheer-component).<br/>Env: `PABC_BASE_URL` |
+| settings.pabc.baseUrl | string | `""` | Base URL of the PABC API, without trailing slash. Example: `https://pabc.mijngemeente.nl`.<br/>Setting both `baseUrl` and `apiKey` activates the PABC integration.<br/>Env: `PABC_BASE_URL` <details><summary>About PABC (Platform Autorisatie Beheer Component)</summary>The integration with <a href="https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API">PABC</a> is optional. When both `baseUrl` and `apiKey` are set, the integration is activated. The application name `kiss` is hardcoded in KISS.<br/><br/>When PABC is active, the roles of a user come from PABC instead of the role claims of the Identity Provider. KISS only accepts PABC application roles whose names match the role names in `settings.oidc` (`klantcontactmedewerkerRole`, `redacteurRole`, `beheerderRole`, `kennisbankRole`). Leave those settings empty (KISS then uses the default names `Klantcontactmedewerker`, `Redacteur`, `Beheerder` and `Kennisbank`), or make sure the application roles in PABC have exactly the configured names.<br/><br/>Set up PABC first, and only then deploy KISS with the PABC configuration. Otherwise no user gets a KISS application role. See the <a href="https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/pabc.html">PABC documentation</a> for setup instructions.</details> |
 
 ### Registers
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| settings.registers | list | `[]` | Configuration for the different sets of registers for e.g. zaken and klantcontacten. See [Registers](#registers-configuration) for the fields of each item, and [the json schema](./values.schema.json) for the possible configurations.<br/>Env: `REGISTERS__<n>__…` |
+| settings.registers | list | `[]` | Sets of registers for klantcontacten and zaken. Each set consists of a klantregister, contactmomentregister, contactverzoekregister (interne taak) and a zaaksysteem that belong together. The file `values.schema.json` of this chart describes the possible configurations.<br/>Env: `REGISTERS__<n>__…`, where the first item gets `__0__`, the second `__1__`, and so on. <details><summary>How the sets of registers work</summary><ul> <li>There must be <b>exactly one</b> set with `isDefault: true`. Klanten, contactmomenten and contactverzoeken are created in the default set, unless the context shows that the data belongs in a specific register. For example: if a contactmoment is about a zaak from a certain zaaksysteem, the contactmoment is stored in the contactmomentregister of the same set as that zaaksysteem.</li> <li>A set uses either <b>Open Klant 2</b> (`klantinteractie`) or the <b>e-Suite / Open Klant 1</b> (`contactmomenten`, `klanten` and `interneTaak`). Use Open Klant 1 only to integrate with the e-Suite. The chart derives `REGISTERS__<n>__REGISTRY_VERSION` (`OpenKlant2` or `OpenKlant1`) from this. Without helm, set it yourself: when it is not set, KISS assumes `OpenKlant2`.</li> <li>Secrets marked <b>min. 32 characters</b> below must be at least 32 characters long.</li> </ul></details> <details><summary>Fields of each set</summary><ul> <li>`isDefault` (Env: `REGISTERS__<n>__IS_DEFAULT`): `true` for exactly one set.</li> <li>`zaaksysteem.zakenBaseUrl` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_ZAKEN_BASE_URL`): full base URL of the Zaken API, including the version. Example: `https://zaken.somezaaksysteem.nl/api/v1`</li> <li>`zaaksysteem.catalogiBaseUrl` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_CATALOGI_BASE_URL`): full base URL of the Catalogi API, including the version. Example: `https://catalogi.somezaaksysteem.nl/api/v1`</li> <li>`zaaksysteem.documentenBaseUrl` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_DOCUMENTEN_BASE_URL`): full base URL of the Documenten API, including the version. Example: `https://documenten.somezaaksysteem.nl/api/v1`</li> <li>`zaaksysteem.clientId` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_API_CLIENT_ID`): client ID for the ZGW APIs.</li> <li>`zaaksysteem.clientSecret` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_API_KEY`): secret for the ZGW APIs <b>(min. 32 characters)</b>.</li> <li>`zaaksysteem.deeplink.url` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_URL`): optional. Base URL to deeplink to a zaak in the zaaksysteem, for example `https://zaaksysteem.mijngemeente.nl/mp/zaak/`. Always use this <b>in combination with</b> `deeplink.property`. When both are set, the zaak details screen in KISS shows a link that opens the zaak in the zaaksysteem. This only works for zaaksystemen with a fixed URL for zaak details, where only one property of the zaak (e.g. the zaaknummer) has to be appended to that URL.</li> <li>`zaaksysteem.deeplink.property` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_PROPERTY`): optional. The property of the zaak whose value is appended to `deeplink.url`, for example `identificatie`. Always use this <b>in combination with</b> `deeplink.url`.</li> <li>`zaaksysteem.useExperimentalQueries` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES`): optional, `true` or `false`. Feature switch for the experimental features introduced in <a href="https://open-zaak.readthedocs.io/en/stable/development/changelog.html#id9">Open Zaak 1.20.0</a>.</li> <li>`zaaksysteem.usePabc` (Env: `REGISTERS__<n>__ZAAKSYSTEEM_USE_PABC`): optional, default `true`. Whether PABC zaaktype filtering (see `settings.pabc`) is applied to this zaaksysteem. Set to `false` for zaaksystemen with their own authorization (e.g. the e-Suite).</li> <li><b>Open Klant 2:</b></li> <li>`klantinteractie.baseUrl` (Env: `REGISTERS__<n>__KLANTINTERACTIE_BASE_URL`): URL of the Klantinteracties API of the Open Klant 2 register, <b>without</b> `/api/v1` (KISS adds that itself). Example: `https://klantinteractieregister.mijngemeente.nl/klantinteracties`</li> <li>`klantinteractie.token` (Env: `REGISTERS__<n>__KLANTINTERACTIE_TOKEN`): token for the Klantinteracties API.</li> <li><b>e-Suite / Open Klant 1:</b></li> <li>`contactmomenten.baseUrl` (Env: `REGISTERS__<n>__CONTACTMOMENTEN_BASE_URL`): URL of the Contactmomenten API. Example: `https://contactmomentenregister.mijngemeente.nl`</li> <li>`contactmomenten.clientId` (Env: `REGISTERS__<n>__CONTACTMOMENTEN_API_CLIENT_ID`): client ID for the Contactmomenten API.</li> <li>`contactmomenten.clientSecret` (Env: `REGISTERS__<n>__CONTACTMOMENTEN_API_KEY`): key for the Contactmomenten API <b>(min. 32 characters)</b>.</li> <li>`klanten.baseUrl` (Env: `REGISTERS__<n>__KLANTEN_BASE_URL`): URL of the Klanten API. Example: `https://klantenregister.mijngemeente.nl/klanten`</li> <li>`klanten.clientId` (Env: `REGISTERS__<n>__KLANTEN_CLIENT_ID`): client ID for the Klanten API.</li> <li>`klanten.clientSecret` (Env: `REGISTERS__<n>__KLANTEN_CLIENT_SECRET`): secret for the Klanten API <b>(min. 32 characters)</b>.</li> <li>`interneTaak.baseUrl` (Env: `REGISTERS__<n>__INTERNE_TAAK_BASE_URL`): URL of the Objects API for Interne Taken. Example: `https://objectenregister.mijngemeente.nl`</li> <li>`interneTaak.clientId` (Env: `REGISTERS__<n>__INTERNE_TAAK_CLIENT_ID`): client ID for the Objects API for Interne Taken. Usually a token is used; a client ID and secret are needed for example with the e-Suite (podiumd-adapter). Use either a client ID and secret, or a token (`REGISTERS__<n>__INTERNE_TAAK_TOKEN`, see `extraEnvVars`), not both. If both are set, KISS uses the client ID and secret.</li> <li>`interneTaak.clientSecret` (Env: `REGISTERS__<n>__INTERNE_TAAK_CLIENT_SECRET`): client secret for the Objects API for Interne Taken.</li> <li>`interneTaak.objectTypeUrl` (Env: `REGISTERS__<n>__INTERNE_TAAK_OBJECT_TYPE_URL`): URL of the Interne Taak Object Type. Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`</li> <li>`interneTaak.objectTypeVersion` (Env: `REGISTERS__<n>__INTERNE_TAAK_TYPE_VERSION`): version number of the Interne Taak Object Type, for example `2`. KISS writes Interne Taken to the Objects API and must send the version of the object type. Which version is the most recent can differ per municipality.</li> </ul></details> <details><summary>Example (Open Klant 2 and Open Zaak)</summary><pre>settings:<br/>  registers:<br/>    - isDefault: true<br/>      klantinteractie:<br/>        baseUrl: "https://klantinteractieregister.mijngemeente.nl/klantinteracties"<br/>        token: "..."<br/>      zaaksysteem:<br/>        zakenBaseUrl: "https://openzaak.mijngemeente.nl/zaken/api/v1"<br/>        catalogiBaseUrl: "https://openzaak.mijngemeente.nl/catalogi/api/v1"<br/>        documentenBaseUrl: "https://openzaak.mijngemeente.nl/documenten/api/v1"<br/>        clientId: "..."<br/>        clientSecret: "..."</pre></details> <details><summary>Migrating from the deprecated ZAAKSYSTEEM_BASE_URL</summary>Older versions of KISS used one variable, `REGISTERS__<n>__ZAAKSYSTEEM_BASE_URL`, for all ZGW APIs. This chart only supports the three separate URLs. KISS itself still accepts the old variable, but don't use the old and new format together. To migrate, replace the single URL by the three base URLs, <b>including the version number</b>. If every API runs on its own subdomain, use for example `https://zaken.mijnzaaksysteem.nl/api/v1`, `https://catalogi.mijnzaaksysteem.nl/api/v1` and `https://documenten.mijnzaaksysteem.nl/api/v1`. If all APIs run on the same URL, use for example `https://openzaak.mijngemeente.nl/zaken/api/v1`, `https://openzaak.mijngemeente.nl/catalogi/api/v1` and `https://openzaak.mijngemeente.nl/documenten/api/v1`.</details> |
 
 ### Sync jobs
 
@@ -158,8 +148,8 @@ This README is the single source of documentation for the configuration of KISS.
 | settings.syncJobs.medewerkers.objectTypeUrl | string | `""` | URL of the Medewerker Object Type.<br/>Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`<br/>Env: `MEDEWERKER_OBJECT_TYPE_URL` |
 | settings.syncJobs.medewerkers.resources | object | `{}` | Resources of the sync job container. |
 | settings.syncJobs.medewerkers.schedule | string | `"*/59 * * * *"` | Cron schedule of the sync job. |
-| settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for medewerkers (Smoelenboek). Leave `clientId` and `clientSecret` empty if you use a token, never use both. Don't use this if you're connecting with the podiumd-adapter.<br/>Env: `MEDEWERKER_OBJECTEN_TOKEN` |
-| settings.syncJobs.sharepoint | list | `[]` | SharePoint sync jobs configuration. One sync job is created per item. See [SharePoint sync jobs](#sharepoint-sync-jobs) for the fields of each item. |
+| settings.syncJobs.medewerkers.token | string | `""` | Token for the Objects API for medewerkers (Smoelenboek). Leave `clientId` and `clientSecret` empty if you use a token, never use both (if both are set, the client ID and secret are used). Don't use this if you're connecting with the podiumd-adapter.<br/>Env: `MEDEWERKER_OBJECTEN_TOKEN` |
+| settings.syncJobs.sharepoint | list | `[]` | SharePoint sync jobs configuration. One sync job is created per item. <details><summary>Fields of each item</summary><ul> <li>`sourceName` (Env: `SHAREPOINT_SOURCE_NAME`): <b>required.</b> A human friendly name for the source, as shown in the search bar in KISS. Example: <i>ICATT SharePoint Test Site</i>.</li> <li>`siteUrl` (Env: `SHAREPOINT_SITE_URL`): <b>required.</b> Full URL of the SharePoint site to crawl, for example `https://my-tenant.sharepoint.com/sites/my-site`. If this is a hub site, or the site has subsites, all underlying / related sites are indexed as well. Both 'modern' site pages and traditional wiki pages are supported.</li> <li>`clientId` (Env: `SHAREPOINT_CLIENT_ID`): <b>required.</b> Client ID (application ID) of the SharePoint app registration. The app registration needs the API permission `Sites.Read.All`. Example: `0166786a-df05-4e1c-a75c-7c3317002ad8`</li> <li>`clientSecret` (Env: `SHAREPOINT_CLIENT_SECRET`): <b>required.</b> Client secret of the SharePoint app registration.</li> <li>`tenantId` (Env: `SHAREPOINT_TENANT_ID`): <b>required.</b> Azure AD tenant ID (GUID) of the SharePoint app registration. Example: `bd7f67dd-fc8c-4a9d-a1aa-c2e4d687b18f`</li> <li>`schedule`: cron schedule of the sync job. Default `*/59 * * * *`</li> <li>`historyLimit`: number of finished jobs to keep. Default `1`</li> <li>`resources`: resources of the sync job container.</li> </ul><b>Reserved source names:</b> don't use `Smoelenboek`, `VAC` or `Kennisbank` as `sourceName`, unless you don't use the corresponding source (a source is not used when it has no configuration). `Smoelenboek` belongs to `settings.syncJobs.medewerkers`, `VAC` to `settings.syncJobs.vac` and `Kennisbank` to `settings.syncJobs.kennisbank`.</details> |
 | settings.syncJobs.vac.baseUrl | string | `""` | URL of the Objects API for VACs.<br/>Example: `https://objectenregister.mijngemeente.nl`<br/>Env: `VAC_OBJECTEN_BASE_URL` |
 | settings.syncJobs.vac.historyLimit | int | `1` | Number of finished jobs to keep. |
 | settings.syncJobs.vac.objectTypeUrl | string | `""` | URL of the VAC Object Type.<br/>Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399`<br/>Env: `VAC_OBJECT_TYPE_URL` |
@@ -167,7 +157,7 @@ This README is the single source of documentation for the configuration of KISS.
 | settings.syncJobs.vac.resources | object | `{}` | Resources of the sync job container. |
 | settings.syncJobs.vac.schedule | string | `"*/59 * * * *"` | Cron schedule of the sync job. |
 | settings.syncJobs.vac.token | string | `""` | Token for the Objects API for VACs. When `manageFromKiss` is `true`, this token needs read and write permissions.<br/>Env: `VAC_OBJECTEN_TOKEN` |
-| settings.syncJobs.website | list | `[]` | Website crawler jobs configuration. One crawler job (Elastic Open Crawler) is created per item. See [Website crawler jobs](#website-crawler-jobs) for the fields of each item. |
+| settings.syncJobs.website | list | `[]` | Website crawler jobs configuration. Websites are crawled by the [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html); one crawler job is created per item. These settings are written to the crawler configuration, there are no KISS environment variables for them. <details><summary>Fields of each item</summary><ul> <li>`domain`: <b>required.</b> Full URL of the website to crawl.</li> <li>`sourceName`: <b>required.</b> A human friendly name for the source, as shown in the search bar in KISS. Example: <i>ICATT Test Site</i>.</li> <li>`outputIndex`: Elasticsearch index to write to. Default: `search-` followed by the `sourceName` in lower case, with spaces replaced by `-`.</li> <li>`excludeTags`: HTML tags whose content is not indexed. Default `["header", "footer", "nav"]`</li> <li>`crawlRules`: <a href="https://github.com/elastic/crawler/blob/main/docs/features/CRAWL_RULES.md">crawl rules</a> of the Open Crawler, to include or exclude parts of the website.</li> <li>`maxCrawlDepth`: maximum crawl depth.</li> <li>`maxExtractedLinksCount`: maximum number of links extracted per page.</li> <li>`maxUniqueUrlCount`: maximum number of unique URLs crawled.</li> <li>`purgeCrawlEnabled`: remove pages from the index that were not found in the last crawl.</li> <li>`fullHtmlExtractionEnabled`: store the full HTML of each page.</li> <li>`binaryContentExtractionEnabled`: extract and index the content of PDF and Word documents.</li> <li>`userAgent`: user agent of the crawler. Default `Kiss-Elastic-Crawler`</li> <li>`threadsPerCrawl`: number of threads per crawl. Default `1`</li> <li>`schedule`: cron schedule of the crawler job. Default `*/59 * * * *`</li> <li>`historyLimit`: number of finished jobs to keep. Default `1`</li> <li>`resources`: resources of the crawler container.</li> </ul><b>Reserved source names:</b> don't use `Smoelenboek`, `VAC` or `Kennisbank` as `sourceName`, unless you don't use the corresponding source (a source is not used when it has no configuration). `Smoelenboek` belongs to `settings.syncJobs.medewerkers`, `VAC` to `settings.syncJobs.vac` and `Kennisbank` to `settings.syncJobs.kennisbank`.<br/><br/>It is advisable to consult your website administrator about fine-tuning the crawler, for example about the robots.txt, a KISS specific sitemap.xml or additional filters.</details> |
 
 ### Other Values
 
@@ -179,7 +169,7 @@ This README is the single source of documentation for the configuration of KISS.
 | autoscaling.minReplicas | int | `1` |  |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| extraEnvVars | list | `[]` | Array with extra environment variables to add |
+| extraEnvVars | list | `[]` | Array with extra environment variables to add <details><summary>Settings without a chart value</summary>KISS supports a few environment variables that this chart doesn't expose as a value. If you need them, set them here. When both a client ID and secret and a token are set, KISS uses the client ID and secret.<ul> <li>`AFDELINGEN_CLIENT_ID`, `AFDELINGEN_CLIENT_SECRET`: client ID and secret for the Objects API for afdelingen. The chart requires `settings.afdelingen.token` to be filled in; when the client ID and secret are also set, KISS uses those.</li> <li>`GROEPEN_CLIENT_ID`, `GROEPEN_CLIENT_SECRET`: client ID and secret for the Objects API for groepen. The chart requires `settings.groepen.token` to be filled in; when the client ID and secret are also set, KISS uses those.</li> <li>`SDG_OBJECTEN_CLIENT_ID`, `SDG_OBJECTEN_CLIENT_SECRET`: client ID and secret for the Objects API for Kennisartikelen (used by the sync job), instead of `settings.syncJobs.kennisbank.token`.</li> <li>`VAC_OBJECTEN_CLIENT_ID`, `VAC_OBJECTEN_CLIENT_SECRET`: client ID and secret for the Objects API for VACs (used by the sync job only), instead of `settings.syncJobs.vac.token`.</li> <li>`REGISTERS__<n>__INTERNE_TAAK_TOKEN`: token for the Objects API for Interne Taken, instead of `interneTaak.clientId` and `interneTaak.clientSecret`. Leave those two empty when you use the token.</li> </ul></details> |
 | extraIngress | list | `[]` | Specify extra ingresses, for example if you have multiple ingress classes |
 | extraVolumeMounts | list | `[]` | Optionally specify extra list of additional volumeMounts, for example to trust extra ca certificates. |
 | extraVolumes | list | `[]` | Optionally specify extra list of additional volumes, for example to trust extra ca certificates. |
@@ -225,190 +215,6 @@ This README is the single source of documentation for the configuration of KISS.
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
 | tolerations | list | `[]` |  |
-
-## Configuration details
-
-### Registers configuration
-
-`settings.registers` is a list of **sets of registers**. Each set consists of a klantregister, contactmomentregister, contactverzoekregister (interne taak) and a zaaksysteem that belong together.
-
-- There must be **exactly one** set with `isDefault: true`. Klanten, contactmomenten and contactverzoeken are created in the default set, unless the context shows that the data belongs in a specific register. For example: if a contactmoment is about a zaak from a certain zaaksysteem, the contactmoment is stored in the contactmomentregister of the same set as that zaaksysteem.
-- A set uses either **Open Klant 2** (`klantinteractie`) or the **e-Suite / Open Klant 1** (`contactmomenten`, `klanten` and `interneTaak`). Use Open Klant 1 only to integrate with the e-Suite. The chart derives `REGISTERS__<n>__REGISTRY_VERSION` (`OpenKlant2` or `OpenKlant1`) from this automatically. Without helm, set `REGISTERS__<n>__REGISTRY_VERSION` yourself: when it is not set, KISS assumes `OpenKlant2`.
-
-Example:
-
-```yaml
-settings:
-  registers:
-    - isDefault: true
-      klantinteractie:
-        baseUrl: "https://klantinteractieregister.mijngemeente.nl/klantinteracties"
-        token: "..."
-      zaaksysteem:
-        zakenBaseUrl: "https://openzaak.mijngemeente.nl/zaken/api/v1"
-        catalogiBaseUrl: "https://openzaak.mijngemeente.nl/catalogi/api/v1"
-        documentenBaseUrl: "https://openzaak.mijngemeente.nl/documenten/api/v1"
-        clientId: "..."
-        clientSecret: "..."
-```
-
-Fields of each item in `settings.registers`:
-
-| Key | Env | Description |
-|-----|-----|-------------|
-| isDefault | `REGISTERS__<n>__IS_DEFAULT` | `true` for exactly one set. See above. |
-| zaaksysteem.zakenBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_ZAKEN_BASE_URL` | Full base URL of the Zaken API, including the version.<br/>Example: `https://zaken.somezaaksysteem.nl/api/v1` |
-| zaaksysteem.catalogiBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_CATALOGI_BASE_URL` | Full base URL of the Catalogi API, including the version.<br/>Example: `https://catalogi.somezaaksysteem.nl/api/v1` |
-| zaaksysteem.documentenBaseUrl | `REGISTERS__<n>__ZAAKSYSTEEM_DOCUMENTEN_BASE_URL` | Full base URL of the Documenten API, including the version.<br/>Example: `https://documenten.somezaaksysteem.nl/api/v1` |
-| zaaksysteem.clientId | `REGISTERS__<n>__ZAAKSYSTEEM_API_CLIENT_ID` | Client ID for the ZGW APIs. |
-| zaaksysteem.clientSecret | `REGISTERS__<n>__ZAAKSYSTEEM_API_KEY` | Secret for the ZGW APIs. **(min. 32 characters)** |
-| zaaksysteem.deeplink.url | `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_URL` | Optional. Base URL to deeplink to a zaak in the zaaksysteem, for example `https://zaaksysteem.mijngemeente.nl/mp/zaak/`. Always use this **in combination with** `deeplink.property`. When both are set, the zaak details screen in KISS shows a link that opens the zaak in the zaaksysteem. This only works for zaaksystemen with a fixed URL for zaak details, where only one property of the zaak (e.g. the zaaknummer) has to be appended to that URL. |
-| zaaksysteem.deeplink.property | `REGISTERS__<n>__ZAAKSYSTEEM_DEEPLINK_PROPERTY` | Optional. The property of the zaak whose value is appended to `deeplink.url`, for example `identificatie`. Always use this **in combination with** `deeplink.url`. |
-| zaaksysteem.useExperimentalQueries | `REGISTERS__<n>__ZAAKSYSTEEM_USE_EXPERIMENTAL_QUERIES` | Optional, `true` or `false`. Feature switch for the experimental features introduced in [Open Zaak 1.20.0](https://open-zaak.readthedocs.io/en/stable/development/changelog.html#id9). |
-| zaaksysteem.usePabc | `REGISTERS__<n>__ZAAKSYSTEEM_USE_PABC` | Optional, default `true`. Whether [PABC](#pabc-platform-autorisatie-beheer-component) zaaktype filtering is applied to this zaaksysteem. Set to `false` for zaaksystemen with their own authorization (e.g. the e-Suite). |
-| **Open Klant 2** | | |
-| klantinteractie.baseUrl | `REGISTERS__<n>__KLANTINTERACTIE_BASE_URL` | URL of the Klantinteracties API of the Open Klant 2 register, **without** `/api/v1` (KISS adds that itself).<br/>Example: `https://klantinteractieregister.mijngemeente.nl/klantinteracties` |
-| klantinteractie.token | `REGISTERS__<n>__KLANTINTERACTIE_TOKEN` | Token for the Klantinteracties API. |
-| **e-Suite / Open Klant 1** | | |
-| contactmomenten.baseUrl | `REGISTERS__<n>__CONTACTMOMENTEN_BASE_URL` | URL of the Contactmomenten API.<br/>Example: `https://contactmomentenregister.mijngemeente.nl` |
-| contactmomenten.clientId | `REGISTERS__<n>__CONTACTMOMENTEN_API_CLIENT_ID` | Client ID for the Contactmomenten API. |
-| contactmomenten.clientSecret | `REGISTERS__<n>__CONTACTMOMENTEN_API_KEY` | Key for the Contactmomenten API. **(min. 32 characters)** |
-| klanten.baseUrl | `REGISTERS__<n>__KLANTEN_BASE_URL` | URL of the Klanten API.<br/>Example: `https://klantenregister.mijngemeente.nl/klanten` |
-| klanten.clientId | `REGISTERS__<n>__KLANTEN_CLIENT_ID` | Client ID for the Klanten API. |
-| klanten.clientSecret | `REGISTERS__<n>__KLANTEN_CLIENT_SECRET` | Secret for the Klanten API. **(min. 32 characters)** |
-| interneTaak.baseUrl | `REGISTERS__<n>__INTERNE_TAAK_BASE_URL` | URL of the Objects API for Interne Taken.<br/>Example: `https://objectenregister.mijngemeente.nl` |
-| interneTaak.clientId | `REGISTERS__<n>__INTERNE_TAAK_CLIENT_ID` | Client ID for the Objects API for Interne Taken. See [Token or client ID and secret](#token-or-client-id-and-secret). |
-| interneTaak.clientSecret | `REGISTERS__<n>__INTERNE_TAAK_CLIENT_SECRET` | Client secret for the Objects API for Interne Taken. See [Token or client ID and secret](#token-or-client-id-and-secret). |
-| interneTaak.objectTypeUrl | `REGISTERS__<n>__INTERNE_TAAK_OBJECT_TYPE_URL` | URL of the Interne Taak Object Type.<br/>Example: `https://objecttypenregister.mijngemeente.nl/api/v2/objecttypes/f83fdc48-5ddb-4b1a-a347-e20092031399` |
-| interneTaak.objectTypeVersion | `REGISTERS__<n>__INTERNE_TAAK_TYPE_VERSION` | Version number of the Interne Taak Object Type, for example `2`. KISS writes Interne Taken to the Objects API and must send the version of the object type. Which version is the most recent can differ per municipality. |
-
-<details>
-<summary>Migrating from the deprecated <code>ZAAKSYSTEEM_BASE_URL</code></summary>
-
-Older versions of KISS used one variable, `REGISTERS__<n>__ZAAKSYSTEEM_BASE_URL`, for all ZGW APIs. This chart only supports the three separate URLs above. KISS itself still accepts the old variable, but don't use the old and new format together.
-
-To migrate, replace the single URL by the three base URLs, **including the version number**:
-
-- If every API runs on its own subdomain, e.g. `https://zaken.mijnzaaksysteem.nl/api/v1`, `https://catalogi.mijnzaaksysteem.nl/api/v1` and `https://documenten.mijnzaaksysteem.nl/api/v1`.
-- If all APIs run on the same URL, e.g. `https://openzaak.mijngemeente.nl/zaken/api/v1`, `https://openzaak.mijngemeente.nl/catalogi/api/v1` and `https://openzaak.mijngemeente.nl/documenten/api/v1`.
-
-</details>
-
-### Token or client ID and secret
-
-In most cases, KISS authenticates with an Objects API using a **token**. In some cases, for example when KISS is used with the e-Suite (podiumd-adapter), authentication must use a **client ID and client secret** instead. This applies to the Objects APIs for Interne Taken and medewerkers (and, through [environment variables only](#settings-without-a-chart-value), afdelingen and groepen).
-
-Configure either a token, or a client ID and secret, not both. If both are set anyway, KISS uses the client ID and secret.
-
-### SharePoint sync jobs
-
-Fields of each item in `settings.syncJobs.sharepoint`. One sync job is created per item.
-
-| Key | Env | Description |
-|-----|-----|-------------|
-| sourceName | `SHAREPOINT_SOURCE_NAME` | **Required.** A human friendly name for the source, as shown in the search bar in KISS. Example: _ICATT SharePoint Test Site_. See [reserved source names](#reserved-source-names). |
-| siteUrl | `SHAREPOINT_SITE_URL` | **Required.** Full URL of the SharePoint site to crawl, for example `https://my-tenant.sharepoint.com/sites/my-site`. If this is a hub site, or the site has subsites, all underlying / related sites are indexed as well. Both 'modern' site pages and traditional wiki pages are supported. |
-| clientId | `SHAREPOINT_CLIENT_ID` | **Required.** Client ID (application ID) of the SharePoint app registration. The app registration needs the API permission `Sites.Read.All`. Example: `0166786a-df05-4e1c-a75c-7c3317002ad8` |
-| clientSecret | `SHAREPOINT_CLIENT_SECRET` | **Required.** Client secret of the SharePoint app registration. |
-| tenantId | `SHAREPOINT_TENANT_ID` | **Required.** Azure AD tenant ID (GUID) of the SharePoint app registration. Example: `bd7f67dd-fc8c-4a9d-a1aa-c2e4d687b18f` |
-| schedule | | Cron schedule of the sync job. Default `*/59 * * * *` |
-| historyLimit | | Number of finished jobs to keep. Default `1` |
-| resources | | Resources of the sync job container. |
-
-### Website crawler jobs
-
-Websites are crawled by the [Elastic Open Crawler](https://www.elastic.co/guide/en/elasticsearch/reference/current/es-connectors-crawler.html). One crawler job is created per item in `settings.syncJobs.website`. These settings are written to the crawler configuration; there are no KISS environment variables for them.
-
-| Key | Description |
-|-----|-------------|
-| domain | **Required.** Full URL of the website to crawl. |
-| sourceName | **Required.** A human friendly name for the source, as shown in the search bar in KISS. Example: _ICATT Test Site_. See [reserved source names](#reserved-source-names). |
-| outputIndex | Elasticsearch index to write to. Default: `search-` followed by the `sourceName` in lower case, with spaces replaced by `-`. |
-| excludeTags | HTML tags whose content is not indexed. Default `["header", "footer", "nav"]` |
-| crawlRules | [Crawl rules](https://github.com/elastic/crawler/blob/main/docs/features/CRAWL_RULES.md) of the Open Crawler, to include or exclude parts of the website. |
-| maxCrawlDepth | Maximum crawl depth. |
-| maxExtractedLinksCount | Maximum number of links extracted per page. |
-| maxUniqueUrlCount | Maximum number of unique URLs crawled. |
-| purgeCrawlEnabled | Remove pages from the index that were not found in the last crawl. |
-| fullHtmlExtractionEnabled | Store the full HTML of each page. |
-| binaryContentExtractionEnabled | Extract and index the content of PDF and Word documents. |
-| userAgent | User agent of the crawler. Default `Kiss-Elastic-Crawler` |
-| threadsPerCrawl | Number of threads per crawl. Default `1` |
-| schedule | Cron schedule of the crawler job. Default `*/59 * * * *` |
-| historyLimit | Number of finished jobs to keep. Default `1` |
-| resources | Resources of the crawler container. |
-
-It is advisable to consult your website administrator about fine-tuning the crawler, for example about the robots.txt, a KISS specific sitemap.xml or additional filters.
-
-### Reserved source names
-
-The source names `Smoelenboek`, `VAC` and `Kennisbank` are reserved. Don't use them as `sourceName` for a SharePoint or website source, unless you don't use the corresponding source. A source is not used when no configuration is provided for it. `Smoelenboek` belongs to `settings.syncJobs.medewerkers`, `VAC` to `settings.syncJobs.vac` and `Kennisbank` to `settings.syncJobs.kennisbank`.
-
-### Using KISS with a proxy for BRP / KvK (for example iConnect)
-
-Proxies for the BRP and KvK, such as iConnect, often require certain headers. KISS supports this as follows:
-
-- If the identification of the logged in user must be passed in a header, use `settings.haalCentraal.userHeaderName` and `settings.kvk.userHeaderName`. The value sent is the claim configured in `settings.oidc.medewerkerIdentificatie.claim`.
-- If static information must be passed in headers, use `settings.haalCentraal.customHeaders` and `settings.kvk.customHeaders`.
-- If static information must be passed in the headers for the BRP **specific for a certain type of search**, use an object with a value per search type in `settings.haalCentraal.customHeaders`. The search types are `RaadpleegMetBurgerservicenummer`, `ZoekMetGeslachtsnaamEnGeboortedatum` and `ZoekMetPostcodeEnHuisnummer`.
-
-An example for iConnect:
-
-```yaml
-settings:
-  haalCentraal:
-    userHeaderName: x-gebruiker
-    customHeaders:
-      x-verwerking: Burgerzaken
-      x-doelbinding:
-        RaadpleegMetBurgerservicenummer: BRPACT-Totaal
-        ZoekMetGeslachtsnaamEnGeboortedatum: BRPACT-ZoekenAlgemeen
-        ZoekMetPostcodeEnHuisnummer: BRPACT-ZoekenAlgemeen
-  kvk:
-    customHeaders:
-      x-origin-oin: "00000000000000000000"
-```
-
-The same example as environment variables:
-
-```bash
-HAAL_CENTRAAL_USER_HEADER_NAME=x-gebruiker
-HAAL_CENTRAAL_CUSTOM_HEADERS__x-verwerking=Burgerzaken
-HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__RaadpleegMetBurgerservicenummer=BRPACT-Totaal
-HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetGeslachtsnaamEnGeboortedatum=BRPACT-ZoekenAlgemeen
-HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding__ZoekMetPostcodeEnHuisnummer=BRPACT-ZoekenAlgemeen
-KVK_CUSTOM_HEADERS__x-origin-oin=00000000000000000000
-```
-
-Without helm, a header without search type (`HAAL_CENTRAAL_CUSTOM_HEADERS__x-doelbinding=BRPACT-ZoekenAlgemeen`) can be combined with a value for one specific search type; the specific value takes precedence for that search type.
-
-### PABC (Platform Autorisatie Beheer Component)
-
-The integration with [PABC](https://github.com/Platform-Autorisatie-Beheer-Component/PABC-API) is optional. Setting **both** `settings.pabc.baseUrl` and `settings.pabc.apiKey` acts as a feature flag: when both are present, the integration is activated. The application name `kiss` is hardcoded in KISS.
-
-When PABC is active, the roles of a user come from PABC instead of the role claims of the Identity Provider. KISS only accepts PABC application roles whose names match the role names in `settings.oidc` (`klantcontactmedewerkerRole`, `redacteurRole`, `beheerderRole`, `kennisbankRole`). Leave those settings empty (KISS then uses the default names `Klantcontactmedewerker`, `Redacteur`, `Beheerder` and `Kennisbank`), or make sure the application roles in PABC have exactly the configured names.
-
-Set up PABC first, and only then deploy KISS with the PABC configuration. Otherwise no user gets a KISS application role.
-
-See the [PABC documentation](https://kiss-klantinteractie-servicesysteem.readthedocs.io/nl/stable/installation/pabc.html) for setup instructions.
-
-### When to configure the Logboek
-
-The logboek contains information about the handling of a contactverzoek in ITA (Interne Taak Afhandeling). KISS shows this information with the contactverzoeken of a klant. Functionally, the logboek is only used together with ITA.
-
-Note that the chart's [json schema](./values.schema.json) currently requires `settings.logboek.baseUrl`, `objectTypeUrl`, `objectTypeVersion` and `token` to be filled in. KISS itself treats the logboek as optional: only when all four `LOGBOEK_*` environment variables have a value, the logboek is shown.
-
-### Settings without a chart value
-
-KISS supports a few environment variables that this chart doesn't expose as a value. If you need them, set them with `extraEnvVars`. See also [Token or client ID and secret](#token-or-client-id-and-secret).
-
-| Env | Description |
-|-----|-------------|
-| `AFDELINGEN_CLIENT_ID`, `AFDELINGEN_CLIENT_SECRET` | Client ID and secret for the Objects API for afdelingen. The chart requires `settings.afdelingen.token` to be filled in; when the client ID and secret are also set, KISS uses those. |
-| `GROEPEN_CLIENT_ID`, `GROEPEN_CLIENT_SECRET` | Client ID and secret for the Objects API for groepen. The chart requires `settings.groepen.token` to be filled in; when the client ID and secret are also set, KISS uses those. |
-| `SDG_OBJECTEN_CLIENT_ID`, `SDG_OBJECTEN_CLIENT_SECRET` | Client ID and secret for the Objects API for Kennisartikelen (used by the sync job). When set, these are used instead of `settings.syncJobs.kennisbank.token`. |
-| `VAC_OBJECTEN_CLIENT_ID`, `VAC_OBJECTEN_CLIENT_SECRET` | Client ID and secret for the Objects API for VACs (used by the sync job only). When set, these are used instead of `settings.syncJobs.vac.token`. |
-| `REGISTERS__<n>__INTERNE_TAAK_TOKEN` | Token for the Objects API for Interne Taken, instead of `interneTaak.clientId` and `interneTaak.clientSecret`. Leave those two empty when you use the token. |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

@@ -13,11 +13,11 @@ Beide gebruiken dezelfde PABC-configuratie (`PABC_BASE_URL` / `PABC_API_KEY`) en
 
 ### Zonder PABC (standaard werking)
 
-Als PABC **niet** geconfigureerd is, worden de applicatierollen van een ingelogde gebruiker op exact dezelfde manier bepaald als voorheen: KISS leest de rol-claims die de Identity Provider meegeeft, en vergelijkt deze met de geconfigureerde rolnamen (`OIDC_REDACTEUR_ROLE`, `OIDC_BEHEERDER_ROLE`, `OIDC_KLANTCONTACTMEDEWERKER_ROLE`, `OIDC_KENNISBANK_ROLE`, zie [configuratie.md](configuratie.md)).
+Als PABC **niet** geconfigureerd is, worden de applicatierollen van een ingelogde gebruiker op exact dezelfde manier bepaald als voorheen: KISS leest de rol-claims die de Identity Provider meegeeft, en vergelijkt deze met de geconfigureerde rolnamen (`OIDC_REDACTEUR_ROLE`, `OIDC_BEHEERDER_ROLE`, `OIDC_KLANTCONTACTMEDEWERKER_ROLE`, `OIDC_KENNISBANK_ROLE`). Deze instellingen staan beschreven in de README van de helm chart, zie [Configuratie](configuratie.md).
 
 ### Met PABC
 
-Als PABC **wel** geconfigureerd is, wordt de oude rol-configuratie van KISS genegeerd. In plaats daarvan gebeurt het volgende, direct na het inloggen:
+Als PABC **wel** geconfigureerd is, bepaalt PABC de applicatierollen in plaats van de rol-claims van de Identity Provider. Let op: KISS accepteert alleen PABC-applicatierollen waarvan de naam overeenkomt met de geconfigureerde rolnamen hierboven. Laat die instellingen leeg (KISS gebruikt dan de standaardnamen `Klantcontactmedewerker`, `Redacteur`, `Beheerder` en `Kennisbank`), of zorg dat de applicatierollen in PABC precies dezelfde naam hebben. Direct na het inloggen gebeurt het volgende:
 
 1. KISS stuurt de functionele rollen van de zojuist ingelogde gebruiker (de rol-claims van de Identity Provider) naar PABC.
 2. PABC geeft de applicatierollen terug die bij die functionele rollen horen, voor de applicatie `kiss`.
@@ -59,15 +59,9 @@ De PABC-koppeling (voor zowel applicatierollen bij inloggen als zaaktype-filteri
 
 **Let op:** Als de feature flag actief is maar PABC nog niet correct is ingericht (geen applicatierollen gekoppeld aan de juiste functionele rollen), dan krijgt geen enkele gebruiker een KISS-applicatierol en ziet niemand zaken. Richt daarom eerst PABC in, en deploy daarna pas KISS met de PABC-configuratie.
 
-## Environment Variabelen
+## Configuratie
 
-| Variabele                            | Verplicht | Uitleg                                                                                                                                                |
-| ------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PABC_BASE_URL`                      | Ja\*      | De base URL van de PABC API, zonder trailing slash. Bijvoorbeeld: `https://pabc.mijngemeente.nl`                                                      |
-| `PABC_API_KEY`                       | Ja\*      | De API key voor authenticatie bij PABC (wordt meegestuurd als `X-API-KEY` header)                                                                     |
-| `REGISTERS__X__ZAAKSYSTEEM_USE_PABC` | Nee       | Per zaaksysteem instellen of PABC-filtering wordt toegepast. Default: `true`. Zet op `false` voor zaaksystemen met eigen autorisatie (bijv. e-Suite). |
-
-\* Verplicht als je de PABC-koppeling wilt activeren. Afwezigheid van deze variabelen schakelt de feature uit.
+De instellingen voor PABC (`settings.pabc.baseUrl` / `PABC_BASE_URL`, `settings.pabc.apiKey` / `PABC_API_KEY` en per zaaksysteem `usePabc` / `REGISTERS__<n>__ZAAKSYSTEEM_USE_PABC`) staan beschreven in de README van de helm chart, zie [Configuratie](configuratie.md).
 
 De applicatienaam (`kiss`) en de applicatierol voor zaaktype-filtering (`klantcontactmedewerker-zaaktype-filter`) zijn hardcoded in KISS ([PabcConfig.cs](../../Kiss.Bff/Extern/Pabc/PabcConfig.cs)).
 
@@ -83,7 +77,7 @@ Maak een applicatie aan in PABC met de naam `kiss`.
 
 Maak binnen de KISS-applicatie de applicatierollen aan die je nodig hebt:
 
-- Voor **KISS-applicatierollen bij inloggen**: `Redacteur`, `Beheerder`, `Klantcontactmedewerker`, `Kennisbank` (de standaard KISS-rolnamen — zie hierboven, niet hernoemen). Deze rollen mag je **niet** koppelen aan een zaaktype/entity type in PABC, anders tellen ze niet mee als KISS-applicatierol.
+- Voor **KISS-applicatierollen bij inloggen**: `Redacteur`, `Beheerder`, `Klantcontactmedewerker`, `Kennisbank` (de standaard KISS-rolnamen; heb je in KISS andere rolnamen ingesteld, gebruik dan precies die namen — zie hierboven). Deze rollen mag je **niet** koppelen aan een zaaktype/entity type in PABC, anders tellen ze niet mee als KISS-applicatierol.
 - Voor **zaaktype-filtering**: een applicatierol met de naam `klantcontactmedewerker-zaaktype-filter`, gekoppeld aan de gewenste zaaktypes.
 
 **Let op:** dit moeten twee aparte applicatierollen zijn, ook als ze aan dezelfde functionele rol gekoppeld worden. Eén PABC-mapping kan niet tegelijk "zonder entity type" én "gekoppeld aan (alle) zaaktypes" zijn voor dezelfde combinatie van functionele rol en applicatierol — dat is een tegenstrijdige configuratie die PABC niet toestaat.
@@ -96,7 +90,7 @@ Voeg de zaaktypes toe die in KISS zichtbaar moeten zijn als entity types (type: 
 
 Koppel de functionele rollen uit je Identity Provider aan de gewenste applicatierollen van KISS:
 
-- Koppel aan de rollen `Redacteur`/`Beheerder`/`Klantcontactmedewerker`/`Kennisbank` **zonder** zaaktype, zodat gebruikers de bijbehorende KISS-applicatierol krijgen bij het inloggen.
+- Koppel aan de rollen `Redacteur`/`Beheerder`/`Klantcontactmedewerker`/`Kennisbank` (of de rolnamen die je in KISS hebt ingesteld) **zonder** zaaktype, zodat gebruikers de bijbehorende KISS-applicatierol krijgen bij het inloggen.
 - Koppel aan de rol `klantcontactmedewerker-zaaktype-filter` **met** de gewenste zaaktypes, zodat bepaald wordt welke gebruikers welke zaaktypes mogen inzien.
 
 **Tip:** De naam van de functionele rol in PABC moet exact overeenkomen met de rolnaam zoals die door de Identity Provider wordt meegegeven.

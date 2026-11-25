@@ -8,11 +8,13 @@ De configuratie van KISS is beschreven in de {{ helm_readme_link }}. Die README 
 
 De link hierboven verwijst naar de README van dezelfde versie als deze documentatie ({{ helm_readme_version }}).
 
-**Andere versie van KISS?** Vervang dan `<versie>` in deze URL door je KISS-versie (bijvoorbeeld `v3.2.2`):
+**Andere versie van KISS?** Vervang dan `<versie>` in deze URL door je KISS-versie (bijvoorbeeld `vX.Y.Z`):
 
 ```text
 https://github.com/Klantinteractie-Servicesysteem/KISS-frontend/blob/<versie>/helm/kiss-chart/README.md
 ```
+
+Gebruik je een versie van vóór deze wijziging? Dan staat de volledige configuratie nog op deze pagina in de documentatie van die versie. Kies die versie via het versiemenu van Read the Docs.
 
 Hieronder staat achtergrondinformatie die helpt om de configuratie te begrijpen.
 
@@ -28,18 +30,3 @@ Daarnaast zijn er bronnen die binnen KISS doorzocht moeten worden. Die worden vi
 - SharePoint-sites en websites kunnen ook als bron worden toegevoegd.
 
 KISS-Elastic-Sync is het component dat zorgt dat deze bronnen naar de juiste indexen in Elasticsearch worden gepushed, met de benodigde gegevens hieraan toegevoegd. Websites worden gecrawld door de Elastic Open Crawler. Zie ook [Elasticsearch](../configuration/elastic.md).
-
-## Rollen
-
-KISS kent vier rollen. Welke rol een medewerker heeft, wordt bepaald door de rol-claims van de Identity Provider, of door [PABC](pabc.md) als die koppeling is ingericht. Zie ook [Configuratie van uw Identity Provider](../configuration/identity-provider.md).
-
-| Rol | Wat kan een medewerker met deze rol |
-| --- | --- |
-| Klantcontactmedewerker | Contactmomenten en Contactverzoeken registreren, en zoeken in bronnen. |
-| Redacteur | De inhoud bewerken van Nieuws- en Werkberichten, Links en VAC's (indien geconfigureerd). Zie de [Handleiding beheer KISS](../manual/manual.rst). |
-| Beheerder | De inhoud bewerken van Skills, Kanalen, Gespreksresultaten en Contactverzoek formulieren. Zie de [Handleiding beheer KISS](../manual/manual.rst). |
-| Kennisbank | Alléén zoeken in de geconfigureerde bronnen zoals Kennisbank, VAC, Smoelenboek en websites. |
-
-## Managementinformatie
-
-Met `MANAGEMENTINFORMATIE_API_KEY` stel je het secret in waarmee KISS het JWT token valideert bij het opvragen van contactmomentdetails. Zie de [Handleiding beheer KISS, hoofdstuk managementinformatie](../manual/managementinformatie.md) voor informatie over het gebruik van deze API.

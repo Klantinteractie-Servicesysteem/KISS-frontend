@@ -1,6 +1,9 @@
 apiVersion: v2
 name: kiss-chart
-description: A helm chart for Klantinteractie Service Systeem.
+description: >-
+  A helm chart for Klantinteractie Service Systeem.
+  The README of this chart is generated from the comments in values.yaml, so edit those instead of the README.
+  Every KISS setting lists the environment variable it sets (Env), for installations without this chart.
 type: application
 
 # Chart version
