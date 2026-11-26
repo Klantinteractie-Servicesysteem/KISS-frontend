@@ -15,7 +15,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: install helm-schema
-        run: helm plugin install https://github.com/dadav/helm-schema
+        run: helm plugin install https://github.com/dadav/helm-schema --verify=false
       - name: Run helm-schema
         run: helm schema --helm-docs-compatibility-mode -k additionalProperties -k required
         working-directory: ./helm/kiss-chart
